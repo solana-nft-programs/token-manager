@@ -1,0 +1,9 @@
+{
+  "extends": "@saberhq/tsconfig/tsconfig.lib.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "noEmit": true,
+    "types": ["mocha"]
+  },
+  "include": ["src/", "tests/"]
+}

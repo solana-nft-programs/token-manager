@@ -1,0 +1,41 @@
+anchor_version = "0.20.1"
+solana_version = "1.9.0"
+
+[scripts]
+test = "yarn mocha"
+
+[provider]
+cluster = "localnet"
+wallet = "./tests/test-key.json"
+
+[programs.mainnet]
+cardinal_token_manager = "QMMD16kjauP5knBwxNUJRZ1Z5o3deBuFrqVjBVmmqto"
+cardinal_payment_collector = "QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB"
+cardinal_claim_approver = "QMWoBmAyJLAsA1Lh9ugMTw2gciTihncciphzdNzdZYV"
+cardinal_transfer_approver = "QREGBnEj9Sa5uR91AV8u3FxThgP5ZCvdZUW2bHAkfNc"
+cardinal_time_invalidator = "QoP6NfrQbaGnccXQrMLUkog2tQZ4C1RFgJcwDnT8Kmz"
+cardinal_usage_invalidator = "QRDxhMw1P2NEfiw5mYXG79bwfgHTdasY2xNP76XSea9"
+
+[programs.devnet]
+cardinal_token_manager = "QMMD16kjauP5knBwxNUJRZ1Z5o3deBuFrqVjBVmmqto"
+cardinal_payment_collector = "QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB"
+cardinal_claim_approver = "QMWoBmAyJLAsA1Lh9ugMTw2gciTihncciphzdNzdZYV"
+cardinal_transfer_approver = "QREGBnEj9Sa5uR91AV8u3FxThgP5ZCvdZUW2bHAkfNc"
+cardinal_time_invalidator = "QoP6NfrQbaGnccXQrMLUkog2tQZ4C1RFgJcwDnT8Kmz"
+cardinal_usage_invalidator = "QRDxhMw1P2NEfiw5mYXG79bwfgHTdasY2xNP76XSea9"
+
+[programs.testnet]
+cardinal_token_manager = "QMMD16kjauP5knBwxNUJRZ1Z5o3deBuFrqVjBVmmqto"
+cardinal_payment_collector = "QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB"
+cardinal_claim_approver = "QMWoBmAyJLAsA1Lh9ugMTw2gciTihncciphzdNzdZYV"
+cardinal_transfer_approver = "QREGBnEj9Sa5uR91AV8u3FxThgP5ZCvdZUW2bHAkfNc"
+cardinal_time_invalidator = "QoP6NfrQbaGnccXQrMLUkog2tQZ4C1RFgJcwDnT8Kmz"
+cardinal_usage_invalidator = "QRDxhMw1P2NEfiw5mYXG79bwfgHTdasY2xNP76XSea9"
+
+[programs.localnet]
+cardinal_token_manager = "QMMD16kjauP5knBwxNUJRZ1Z5o3deBuFrqVjBVmmqto"
+cardinal_payment_collector = "QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB"
+cardinal_claim_approver = "QMWoBmAyJLAsA1Lh9ugMTw2gciTihncciphzdNzdZYV"
+cardinal_transfer_approver = "QREGBnEj9Sa5uR91AV8u3FxThgP5ZCvdZUW2bHAkfNc"
+cardinal_time_invalidator = "QoP6NfrQbaGnccXQrMLUkog2tQZ4C1RFgJcwDnT8Kmz"
+cardinal_usage_invalidator = "QRDxhMw1P2NEfiw5mYXG79bwfgHTdasY2xNP76XSea9"

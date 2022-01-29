@@ -1,0 +1,23 @@
+[paths]
+artifacts = "../program-artifacts"
+program_keypairs = "~/deployments/cardinal/programs"
+
+[networks.devnet]
+deployer = "~/deployments/cardinal/deployers/devnet.json"
+upgrade_authority = "Hqedjjj4JGpAvhLXRsfLHatBgikGarfwHFDFjLsmth2y"
+url = "https://api.devnet.solana.com"
+
+[networks.testnet]
+deployer = "~/deployments/cardinal/deployers/testnet.json"
+upgrade_authority = "Hqedjjj4JGpAvhLXRsfLHatBgikGarfwHFDFjLsmth2y"
+url = "https://api.testnet.solana.com"
+
+[networks.mainnet]
+deployer = "~/deployments/cardinal/deployers/mainnet.json"
+upgrade_authority = "Hqedjjj4JGpAvhLXRsfLHatBgikGarfwHFDFjLsmth2y"
+url = "https://api.mainnet-beta.solana.com"
+
+[networks.localnet]
+deployer = "~/deployments/cardinal/deployers/localnet.json"
+upgrade_authority = "Hqedjjj4JGpAvhLXRsfLHatBgikGarfwHFDFjLsmth2y"
+url = "http://localhost:8899"

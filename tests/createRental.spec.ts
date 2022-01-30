@@ -30,7 +30,7 @@ describe("Rentals", () => {
       {
         paymentAmount: 10,
         paymentMint: paymentMint.publicKey,
-        expiration: Date.now() / 1000,
+        expiration: Date.now() / 1000 + 1,
       }
     );
 

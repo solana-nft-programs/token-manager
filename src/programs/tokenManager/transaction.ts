@@ -1,7 +1,7 @@
 import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 
-import { init } from "./instructions";
+import { init } from "./instruction";
 
 export const withInit = async (
   connection: Connection,

@@ -1,9 +1,9 @@
 import type { AnchorTypes } from "@saberhq/anchor-contrib";
 
-import type { CardinalTimeInvalidator } from "../../idl/cardinal_time_invalidator";
+import type { TIME_INVALIDATOR_PROGRAM } from "./constants";
 
 export type TimeInvalidatorTypes = AnchorTypes<
-  CardinalTimeInvalidator,
+  TIME_INVALIDATOR_PROGRAM,
   {
     tokenManager: TimeInvalidatorData;
   }

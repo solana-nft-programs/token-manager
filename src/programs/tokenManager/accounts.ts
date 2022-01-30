@@ -1,9 +1,9 @@
 import type { AnchorTypes } from "@saberhq/anchor-contrib";
 
-import type { CardinalTokenManager } from "../../types/cardinal_token_manager";
+import type { TOKEN_MANAGER_PROGRAM } from "./constants";
 
 export type TokenManagerTypes = AnchorTypes<
-  CardinalTokenManager,
+  TOKEN_MANAGER_PROGRAM,
   {
     tokenManager: TokenManagerData;
   }

@@ -1,9 +1,9 @@
 import type { AnchorTypes } from "@saberhq/anchor-contrib";
 
-import type { CardinalPaymentManager } from "../../types/cardinal_payment_manager";
+import type { PAYMENT_MANAGER_PROGRAM } from "./constants";
 
 export type PaymentManagerTypes = AnchorTypes<
-  CardinalPaymentManager,
+  PAYMENT_MANAGER_PROGRAM,
   {
     tokenManager: PaymentManagerData;
   }

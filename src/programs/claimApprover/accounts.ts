@@ -1,9 +1,9 @@
 import type { AnchorTypes } from "@saberhq/anchor-contrib";
 
-import type { CardinalPaidClaimApprover } from "../../idl/cardinal_paid_claim_approver";
+import type { CLAIM_APPROVER_PROGRAM } from "./constants";
 
 export type ClaimApproverTypes = AnchorTypes<
-  CardinalPaidClaimApprover,
+  CLAIM_APPROVER_PROGRAM,
   {
     tokenManager: PaidClaimApprover;
   }

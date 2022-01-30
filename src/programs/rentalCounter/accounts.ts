@@ -1,9 +1,9 @@
 import type { AnchorTypes } from "@saberhq/anchor-contrib";
 
-import type { CardinalRentalCounter } from "../../idl/cardinal_rental_counter";
+import type { RENTAL_COUNTER_PROGRAM } from "./constants";
 
 export type RentalCounterTypes = AnchorTypes<
-  CardinalRentalCounter,
+  RENTAL_COUNTER_PROGRAM,
   {
     rentalCounter: RentalCounter;
   }

@@ -4,10 +4,8 @@ use anchor_lang::prelude::*;
 pub enum ErrorCode {
     #[msg("Token account not owned by the claim approver")]
     InvalidPaymentTokenAccount,
-    #[msg("Token account not owned by the payer")]
-    InvalidPayerTokenAccount,
+    #[msg("Token account not owned by the issuer")]
+    InvalidIssuerTokenAccount,
     #[msg("Invalid token manager for this claim approver")]
-    InvalidTokenManager,
-    #[msg("Payment manager is invalid")]
-    InvalidPaymentManager
+    InvalidTokenManager
 }

@@ -38,6 +38,7 @@ pub struct TokenManager {
     pub amount: u64,
     pub kind: u8,
     pub state: u8,
+    pub recipient_token_account: Pubkey,
     pub payment_manager: Option<Pubkey>,
     pub claim_authority: Option<Pubkey>,
     pub transfer_authority: Option<Pubkey>,
@@ -46,12 +47,8 @@ pub struct TokenManager {
 
 pub const CLAIM_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<ClaimReceipt>() + 8; 
 #[account]
-pub struct ClaimReceipt {
-    pub bump: u8,
-}
+pub struct ClaimReceipt {}
 
 pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TranferReceipt>() + 8; 
 #[account]
-pub struct TranferReceipt {
-    pub bump: u8,
-}
+pub struct TranferReceipt {}

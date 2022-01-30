@@ -17,8 +17,7 @@ pub struct ClaimCtx<'info> {
     #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
 
-    // claim_receipt
-
+    // TODO claim_receipt
 
     // recipient
     #[account(mut)]
@@ -34,7 +33,8 @@ pub struct ClaimCtx<'info> {
 }
 
 pub fn handler(ctx: Context<ClaimCtx>) -> ProgramResult {
-    let token_manager = &ctx.accounts.token_manager;
+    let token_manager = &mut ctx.accounts.token_manager;
+    token_manager.recipient_token_account = ctx.accounts.recipient_token_account.key();
         
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
@@ -66,7 +66,7 @@ pub fn handler(ctx: Context<ClaimCtx>) -> ProgramResult {
         let cpi_accounts = FreezeAccount {
             account: ctx.accounts.recipient_token_account.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
-            authority: ctx.accounts.token_manager.to_account_info(),
+            authority: token_manager.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);

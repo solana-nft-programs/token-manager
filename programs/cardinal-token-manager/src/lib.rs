@@ -4,11 +4,31 @@ pub mod errors;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("crt4Ymiqtk3M5w6JuKDT7GuZfUDiPLnhwRVqymSSBBn");
+declare_id!("mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz");
 
 #[program]
 pub mod cardinal_token_manager {
     use super::*;
+
+    pub fn init(ctx: Context<InitCtx>, seed: Vec<u8>, bump: u8, num_invalidators: u8) -> ProgramResult {
+        init::handler(ctx, seed, bump, num_invalidators)
+    }
+
+    pub fn set_payment_manager(ctx: Context<SetPaymentManagerCtx>, payment_manager: Pubkey) -> ProgramResult {
+        set_payment_manager::handler(ctx, payment_manager)
+    }
+
+    pub fn set_claim_authority(ctx: Context<SetClaimAuthorityCtx>, claim_authority: Pubkey) -> ProgramResult {
+        set_claim_authority::handler(ctx, claim_authority)
+    }
+
+    pub fn set_transfer_authority(ctx: Context<SetTransferAuthorityCtx>, transfer_authority: Pubkey) -> ProgramResult {
+        set_transfer_authority::handler(ctx, transfer_authority)
+    }
+
+    pub fn add_invalidator(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> ProgramResult {
+        add_invalidator::handler(ctx, invalidator)
+    }
 
     pub fn issue(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
         issue::handler(ctx, ix)

@@ -6,33 +6,25 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct IssueIx {
-    pub bump: u8,
     pub amount: u64,
     pub kind: u8,
-    pub payment_collector: Option<Pubkey>,
-    pub claim_authority: Option<Pubkey>,
-    pub transfer_authority: Option<Pubkey>,
-    pub invalidators: Vec<Pubkey>,
 }
 
 #[derive(Accounts)]
 #[instruction(ix: IssueIx)]
 pub struct IssueCtx<'info> {
-    #[account(
-        init,
-        payer = payer,
-        space = token_manager_size(ix.invalidators.len()),
-        seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.key().as_ref()], bump = ix.bump,
-    )]
+    #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint = token_manager_token_account.owner == token_manager.key() @ ErrorCode::InvalidTokenManagerTokenAccount)]
     token_manager_token_account: Box<Account<'info, TokenAccount>>,
 
     // issuer
+    #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
     issuer: Signer<'info>,
     #[account(mut, constraint = issuer_token_account.owner == issuer.key() @ ErrorCode::InvalidIssuerTokenAccount)]
     issuer_token_account: Box<Account<'info, TokenAccount>>,
 
+    // todo maybe just use the mint on the issuer_token_account
     mint: Box<Account<'info, Mint>>,
 
     // other
@@ -48,16 +40,10 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
     }
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
-    token_manager.bump = ix.bump;
-    token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.mint = ctx.accounts.mint.key();
     token_manager.amount = ix.amount;
     token_manager.kind = ix.kind;
     token_manager.state = TokenManagerState::Issued as u8;
-    token_manager.payment_collector = ix.payment_collector;
-    token_manager.claim_authority = ix.claim_authority;
-    token_manager.transfer_authority = ix.transfer_authority;
-    token_manager.invalidators = ix.invalidators;
 
     // transfer token to token manager token account
     let cpi_accounts = Transfer {

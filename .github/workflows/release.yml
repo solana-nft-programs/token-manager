@@ -139,8 +139,8 @@ jobs:
 
       - name: Install Yarn dependencies
         run: yarn install
-      - name: Parse IDLs
-        run: nix shell .#ci --command yarn idl:generate
+      # - name: Parse IDLs
+      #   run: nix shell .#ci --command yarn idl:generate
       - run: yarn docs:generate
       - run: cp -R images/ site/
 

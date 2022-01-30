@@ -45,10 +45,12 @@ pub struct TokenManager {
     pub invalidators: Vec<Pubkey>,
 }
 
+pub const CLAIM_RECEIPT_SEED: &str = "claim-receipt";
 pub const CLAIM_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<ClaimReceipt>() + 8; 
 #[account]
 pub struct ClaimReceipt {}
 
+pub const TRANSFER_RECEIPT_SEED: &str = "transfer-receipt";
 pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TranferReceipt>() + 8; 
 #[account]
 pub struct TranferReceipt {}

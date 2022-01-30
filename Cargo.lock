@@ -433,6 +433,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cardinal-rental-counter"
+version = "0.0.1"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "cardinal-token-manager",
+ "proptest",
+ "solana-program",
+ "spl-associated-token-account",
+ "spl-token",
+]
+
+[[package]]
 name = "cardinal-time-invalidator"
 version = "0.0.1"
 dependencies = [

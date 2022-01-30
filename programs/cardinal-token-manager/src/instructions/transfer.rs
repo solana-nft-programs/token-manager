@@ -5,8 +5,10 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct ClaimCtx<'info> {
-    #[account(mut, constraint = token_manager.state == TokenManagerState::Issued as u8 @ ErrorCode::InvalidTokenManagerState)]
+pub struct TransferCtx<'info> {
+    #[account(mut, constraint =
+        token_manager.state == TokenManagerState::Claimed as u8
+    )]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint =
         token_manager_token_account.owner == token_manager.key()
@@ -17,7 +19,14 @@ pub struct ClaimCtx<'info> {
     #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
 
-    // recipient
+    // current
+    #[account(mut, constraint =
+        && recipient_token_account.key() == token_manager.recipient_token_account
+        @ ErrorCode::InvalidIssuerTokenAccount
+    )]
+    current_holder_token_account: Box<Account<'info, TokenAccount>>,
+
+    // new recipient
     #[account(mut)]
     recipient: Signer<'info>,
     #[account(mut, constraint =
@@ -27,12 +36,12 @@ pub struct ClaimCtx<'info> {
     )]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
 
-    // TODO claim receipt
+    // TODO transfer receipt
 
     token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<ClaimCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<TransferCtx>) -> ProgramResult {
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.recipient_token_account = ctx.accounts.recipient_token_account.key();
         

@@ -20,8 +20,7 @@
   "scripts": {
     "build": "rm -fr dist/ && tsc -P tsconfig.cjs.json && tsc -P tsconfig.esm.json",
     "clean": "rm -fr dist/",
-    "idl:generate": "./scripts/parse-idls.sh && ./scripts/generate-idl-types.sh",
-    "idl:generate:nolint": "./scripts/parse-idls.sh && RUN_ESLINT=none ./scripts/generate-idl-types.sh",
+    "idl:generate": "./scripts/generate-idls-types.sh",
     "typecheck": "tsc",
     "lint": "eslint . --cache",
     "lint:ci": "eslint . --max-warnings=0",
@@ -83,6 +82,7 @@
     "*.{js,json,jsx,html,css,md}": "prettier --write"
   },
   "dependencies": {
+    "@solana/spl-token": "^0.1.8",
     "tiny-invariant": "^1.2.0",
     "tslib": "^2.3.1"
   },

@@ -6,7 +6,7 @@ use {
 
 #[derive(Accounts)]
 pub struct InvalidateCtx<'info> {
-    #[account(mut, constraint = token_manager.state == TokenManagerState::Issued as u8)]
+    #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint =
         token_manager_token_account.owner == token_manager.key()
@@ -29,9 +29,10 @@ pub struct InvalidateCtx<'info> {
     #[account(mut, constraint = issuer_token_account.owner == token_manager.issuer @ ErrorCode::InvalidIssuerTokenAccount)]
     issuer_token_account: Box<Account<'info, TokenAccount>>,
 
-    // other
-    #[account(mut)]
+    // invalidator
+    #[account(mut, constraint = token_manager.invalidators.contains(&invalidator.key()) @ ErrorCode::InvalidInvalidator)]
     invalidator: Signer<'info>,
+    
     token_program: Program<'info, Token>,
 }
 

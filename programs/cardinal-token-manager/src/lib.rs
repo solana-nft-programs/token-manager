@@ -30,6 +30,14 @@ pub mod cardinal_token_manager {
         add_invalidator::handler(ctx, invalidator)
     }
 
+    pub fn create_claim_receipt(ctx: Context<CreateClaimReceiptCtx>, bump: u8, target: Pubkey) -> ProgramResult {
+        create_claim_receipt::handler(ctx, bump, target)
+    }
+
+    pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, bump: u8, target: Pubkey) -> ProgramResult {
+        create_transfer_receipt::handler(ctx, bump, target)
+    }
+
     pub fn issue(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
         issue::handler(ctx, ix)
     }

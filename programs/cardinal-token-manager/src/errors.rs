@@ -14,8 +14,16 @@ pub enum ErrorCode {
     InvalidInvalidatorTokenAccount,
     #[msg("Token manager kind is not valid")]
     InvalidTokenManagerKind,
+    #[msg("Invalid claim authority")]
+    InvalidClaimAuthority,
+    #[msg("Invalid transfer authority")]
+    InvalidTransferAuthority,
     #[msg("Invalid issuer")]
     InvalidIssuer,
+    #[msg("Invalid invalidator")]
+    InvalidInvalidator,
     #[msg("Invalid mint")]
     InvalidMint,
+    #[msg("Invalid token manager state")]
+    InvalidTokenManagerState,
 }

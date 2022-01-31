@@ -18,10 +18,10 @@ Carinal protocol provides a service for rentals that allow anybody to spin up th
 
 ## Packages
 
-| Package                   | Description                              | Version                                                                                                                      | Docs                                                                                                   |
-| :------------------------ | :--------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
-| `cardinal-token-manager`  | Mines multiple quarries at the same time | [![Crates.io](https://img.shields.io/crates/v/cardinal-token-manager)](https://crates.io/crates/cardinal-token-manager)      | [![Docs.rs](https://docs.rs/cardinal-token-manager/badge.svg)](https://docs.rs/cardinal-token-manager) |
-| `@cardinal/token-manager` | TypeScript SDK for token-manager         | [![npm](https://img.shields.io/npm/v/@cardinal/token-manager.svg)](https://www.npmjs.com/package/@quarryprotocol/quarry-sdk) | [![Docs](https://img.shields.io/badge/docs-typedoc-blue)](https://docs.cardinal.so/ts/)                |
+| Package                   | Description                              | Version                                                                                                                   | Docs                                                                                                   |
+| :------------------------ | :--------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------- |
+| `cardinal-token-manager`  | Mines multiple quarries at the same time | [![Crates.io](https://img.shields.io/crates/v/cardinal-token-manager)](https://crates.io/crates/cardinal-token-manager)   | [![Docs.rs](https://docs.rs/cardinal-token-manager/badge.svg)](https://docs.rs/cardinal-token-manager) |
+| `@cardinal/token-manager` | TypeScript SDK for token-manager         | [![npm](https://img.shields.io/npm/v/@cardinal/token-manager.svg)](https://www.npmjs.com/package/@cardinal/token-manager) | [![Docs](https://img.shields.io/badge/docs-typedoc-blue)](https://docs.cardinal.so/ts/)                |
 
 ## Addresses
 

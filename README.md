@@ -31,10 +31,6 @@ Carinal protocol provides a service for rentals that allow anybody to spin up th
 
 Program addresses are the same on devnet, testnet, and mainnet-beta.
 
-## Addresses
-
-Program addresses are the same on devnet, testnet, and mainnet-beta.
-
 - TokenManager: [`mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz`](https://explorer.solana.com/address/mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz)
 - PaymentManager: [`cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn`](https://explorer.solana.com/address/cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn)
 - PaidClaimApprover: [`pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF`](https://explorer.solana.com/address/pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF)

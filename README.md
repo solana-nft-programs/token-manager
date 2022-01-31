@@ -14,7 +14,7 @@
 
 Cardinal is a composable protocol for issuing conditional NFTs that are managed by the protocol. Using the invalidators and approvers in various ways allows for building rentals, in-game items, DNS services and more.
 
-Carinal protocol provides a service for rentals that allow anybody to spin up their own rental manager with distinct parameters that allow their users to rent from the rental manager or create one-off rentals.
+Carinal protocol provides a token-manager implementation as well as basic plugins for paid claim, permissioned transfer, and time invalidation. These plugins can be extended to support various use cases or similar ones built with entirely new logic for token handling the token invalidation.
 
 ## Packages
 

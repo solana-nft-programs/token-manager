@@ -13,9 +13,9 @@ pub struct SetClaimAuthorityCtx<'info> {
     issuer: Signer<'info>
 }
 
-pub fn handler(ctx: Context<SetClaimAuthorityCtx>, claim_authority: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<SetClaimAuthorityCtx>, claim_approver: Pubkey) -> ProgramResult {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
-    token_manager.claim_authority = Some(claim_authority);
+    token_manager.claim_approver = Some(claim_approver);
     return Ok(())
 }

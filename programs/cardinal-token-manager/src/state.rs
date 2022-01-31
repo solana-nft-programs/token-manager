@@ -40,7 +40,7 @@ pub struct TokenManager {
     pub state: u8,
     pub recipient_token_account: Pubkey,
     pub payment_manager: Option<Pubkey>,
-    pub claim_authority: Option<Pubkey>,
+    pub claim_approver: Option<Pubkey>,
     pub transfer_authority: Option<Pubkey>,
     pub invalidators: Vec<Pubkey>,
 }

@@ -10,15 +10,15 @@ pub struct CreateClaimReceiptCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(mut, constraint =
-        token_manager.claim_authority != None
-        && token_manager.claim_authority.unwrap() == claim_authority.key()
+        token_manager.claim_approver != None
+        && token_manager.claim_approver.unwrap() == claim_approver.key()
         @ ErrorCode::InvalidIssuer
     )]
-    claim_authority: Signer<'info>,
+    claim_approver: Signer<'info>,
 
     #[account(
         init,
-        payer = claim_authority,
+        payer = claim_approver,
         seeds = [CLAIM_RECEIPT_SEED.as_bytes(), token_manager.key().as_ref(), target.key().as_ref()], bump = bump,
         space = CLAIM_RECEIPT_SIZE,
     )]

@@ -1,6 +1,6 @@
 pub mod init;
 pub mod set_payment_manager;
-pub mod set_claim_authority;
+pub mod set_claim_approver;
 pub mod set_transfer_authority;
 pub mod add_invalidator;
 pub mod create_claim_receipt;
@@ -12,7 +12,7 @@ pub mod invalidate;
 
 pub use init::*;
 pub use set_payment_manager::*;
-pub use set_claim_authority::*;
+pub use set_claim_approver::*;
 pub use set_transfer_authority::*;
 pub use add_invalidator::*;
 pub use create_claim_receipt::*;

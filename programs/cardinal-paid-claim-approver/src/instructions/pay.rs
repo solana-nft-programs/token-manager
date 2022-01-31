@@ -8,7 +8,7 @@ use {
 
 #[derive(Accounts)]
 pub struct PayCtx<'info> {
-    #[account(constraint = claim_approver.key() == token_manager.claim_authority.unwrap() @ ErrorCode::InvalidTokenManager)]
+    #[account(constraint = claim_approver.key() == token_manager.claim_approver.unwrap() @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
     payment_manager: Box<Account<'info, PaymentManager>>,
 

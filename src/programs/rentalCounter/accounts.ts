@@ -1,13 +1,34 @@
-import type { AnchorTypes } from "@saberhq/anchor-contrib";
+import { Program, Provider } from "@project-serum/anchor";
+import type { Connection, PublicKey } from "@solana/web3.js";
 
-import type { RENTAL_COUNTER_PROGRAM } from "./constants";
+import type { AccountData } from "../../utils";
+import { findRentalCounterAddress } from ".";
+import type { RENTAL_COUNTER_PROGRAM, RentalCounterData } from "./constants";
+import { RENTAL_COUNTER_ADDRESS, RENTAL_COUNTER_IDL } from "./constants";
 
-export type RentalCounterTypes = AnchorTypes<
-  RENTAL_COUNTER_PROGRAM,
-  {
-    rentalCounter: RentalCounter;
-  }
->;
+// TODO fix types
+export const getRentalCounter = async (
+  connection: Connection,
+  user: PublicKey
+): Promise<AccountData<RentalCounterData>> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const rentalCounterProgram = new Program<RENTAL_COUNTER_PROGRAM>(
+    RENTAL_COUNTER_IDL,
+    RENTAL_COUNTER_ADDRESS,
+    provider
+  );
 
-type Accounts = RentalCounterTypes["Accounts"];
-export type RentalCounter = Accounts["rentalCounter"];
+  const [rentalCounterId] = await findRentalCounterAddress(user);
+
+  const parsed = await rentalCounterProgram.account.rentalCounter.fetch(
+    rentalCounterId
+  );
+  return {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    parsed,
+    pubkey: rentalCounterId,
+  };
+};

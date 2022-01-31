@@ -5,7 +5,7 @@ solana_version = "1.9.0"
 test = "yarn mocha tests/*.spec.ts"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "./tests/test-key.json"
 
 [programs.mainnet]

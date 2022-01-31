@@ -58,7 +58,7 @@ export type CardinalTokenManager = {
       ]
     },
     {
-      "name": "setClaimAuthority",
+      "name": "setClaimApprover",
       "accounts": [
         {
           "name": "tokenManager",
@@ -73,7 +73,7 @@ export type CardinalTokenManager = {
       ],
       "args": [
         {
-          "name": "claimAuthority",
+          "name": "claimApprover",
           "type": "publicKey"
         }
       ]
@@ -116,6 +116,76 @@ export type CardinalTokenManager = {
       "args": [
         {
           "name": "invalidator",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "createClaimReceipt",
+      "accounts": [
+        {
+          "name": "tokenManager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "claimApprover",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "claimReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
+          "name": "target",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "createTransferReceipt",
+      "accounts": [
+        {
+          "name": "tokenManager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "transferReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
+          "name": "target",
           "type": "publicKey"
         }
       ]
@@ -327,7 +397,7 @@ export type CardinalTokenManager = {
             }
           },
           {
-            "name": "claimAuthority",
+            "name": "claimApprover",
             "type": {
               "option": "publicKey"
             }
@@ -447,13 +517,33 @@ export type CardinalTokenManager = {
     },
     {
       "code": 306,
+      "name": "InvalidClaimAuthority",
+      "msg": "Invalid claim authority"
+    },
+    {
+      "code": 307,
+      "name": "InvalidTransferAuthority",
+      "msg": "Invalid transfer authority"
+    },
+    {
+      "code": 308,
       "name": "InvalidIssuer",
       "msg": "Invalid issuer"
     },
     {
-      "code": 307,
+      "code": 309,
+      "name": "InvalidInvalidator",
+      "msg": "Invalid invalidator"
+    },
+    {
+      "code": 310,
       "name": "InvalidMint",
       "msg": "Invalid mint"
+    },
+    {
+      "code": 311,
+      "name": "InvalidTokenManagerState",
+      "msg": "Invalid token manager state"
     }
   ]
 };
@@ -518,7 +608,7 @@ export const IDL: CardinalTokenManager = {
       ]
     },
     {
-      "name": "setClaimAuthority",
+      "name": "setClaimApprover",
       "accounts": [
         {
           "name": "tokenManager",
@@ -533,7 +623,7 @@ export const IDL: CardinalTokenManager = {
       ],
       "args": [
         {
-          "name": "claimAuthority",
+          "name": "claimApprover",
           "type": "publicKey"
         }
       ]
@@ -576,6 +666,76 @@ export const IDL: CardinalTokenManager = {
       "args": [
         {
           "name": "invalidator",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "createClaimReceipt",
+      "accounts": [
+        {
+          "name": "tokenManager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "claimApprover",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "claimReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
+          "name": "target",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "createTransferReceipt",
+      "accounts": [
+        {
+          "name": "tokenManager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "transferReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
+          "name": "target",
           "type": "publicKey"
         }
       ]
@@ -787,7 +947,7 @@ export const IDL: CardinalTokenManager = {
             }
           },
           {
-            "name": "claimAuthority",
+            "name": "claimApprover",
             "type": {
               "option": "publicKey"
             }
@@ -907,13 +1067,33 @@ export const IDL: CardinalTokenManager = {
     },
     {
       "code": 306,
+      "name": "InvalidClaimAuthority",
+      "msg": "Invalid claim authority"
+    },
+    {
+      "code": 307,
+      "name": "InvalidTransferAuthority",
+      "msg": "Invalid transfer authority"
+    },
+    {
+      "code": 308,
       "name": "InvalidIssuer",
       "msg": "Invalid issuer"
     },
     {
-      "code": 307,
+      "code": 309,
+      "name": "InvalidInvalidator",
+      "msg": "Invalid invalidator"
+    },
+    {
+      "code": 310,
       "name": "InvalidMint",
       "msg": "Invalid mint"
+    },
+    {
+      "code": 311,
+      "name": "InvalidTokenManagerState",
+      "msg": "Invalid token manager state"
     }
   ]
 };

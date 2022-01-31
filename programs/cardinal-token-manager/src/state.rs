@@ -24,7 +24,7 @@ pub enum TokenManagerKind {
 }
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {
-    return (8 + 1 + 32 + 32 + 8 + 1 + 1 + 32 + 32 + 32 + num_invalidators * 32) as usize
+    return (8 + 1 + 1 + 32 + 32 + 8 + 1 + 1 + 32 + 32 + 32 + 32 + num_invalidators * 32) + 8 as usize
 }
 
 pub const MAX_INVALIDATORS: u8 = 5;

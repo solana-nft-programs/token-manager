@@ -1,5 +1,6 @@
 import { BN, Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
   Connection,
   PublicKey,
@@ -17,7 +18,7 @@ export const init = async (
   tokenManagerId: PublicKey,
   paymentManagerId: PublicKey,
   paymentAmount: number
-): Promise<TransactionInstruction> => {
+): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
@@ -30,17 +31,50 @@ export const init = async (
     tokenManagerId
   );
 
-  return claimApproverProgram.instruction.init(
-    claimApproverBump,
-    new BN(paymentAmount),
-    {
-      accounts: {
-        tokenManager: tokenManagerId,
-        paymentManager: paymentManagerId,
-        claimApprover: claimApproverId,
-        payer: wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    }
+  return [
+    claimApproverProgram.instruction.init(
+      claimApproverBump,
+      new BN(paymentAmount),
+      {
+        accounts: {
+          tokenManager: tokenManagerId,
+          paymentManager: paymentManagerId,
+          claimApprover: claimApproverId,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
+    claimApproverId,
+  ];
+};
+
+export const pay = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentManagerId: PublicKey,
+  paymentManagerTokenAccountId: PublicKey,
+  payerTokenAccountId: PublicKey
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+
+  const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
+    CLAIM_APPROVER_IDL,
+    CLAIM_APPROVER_ADDRESS,
+    provider
   );
+
+  const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
+  return claimApproverProgram.instruction.pay({
+    accounts: {
+      tokenManager: tokenManagerId,
+      paymentManager: paymentManagerId,
+      paymentManagerTokenAccount: paymentManagerTokenAccountId,
+      claimApprover: claimApproverId,
+      payer: wallet.publicKey,
+      payerTokenAccount: payerTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    },
+  });
 };

@@ -8,7 +8,7 @@ export const withInit = async (
   wallet: Wallet,
   seed: Uint8Array,
   transaction: Transaction
-): Promise<[Transaction, PublicKey]> => {
+): Promise<[PublicKey, Transaction]> => {
   const [ix, id] = await init(connection, wallet, seed);
-  return [transaction.add(ix), id];
+  return [id, transaction.add(ix)];
 };

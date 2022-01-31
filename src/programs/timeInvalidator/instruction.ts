@@ -16,7 +16,7 @@ export const init = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   expiration: number
-): Promise<TransactionInstruction> => {
+): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
@@ -28,16 +28,19 @@ export const init = async (
   const [timeInvalidatorId, timeInvalidatorBump] =
     await findTimeInvalidatorAddress(tokenManagerId);
 
-  return timeInvalidatorProgram.instruction.init(
-    timeInvalidatorBump,
-    new BN(expiration),
-    {
-      accounts: {
-        tokenManager: tokenManagerId,
-        timeInvalidator: timeInvalidatorId,
-        payer: wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    }
-  );
+  return [
+    timeInvalidatorProgram.instruction.init(
+      timeInvalidatorBump,
+      new BN(expiration),
+      {
+        accounts: {
+          tokenManager: tokenManagerId,
+          timeInvalidator: timeInvalidatorId,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
+    timeInvalidatorId,
+  ];
 };

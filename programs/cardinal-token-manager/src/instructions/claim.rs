@@ -37,6 +37,7 @@ pub fn handler(ctx: Context<ClaimCtx>) -> ProgramResult {
     token_manager.recipient_token_account = ctx.accounts.recipient_token_account.key();
         
     // get PDA seeds to sign with
+    // TODO not complete
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 

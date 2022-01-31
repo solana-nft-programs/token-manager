@@ -4,7 +4,7 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct SetClaimAuthorityCtx<'info> {
+pub struct SetClaimApproverCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
@@ -13,7 +13,7 @@ pub struct SetClaimAuthorityCtx<'info> {
     issuer: Signer<'info>
 }
 
-pub fn handler(ctx: Context<SetClaimAuthorityCtx>, claim_approver: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> ProgramResult {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.claim_approver = Some(claim_approver);

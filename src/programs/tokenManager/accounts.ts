@@ -1,15 +1,31 @@
-import type { AnchorTypes } from "@saberhq/anchor-contrib";
+import { Program, Provider } from "@project-serum/anchor";
+import type { Connection, PublicKey } from "@solana/web3.js";
 
-import type { TOKEN_MANAGER_PROGRAM } from "./constants";
+import type { AccountData } from "../../utils";
+import type { TOKEN_MANAGER_PROGRAM, TokenManagerData } from "./constants";
+import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
 
-export type TokenManagerTypes = AnchorTypes<
-  TOKEN_MANAGER_PROGRAM,
-  {
-    tokenManager: TokenManagerData;
-  }
->;
+// TODO fix types
+export const getTokenManager = async (
+  connection: Connection,
+  tokenManagerId: PublicKey
+): Promise<AccountData<TokenManagerData>> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
 
-export type TokenManagerError = TokenManagerTypes["Error"];
-
-type Accounts = TokenManagerTypes["Accounts"];
-export type TokenManagerData = Accounts["tokenManager"];
+  const parsed = await tokenManagerProgram.account.tokenManager.fetch(
+    tokenManagerId
+  );
+  return {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    parsed,
+    pubkey: tokenManagerId,
+  };
+};

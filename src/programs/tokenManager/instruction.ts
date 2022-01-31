@@ -1,5 +1,7 @@
+import type { BN } from "@project-serum/anchor";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
   Connection,
   PublicKey,
@@ -7,14 +9,15 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import type { TOKEN_MANAGER_PROGRAM } from "./constants";
+import type { TOKEN_MANAGER_PROGRAM, TokenManagerKind } from "./constants";
 import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
 import { findTokenManagerAddress } from "./pda";
 
 export const init = async (
   connection: Connection,
   wallet: Wallet,
-  seed: Uint8Array
+  seed: Uint8Array,
+  numInvalidator = 1
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -32,7 +35,7 @@ export const init = async (
     tokenManagerProgram.instruction.init(
       Buffer.from(seed),
       tokenManagerBump,
-      1,
+      numInvalidator,
       {
         accounts: {
           tokenManager: tokenManagerId,
@@ -62,6 +65,136 @@ export const setPaymetManager = (
     accounts: {
       tokenManager: tokenManagerId,
       issuer: wallet.publicKey,
+    },
+  });
+};
+
+export const setClaimApprover = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  claimApproverId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.setClaimApprover(claimApproverId, {
+    accounts: {
+      tokenManager: tokenManagerId,
+      issuer: wallet.publicKey,
+    },
+  });
+};
+
+export const setTransferAuthority = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  transferAuthorityId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.setTransferAuthority(
+    transferAuthorityId,
+    {
+      accounts: {
+        tokenManager: tokenManagerId,
+        issuer: wallet.publicKey,
+      },
+    }
+  );
+};
+
+export const addInvalidator = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  invalidatorId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.addInvalidator(invalidatorId, {
+    accounts: {
+      tokenManager: tokenManagerId,
+      issuer: wallet.publicKey,
+    },
+  });
+};
+
+export const issue = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  amount: BN,
+  mintId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey,
+  issuerTokenAccountId: PublicKey,
+  kind: TokenManagerKind
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.issue(
+    {
+      amount,
+      kind: kind,
+    },
+    {
+      accounts: {
+        tokenManager: tokenManagerId,
+        tokenManagerTokenAccount: tokenManagerTokenAccountId,
+        issuer: wallet.publicKey,
+        issuerTokenAccount: issuerTokenAccountId,
+        mint: mintId,
+        payer: wallet.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      },
+    }
+  );
+};
+
+export const claim = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  mintId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey,
+  recipientTokenAccountId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.claim({
+    accounts: {
+      tokenManager: tokenManagerId,
+      tokenManagerTokenAccount: tokenManagerTokenAccountId,
+      mint: mintId,
+      recipient: wallet.publicKey,
+      recipientTokenAccount: recipientTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
     },
   });
 };

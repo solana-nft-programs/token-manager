@@ -18,7 +18,7 @@ pub mod cardinal_token_manager {
         set_payment_manager::handler(ctx, payment_manager)
     }
 
-    pub fn set_claim_approver(ctx: Context<SetClaimAuthorityCtx>, claim_approver: Pubkey) -> ProgramResult {
+    pub fn set_claim_approver(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> ProgramResult {
         set_claim_approver::handler(ctx, claim_approver)
     }
 

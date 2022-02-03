@@ -1,17 +1,17 @@
 [package]
-name = "cardinal-token-manager"
+name = "cardinal-rent-receipt"
 version = "0.0.2"
-description = "Cardinal token manager"
+description = "Cardinal paid claim approver"
 edition = "2021"
 homepage = "https://cardinal.so"
-repository = "https://github.com/cardinal-labs/cardinal-token-manager/tree/main/programs/cardinal-token-manager"
+repository = "https://github.com/cardinal-labs/cardinal-token-manager/tree/main/programs/cardinal-rent-receipt"
 authors = ["Jeremy Bogle <jeremy@cardinal.so>"]
 license = "AGPL-3.0"
 keywords = ["solana", "cardinal"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "cardinal_token_manager"
+name = "cardinal_rent_receipt"
 
 [features]
 no-entrypoint = []
@@ -25,7 +25,7 @@ anchor-spl = "0.20.1"
 spl-associated-token-account = "1.0.2"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
 solana-program = "1.8.1"
-vipers = "1.5.7"
+cardinal-token-manager = { version = "^0.0.2", path = "../cardinal-token-manager", features = ["cpi"] }
 
 [dev-dependencies]
 proptest = { version = "1.0" }

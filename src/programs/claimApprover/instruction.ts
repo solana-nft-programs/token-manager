@@ -7,6 +7,8 @@ import type {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
+import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
+import { findClaimReceiptId } from "../tokenManager/pda";
 
 import type { CLAIM_APPROVER_PROGRAM } from "./constants";
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
@@ -65,8 +67,13 @@ export const pay = async (
     provider
   );
 
+  const [claimReceiptId, claimReceiptBump] = await findClaimReceiptId(
+    tokenManagerId,
+    wallet.publicKey
+  );
+
   const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
-  return claimApproverProgram.instruction.pay({
+  return claimApproverProgram.instruction.pay(claimReceiptBump, {
     accounts: {
       tokenManager: tokenManagerId,
       paymentManager: paymentManagerId,
@@ -74,7 +81,10 @@ export const pay = async (
       claimApprover: claimApproverId,
       payer: wallet.publicKey,
       payerTokenAccount: payerTokenAccountId,
+      claimReceipt: claimReceiptId,
+      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
     },
   });
 };

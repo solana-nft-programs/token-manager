@@ -16,7 +16,7 @@ import { findTokenManagerAddress } from "./pda";
 export const init = async (
   connection: Connection,
   wallet: Wallet,
-  seed: Uint8Array,
+  mint: PublicKey,
   numInvalidator = 1
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
@@ -27,13 +27,12 @@ export const init = async (
   );
 
   const [tokenManagerId, tokenManagerBump] = await findTokenManagerAddress(
-    wallet.publicKey,
-    seed
+    mint
   );
 
   return [
     tokenManagerProgram.instruction.init(
-      Buffer.from(seed),
+      mint,
       tokenManagerBump,
       numInvalidator,
       {
@@ -178,7 +177,8 @@ export const claim = (
   tokenManagerId: PublicKey,
   mintId: PublicKey,
   tokenManagerTokenAccountId: PublicKey,
-  recipientTokenAccountId: PublicKey
+  recipientTokenAccountId: PublicKey,
+  claimReceipt: PublicKey | undefined
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -196,5 +196,8 @@ export const claim = (
       recipientTokenAccount: recipientTokenAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,
     },
+    remainingAccounts: claimReceipt
+      ? [{ pubkey: claimReceipt, isSigner: false, isWritable: false }]
+      : [],
   });
 };

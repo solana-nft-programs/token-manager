@@ -1,19 +1,19 @@
 use {
     crate::{state::*, errors::*},
     anchor_lang::{prelude::*},
-    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager}}, 
+    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager, TokenManagerState}}, 
 };
 
 #[derive(Accounts)]
 pub struct InvalidateCtx<'info> {
-    #[account(mut)]
+    #[account(mut, constraint = token_manager.state == TokenManagerState::Invalidated as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(mut,
-        constraint = Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration @ ErrorCode::InvalidIssuerTokenAccount,
+        seeds = [RENT_RECEIPT_SEED.as_bytes(), token_manager.key().as_ref()], bump = rent_receipt.bump,
         close = invalidator
     )]
-    time_invalidator: Box<Account<'info, TimeInvalidator>>,
+    rent_receipt: Box<Account<'info, RentReceipt>>,
 
     #[account(mut)]
     invalidator: Signer<'info>,
@@ -30,10 +30,10 @@ pub struct InvalidateCtx<'info> {
 
 pub fn handler(ctx: Context<InvalidateCtx>) -> ProgramResult {
     let token_manager_key = ctx.accounts.token_manager.key();
-    let time_invalidator_seeds = &[TIME_INVALIDATOR_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.time_invalidator.bump]];
-    let time_invalidator_signer = &[&time_invalidator_seeds[..]];
+    let rent_receipt_seeds = &[RENT_RECEIPT_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.rent_receipt.bump]];
+    let rent_receipt_signer = &[&rent_receipt_seeds[..]];
 
-    // invalidate
+    // claim certificate
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InvalidateCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
         token_manager_token_account: ctx.accounts.token_manager_token_account.to_account_info(),
@@ -43,7 +43,7 @@ pub fn handler(ctx: Context<InvalidateCtx>) -> ProgramResult {
         invalidator: ctx.accounts.invalidator.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(time_invalidator_signer);
+    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(rent_receipt_signer);
     cardinal_token_manager::cpi::invalidate(cpi_ctx)?;
   
     return Ok(())

@@ -1,5 +1,6 @@
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
+import { SPLToken } from "@saberhq/token-utils";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
@@ -11,7 +12,6 @@ import { Transaction } from "@solana/web3.js";
 import {
   claimApprover,
   paymentManager,
-  rentalCounter,
   timeInvalidator,
   tokenManager,
 } from "./programs";
@@ -41,16 +41,11 @@ export const createRental = async (
 ): Promise<[Transaction, PublicKey]> => {
   const transaction = new Transaction();
 
-  // increment rental counter
-  const [rentalCounterIncrementIx, _rentalCounterId, currentCounter] =
-    await rentalCounter.instruction.increment(connection, wallet);
-  transaction.add(rentalCounterIncrementIx);
-
   // init token manager
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
-    currentCounter.toBuffer()
+    rentalMint
   );
   transaction.add(tokenManagerIx);
 
@@ -113,6 +108,17 @@ export const createRental = async (
     )
   );
 
+  transaction.add(
+    SPLToken.createSetAuthorityInstruction(
+      TOKEN_PROGRAM_ID,
+      rentalMint,
+      tokenManagerId,
+      "FreezeAccount",
+      wallet.publicKey,
+      []
+    )
+  );
+
   // issuer
   const tokenManagerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,
@@ -151,21 +157,7 @@ export const claimRental = async (
     tokenManagerId
   );
 
-  const tokenManagerTokenAccountId = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-    tokenManagerData.parsed.mint,
-    tokenManagerId,
-    true
-  );
-
-  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    tokenManagerData.parsed.mint,
-    wallet.publicKey,
-    wallet.publicKey
-  );
+  let claimReceiptId;
 
   // pay claim approver
   if (
@@ -195,6 +187,11 @@ export const claimRental = async (
       wallet.publicKey
     );
 
+    [claimReceiptId] = await tokenManager.pda.findClaimReceiptId(
+      tokenManagerId,
+      wallet.publicKey
+    );
+
     transaction.add(
       await claimApprover.instruction.pay(
         connection,
@@ -207,6 +204,22 @@ export const claimRental = async (
     );
   }
 
+  const tokenManagerTokenAccountId = await Token.getAssociatedTokenAddress(
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+    tokenManagerData.parsed.mint,
+    tokenManagerId,
+    true
+  );
+
+  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    tokenManagerData.parsed.mint,
+    wallet.publicKey,
+    wallet.publicKey
+  );
+
   // claim
   transaction.add(
     tokenManager.instruction.claim(
@@ -215,7 +228,8 @@ export const claimRental = async (
       tokenManagerId,
       tokenManagerData.parsed.mint,
       tokenManagerTokenAccountId,
-      recipientTokenAccountId
+      recipientTokenAccountId,
+      claimReceiptId
     )
   );
 

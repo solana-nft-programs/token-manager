@@ -4,12 +4,12 @@ use {
 };
 
 #[derive(Accounts)]
-#[instruction(seed: Vec<u8>, bump: u8, num_invalidators: u8)]
+#[instruction(mint: Pubkey, bump: u8, num_invalidators: u8)]
 pub struct InitCtx<'info> {
     #[account(
         init,
         payer = issuer,
-        seeds = [TOKEN_MANAGER_SEED.as_bytes(), issuer.key().as_ref(), &seed[..]], bump = bump,
+        seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref()], bump = bump,
         space = token_manager_size(num_invalidators as usize),
     )]
     token_manager: Box<Account<'info, TokenManager>>,
@@ -18,7 +18,7 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, _seed: Vec<u8>, bump: u8, num_invalidators: u8) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, _mint: Pubkey, bump: u8, num_invalidators: u8) -> ProgramResult {
     if num_invalidators > MAX_INVALIDATORS {
         return Err(ErrorCode::InvalidIssuerTokenAccount.into());
     }

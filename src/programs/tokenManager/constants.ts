@@ -7,6 +7,8 @@ export const TOKEN_MANAGER_ADDRESS = new PublicKey(
   "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
 );
 
+export const CLAIM_RECEIPT_SEED = "claim-receipt";
+
 export const TOKEN_MANAGER_SEED = "token-manager";
 
 export const TOKEN_MANAGER_IDL = TOKEN_MANAGER_TYPES.IDL;

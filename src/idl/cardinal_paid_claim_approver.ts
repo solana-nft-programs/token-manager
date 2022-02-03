@@ -76,12 +76,32 @@ export type CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
+          "name": "claimReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "cardinalTokenManager",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
           "isMut": false,
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "claimReceiptBump",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -204,12 +224,32 @@ export const IDL: CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
+          "name": "claimReceipt",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "cardinalTokenManager",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
           "isMut": false,
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "claimReceiptBump",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [

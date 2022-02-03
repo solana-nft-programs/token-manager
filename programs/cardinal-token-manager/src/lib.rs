@@ -10,8 +10,8 @@ declare_id!("mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz");
 pub mod cardinal_token_manager {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, seed: Vec<u8>, bump: u8, num_invalidators: u8) -> ProgramResult {
-        init::handler(ctx, seed, bump, num_invalidators)
+    pub fn init(ctx: Context<InitCtx>, mint: Pubkey, bump: u8, num_invalidators: u8) -> ProgramResult {
+        init::handler(ctx, mint, bump, num_invalidators)
     }
 
     pub fn set_payment_manager(ctx: Context<SetPaymentManagerCtx>, payment_manager: Pubkey) -> ProgramResult {

@@ -1,9 +1,9 @@
-export type CardinalTimeInvalidator = {
+export type CardinalRentReceipt = {
   "version": "0.0.0",
-  "name": "cardinal_time_invalidator",
+  "name": "cardinal_rent_receipt",
   "instructions": [
     {
-      "name": "init",
+      "name": "claim",
       "accounts": [
         {
           "name": "tokenManager",
@@ -11,14 +11,49 @@ export type CardinalTimeInvalidator = {
           "isSigner": false
         },
         {
-          "name": "timeInvalidator",
+          "name": "rentReceipt",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "rentReceiptTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "receiptTokenManager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "receiptTokenManagerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "cardinalTokenManager",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "recipient",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
           "name": "systemProgram",
@@ -32,8 +67,8 @@ export type CardinalTimeInvalidator = {
           "type": "u8"
         },
         {
-          "name": "expiration",
-          "type": "i64"
+          "name": "receiptManagerBump",
+          "type": "u8"
         }
       ]
     },
@@ -46,7 +81,7 @@ export type CardinalTimeInvalidator = {
           "isSigner": false
         },
         {
-          "name": "timeInvalidator",
+          "name": "rentReceipt",
           "isMut": true,
           "isSigner": false
         },
@@ -91,7 +126,7 @@ export type CardinalTimeInvalidator = {
   ],
   "accounts": [
     {
-      "name": "timeInvalidator",
+      "name": "rentReceipt",
       "type": {
         "kind": "struct",
         "fields": [
@@ -100,8 +135,8 @@ export type CardinalTimeInvalidator = {
             "type": "u8"
           },
           {
-            "name": "expiration",
-            "type": "i64"
+            "name": "receiptManager",
+            "type": "publicKey"
           }
         ]
       }
@@ -110,33 +145,18 @@ export type CardinalTimeInvalidator = {
   "errors": [
     {
       "code": 300,
-      "name": "InvalidPaymentTokenAccount",
-      "msg": "Token account not owned by the claim approver"
-    },
-    {
-      "code": 301,
-      "name": "InvalidIssuerTokenAccount",
-      "msg": "Token account not owned by the issuer"
-    },
-    {
-      "code": 302,
       "name": "InvalidTokenManager",
-      "msg": "Invalid token manager for this claim approver"
-    },
-    {
-      "code": 303,
-      "name": "InvalidExpiration",
-      "msg": "Expiration has not passed yet"
+      "msg": "Invalid token manager for this rent receipt"
     }
   ]
 };
 
-export const IDL: CardinalTimeInvalidator = {
+export const IDL: CardinalRentReceipt = {
   "version": "0.0.0",
-  "name": "cardinal_time_invalidator",
+  "name": "cardinal_rent_receipt",
   "instructions": [
     {
-      "name": "init",
+      "name": "claim",
       "accounts": [
         {
           "name": "tokenManager",
@@ -144,14 +164,49 @@ export const IDL: CardinalTimeInvalidator = {
           "isSigner": false
         },
         {
-          "name": "timeInvalidator",
+          "name": "rentReceipt",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "rentReceiptTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "receiptTokenManager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "receiptTokenManagerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "cardinalTokenManager",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "recipient",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         },
         {
           "name": "systemProgram",
@@ -165,8 +220,8 @@ export const IDL: CardinalTimeInvalidator = {
           "type": "u8"
         },
         {
-          "name": "expiration",
-          "type": "i64"
+          "name": "receiptManagerBump",
+          "type": "u8"
         }
       ]
     },
@@ -179,7 +234,7 @@ export const IDL: CardinalTimeInvalidator = {
           "isSigner": false
         },
         {
-          "name": "timeInvalidator",
+          "name": "rentReceipt",
           "isMut": true,
           "isSigner": false
         },
@@ -224,7 +279,7 @@ export const IDL: CardinalTimeInvalidator = {
   ],
   "accounts": [
     {
-      "name": "timeInvalidator",
+      "name": "rentReceipt",
       "type": {
         "kind": "struct",
         "fields": [
@@ -233,8 +288,8 @@ export const IDL: CardinalTimeInvalidator = {
             "type": "u8"
           },
           {
-            "name": "expiration",
-            "type": "i64"
+            "name": "receiptManager",
+            "type": "publicKey"
           }
         ]
       }
@@ -243,23 +298,8 @@ export const IDL: CardinalTimeInvalidator = {
   "errors": [
     {
       "code": 300,
-      "name": "InvalidPaymentTokenAccount",
-      "msg": "Token account not owned by the claim approver"
-    },
-    {
-      "code": 301,
-      "name": "InvalidIssuerTokenAccount",
-      "msg": "Token account not owned by the issuer"
-    },
-    {
-      "code": 302,
       "name": "InvalidTokenManager",
-      "msg": "Invalid token manager for this claim approver"
-    },
-    {
-      "code": 303,
-      "name": "InvalidExpiration",
-      "msg": "Expiration has not passed yet"
+      "msg": "Invalid token manager for this rent receipt"
     }
   ]
 };

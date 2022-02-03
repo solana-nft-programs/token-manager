@@ -14,7 +14,7 @@ pub mod cardinal_paid_claim_approver {
         init::handler(ctx, bump, payment_amount)
     }
 
-    pub fn pay(ctx: Context<PayCtx>) -> ProgramResult {
-        pay::handler(ctx)
+    pub fn pay(ctx: Context<PayCtx>, claim_receipt_bump: u8) -> ProgramResult {
+        pay::handler(ctx, claim_receipt_bump)
     }
 }

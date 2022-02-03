@@ -7,5 +7,7 @@ pub enum ErrorCode {
     #[msg("Token account not owned by the issuer")]
     InvalidIssuerTokenAccount,
     #[msg("Invalid token manager for this claim approver")]
-    InvalidTokenManager
+    InvalidTokenManager,
+    #[msg("Expiration has not passed yet")]
+    InvalidExpiration
 }

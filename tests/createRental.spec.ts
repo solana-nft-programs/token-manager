@@ -1,13 +1,17 @@
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
-import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
+import {
+  SignerWallet,
+  SolanaProvider,
+  TransactionEnvelope,
+} from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { claimRental, createRental, findAta } from "../src";
-import { rentalCounter, tokenManager } from "../src/programs";
+import { tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -49,13 +53,13 @@ describe("Rentals", () => {
       provider.connection,
       tokenCreator,
       provider.wallet.publicKey,
-      1
+      1,
+      provider.wallet.publicKey
     );
   });
 
-  it("Create rental", async () => {
+  it("Create rent", async () => {
     const provider = getProvider();
-
     const [transaction, tokenManagerId] = await createRental(
       provider.connection,
       provider.wallet,
@@ -64,11 +68,10 @@ describe("Rentals", () => {
         paymentMint: paymentMint.publicKey,
         expiration: Date.now() / 1000 + 1,
         rentalMint: rentalMint.publicKey,
-        issuerTokenAccountId,
+        issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
     );
-
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
@@ -77,7 +80,10 @@ describe("Rentals", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope).to.be.fulfilled;
+    await expectTXTable(txEnvelope, "test", {
+      verbosity: "always",
+      formatLogs: true,
+    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -95,32 +101,12 @@ describe("Rentals", () => {
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
-
-    const checkRentalCounter = await rentalCounter.accounts.getRentalCounter(
-      provider.connection,
-      provider.wallet.publicKey
-    );
-    expect(checkRentalCounter.parsed.count.toNumber()).to.eq(1);
   });
 
-  it("Create another rental", async () => {
+  it("Create another rental different mint", async () => {
     const provider = getProvider();
 
-    const tokenCreator = Keypair.generate();
-    const fromAirdropSignature = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
-      LAMPORTS_PER_SOL
-    );
-    await provider.connection.confirmTransaction(fromAirdropSignature);
-
-    const [_, paymentMint] = await createMint(
-      provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
-      1000
-    );
-
-    const [issuerTokenAccountId, rentalMint] = await createMint(
+    const [issuerTokenAccountId2, rentalMint2] = await createMint(
       provider.connection,
       tokenCreator,
       provider.wallet.publicKey,
@@ -134,8 +120,8 @@ describe("Rentals", () => {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
         expiration: Date.now() / 1000 + 1,
-        rentalMint: rentalMint.publicKey,
-        issuerTokenAccountId,
+        rentalMint: rentalMint2.publicKey,
+        issuerTokenAccountId: issuerTokenAccountId2,
         amount: new BN(1),
       }
     );
@@ -148,7 +134,10 @@ describe("Rentals", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope).to.be.fulfilled;
+    await expectTXTable(txEnvelope, "test", {
+      verbosity: "always",
+      formatLogs: true,
+    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -156,47 +145,41 @@ describe("Rentals", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint2.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
     expect(tokenManagerData.parsed.issuer).to.eqAddress(
       provider.wallet.publicKey
     );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
-      issuerTokenAccountId
+    const checkIssuerTokenAccount = await rentalMint2.getAccountInfo(
+      issuerTokenAccountId2
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
-
-    const checkRentalCounter = await rentalCounter.accounts.getRentalCounter(
-      provider.connection,
-      provider.wallet.publicKey
-    );
-    expect(checkRentalCounter.parsed.count.toNumber()).to.eq(2);
   });
 
   it("Claim rental", async () => {
     const provider = getProvider();
 
     const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
-      provider.wallet.publicKey,
-      new BN(1).toBuffer()
+      rentalMint.publicKey
     );
 
     const transaction = await claimRental(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(recipient),
       tokenManagerId
     );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(recipient),
         opts: provider.opts,
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test?", {
+
+    await expectTXTable(txEnvelope, "test", {
       verbosity: "always",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -218,7 +201,7 @@ describe("Rentals", () => {
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
 
-    const checkRecipientPaymentTokenAccount = await rentalMint.getAccountInfo(
+    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
       recipientPaymentTokenAccountId
     );
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(

@@ -23,8 +23,8 @@ export type CardinalTokenManager = {
       ],
       "args": [
         {
-          "name": "seed",
-          "type": "bytes"
+          "name": "mint",
+          "type": "publicKey"
         },
         {
           "name": "bump",
@@ -137,6 +137,11 @@ export type CardinalTokenManager = {
           "name": "claimReceipt",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "systemProgram",
@@ -289,7 +294,7 @@ export type CardinalTokenManager = {
         },
         {
           "name": "mint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -573,8 +578,8 @@ export const IDL: CardinalTokenManager = {
       ],
       "args": [
         {
-          "name": "seed",
-          "type": "bytes"
+          "name": "mint",
+          "type": "publicKey"
         },
         {
           "name": "bump",
@@ -687,6 +692,11 @@ export const IDL: CardinalTokenManager = {
           "name": "claimReceipt",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "systemProgram",
@@ -839,7 +849,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           "name": "mint",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {

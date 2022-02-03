@@ -6,9 +6,9 @@ import { init } from "./instruction";
 export const withInit = async (
   connection: Connection,
   wallet: Wallet,
-  seed: Uint8Array,
+  mintId: PublicKey,
   transaction: Transaction
 ): Promise<[PublicKey, Transaction]> => {
-  const [ix, id] = await init(connection, wallet, seed);
+  const [ix, id] = await init(connection, wallet, mintId);
   return [id, transaction.add(ix)];
 };

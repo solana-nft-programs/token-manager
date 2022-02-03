@@ -6,7 +6,7 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
+import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 

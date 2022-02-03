@@ -28,7 +28,7 @@ export const findClaimReceiptId = async (
   tokenManagerKey: PublicKey,
   recipientKey: PublicKey
 ): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
+  return PublicKey.findProgramAddress(
     [
       utils.bytes.utf8.encode(CLAIM_RECEIPT_SEED),
       tokenManagerKey.toBuffer(),

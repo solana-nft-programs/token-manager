@@ -11,7 +11,7 @@ import { SystemProgram } from "@solana/web3.js";
 
 import type { TOKEN_MANAGER_PROGRAM, TokenManagerKind } from "./constants";
 import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
-import { findTokenManagerAddress } from "./pda";
+import { findClaimReceiptId, findTokenManagerAddress } from "./pda";
 
 export const init = async (
   connection: Connection,
@@ -200,4 +200,40 @@ export const claim = (
       ? [{ pubkey: claimReceipt, isSigner: false, isWritable: false }]
       : [],
   });
+};
+
+export const createClaimReceipt = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  claimApproverId: PublicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [claimReceiptId, claimReceiptBump] = await findClaimReceiptId(
+    tokenManagerId,
+    wallet.publicKey
+  );
+
+  return [
+    tokenManagerProgram.instruction.createClaimReceipt(
+      claimReceiptBump,
+      wallet.publicKey,
+      {
+        accounts: {
+          tokenManager: tokenManagerId,
+          claimApprover: claimApproverId,
+          claimReceipt: claimReceiptId,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
+    claimReceiptId,
+  ];
 };

@@ -29,3 +29,36 @@ export const getTokenManager = async (
     pubkey: tokenManagerId,
   };
 };
+
+export const getTokenManagers = async (
+  connection: Connection,
+  tokenManagerIds: PublicKey[]
+): Promise<AccountData<TokenManagerData[]>> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  let tokenManagers = [];
+  try {
+    tokenManagers =
+      await tokenManagerProgram.account.tokenManager.fetchMultiple(
+        tokenManagerIds
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  return tokenManagers.map((tm, i) => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    parsed: tm,
+    pubkey: tokenManagerIds[i],
+  }));
+};

@@ -3,3 +3,4 @@ export * as paymentManager from "./paymentManager";
 export * as rentalCounter from "./rentalCounter";
 export * as timeInvalidator from "./timeInvalidator";
 export * as tokenManager from "./tokenManager";
+export * as useInvalidator from "./useInvalidator";

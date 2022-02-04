@@ -10,7 +10,7 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimRental, createRental, findAta } from "../src";
+import { findAta, rentals } from "../src";
 import { tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
@@ -60,7 +60,7 @@ describe("Rentals", () => {
 
   it("Create rent", async () => {
     const provider = getProvider();
-    const [transaction, tokenManagerId] = await createRental(
+    const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       provider.wallet,
       {
@@ -113,7 +113,7 @@ describe("Rentals", () => {
       1
     );
 
-    const [transaction, tokenManagerId] = await createRental(
+    const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       provider.wallet,
       {
@@ -164,7 +164,7 @@ describe("Rentals", () => {
       rentalMint.publicKey
     );
 
-    const transaction = await claimRental(
+    const transaction = await rentals.claimRental(
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId

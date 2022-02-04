@@ -9,7 +9,7 @@ import {
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
-import { tokenManager } from "./programs";
+import { tokenManager, useInvalidator } from "./programs";
 import { TokenManagerKind } from "./programs/tokenManager";
 import { findTokenManagerAddress } from "./programs/tokenManager/pda";
 import { withFindOrInitAssociatedTokenAccount } from "./utils";
@@ -41,11 +41,13 @@ export const issueToken = async (
   {
     rentalMint,
     issuerTokenAccountId,
+    usages = 1,
     amount = new BN(1),
     kind = TokenManagerKind.Managed,
   }: {
     rentalMint: PublicKey;
     issuerTokenAccountId: PublicKey;
+    usages?: number;
     amount?: BN;
     kind?: TokenManagerKind;
   }
@@ -69,6 +71,14 @@ export const issueToken = async (
       otp.publicKey
     )
   );
+
+  const [useInvalidatorIx] = await useInvalidator.instruction.init(
+    connection,
+    wallet,
+    tokenManagerId,
+    usages
+  );
+  transaction.add(useInvalidatorIx);
 
   if (kind === TokenManagerKind.Managed) {
     transaction.add(
@@ -161,6 +171,28 @@ export const claimFromLink = async (
       tokenManagerTokenAccountId,
       recipientTokenAccountId,
       claimReceiptId
+    )
+  );
+
+  return transaction;
+};
+
+export const useTransaction = async (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  usages: number
+): Promise<Transaction> => {
+  const transaction = new Transaction();
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+
+  // use
+  transaction.add(
+    await useInvalidator.instruction.incrementUsages(
+      connection,
+      wallet,
+      tokenManagerId,
+      usages
     )
   );
 

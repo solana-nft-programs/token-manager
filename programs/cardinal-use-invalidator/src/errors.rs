@@ -8,6 +8,6 @@ pub enum ErrorCode {
     InvalidIssuerTokenAccount,
     #[msg("Invalid token manager for this claim approver")]
     InvalidTokenManager,
-    #[msg("Usages not at the maximum")]
-    InvalidUsages
+    #[msg("Usages at the maximum")]
+    InsufficientUsages
 }

@@ -125,12 +125,12 @@ export type CardinalTokenManager = {
       "accounts": [
         {
           "name": "tokenManager",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "claimApprover",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -484,6 +484,9 @@ export type CardinalTokenManager = {
           },
           {
             "name": "Unmanaged"
+          },
+          {
+            "name": "Edition"
           }
         ]
       }
@@ -492,61 +495,66 @@ export type CardinalTokenManager = {
   "errors": [
     {
       "code": 300,
+      "name": "Uninitialized",
+      "msg": "Account not initialized"
+    },
+    {
+      "code": 301,
       "name": "TooManyInvalidators",
       "msg": "Too many invalidators have already been added"
     },
     {
-      "code": 301,
+      "code": 302,
       "name": "InvalidTokenManagerTokenAccount",
       "msg": "Token account not owned by token manager"
     },
     {
-      "code": 302,
+      "code": 303,
       "name": "InvalidIssuerTokenAccount",
       "msg": "Token account not owned by issuer"
     },
     {
-      "code": 303,
+      "code": 304,
       "name": "InvalidRecipientTokenAccount",
       "msg": "Token account not owned by recipient"
     },
     {
-      "code": 304,
+      "code": 305,
       "name": "InvalidInvalidatorTokenAccount",
       "msg": "Token account not owned by invalidator"
     },
     {
-      "code": 305,
+      "code": 306,
       "name": "InvalidTokenManagerKind",
       "msg": "Token manager kind is not valid"
     },
     {
-      "code": 306,
+      "code": 307,
       "name": "InvalidClaimAuthority",
       "msg": "Invalid claim authority"
     },
     {
-      "code": 307,
+      "code": 308,
       "name": "InvalidTransferAuthority",
       "msg": "Invalid transfer authority"
     },
     {
-      "code": 308,
+      "code": 309,
       "name": "InvalidIssuer",
       "msg": "Invalid issuer"
     },
     {
-      "code": 309,
+      "code": 310,
       "name": "InvalidInvalidator",
       "msg": "Invalid invalidator"
     },
     {
-      "code": 310,
+      "code": 311,
       "name": "InvalidMint",
       "msg": "Invalid mint"
     },
     {
-      "code": 311,
+      "code": 312,
       "name": "InvalidTokenManagerState",
       "msg": "Invalid token manager state"
     }
@@ -680,12 +688,12 @@ export const IDL: CardinalTokenManager = {
       "accounts": [
         {
           "name": "tokenManager",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "claimApprover",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -1039,6 +1047,9 @@ export const IDL: CardinalTokenManager = {
           },
           {
             "name": "Unmanaged"
+          },
+          {
+            "name": "Edition"
           }
         ]
       }
@@ -1047,61 +1058,66 @@ export const IDL: CardinalTokenManager = {
   "errors": [
     {
       "code": 300,
+      "name": "Uninitialized",
+      "msg": "Account not initialized"
+    },
+    {
+      "code": 301,
       "name": "TooManyInvalidators",
       "msg": "Too many invalidators have already been added"
     },
     {
-      "code": 301,
+      "code": 302,
       "name": "InvalidTokenManagerTokenAccount",
       "msg": "Token account not owned by token manager"
     },
     {
-      "code": 302,
+      "code": 303,
       "name": "InvalidIssuerTokenAccount",
       "msg": "Token account not owned by issuer"
     },
     {
-      "code": 303,
+      "code": 304,
       "name": "InvalidRecipientTokenAccount",
       "msg": "Token account not owned by recipient"
     },
     {
-      "code": 304,
+      "code": 305,
       "name": "InvalidInvalidatorTokenAccount",
       "msg": "Token account not owned by invalidator"
     },
     {
-      "code": 305,
+      "code": 306,
       "name": "InvalidTokenManagerKind",
       "msg": "Token manager kind is not valid"
     },
     {
-      "code": 306,
+      "code": 307,
       "name": "InvalidClaimAuthority",
       "msg": "Invalid claim authority"
     },
     {
-      "code": 307,
+      "code": 308,
       "name": "InvalidTransferAuthority",
       "msg": "Invalid transfer authority"
     },
     {
-      "code": 308,
+      "code": 309,
       "name": "InvalidIssuer",
       "msg": "Invalid issuer"
     },
     {
-      "code": 309,
+      "code": 310,
       "name": "InvalidInvalidator",
       "msg": "Invalid invalidator"
     },
     {
-      "code": 310,
+      "code": 311,
       "name": "InvalidMint",
       "msg": "Invalid mint"
     },
     {
-      "code": 311,
+      "code": 312,
       "name": "InvalidTokenManagerState",
       "msg": "Invalid token manager state"
     }

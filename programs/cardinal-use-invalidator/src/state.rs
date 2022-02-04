@@ -6,6 +6,6 @@ pub const USE_INVALIDATOR_SIZE: usize = 8 + std::mem::size_of::<UseInvalidator>(
 pub struct UseInvalidator {
     pub bump: u8,
     pub usages: u64,
-    pub max_usages: u64,
+    pub max_usages: Option<u64>,
     pub use_authority: Pubkey,
 }

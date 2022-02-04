@@ -5,7 +5,7 @@ use {
 };
 
 #[derive(Accounts)]
-#[instruction(bump: u8, _max_usages: u64)]
+#[instruction(bump: u8, _max_usages: Option<u64>)]
 pub struct InitCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
@@ -22,7 +22,7 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, bump: u8, max_usages: u64) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, bump: u8, max_usages: Option<u64>) -> ProgramResult {
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     use_invalidator.bump = bump;
     use_invalidator.max_usages = max_usages;

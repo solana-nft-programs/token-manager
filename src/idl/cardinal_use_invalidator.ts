@@ -1,6 +1,6 @@
-export type CardinalPaidClaimApprover = {
+export type CardinalUseInvalidator = {
   "version": "0.0.0",
-  "name": "cardinal_paid_claim_approver",
+  "name": "cardinal_use_invalidator",
   "instructions": [
     {
       "name": "init",
@@ -11,12 +11,7 @@ export type CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
-          "name": "paymentManager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "claimApprover",
+          "name": "useInvalidator",
           "isMut": true,
           "isSigner": false
         },
@@ -37,13 +32,15 @@ export type CardinalPaidClaimApprover = {
           "type": "u8"
         },
         {
-          "name": "paymentAmount",
-          "type": "u64"
+          "name": "maxUsages",
+          "type": {
+            "option": "u64"
+          }
         }
       ]
     },
     {
-      "name": "pay",
+      "name": "incrementUsages",
       "accounts": [
         {
           "name": "tokenManager",
@@ -51,37 +48,48 @@ export type CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
-          "name": "paymentManager",
+          "name": "useInvalidator",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
           "isMut": false,
-          "isSigner": false
-        },
+          "isSigner": true
+        }
+      ],
+      "args": [
         {
-          "name": "paymentManagerTokenAccount",
+          "name": "numUsages",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "invalidate",
+      "accounts": [
+        {
+          "name": "tokenManager",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "claimApprover",
+          "name": "useInvalidator",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "payer",
+          "name": "invalidator",
           "isMut": true,
           "isSigner": true
         },
         {
-          "name": "payerTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "claimReceipt",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "cardinalTokenManager",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenManagerTokenAccount",
           "isMut": false,
           "isSigner": false
         },
@@ -91,22 +99,27 @@ export type CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "recipientTokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "issuerTokenAccount",
           "isMut": false,
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "claimReceiptBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     }
   ],
   "accounts": [
     {
-      "name": "paidClaimApprover",
+      "name": "useInvalidator",
       "type": {
         "kind": "struct",
         "fields": [
@@ -115,8 +128,18 @@ export type CardinalPaidClaimApprover = {
             "type": "u8"
           },
           {
-            "name": "paymentAmount",
+            "name": "usages",
             "type": "u64"
+          },
+          {
+            "name": "maxUsages",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "useAuthority",
+            "type": "publicKey"
           }
         ]
       }
@@ -130,8 +153,8 @@ export type CardinalPaidClaimApprover = {
     },
     {
       "code": 301,
-      "name": "InvalidPayerTokenAccount",
-      "msg": "Token account not owned by the payer"
+      "name": "InvalidIssuerTokenAccount",
+      "msg": "Token account not owned by the issuer"
     },
     {
       "code": 302,
@@ -140,15 +163,15 @@ export type CardinalPaidClaimApprover = {
     },
     {
       "code": 303,
-      "name": "InvalidPaymentManager",
-      "msg": "Payment manager is invalid"
+      "name": "InvalidUsages",
+      "msg": "Usages not at the maximum"
     }
   ]
 };
 
-export const IDL: CardinalPaidClaimApprover = {
+export const IDL: CardinalUseInvalidator = {
   "version": "0.0.0",
-  "name": "cardinal_paid_claim_approver",
+  "name": "cardinal_use_invalidator",
   "instructions": [
     {
       "name": "init",
@@ -159,12 +182,7 @@ export const IDL: CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
-          "name": "paymentManager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "claimApprover",
+          "name": "useInvalidator",
           "isMut": true,
           "isSigner": false
         },
@@ -185,13 +203,15 @@ export const IDL: CardinalPaidClaimApprover = {
           "type": "u8"
         },
         {
-          "name": "paymentAmount",
-          "type": "u64"
+          "name": "maxUsages",
+          "type": {
+            "option": "u64"
+          }
         }
       ]
     },
     {
-      "name": "pay",
+      "name": "incrementUsages",
       "accounts": [
         {
           "name": "tokenManager",
@@ -199,37 +219,48 @@ export const IDL: CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
-          "name": "paymentManager",
+          "name": "useInvalidator",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
           "isMut": false,
-          "isSigner": false
-        },
+          "isSigner": true
+        }
+      ],
+      "args": [
         {
-          "name": "paymentManagerTokenAccount",
+          "name": "numUsages",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "invalidate",
+      "accounts": [
+        {
+          "name": "tokenManager",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "claimApprover",
+          "name": "useInvalidator",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "payer",
+          "name": "invalidator",
           "isMut": true,
           "isSigner": true
         },
         {
-          "name": "payerTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "claimReceipt",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "cardinalTokenManager",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenManagerTokenAccount",
           "isMut": false,
           "isSigner": false
         },
@@ -239,22 +270,27 @@ export const IDL: CardinalPaidClaimApprover = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "recipientTokenAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "issuerTokenAccount",
           "isMut": false,
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "claimReceiptBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     }
   ],
   "accounts": [
     {
-      "name": "paidClaimApprover",
+      "name": "useInvalidator",
       "type": {
         "kind": "struct",
         "fields": [
@@ -263,8 +299,18 @@ export const IDL: CardinalPaidClaimApprover = {
             "type": "u8"
           },
           {
-            "name": "paymentAmount",
+            "name": "usages",
             "type": "u64"
+          },
+          {
+            "name": "maxUsages",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "useAuthority",
+            "type": "publicKey"
           }
         ]
       }
@@ -278,8 +324,8 @@ export const IDL: CardinalPaidClaimApprover = {
     },
     {
       "code": 301,
-      "name": "InvalidPayerTokenAccount",
-      "msg": "Token account not owned by the payer"
+      "name": "InvalidIssuerTokenAccount",
+      "msg": "Token account not owned by the issuer"
     },
     {
       "code": 302,
@@ -288,8 +334,8 @@ export const IDL: CardinalPaidClaimApprover = {
     },
     {
       "code": 303,
-      "name": "InvalidPaymentManager",
-      "msg": "Payment manager is invalid"
+      "name": "InvalidUsages",
+      "msg": "Usages not at the maximum"
     }
   ]
 };

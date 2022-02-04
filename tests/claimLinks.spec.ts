@@ -6,12 +6,17 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmRawTransaction,
+  Transaction,
+} from "@solana/web3.js";
 import { expect } from "chai";
 
 import { claimLinks, findAta } from "../src";
 import { fromLink } from "../src/claimLinks";
-import { tokenManager } from "../src/programs";
+import { tokenManager, useInvalidator } from "../src/programs";
 import {
   TokenManagerKind,
   TokenManagerState,
@@ -25,6 +30,7 @@ describe("Claim links", () => {
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
   let claimLink: string;
+  let serializedUsage: string;
 
   before(async () => {
     const provider = getProvider();
@@ -58,6 +64,7 @@ describe("Claim links", () => {
       {
         rentalMint: rentalMint.publicKey,
         issuerTokenAccountId,
+        usages: 4,
         kind: TokenManagerKind.Unmanaged,
       }
     );
@@ -143,5 +150,113 @@ describe("Claim links", () => {
       await findAta(rentalMint.publicKey, recipient.publicKey)
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+  });
+
+  it("Get use tx", async () => {
+    const provider = getProvider();
+    const transaction = await claimLinks.useTransaction(
+      provider.connection,
+      new SignerWallet(recipient),
+      rentalMint.publicKey,
+      1
+    );
+    transaction.feePayer = recipient.publicKey;
+    transaction.recentBlockhash = (
+      await provider.connection.getRecentBlockhash("max")
+    ).blockhash;
+    await new SignerWallet(recipient).signTransaction(transaction);
+    serializedUsage = transaction.serialize().toString("base64");
+  });
+
+  it("Execute use tx", async () => {
+    const provider = getProvider();
+    const buffer = Buffer.from(serializedUsage, "base64");
+    const transaction = Transaction.from(buffer);
+    await sendAndConfirmRawTransaction(
+      provider.connection,
+      transaction.serialize()
+    );
+    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+      rentalMint.publicKey
+    );
+    const [useInvalidatorId] =
+      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
+    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
+      provider.connection,
+      useInvalidatorId
+    );
+    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+  });
+
+  // it("Execute use again fail", async () => {
+  //   const provider = getProvider();
+  //   const buffer = Buffer.from(serializedUsage, "base64");
+  //   const transaction = Transaction.from(buffer);
+
+  //   try {
+  //     const txEnvelope = new TransactionEnvelope(
+  //       SolanaProvider.init({
+  //         connection: provider.connection,
+  //         wallet: new SignerWallet(recipient),
+  //         opts: provider.opts,
+  //       }),
+  //       [...transaction.instructions]
+  //     );
+  //     await expectTXTable(txEnvelope, "test", {
+  //       verbosity: "always",
+  //       formatLogs: true,
+  //     });
+  //     assert.fail("passed");
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+
+  //   const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+  //     rentalMint.publicKey
+  //   );
+  //   const [useInvalidatorId] =
+  //     await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
+  //   const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
+  //     provider.connection,
+  //     useInvalidatorId
+  //   );
+  //   expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+  // });
+
+  it("Get new use tx", async () => {
+    const provider = getProvider();
+    const transaction = await claimLinks.useTransaction(
+      provider.connection,
+      new SignerWallet(recipient),
+      rentalMint.publicKey,
+      2
+    );
+    transaction.feePayer = recipient.publicKey;
+    transaction.recentBlockhash = (
+      await provider.connection.getRecentBlockhash("max")
+    ).blockhash;
+    await new SignerWallet(recipient).signTransaction(transaction);
+    serializedUsage = transaction.serialize().toString("base64");
+  });
+
+  it("Execute use again success", async () => {
+    const provider = getProvider();
+    const buffer = Buffer.from(serializedUsage, "base64");
+    const transaction = Transaction.from(buffer);
+    console.log(transaction);
+    await sendAndConfirmRawTransaction(
+      provider.connection,
+      transaction.serialize()
+    );
+    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+      rentalMint.publicKey
+    );
+    const [useInvalidatorId] =
+      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
+    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
+      provider.connection,
+      useInvalidatorId
+    );
+    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(3);
   });
 });

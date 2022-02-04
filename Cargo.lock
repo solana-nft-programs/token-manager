@@ -485,6 +485,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cardinal-use-invalidator"
+version = "0.0.3"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "cardinal-token-manager",
+ "proptest",
+ "solana-program",
+ "spl-associated-token-account",
+ "spl-token",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"

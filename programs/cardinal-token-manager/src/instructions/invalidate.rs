@@ -44,7 +44,7 @@ pub fn handler(ctx: Context<InvalidateCtx>) -> ProgramResult {
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 
-    if token_manager.kind == TokenManagerKind::Managed as u8 {
+    if token_manager.kind == TokenManagerKind::Authority as u8 {
         // if claimed we need to thaw
         if token_manager.state == TokenManagerState::Claimed as u8 {
             // thaw recipient account
@@ -67,6 +67,8 @@ pub fn handler(ctx: Context<InvalidateCtx>) -> ProgramResult {
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
         token::transfer(cpi_context, token_manager.amount)?;
+    } else if token_manager.kind == TokenManagerKind::Edition as u8 {
+
     }
     
     token_manager.state = TokenManagerState::Invalidated as u8;

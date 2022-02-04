@@ -28,7 +28,8 @@ type Accounts = TokenManagerTypes["Accounts"];
 export type TokenManagerData = Accounts["tokenManager"];
 
 export enum TokenManagerKind {
-  Managed = 1,
+  Authority = 1,
+  Edition = 2,
   Unmanaged = 2,
 }
 

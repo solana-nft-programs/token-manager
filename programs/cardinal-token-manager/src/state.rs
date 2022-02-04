@@ -17,10 +17,12 @@ pub enum TokenManagerState {
 #[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum TokenManagerKind {
-    /// Token a managed rental and will be returned to issuer
-    Managed = 1,
+    /// Token a managed rental and will use freeze authority to manage the token
+    Authority = 1,
     /// Token is unmanaged and can be traded freely until expiration
     Unmanaged = 2,
+    /// Token is a metaplex edition and so it uses metaplex program to freeze
+    Edition = 3,
 }
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {

@@ -66,7 +66,7 @@ pub fn handler(ctx: Context<ClaimCtx>) -> ProgramResult {
     token::transfer(cpi_context, token_manager.amount)?;
 
     // if this is a managed token, this means we will revoke it at the end of life, so we need to delegate and freeze
-    if token_manager.kind == TokenManagerKind::Managed as u8 {
+    if token_manager.kind == TokenManagerKind::Authority as u8 {
         // set account delegate of recipient token account to certificate PDA
         let cpi_accounts = Approve {
             to: ctx.accounts.recipient_token_account.to_account_info(),
@@ -86,6 +86,8 @@ pub fn handler(ctx: Context<ClaimCtx>) -> ProgramResult {
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
         token::freeze_account(cpi_context)?;
+    } else if token_manager.kind == TokenManagerKind::Edition as u8 {
+
     }
     return Ok(())
 }

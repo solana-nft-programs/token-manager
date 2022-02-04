@@ -46,11 +46,11 @@ pub mod cardinal_token_manager {
         unissue::handler(ctx)
     }
 
-    pub fn claim(ctx: Context<ClaimCtx>) -> ProgramResult {
+    pub fn claim<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimCtx<'info>>) -> ProgramResult {
         claim::handler(ctx)
     }
 
-    pub fn invalidate(ctx: Context<InvalidateCtx>) -> ProgramResult {
+    pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
         invalidate::handler(ctx)
     }
 }

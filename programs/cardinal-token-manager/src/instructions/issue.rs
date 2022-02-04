@@ -35,7 +35,7 @@ pub struct IssueCtx<'info> {
 }
 
 pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
-    if ix.kind != TokenManagerKind::Authority as u8
+    if ix.kind != TokenManagerKind::Managed as u8
         && ix.kind != TokenManagerKind::Unmanaged as u8
         && ix.kind != TokenManagerKind::Edition as u8 {
         return Err(ErrorCode::InvalidTokenManagerKind.into());

@@ -18,7 +18,7 @@ pub enum TokenManagerState {
 #[repr(u8)]
 pub enum TokenManagerKind {
     /// Token a managed rental and will use freeze authority to manage the token
-    Authority = 1,
+    Managed = 1,
     /// Token is unmanaged and can be traded freely until expiration
     Unmanaged = 2,
     /// Token is a metaplex edition and so it uses metaplex program to freeze

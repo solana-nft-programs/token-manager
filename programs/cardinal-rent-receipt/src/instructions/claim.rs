@@ -67,7 +67,7 @@ pub fn handler(ctx: Context<ClaimCtx>, bump: u8, receipt_token_manager_bump: u8)
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let issue_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(rent_receipt_signer);
-    cardinal_token_manager::cpi::issue(issue_ctx, IssueIx{amount: 1, kind: TokenManagerKind::Authority as u8})?;
+    cardinal_token_manager::cpi::issue(issue_ctx, IssueIx{amount: 1, kind: TokenManagerKind::Managed as u8})?;
 
     let cpi_accounts = cardinal_token_manager::cpi::accounts::ClaimCtx {
         token_manager: ctx.accounts.receipt_token_manager.to_account_info(),

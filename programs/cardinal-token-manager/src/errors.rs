@@ -2,6 +2,8 @@ use anchor_lang::prelude::*;
 
 #[error]
 pub enum ErrorCode {
+    #[msg("Account not initialized")]
+    Uninitialized,
     #[msg("Too many invalidators have already been added")]
     TooManyInvalidators,
     #[msg("Token account not owned by token manager")]
@@ -25,5 +27,5 @@ pub enum ErrorCode {
     #[msg("Invalid mint")]
     InvalidMint,
     #[msg("Invalid token manager state")]
-    InvalidTokenManagerState,
+    InvalidTokenManagerState
 }

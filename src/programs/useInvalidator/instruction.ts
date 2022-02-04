@@ -60,7 +60,6 @@ export const incrementUsages = async (
   );
 
   const [useInvalidatorId] = await findUseInvalidatorAddress(tokenManagerId);
-  console.log("-------------", usages);
 
   return useInvalidatorProgram.instruction.incrementUsages(new BN(usages), {
     accounts: {

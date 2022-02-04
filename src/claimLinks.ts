@@ -14,17 +14,25 @@ import { TokenManagerKind } from "./programs/tokenManager";
 import { findTokenManagerAddress } from "./programs/tokenManager/pda";
 import { withFindOrInitAssociatedTokenAccount } from "./utils";
 
-export const getLink = (mintId: PublicKey, otp: Keypair): string => {
-  return `https://claim.cardinal.so/${mintId.toString()}?otp=${utils.bytes.bs58.encode(
+export const getLink = (
+  mintId: PublicKey,
+  otp: Keypair,
+  baseUrl = "https://app.cardinal.so"
+): string => {
+  return `${baseUrl}/${mintId.toString()}?otp=${utils.bytes.bs58.encode(
     otp.secretKey
   )}`;
 };
 
-export const fromLink = (link: string): [PublicKey, Keypair] => {
+export const fromLink = (
+  link: string,
+  baseUrl = "https://app.cardinal.so"
+): [PublicKey, Keypair] => {
   try {
     const [_, mintId, otp] =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      /https:\/\/claim\.cardinal\.so\/(.*)\?otp=(.*)/.exec(link)!;
+      new RegExp(`${baseUrl}/(.*)\\?otp=(.*)`).exec(link)!;
+    console.log(mintId, otp);
     return [
       new web3.PublicKey(mintId as string),
       Keypair.fromSecretKey(utils.bytes.bs58.decode(otp as string)),

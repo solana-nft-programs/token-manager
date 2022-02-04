@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-use-invalidator"
-version = "0.0.4"
+version = "0.0.5"
 description = "Cardinal usage invalidator and counter"
 edition = "2021"
 homepage = "https://cardinal.so"
@@ -25,7 +25,7 @@ anchor-spl = "0.20.1"
 spl-associated-token-account = "1.0.2"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
 solana-program = "1.8.1"
-cardinal-token-manager = { version = "^0.0.4", path = "../cardinal-token-manager", features = ["cpi"] }
+cardinal-token-manager = { version = "^0.0.5", path = "../cardinal-token-manager", features = ["cpi"] }
 
 [dev-dependencies]
 proptest = { version = "1.0" }

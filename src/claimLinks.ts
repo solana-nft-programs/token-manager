@@ -8,8 +8,8 @@ import {
 } from "@solana/spl-token";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
-import { tryGetAccount } from ".";
 
+import { tryGetAccount } from ".";
 import { tokenManager, useInvalidator } from "./programs";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { findTokenManagerAddress } from "./programs/tokenManager/pda";
@@ -18,8 +18,8 @@ import { withFindOrInitAssociatedTokenAccount } from "./utils";
 export const getLink = (
   mintId: PublicKey,
   otp: Keypair,
-  cluster = "mainnet",
-  baseUrl = "https://app.cardinal.so/claim"
+  cluster = "devnet",
+  baseUrl = "https://stage.cardinal.so/claim"
 ): string => {
   return `${baseUrl}/${mintId.toString()}?otp=${utils.bytes.bs58.encode(
     otp.secretKey
@@ -28,7 +28,7 @@ export const getLink = (
 
 export const fromLink = (
   link: string,
-  baseUrl = "https://app.cardinal.so/claim"
+  baseUrl = "https://stage.cardinal.so/claim"
 ): [PublicKey, Keypair] => {
   try {
     const regexMatches =

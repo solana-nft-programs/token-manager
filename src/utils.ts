@@ -10,6 +10,15 @@ export type AccountData<T> = {
   parsed: T;
 };
 
+type AccountFn<T> = () => Promise<AccountData<T>>;
+export async function tryGetAccount<T>(fn: AccountFn<T>) {
+  try {
+    return await fn();
+  } catch {
+    return null;
+  }
+}
+
 export async function findAta(
   mint: PublicKey,
   owner: PublicKey,

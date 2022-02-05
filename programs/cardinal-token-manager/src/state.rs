@@ -25,8 +25,17 @@ pub enum TokenManagerKind {
     Edition = 3,
 }
 
+#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
+#[repr(u8)]
+pub enum InvalidationType {
+    /// Upon invalidation it will be returned to the issuer
+    Return = 1,
+    /// Upon invalidation it will remain marked as invalid
+    Invalidate = 2,
+}
+
 pub fn token_manager_size(num_invalidators: usize) -> usize {
-    return (8 + 32 + 1 + 1 + 32 + 32 + 8 + 1 + 1 + 32 + 32 + 32 + 32 + num_invalidators * 32) + 8 as usize
+    return (8 + 32 + 1 + 1 + 32 + 32 + 8 + 1 + 1 + 1 + 32 + 32 + 32 + 32 + num_invalidators * 32) + 8 as usize
 }
 
 pub const MAX_INVALIDATORS: u8 = 5;
@@ -40,6 +49,7 @@ pub struct TokenManager {
     pub amount: u64,
     pub kind: u8,
     pub state: u8,
+    pub invalidation_type: u8,
     pub recipient_token_account: Pubkey,
     pub payment_manager: Option<Pubkey>,
     pub claim_approver: Option<Pubkey>,

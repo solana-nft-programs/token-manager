@@ -33,6 +33,11 @@ export enum TokenManagerKind {
   Edition = 3,
 }
 
+export enum InvalidationType {
+  Return = 1,
+  Invalidate = 2,
+}
+
 export enum TokenManagerState {
   Initialized = 0,
   Issued = 1,

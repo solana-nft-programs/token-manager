@@ -10,13 +10,13 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals } from "../src";
-import { tokenManager } from "../src/programs";
+import { claimLinks, findAta, rentals } from "../src";
+import { tokenManager, useInvalidator } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Rentals", () => {
+describe("Use without use invalidator", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
@@ -103,60 +103,6 @@ describe("Rentals", () => {
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
   });
 
-  it("Create another rental different mint", async () => {
-    const provider = getProvider();
-
-    const [issuerTokenAccountId2, rentalMint2] = await createMint(
-      provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
-      1
-    );
-
-    const [transaction, tokenManagerId] = await rentals.createRental(
-      provider.connection,
-      provider.wallet,
-      {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
-        expiration: Date.now() / 1000 + 1,
-        rentalMint: rentalMint2.publicKey,
-        issuerTokenAccountId: issuerTokenAccountId2,
-        amount: new BN(1),
-      }
-    );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "always",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const tokenManagerData = await tokenManager.accounts.getTokenManager(
-      provider.connection,
-      tokenManagerId
-    );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint2.publicKey);
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
-
-    const checkIssuerTokenAccount = await rentalMint2.getAccountInfo(
-      issuerTokenAccountId2
-    );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
-  });
-
   it("Claim rental", async () => {
     const provider = getProvider();
 
@@ -207,5 +153,40 @@ describe("Rentals", () => {
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
       RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT
     );
+  });
+
+  it("Use", async () => {
+    const provider = getProvider();
+    const transaction = await claimLinks.useTransaction(
+      provider.connection,
+      new SignerWallet(recipient),
+      rentalMint.publicKey,
+      1
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "test", {
+      verbosity: "always",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+      rentalMint.publicKey
+    );
+    const [useInvalidatorId] =
+      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
+    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
+      provider.connection,
+      useInvalidatorId
+    );
+    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
   });
 });

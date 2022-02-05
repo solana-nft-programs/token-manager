@@ -9,7 +9,11 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import type { TOKEN_MANAGER_PROGRAM, TokenManagerKind } from "./constants";
+import type {
+  InvalidationType,
+  TOKEN_MANAGER_PROGRAM,
+  TokenManagerKind,
+} from "./constants";
 import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
 import { findClaimReceiptId, findTokenManagerAddress } from "./pda";
 
@@ -142,7 +146,8 @@ export const issue = (
   mintId: PublicKey,
   tokenManagerTokenAccountId: PublicKey,
   issuerTokenAccountId: PublicKey,
-  kind: TokenManagerKind
+  kind: TokenManagerKind,
+  invalidationType: InvalidationType
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -155,6 +160,7 @@ export const issue = (
     {
       amount,
       kind: kind,
+      invalidationType: invalidationType,
     },
     {
       accounts: {

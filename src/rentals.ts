@@ -15,7 +15,7 @@ import {
   timeInvalidator,
   tokenManager,
 } from "./programs";
-import { TokenManagerKind } from "./programs/tokenManager";
+import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export const createRental = async (
@@ -138,7 +138,8 @@ export const createRental = async (
       rentalMint,
       tokenManagerTokenAccountId,
       issuerTokenAccountId,
-      kind
+      kind,
+      InvalidationType.Return
     )
   );
 

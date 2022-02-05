@@ -8,9 +8,10 @@ import {
 } from "@solana/spl-token";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
+import { tryGetAccount } from ".";
 
 import { tokenManager, useInvalidator } from "./programs";
-import { TokenManagerKind } from "./programs/tokenManager";
+import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { findTokenManagerAddress } from "./programs/tokenManager/pda";
 import { withFindOrInitAssociatedTokenAccount } from "./utils";
 
@@ -54,12 +55,14 @@ export const issueToken = async (
     usages = 1,
     amount = new BN(1),
     kind = TokenManagerKind.Managed,
+    invalidationType = InvalidationType.Return,
   }: {
     rentalMint: PublicKey;
     issuerTokenAccountId: PublicKey;
     usages?: number;
     amount?: BN;
     kind?: TokenManagerKind;
+    invalidationType?: InvalidationType;
   }
 ): Promise<[Transaction, PublicKey, Keypair]> => {
   const otp = Keypair.generate();
@@ -122,7 +125,8 @@ export const issueToken = async (
       rentalMint,
       tokenManagerTokenAccountId,
       issuerTokenAccountId,
-      kind
+      kind,
+      invalidationType
     )
   );
 
@@ -195,6 +199,25 @@ export const useTransaction = async (
 ): Promise<Transaction> => {
   const transaction = new Transaction();
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
+
+  const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
+    tokenManagerId
+  );
+
+  const useInvalidatorData = await tryGetAccount(() =>
+    useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
+  );
+
+  if (!useInvalidatorData) {
+    // init
+    const [InitTx] = await useInvalidator.instruction.init(
+      connection,
+      wallet,
+      tokenManagerId,
+      null
+    );
+    transaction.add(InitTx);
+  }
 
   // use
   transaction.add(

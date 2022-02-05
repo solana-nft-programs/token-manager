@@ -29,3 +29,36 @@ export const getPaymentManager = async (
     pubkey: paymentManagerId,
   };
 };
+
+export const getPaymentManagers = async (
+  connection: Connection,
+  paymentManagerIds: PublicKey[]
+): Promise<AccountData<PaymentManagerData>[]> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const paymentManagerProgram = new Program<PAYMENT_MANAGER_PROGRAM>(
+    PAYMENT_MANAGER_IDL,
+    PAYMENT_MANAGER_ADDRESS,
+    provider
+  );
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  let paymentManagers = [];
+  try {
+    paymentManagers =
+      await paymentManagerProgram.account.paymentManager.fetchMultiple(
+        paymentManagerIds
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  return paymentManagers.map((pm, i) => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    parsed: pm,
+    pubkey: paymentManagerIds[i],
+  }));
+};

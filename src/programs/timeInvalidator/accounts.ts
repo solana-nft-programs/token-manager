@@ -9,7 +9,7 @@ import type {
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
 
 // TODO fix types
-export const getUseInvalidator = async (
+export const getTimeInvalidator = async (
   connection: Connection,
   timeInvalidatorId: PublicKey
 ): Promise<AccountData<TimeInvalidatorData>> => {

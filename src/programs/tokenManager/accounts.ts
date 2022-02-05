@@ -33,7 +33,7 @@ export const getTokenManager = async (
 export const getTokenManagers = async (
   connection: Connection,
   tokenManagerIds: PublicKey[]
-): Promise<AccountData<TokenManagerData[]>> => {
+): Promise<AccountData<TokenManagerData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const provider = new Provider(connection, null, {});

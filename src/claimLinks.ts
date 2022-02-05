@@ -17,25 +17,27 @@ import { withFindOrInitAssociatedTokenAccount } from "./utils";
 export const getLink = (
   mintId: PublicKey,
   otp: Keypair,
-  baseUrl = "https://app.cardinal.so"
+  cluster = "mainnet",
+  baseUrl = "https://app.cardinal.so/claim"
 ): string => {
   return `${baseUrl}/${mintId.toString()}?otp=${utils.bytes.bs58.encode(
     otp.secretKey
-  )}`;
+  )}${cluster === "devnet" ? "&cluster=devnet" : ""}`;
 };
 
 export const fromLink = (
   link: string,
-  baseUrl = "https://app.cardinal.so"
+  baseUrl = "https://app.cardinal.so/claim"
 ): [PublicKey, Keypair] => {
   try {
-    const [_, mintId, otp] =
+    const regexMatches =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      new RegExp(`${baseUrl}/(.*)\\?otp=(.*)`).exec(link)!;
-    console.log(mintId, otp);
+      new RegExp(`${baseUrl}/(.*)\\?otp=([^&]*)`).exec(
+        `${link}&cluster=devnet`
+      )!;
     return [
-      new web3.PublicKey(mintId as string),
-      Keypair.fromSecretKey(utils.bytes.bs58.decode(otp as string)),
+      new web3.PublicKey(regexMatches[1] as string),
+      Keypair.fromSecretKey(utils.bytes.bs58.decode(regexMatches[2] as string)),
     ];
   } catch (e) {
     console.log("Error decoding link: ", e, link);

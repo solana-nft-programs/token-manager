@@ -25,7 +25,7 @@
     "lint": "eslint . --cache",
     "lint:ci": "eslint . --max-warnings=0",
     "test:e2e": "anchor test --skip-build 'tests/**/*.ts'",
-    "docs:generate": "typedoc --excludePrivate --includeVersion --out site/ts/ src/index.ts",
+    "docs:generate": "typedoc --excludePrivate --includeVersion --out site/ src/index.ts",
     "prepare": "husky install"
   },
   "devDependencies": {

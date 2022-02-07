@@ -13,7 +13,7 @@ export const connectionFor = (
   defaultCluster = "mainnet"
 ) => {
   return new Connection(
-    process.env.RPC_URL || networkURLs[cluster || defaultCluster],
+    process.env.RPC_URL || (networkURLs[cluster || defaultCluster] as string),
     "recent"
   );
 };

@@ -18,6 +18,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@cardinal/token-manager@workspace:."
   dependencies:
+    "@metaplex-foundation/mpl-token-metadata": ^1.2.3
     "@project-serum/anchor": ^0.20.1
     "@rushstack/eslint-patch": ^1.1.0
     "@saberhq/anchor-contrib": ^1.12.32
@@ -29,11 +30,14 @@ __metadata:
     "@solana/spl-token": ^0.1.8
     "@solana/web3.js": ^1.31.0
     "@types/bn.js": ^5.1.0
+    "@types/bs58": ^4
     "@types/chai": ^4.3.0
     "@types/mocha": ^9.1.0
     "@types/node": ^17.0.10
     "@types/prettier": ^2.4.3
     bn.js: ^5.2.0
+    borsh: ^0.7.0
+    bs58: ^4.0.1
     chai: ^4.3.4
     eslint: ^8.7.0
     eslint-import-resolver-node: ^0.3.6
@@ -141,6 +145,27 @@ __metadata:
   version: 1.2.1
   resolution: "@humanwhocodes/object-schema@npm:1.2.1"
   checksum: a824a1ec31591231e4bad5787641f59e9633827d0a2eaae131a288d33c9ef0290bd16fda8da6f7c0fcb014147865d12118df10db57f27f41e20da92369fcb3f1
+  languageName: node
+  linkType: hard
+
+"@metaplex-foundation/mpl-core@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "@metaplex-foundation/mpl-core@npm:0.0.2"
+  dependencies:
+    "@solana/web3.js": ^1.31.0
+    bs58: ^4.0.1
+  checksum: f74ad09538dbd8b567c349724310ed3ca1e3c9d7e65992ea32077294b09791cd246ab2ac0c29c0a8ed00aaccb6858dbb0fffc55e7e788da7c418f2ed094a1d9a
+  languageName: node
+  linkType: hard
+
+"@metaplex-foundation/mpl-token-metadata@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "@metaplex-foundation/mpl-token-metadata@npm:1.2.3"
+  dependencies:
+    "@metaplex-foundation/mpl-core": ^0.0.2
+    "@solana/spl-token": ^0.1.8
+    "@solana/web3.js": ^1.31.0
+  checksum: e83649dd35f23b1293681b21dc2f4edb3ca1e377f5702281bbbf39ec355add31efae235553ddde77242219ea77aa711b67882f0d934de763d5907b5d95f6f0f8
   languageName: node
   linkType: hard
 
@@ -429,6 +454,15 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: 1dc1cbbd7a1e8bf3614752e9602f558762a901031f499f3055828b5e3e2bba16e5b88c27b3c4152ad795248fbe4086c731a5c4b0f29bb243f1875beeeabee59c
+  languageName: node
+  linkType: hard
+
+"@types/bs58@npm:^4":
+  version: 4.0.1
+  resolution: "@types/bs58@npm:4.0.1"
+  dependencies:
+    base-x: ^3.0.6
+  checksum: 5063fed6bb3816f28eef3e689a05f8f85d03ce7c2e3ceefe77c349ed147023999eb024e863bf3fa81ba2bded690e5296efe4d34864c875097bd261614e37f786
   languageName: node
   linkType: hard
 
@@ -921,7 +955,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base-x@npm:^3.0.2":
+"base-x@npm:^3.0.2, base-x@npm:^3.0.6":
   version: 3.0.9
   resolution: "base-x@npm:3.0.9"
   dependencies:
@@ -967,6 +1001,17 @@ __metadata:
     bs58: ^4.0.0
     text-encoding-utf-8: ^1.0.2
   checksum: 75c836bac336d703395f9e8fb6b54a5c02c56cfc54fd597e387a97f13a6e4849a906f1f0cd05e0f9b889a2ed26f592d269c421c70a808ccc3a66ef857597bf1a
+  languageName: node
+  linkType: hard
+
+"borsh@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "borsh@npm:0.7.0"
+  dependencies:
+    bn.js: ^5.2.0
+    bs58: ^4.0.0
+    text-encoding-utf-8: ^1.0.2
+  checksum: e98bfb5f7cfb820819c2870b884dac58dd4b4ce6a86c286c8fbf5c9ca582e73a8c6094df67e81a28c418ff07a309c6b118b2e27fdfea83fd92b8100c741da0b5
   languageName: node
   linkType: hard
 

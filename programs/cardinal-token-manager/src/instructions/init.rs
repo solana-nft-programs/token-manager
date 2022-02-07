@@ -1,6 +1,7 @@
 use {
     crate::{state::*, errors::*},
     anchor_lang::{prelude::*},
+    anchor_spl::{token::{TokenAccount}}
 };
 
 #[derive(Accounts)]
@@ -13,12 +14,21 @@ pub struct InitCtx<'info> {
         space = token_manager_size(num_invalidators as usize),
     )]
     token_manager: Box<Account<'info, TokenManager>>,
+
     #[account(mut)]
     issuer: Signer<'info>,
+    #[account(mut, constraint =
+        issuer_token_account.owner == issuer.key()
+        && issuer_token_account.mint == mint
+        && issuer_token_account.amount >= 1
+        @ ErrorCode::InvalidIssuerTokenAccount
+    )]
+    issuer_token_account: Box<Account<'info, TokenAccount>>,
+
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, _mint: Pubkey, bump: u8, num_invalidators: u8) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, mint: Pubkey, bump: u8, num_invalidators: u8) -> ProgramResult {
     if num_invalidators > MAX_INVALIDATORS {
         return Err(ErrorCode::InvalidIssuerTokenAccount.into());
     }
@@ -27,6 +37,9 @@ pub fn handler(ctx: Context<InitCtx>, _mint: Pubkey, bump: u8, num_invalidators:
     token_manager.bump = bump;
     token_manager.num_invalidators = num_invalidators;
     token_manager.issuer = ctx.accounts.issuer.key();
+    token_manager.mint = mint;
     token_manager.state = TokenManagerState::Initialized as u8;
+    // default to itself to avoid someone not setting it
+    token_manager.transfer_authority = Some(token_manager.key());
     return Ok(())
 }

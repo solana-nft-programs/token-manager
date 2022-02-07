@@ -1,6 +1,5 @@
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import { SPLToken } from "@saberhq/token-utils";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
@@ -9,11 +8,12 @@ import {
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Transaction } from "@solana/web3.js";
 
+import { tryGetAccount } from ".";
 import {
   claimApprover,
-  paymentManager,
   timeInvalidator,
   tokenManager,
+  useInvalidator,
 } from "./programs";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { withFindOrInitAssociatedTokenAccount } from "./utils";
@@ -25,6 +25,7 @@ export const createRental = async (
     paymentAmount,
     paymentMint,
     expiration,
+    usages,
     rentalMint,
     issuerTokenAccountId,
     amount = new BN(1),
@@ -32,7 +33,8 @@ export const createRental = async (
   }: {
     paymentAmount: number;
     paymentMint: PublicKey;
-    expiration: number;
+    expiration?: number;
+    usages?: number;
     rentalMint: PublicKey;
     issuerTokenAccountId: PublicKey;
     amount?: BN;
@@ -45,27 +47,18 @@ export const createRental = async (
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
-    rentalMint
+    rentalMint,
+    issuerTokenAccountId
   );
   transaction.add(tokenManagerIx);
 
-  // init payment manager
-  const [paymentManagerIx, paymentManagerId] =
-    await paymentManager.instruction.init(
+  // set payment mint
+  transaction.add(
+    tokenManager.instruction.setPaymentMint(
       connection,
       wallet,
       tokenManagerId,
       paymentMint
-    );
-  transaction.add(paymentManagerIx);
-
-  // set payment manager
-  transaction.add(
-    tokenManager.instruction.setPaymetManager(
-      connection,
-      wallet,
-      tokenManagerId,
-      paymentManagerId
     )
   );
 
@@ -75,7 +68,6 @@ export const createRental = async (
       connection,
       wallet,
       tokenManagerId,
-      paymentManagerId,
       paymentAmount
     );
   transaction.add(claimApproverIx);
@@ -90,34 +82,75 @@ export const createRental = async (
   );
 
   // time invalidator
-  const [timeInvalidatorIx, timeInvalidatorId] =
-    await timeInvalidator.instruction.init(
-      connection,
-      wallet,
-      tokenManagerId,
-      expiration
+  if (expiration) {
+    const [timeInvalidatorIx, timeInvalidatorId] =
+      await timeInvalidator.instruction.init(
+        connection,
+        wallet,
+        tokenManagerId,
+        expiration
+      );
+    transaction.add(timeInvalidatorIx);
+    transaction.add(
+      tokenManager.instruction.addInvalidator(
+        connection,
+        wallet,
+        tokenManagerId,
+        timeInvalidatorId
+      )
     );
-  transaction.add(timeInvalidatorIx);
+  }
 
-  transaction.add(
-    tokenManager.instruction.addInvalidator(
-      connection,
-      wallet,
-      tokenManagerId,
-      timeInvalidatorId
-    )
-  );
+  // usages
+  if (usages) {
+    const [useInvalidatorIx, useInvalidatorId] =
+      await useInvalidator.instruction.init(
+        connection,
+        wallet,
+        tokenManagerId,
+        usages
+      );
 
-  transaction.add(
-    SPLToken.createSetAuthorityInstruction(
-      TOKEN_PROGRAM_ID,
-      rentalMint,
-      tokenManagerId,
-      "FreezeAccount",
-      wallet.publicKey,
-      []
-    )
-  );
+    const useInvalidatorData = await tryGetAccount(() =>
+      useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
+    );
+    if (useInvalidatorData) {
+      transaction.add(
+        useInvalidator.instruction.close(
+          connection,
+          wallet,
+          useInvalidatorId,
+          tokenManagerId
+        )
+      );
+    }
+
+    transaction.add(useInvalidatorIx);
+    transaction.add(
+      tokenManager.instruction.addInvalidator(
+        connection,
+        wallet,
+        tokenManagerId,
+        useInvalidatorId
+      )
+    );
+  }
+
+  if (kind === TokenManagerKind.Managed) {
+    const [mintManagerIx, mintManagerId] =
+      await tokenManager.instruction.creatMintManager(
+        connection,
+        wallet,
+        rentalMint
+      );
+
+    const mintManagerData = await tryGetAccount(() =>
+      tokenManager.accounts.getMintManager(connection, mintManagerId)
+    );
+    if (!mintManagerData) {
+      transaction.add(mintManagerIx);
+    }
+  }
 
   // issuer
   const tokenManagerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
@@ -135,7 +168,6 @@ export const createRental = async (
       wallet,
       tokenManagerId,
       amount,
-      rentalMint,
       tokenManagerTokenAccountId,
       issuerTokenAccountId,
       kind,
@@ -163,27 +195,21 @@ export const claimRental = async (
   // pay claim approver
   if (
     tokenManagerData.parsed.claimApprover &&
-    tokenManagerData.parsed.paymentManager
+    tokenManagerData.parsed.paymentMint
   ) {
-    const paymentManagerData = await paymentManager.accounts.getPaymentManager(
+    const paymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
       connection,
-      tokenManagerData.parsed.paymentManager
+      tokenManagerData.parsed.paymentMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
     );
-
-    const paymentManagerTokenAccountId =
-      await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        paymentManagerData.parsed.paymentMint,
-        tokenManagerData.parsed.paymentManager,
-        wallet.publicKey,
-        true
-      );
 
     const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
-      paymentManagerData.parsed.paymentMint,
+      tokenManagerData.parsed.paymentMint,
       wallet.publicKey,
       wallet.publicKey
     );
@@ -198,8 +224,7 @@ export const claimRental = async (
         connection,
         wallet,
         tokenManagerId,
-        tokenManagerData.parsed.paymentManager,
-        paymentManagerTokenAccountId,
+        paymentTokenAccountId,
         payerTokenAccountId
       )
     );
@@ -223,10 +248,11 @@ export const claimRental = async (
 
   // claim
   transaction.add(
-    tokenManager.instruction.claim(
+    await tokenManager.instruction.claim(
       connection,
       wallet,
       tokenManagerId,
+      tokenManagerData.parsed.kind,
       tokenManagerData.parsed.mint,
       tokenManagerTokenAccountId,
       recipientTokenAccountId,

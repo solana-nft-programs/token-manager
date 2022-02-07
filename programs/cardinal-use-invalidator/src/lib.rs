@@ -18,7 +18,11 @@ pub mod cardinal_use_invalidator {
         increment_usages::handler(ctx, num_usages)
     }
 
-    pub fn invalidate(ctx: Context<InvalidateCtx>) -> ProgramResult {
+    pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
         invalidate::handler(ctx)
+    }
+
+    pub fn close(ctx: Context<CloseCtx>) -> ProgramResult {
+        close::handler(ctx)
     }
 }

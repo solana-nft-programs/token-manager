@@ -5,7 +5,7 @@ use {
 
 #[derive(Accounts)]
 pub struct SetClaimApproverCtx<'info> {
-    #[account(mut)]
+    #[account(mut, constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
 
     // issuer

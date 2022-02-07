@@ -416,7 +416,6 @@ version = "0.0.10"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
- "cardinal-payment-manager",
  "cardinal-token-manager",
  "proptest",
  "solana-program",

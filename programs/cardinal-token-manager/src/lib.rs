@@ -14,8 +14,12 @@ pub mod cardinal_token_manager {
         init::handler(ctx, mint, bump, num_invalidators)
     }
 
-    pub fn set_payment_manager(ctx: Context<SetPaymentManagerCtx>, payment_manager: Pubkey) -> ProgramResult {
-        set_payment_manager::handler(ctx, payment_manager)
+    pub fn uninit(ctx: Context<UninitCtx>) -> ProgramResult {
+        uninit::handler(ctx)
+    }
+
+    pub fn set_payment_mint(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> ProgramResult {
+        set_payment_mint::handler(ctx, payment_mint)
     }
 
     pub fn set_claim_approver(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> ProgramResult {
@@ -52,5 +56,13 @@ pub mod cardinal_token_manager {
 
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
         invalidate::handler(ctx)
+    }
+
+    pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>, bump: u8) -> ProgramResult {
+        create_mint_manager::handler(ctx, bump)
+    }
+
+    pub fn close_mint_manager(ctx: Context<CloseMintManagerCtx>) -> ProgramResult {
+        close_mint_manager::handler(ctx)
     }
 }

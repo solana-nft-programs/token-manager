@@ -1,5 +1,6 @@
 pub mod init;
-pub mod set_payment_manager;
+pub mod uninit;
+pub mod set_payment_mint;
 pub mod set_claim_approver;
 pub mod set_transfer_authority;
 pub mod add_invalidator;
@@ -9,9 +10,12 @@ pub mod issue;
 pub mod unissue;
 pub mod claim;
 pub mod invalidate;
+pub mod create_mint_manager;
+pub mod close_mint_manager;
 
 pub use init::*;
-pub use set_payment_manager::*;
+pub use uninit::*;
+pub use set_payment_mint::*;
 pub use set_claim_approver::*;
 pub use set_transfer_authority::*;
 pub use add_invalidator::*;
@@ -21,3 +25,5 @@ pub use issue::*;
 pub use unissue::*;
 pub use claim::*;
 pub use invalidate::*;
+pub use create_mint_manager::*;
+pub use close_mint_manager::*;

@@ -39,6 +39,7 @@
     "@saberhq/tsconfig": "^1.12.32",
     "@solana/web3.js": "^1.31.0",
     "@types/bn.js": "^5.1.0",
+    "@types/bs58": "^4",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.10",
@@ -82,7 +83,10 @@
     "*.{js,json,jsx,html,css,md}": "prettier --write"
   },
   "dependencies": {
+    "@metaplex-foundation/mpl-token-metadata": "^1.2.3",
     "@solana/spl-token": "^0.1.8",
+    "borsh": "^0.7.0",
+    "bs58": "^4.0.1",
     "tiny-invariant": "^1.2.0",
     "tslib": "^2.3.1"
   },

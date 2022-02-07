@@ -1,3 +1,10 @@
+import {
+  CreateMasterEditionV3,
+  CreateMetadataV2,
+  DataV2,
+  MasterEdition,
+  Metadata,
+} from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
@@ -10,13 +17,16 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals, useTransaction } from "../src";
-import { tokenManager, useInvalidator } from "../src/programs";
-import { TokenManagerState } from "../src/programs/tokenManager";
+import { findAta, rentals } from "../src";
+import { tokenManager } from "../src/programs";
+import {
+  TokenManagerKind,
+  TokenManagerState,
+} from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Use without use invalidator", () => {
+describe("Master editions", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
@@ -54,8 +64,54 @@ describe("Use without use invalidator", () => {
       tokenCreator,
       provider.wallet.publicKey,
       1,
-      provider.wallet.publicKey
+      tokenCreator.publicKey
     );
+
+    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataTx = new CreateMetadataV2(
+      { feePayer: tokenCreator.publicKey },
+      {
+        metadata: metadataId,
+        metadataData: new DataV2({
+          name: "test",
+          symbol: "TST",
+          uri: "http://test/",
+          sellerFeeBasisPoints: 10,
+          creators: null,
+          collection: null,
+          uses: null,
+        }),
+        updateAuthority: tokenCreator.publicKey,
+        mint: rentalMint.publicKey,
+        mintAuthority: tokenCreator.publicKey,
+      }
+    );
+
+    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionTx = new CreateMasterEditionV3(
+      { feePayer: tokenCreator.publicKey },
+      {
+        edition: masterEditionId,
+        metadata: metadataId,
+        updateAuthority: tokenCreator.publicKey,
+        mint: rentalMint.publicKey,
+        mintAuthority: tokenCreator.publicKey,
+        maxSupply: new BN(1),
+      }
+    );
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(tokenCreator),
+        opts: provider.opts,
+      }),
+      [...metadataTx.instructions, ...masterEditionTx.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "test", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
   });
 
   it("Create rental", async () => {
@@ -70,6 +126,7 @@ describe("Use without use invalidator", () => {
         rentalMint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
+        kind: TokenManagerKind.Edition,
       }
     );
     const txEnvelope = new TransactionEnvelope(
@@ -146,6 +203,7 @@ describe("Use without use invalidator", () => {
       await findAta(rentalMint.publicKey, recipient.publicKey)
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
     const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
       recipientPaymentTokenAccountId
@@ -153,40 +211,5 @@ describe("Use without use invalidator", () => {
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
       RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT
     );
-  });
-
-  it("Use", async () => {
-    const provider = getProvider();
-    const transaction = await useTransaction(
-      provider.connection,
-      new SignerWallet(recipient),
-      rentalMint.publicKey,
-      1
-    );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
-      rentalMint.publicKey
-    );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
-    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
-      provider.connection,
-      useInvalidatorId
-    );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
   });
 });

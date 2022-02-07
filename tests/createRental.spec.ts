@@ -81,7 +81,7 @@ describe("Rentals", () => {
       [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -135,7 +135,7 @@ describe("Rentals", () => {
       [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -180,7 +180,7 @@ describe("Rentals", () => {
     );
 
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -200,6 +200,7 @@ describe("Rentals", () => {
       await findAta(rentalMint.publicKey, recipient.publicKey)
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
     const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
       recipientPaymentTokenAccountId

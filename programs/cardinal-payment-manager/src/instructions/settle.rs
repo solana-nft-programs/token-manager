@@ -8,7 +8,7 @@ use {
 #[derive(Accounts)]
 pub struct SettleCtx<'info> {
     #[account(constraint =
-        payment_manager.key() == token_manager.payment_manager.unwrap()
+        payment_manager.key() == token_manager.payment_mint.unwrap()
         && token_manager.state == TokenManagerState::Invalidated as u8
         @ ErrorCode::InvalidTokenManager
     )]

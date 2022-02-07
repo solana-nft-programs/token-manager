@@ -21,9 +21,9 @@ Carinal protocol provides a token-manager implementation as well as basic plugin
 | Package                        | Description                                                  | Version                                                                                                                             | Docs                                                                                                               |
 | :----------------------------- | :----------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
 | `cardinal-token-manager`       | Manages conditionally owned tokens                           | [![Crates.io](https://img.shields.io/crates/v/cardinal-token-manager)](https://crates.io/crates/cardinal-token-manager)             | [![Docs.rs](https://docs.rs/cardinal-token-manager/badge.svg)](https://docs.rs/cardinal-token-manager)             |
-| `cardinal-payment-manager`     | Manages payment for token-managers                           | [![Crates.io](https://img.shields.io/crates/v/cardinal-payment-manager)](https://crates.io/crates/cardinal-payment-manager)         | [![Docs.rs](https://docs.rs/cardinal-payment-manager/badge.svg)](https://docs.rs/cardinal-payment-manager)         |
 | `cardinal-paid-claim-approver` | Approves users to claim tokens from a token-manager          | [![Crates.io](https://img.shields.io/crates/v/cardinal-paid-claim-approver)](https://crates.io/crates/cardinal-paid-claim-approver) | [![Docs.rs](https://docs.rs/cardinal-paid-claim-approver/badge.svg)](https://docs.rs/cardinal-paid-claim-approver) |
 | `cardinal-time-invalidator`    | Invalidator for time-based token-managers                    | [![Crates.io](https://img.shields.io/crates/v/cardinal-time-invalidator)](https://crates.io/crates/cardinal-time-invalidator)       | [![Docs.rs](https://docs.rs/cardinal-time-invalidator/badge.svg)](https://docs.rs/cardinal-time-invalidator)       |
+| `cardinal-use-invalidator`     | Invalidator for use-based token-managers                     | [![Crates.io](https://img.shields.io/crates/v/cardinal-use-invalidator)](https://crates.io/crates/cardinal-use-invalidator)         | [![Docs.rs](https://docs.rs/cardinal-use-invalidator/badge.svg)](https://docs.rs/cardinal-use-invalidator)         |
 | `cardinal-rental-counter`      | Counter for tracking a users issued tokens via token-manager | [![Crates.io](https://img.shields.io/crates/v/cardinal-rental-counter)](https://crates.io/crates/cardinal-rental-counter)           | [![Docs.rs](https://docs.rs/cardinal-rental-counter/badge.svg)](https://docs.rs/cardinal-rental-counter)           |
 | `@cardinal/token-manager`      | TypeScript SDK for token-manager                             | [![npm](https://img.shields.io/npm/v/@cardinal/token-manager.svg)](https://www.npmjs.com/package/@cardinal/token-manager)           | [![Docs](https://img.shields.io/badge/docs-typedoc-blue)](https://docs.cardinal.so/ts/)                            |
 
@@ -32,9 +32,9 @@ Carinal protocol provides a token-manager implementation as well as basic plugin
 Program addresses are the same on devnet, testnet, and mainnet-beta.
 
 - TokenManager: [`mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz`](https://explorer.solana.com/address/mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz)
-- PaymentManager: [`cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn`](https://explorer.solana.com/address/cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn)
 - PaidClaimApprover: [`pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF`](https://explorer.solana.com/address/pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF)
 - TimeInvalidator: [`tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe`](https://explorer.solana.com/address/tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe)
+- UseInvalidator: [`useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L`](https://explorer.solana.com/address/useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L)
 - RentalCounter: [`cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP`](https://explorer.solana.com/address/cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP)
 
 ## Plugins
@@ -49,7 +49,7 @@ When instantiating a token-manager, the issuer can set a claim approver, transfe
 
 ## Documentation
 
-Documentation is a work in progress. For now, one should read [the end-to-end tests of the SDK](/tests/mintWrapper.spec.ts).
+Documentation is a work in progress. For now, one should read [the tests](/tests/createRental.spec.ts).
 
 We soon plan on releasing a React library to make it easy to integrate Cardinal with your frontend.
 

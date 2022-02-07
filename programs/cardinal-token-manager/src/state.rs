@@ -32,6 +32,8 @@ pub enum InvalidationType {
     Return = 1,
     /// Upon invalidation it will remain marked as invalid
     Invalidate = 2,
+    /// Upon invalidation the token manager will be deleted and thus the tokens are released
+    Release = 3,
 }
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {
@@ -51,10 +53,19 @@ pub struct TokenManager {
     pub state: u8,
     pub invalidation_type: u8,
     pub recipient_token_account: Pubkey,
-    pub payment_manager: Option<Pubkey>,
+    pub payment_mint: Option<Pubkey>,
     pub claim_approver: Option<Pubkey>,
     pub transfer_authority: Option<Pubkey>,
     pub invalidators: Vec<Pubkey>,
+}
+
+pub const MINT_MANAGER_SEED: &str = "mint-manager";
+pub const MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<MintManager>() + 8; 
+#[account]
+pub struct MintManager {
+    pub bump: u8,
+    pub initializer: Pubkey,
+    pub outstanding_tokens: i64,
 }
 
 pub const CLAIM_RECEIPT_SEED: &str = "claim-receipt";

@@ -1,6 +1,5 @@
 import { BN, utils, web3 } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import { SPLToken } from "@saberhq/token-utils";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
@@ -72,7 +71,8 @@ export const issueToken = async (
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
-    rentalMint
+    rentalMint,
+    issuerTokenAccountId
   );
   transaction.add(tokenManagerIx);
 
@@ -94,16 +94,19 @@ export const issueToken = async (
   transaction.add(useInvalidatorIx);
 
   if (kind === TokenManagerKind.Managed) {
-    transaction.add(
-      SPLToken.createSetAuthorityInstruction(
-        TOKEN_PROGRAM_ID,
-        rentalMint,
-        tokenManagerId,
-        "FreezeAccount",
-        wallet.publicKey,
-        []
-      )
+    const [mintManagerIx, mintManagerId] =
+      await tokenManager.instruction.creatMintManager(
+        connection,
+        wallet,
+        rentalMint
+      );
+
+    const mintManagerData = await tryGetAccount(() =>
+      tokenManager.accounts.getMintManager(connection, mintManagerId)
     );
+    if (!mintManagerData) {
+      transaction.add(mintManagerIx);
+    }
   }
 
   // issuer
@@ -122,7 +125,6 @@ export const issueToken = async (
       wallet,
       tokenManagerId,
       amount,
-      rentalMint,
       tokenManagerTokenAccountId,
       issuerTokenAccountId,
       kind,
@@ -177,55 +179,15 @@ export const claimFromLink = async (
 
   // claim
   transaction.add(
-    tokenManager.instruction.claim(
+    await tokenManager.instruction.claim(
       connection,
       wallet,
       tokenManagerId,
+      tokenManagerData.parsed.kind,
       tokenManagerData.parsed.mint,
       tokenManagerTokenAccountId,
       recipientTokenAccountId,
       claimReceiptId
-    )
-  );
-
-  return transaction;
-};
-
-export const useTransaction = async (
-  connection: Connection,
-  wallet: Wallet,
-  mintId: PublicKey,
-  usages: number
-): Promise<Transaction> => {
-  const transaction = new Transaction();
-  const [tokenManagerId] = await findTokenManagerAddress(mintId);
-
-  const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
-    tokenManagerId
-  );
-
-  const useInvalidatorData = await tryGetAccount(() =>
-    useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
-  );
-
-  if (!useInvalidatorData) {
-    // init
-    const [InitTx] = await useInvalidator.instruction.init(
-      connection,
-      wallet,
-      tokenManagerId,
-      null
-    );
-    transaction.add(InitTx);
-  }
-
-  // use
-  transaction.add(
-    await useInvalidator.instruction.incrementUsages(
-      connection,
-      wallet,
-      tokenManagerId,
-      usages
     )
   );
 

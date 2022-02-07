@@ -22,6 +22,8 @@ pub enum ErrorCode {
     InvalidClaimAuthority,
     #[msg("Invalid transfer authority")]
     InvalidTransferAuthority,
+    #[msg("Invalid payment manager")]
+    InvalidPaymentManager,
     #[msg("Invalid issuer")]
     InvalidIssuer,
     #[msg("Invalid invalidator")]
@@ -29,5 +31,9 @@ pub enum ErrorCode {
     #[msg("Invalid mint")]
     InvalidMint,
     #[msg("Invalid token manager state")]
-    InvalidTokenManagerState
+    InvalidTokenManagerState,
+    #[msg("Outstanding tokens exist")]
+    OutstandingTokens,
+    #[msg("Invalid freeze authority")]
+    InvalidFreezeAuthority,
 }

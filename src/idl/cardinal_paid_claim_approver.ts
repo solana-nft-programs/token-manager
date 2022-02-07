@@ -11,11 +11,6 @@ export type CardinalPaidClaimApprover = {
           isSigner: false;
         },
         {
-          name: "paymentManager";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "claimApprover";
           isMut: true;
           isSigner: false;
@@ -51,12 +46,7 @@ export type CardinalPaidClaimApprover = {
           isSigner: false;
         },
         {
-          name: "paymentManager";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "paymentManagerTokenAccount";
+          name: "paymentTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -137,11 +127,6 @@ export type CardinalPaidClaimApprover = {
       code: 302;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
-    },
-    {
-      code: 303;
-      name: "InvalidPaymentManager";
-      msg: "Payment manager is invalid";
     }
   ];
 };
@@ -155,11 +140,6 @@ export const IDL: CardinalPaidClaimApprover = {
       accounts: [
         {
           name: "tokenManager",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "paymentManager",
           isMut: false,
           isSigner: false,
         },
@@ -199,12 +179,7 @@ export const IDL: CardinalPaidClaimApprover = {
           isSigner: false,
         },
         {
-          name: "paymentManager",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "paymentManagerTokenAccount",
+          name: "paymentTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -285,11 +260,6 @@ export const IDL: CardinalPaidClaimApprover = {
       code: 302,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
-    },
-    {
-      code: 303,
-      name: "InvalidPaymentManager",
-      msg: "Payment manager is invalid",
     },
   ],
 };

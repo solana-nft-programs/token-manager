@@ -16,6 +16,11 @@ export type CardinalTokenManager = {
           isSigner: true;
         },
         {
+          name: "issuerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
@@ -37,7 +42,33 @@ export type CardinalTokenManager = {
       ];
     },
     {
-      name: "setPaymentManager";
+      name: "uninit";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "issuer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "issuerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "setPaymentMint";
       accounts: [
         {
           name: "tokenManager";
@@ -52,7 +83,7 @@ export type CardinalTokenManager = {
       ];
       args: [
         {
-          name: "paymentManager";
+          name: "paymentMint";
           type: "publicKey";
         }
       ];
@@ -219,11 +250,6 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
-          name: "mint";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -355,6 +381,78 @@ export type CardinalTokenManager = {
         }
       ];
       args: [];
+    },
+    {
+      name: "createMintManager";
+      accounts: [
+        {
+          name: "mintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "freezeAuthority";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "bump";
+          type: "u8";
+        }
+      ];
+    },
+    {
+      name: "closeMintManager";
+      accounts: [
+        {
+          name: "mintManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "freezeAuthority";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "payer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -400,7 +498,7 @@ export type CardinalTokenManager = {
             type: "publicKey";
           },
           {
-            name: "paymentManager";
+            name: "paymentMint";
             type: {
               option: "publicKey";
             };
@@ -422,6 +520,26 @@ export type CardinalTokenManager = {
             type: {
               vec: "publicKey";
             };
+          }
+        ];
+      };
+    },
+    {
+      name: "mintManager";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "initializer";
+            type: "publicKey";
+          },
+          {
+            name: "outstandingTokens";
+            type: "i64";
           }
         ];
       };
@@ -509,6 +627,9 @@ export type CardinalTokenManager = {
           },
           {
             name: "Invalidate";
+          },
+          {
+            name: "Release";
           }
         ];
       };
@@ -567,23 +688,38 @@ export type CardinalTokenManager = {
     },
     {
       code: 310;
+      name: "InvalidPaymentManager";
+      msg: "Invalid payment manager";
+    },
+    {
+      code: 311;
       name: "InvalidIssuer";
       msg: "Invalid issuer";
     },
     {
-      code: 311;
+      code: 312;
       name: "InvalidInvalidator";
       msg: "Invalid invalidator";
     },
     {
-      code: 312;
+      code: 313;
       name: "InvalidMint";
       msg: "Invalid mint";
     },
     {
-      code: 313;
+      code: 314;
       name: "InvalidTokenManagerState";
       msg: "Invalid token manager state";
+    },
+    {
+      code: 315;
+      name: "OutstandingTokens";
+      msg: "Outstanding tokens exist";
+    },
+    {
+      code: 316;
+      name: "InvalidFreezeAuthority";
+      msg: "Invalid freeze authority";
     }
   ];
 };
@@ -604,6 +740,11 @@ export const IDL: CardinalTokenManager = {
           name: "issuer",
           isMut: true,
           isSigner: true,
+        },
+        {
+          name: "issuerTokenAccount",
+          isMut: true,
+          isSigner: false,
         },
         {
           name: "systemProgram",
@@ -627,7 +768,33 @@ export const IDL: CardinalTokenManager = {
       ],
     },
     {
-      name: "setPaymentManager",
+      name: "uninit",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "issuer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "issuerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "setPaymentMint",
       accounts: [
         {
           name: "tokenManager",
@@ -642,7 +809,7 @@ export const IDL: CardinalTokenManager = {
       ],
       args: [
         {
-          name: "paymentManager",
+          name: "paymentMint",
           type: "publicKey",
         },
       ],
@@ -809,11 +976,6 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
         {
-          name: "mint",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "payer",
           isMut: true,
           isSigner: true,
@@ -946,6 +1108,78 @@ export const IDL: CardinalTokenManager = {
       ],
       args: [],
     },
+    {
+      name: "createMintManager",
+      accounts: [
+        {
+          name: "mintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "freezeAuthority",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "bump",
+          type: "u8",
+        },
+      ],
+    },
+    {
+      name: "closeMintManager",
+      accounts: [
+        {
+          name: "mintManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "freezeAuthority",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "payer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
   ],
   accounts: [
     {
@@ -990,7 +1224,7 @@ export const IDL: CardinalTokenManager = {
             type: "publicKey",
           },
           {
-            name: "paymentManager",
+            name: "paymentMint",
             type: {
               option: "publicKey",
             },
@@ -1012,6 +1246,26 @@ export const IDL: CardinalTokenManager = {
             type: {
               vec: "publicKey",
             },
+          },
+        ],
+      },
+    },
+    {
+      name: "mintManager",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "bump",
+            type: "u8",
+          },
+          {
+            name: "initializer",
+            type: "publicKey",
+          },
+          {
+            name: "outstandingTokens",
+            type: "i64",
           },
         ],
       },
@@ -1100,6 +1354,9 @@ export const IDL: CardinalTokenManager = {
           {
             name: "Invalidate",
           },
+          {
+            name: "Release",
+          },
         ],
       },
     },
@@ -1157,23 +1414,38 @@ export const IDL: CardinalTokenManager = {
     },
     {
       code: 310,
+      name: "InvalidPaymentManager",
+      msg: "Invalid payment manager",
+    },
+    {
+      code: 311,
       name: "InvalidIssuer",
       msg: "Invalid issuer",
     },
     {
-      code: 311,
+      code: 312,
       name: "InvalidInvalidator",
       msg: "Invalid invalidator",
     },
     {
-      code: 312,
+      code: 313,
       name: "InvalidMint",
       msg: "Invalid mint",
     },
     {
-      code: 313,
+      code: 314,
       name: "InvalidTokenManagerState",
       msg: "Invalid token manager state",
+    },
+    {
+      code: 315,
+      name: "OutstandingTokens",
+      msg: "Outstanding tokens exist",
+    },
+    {
+      code: 316,
+      name: "InvalidFreezeAuthority",
+      msg: "Invalid freeze authority",
     },
   ],
 };

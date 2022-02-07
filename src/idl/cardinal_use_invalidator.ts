@@ -89,29 +89,50 @@ export type CardinalUseInvalidator = {
           isSigner: false;
         },
         {
-          name: "tokenManagerTokenAccount";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "tokenProgram";
           isMut: false;
           isSigner: false;
         },
         {
+          name: "tokenManagerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "mint";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
           name: "recipientTokenAccount";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
           name: "issuerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "close";
+      accounts: [
+        {
+          name: "tokenManager";
           isMut: false;
           isSigner: false;
+        },
+        {
+          name: "useInvalidator";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "closer";
+          isMut: true;
+          isSigner: true;
         }
       ];
       args: [];
@@ -260,29 +281,50 @@ export const IDL: CardinalUseInvalidator = {
           isSigner: false,
         },
         {
-          name: "tokenManagerTokenAccount",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "tokenProgram",
           isMut: false,
           isSigner: false,
         },
         {
+          name: "tokenManagerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "mint",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
           name: "recipientTokenAccount",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
           name: "issuerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "close",
+      accounts: [
+        {
+          name: "tokenManager",
           isMut: false,
           isSigner: false,
+        },
+        {
+          name: "useInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "closer",
+          isMut: true,
+          isSigner: true,
         },
       ],
       args: [],

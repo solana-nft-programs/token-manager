@@ -15,12 +15,18 @@ import type {
   TokenManagerKind,
 } from "./constants";
 import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
-import { findClaimReceiptId, findTokenManagerAddress } from "./pda";
+import {
+  findClaimReceiptId,
+  findMintManagerId,
+  findTokenManagerAddress,
+} from "./pda";
+import { getRemainingAccountsForKind } from "./utils";
 
 export const init = async (
   connection: Connection,
   wallet: Wallet,
   mint: PublicKey,
+  issuerTokenAccountId: PublicKey,
   numInvalidator = 1
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
@@ -43,6 +49,7 @@ export const init = async (
         accounts: {
           tokenManager: tokenManagerId,
           issuer: wallet.publicKey,
+          issuerTokenAccount: issuerTokenAccountId,
           systemProgram: SystemProgram.programId,
         },
       }
@@ -51,11 +58,11 @@ export const init = async (
   ];
 };
 
-export const setPaymetManager = (
+export const setPaymentMint = (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentManagerId: PublicKey
+  paymentMint: PublicKey
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -64,7 +71,7 @@ export const setPaymetManager = (
     provider
   );
 
-  return tokenManagerProgram.instruction.setPaymentManager(paymentManagerId, {
+  return tokenManagerProgram.instruction.setPaymentMint(paymentMint, {
     accounts: {
       tokenManager: tokenManagerId,
       issuer: wallet.publicKey,
@@ -143,7 +150,6 @@ export const issue = (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   amount: BN,
-  mintId: PublicKey,
   tokenManagerTokenAccountId: PublicKey,
   issuerTokenAccountId: PublicKey,
   kind: TokenManagerKind,
@@ -168,7 +174,6 @@ export const issue = (
         tokenManagerTokenAccount: tokenManagerTokenAccountId,
         issuer: wallet.publicKey,
         issuerTokenAccount: issuerTokenAccountId,
-        mint: mintId,
         payer: wallet.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
@@ -177,20 +182,26 @@ export const issue = (
   );
 };
 
-export const claim = (
+export const claim = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
+  tokenManagerKind: TokenManagerKind,
   mintId: PublicKey,
   tokenManagerTokenAccountId: PublicKey,
   recipientTokenAccountId: PublicKey,
   claimReceipt: PublicKey | undefined
-): TransactionInstruction => {
+): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
     provider
+  );
+
+  const remainingAccounts = await getRemainingAccountsForKind(
+    mintId,
+    tokenManagerKind
   );
 
   return tokenManagerProgram.instruction.claim({
@@ -203,8 +214,11 @@ export const claim = (
       tokenProgram: TOKEN_PROGRAM_ID,
     },
     remainingAccounts: claimReceipt
-      ? [{ pubkey: claimReceipt, isSigner: false, isWritable: false }]
-      : [],
+      ? [
+          ...remainingAccounts,
+          { pubkey: claimReceipt, isSigner: false, isWritable: true },
+        ]
+      : remainingAccounts,
   });
 };
 
@@ -241,5 +255,62 @@ export const createClaimReceipt = async (
       }
     ),
     claimReceiptId,
+  ];
+};
+
+export const creatMintManager = async (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [mintManagerId, mintManagerBump] = await findMintManagerId(mintId);
+
+  return [
+    tokenManagerProgram.instruction.createMintManager(mintManagerBump, {
+      accounts: {
+        mintManager: mintManagerId,
+        mint: mintId,
+        freezeAuthority: wallet.publicKey,
+        payer: wallet.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
+    mintManagerId,
+  ];
+};
+
+export const closMintManager = async (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [mintManagerId] = await findMintManagerId(mintId);
+
+  return [
+    tokenManagerProgram.instruction.closeMintManager({
+      accounts: {
+        mintManager: mintManagerId,
+        mint: mintId,
+        freezeAuthority: wallet.publicKey,
+        payer: wallet.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    }),
+    mintManagerId,
   ];
 };

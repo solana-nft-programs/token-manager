@@ -18,7 +18,6 @@ export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentManagerId: PublicKey,
   paymentAmount: number
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
@@ -40,7 +39,6 @@ export const init = async (
       {
         accounts: {
           tokenManager: tokenManagerId,
-          paymentManager: paymentManagerId,
           claimApprover: claimApproverId,
           payer: wallet.publicKey,
           systemProgram: SystemProgram.programId,
@@ -55,8 +53,7 @@ export const pay = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentManagerId: PublicKey,
-  paymentManagerTokenAccountId: PublicKey,
+  paymentTokenAccountId: PublicKey,
   payerTokenAccountId: PublicKey
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -76,8 +73,7 @@ export const pay = async (
   return claimApproverProgram.instruction.pay(claimReceiptBump, {
     accounts: {
       tokenManager: tokenManagerId,
-      paymentManager: paymentManagerId,
-      paymentManagerTokenAccount: paymentManagerTokenAccountId,
+      paymentTokenAccount: paymentTokenAccountId,
       claimApprover: claimApproverId,
       payer: wallet.publicKey,
       payerTokenAccount: payerTokenAccountId,

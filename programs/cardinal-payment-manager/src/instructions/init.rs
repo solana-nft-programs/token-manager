@@ -1,17 +1,18 @@
 use {
-    crate::{state::*},
+    crate::{state::*, errors::*},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{Mint}},
-    cardinal_token_manager::{state::TokenManager},
+    cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
 };
 
 #[derive(Accounts)]
 #[instruction(bump: u8)]
 pub struct InitCtx<'info> {
+    #[account(constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = payer,
         space = PAYMENT_MANAGER_SIZE,
         seeds = [PAYMENT_MANAGER_SEED.as_bytes(), token_manager.key().as_ref()], bump = bump,

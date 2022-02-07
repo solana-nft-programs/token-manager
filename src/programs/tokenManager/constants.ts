@@ -7,6 +7,10 @@ export const TOKEN_MANAGER_ADDRESS = new PublicKey(
   "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
 );
 
+export const MINT_MANAGER_SEED = "mint-manager";
+
+export const TRANSFER_RECEIPT_SEED = "transfer-receipt";
+
 export const CLAIM_RECEIPT_SEED = "claim-receipt";
 
 export const TOKEN_MANAGER_SEED = "token-manager";
@@ -26,6 +30,8 @@ export type TokenManagerError = TokenManagerTypes["Error"];
 
 type Accounts = TokenManagerTypes["Accounts"];
 export type TokenManagerData = Accounts["tokenManager"];
+
+export type MintManagerData = Accounts["mintManager"];
 
 export enum TokenManagerKind {
   Managed = 1,

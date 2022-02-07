@@ -1,7 +1,7 @@
 use {
     crate::{state::*, errors::*},
     anchor_lang::{prelude::*},
-    anchor_spl::{token::{self, Token, Mint, TokenAccount, Transfer}}
+    anchor_spl::{token::{self, Token, TokenAccount, Transfer}}
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -25,9 +25,6 @@ pub struct IssueCtx<'info> {
     #[account(mut, constraint = issuer_token_account.owner == issuer.key() @ ErrorCode::InvalidIssuerTokenAccount)]
     issuer_token_account: Box<Account<'info, TokenAccount>>,
 
-    // todo maybe just use the mint on the issuer_token_account
-    mint: Box<Account<'info, Mint>>,
-
     // other
     #[account(mut)]
     payer: Signer<'info>,
@@ -48,7 +45,7 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
 
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
-    token_manager.mint = ctx.accounts.mint.key();
+    token_manager.mint = token_manager.mint;
     token_manager.amount = ix.amount;
     token_manager.kind = ix.kind;
     token_manager.invalidation_type = ix.invalidation_type;

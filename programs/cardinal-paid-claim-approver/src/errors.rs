@@ -8,6 +8,4 @@ pub enum ErrorCode {
     InvalidPayerTokenAccount,
     #[msg("Invalid token manager for this claim approver")]
     InvalidTokenManager,
-    #[msg("Payment manager is invalid")]
-    InvalidPaymentManager
 }

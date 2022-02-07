@@ -24,7 +24,7 @@ export const createMint = async (
     creator,
     creator.publicKey,
     freezeAuthority,
-    1,
+    0,
     splToken.TOKEN_PROGRAM_ID
   );
   const tokenAccount = await mint.createAssociatedTokenAccount(recipient);

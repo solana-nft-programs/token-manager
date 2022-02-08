@@ -1,7 +1,7 @@
 use {
     crate::{state::*},
     anchor_lang::{prelude::*},
-    cardinal_token_manager::{state::{TokenManager}},
+    cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
 };
 
 #[derive(Accounts)]
@@ -10,7 +10,7 @@ pub struct InitCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(
-        init_if_needed,
+        init,
         payer = payer,
         space = USE_INVALIDATOR_SIZE,
         seeds = [USE_INVALIDATOR_SEED.as_bytes(), token_manager.key().as_ref()], bump = bump,
@@ -26,6 +26,8 @@ pub fn handler(ctx: Context<InitCtx>, bump: u8, max_usages: Option<u64>) -> Prog
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     use_invalidator.bump = bump;
     use_invalidator.usages = 0;
-    use_invalidator.max_usages = max_usages;
+    if ctx.accounts.token_manager.state == TokenManagerState::Initialized as u8 {
+        use_invalidator.max_usages = max_usages;
+    }
     return Ok(())
 }

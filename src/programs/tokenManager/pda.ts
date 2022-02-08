@@ -3,6 +3,7 @@ import { utils } from "@project-serum/anchor";
 import type { Connection } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 
+import { tryGetAccount } from "../..";
 import { MINT_COUNTER_SEED, MINT_MANAGER_SEED, TRANSFER_RECEIPT_SEED } from ".";
 import { getMintCounter } from "./accounts";
 import {
@@ -10,6 +11,22 @@ import {
   TOKEN_MANAGER_ADDRESS,
   TOKEN_MANAGER_SEED,
 } from "./constants";
+
+/**
+ * Finds the token manager address for a given mint
+ * @returns
+ */
+export const tryTokenManagerAddressFromMint = async (
+  connection: Connection,
+  mint: PublicKey
+): Promise<PublicKey | undefined> => {
+  const [mintCounterId] = await findMintCounterId(mint);
+
+  const mintCounter = await tryGetAccount(() =>
+    getMintCounter(connection, mintCounterId)
+  );
+  return mintCounter?.parsed?.tokenManager;
+};
 
 /**
  * Finds the token manager address for a given mint

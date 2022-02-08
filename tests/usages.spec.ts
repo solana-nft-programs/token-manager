@@ -81,7 +81,7 @@ describe("Use without use invalidator", () => {
       [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -127,7 +127,7 @@ describe("Use without use invalidator", () => {
     );
 
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -175,7 +175,7 @@ describe("Use without use invalidator", () => {
     );
 
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 

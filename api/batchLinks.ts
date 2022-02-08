@@ -48,7 +48,6 @@ const getLinks = async (
   ////////////////////////////////////////////
   ///////////// Master Edition ///////////////
   ////////////////////////////////////////////
-  console.log(connection);
   const [masterEditionTokenAccountId, masterEditionMint] = await createMint(
     connection,
     wallet,

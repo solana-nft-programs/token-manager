@@ -1,15 +1,13 @@
 use {
     crate::{state::*},
     anchor_lang::{prelude::*},
-    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManagerKind, TokenManager, MintCounter, InvalidationType}, instructions::IssueIx},
+    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManagerKind, TokenManager, InvalidationType}, instructions::IssueIx},
     anchor_spl::{token::{Token}}
 };
 
 #[derive(Accounts)]
 #[instruction(bump: u8, _receipt_token_manager_bump: u8)]
 pub struct ClaimCtx<'info> {
-    #[account(mut)]
-    mint_counter: Box<Account<'info, MintCounter>>,
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
@@ -45,7 +43,6 @@ pub fn handler(ctx: Context<ClaimCtx>, bump: u8, receipt_token_manager_bump: u8)
     let rent_receipt_signer = &[&rent_receipt_seeds[..]];
 
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InitCtx {
-        mint_counter: ctx.accounts.mint_counter.to_account_info(),
         token_manager: ctx.accounts.receipt_token_manager.to_account_info(),
         issuer: ctx.accounts.rent_receipt.to_account_info(),
         issuer_token_account: ctx.accounts.rent_receipt_token_account.to_account_info(),

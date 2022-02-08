@@ -1,11 +1,8 @@
-import type { BN } from "@project-serum/anchor";
 import { utils } from "@project-serum/anchor";
 import type { Connection } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 
-import { tryGetAccount } from "../..";
 import { MINT_COUNTER_SEED, MINT_MANAGER_SEED, TRANSFER_RECEIPT_SEED } from ".";
-import { getMintCounter } from "./accounts";
 import {
   CLAIM_RECEIPT_SEED,
   TOKEN_MANAGER_ADDRESS,
@@ -19,13 +16,13 @@ import {
 export const tryTokenManagerAddressFromMint = async (
   connection: Connection,
   mint: PublicKey
-): Promise<PublicKey | undefined> => {
-  const [mintCounterId] = await findMintCounterId(mint);
-
-  const mintCounter = await tryGetAccount(() =>
-    getMintCounter(connection, mintCounterId)
-  );
-  return mintCounter?.parsed?.tokenManager;
+): Promise<PublicKey | null> => {
+  try {
+    const tokenManagerId = await tokenManagerAddressFromMint(connection, mint);
+    return tokenManagerId;
+  } catch (e) {
+    return null;
+  }
 };
 
 /**
@@ -33,12 +30,11 @@ export const tryTokenManagerAddressFromMint = async (
  * @returns
  */
 export const tokenManagerAddressFromMint = async (
-  connection: Connection,
+  _connection: Connection,
   mint: PublicKey
 ): Promise<PublicKey> => {
-  const [mintCounterId] = await findMintCounterId(mint);
-  const mintCounter = await getMintCounter(connection, mintCounterId);
-  return mintCounter.parsed.tokenManager;
+  const [tokenManagerId] = await findTokenManagerAddress(mint);
+  return tokenManagerId;
 };
 
 /**
@@ -46,15 +42,10 @@ export const tokenManagerAddressFromMint = async (
  * @returns
  */
 export const findTokenManagerAddress = async (
-  mint: PublicKey,
-  mintCount: BN
+  mint: PublicKey
 ): Promise<[PublicKey, number]> => {
   return await PublicKey.findProgramAddress(
-    [
-      utils.bytes.utf8.encode(TOKEN_MANAGER_SEED),
-      mint.toBuffer(),
-      mintCount.toArrayLike(Buffer, "le", 8),
-    ],
+    [utils.bytes.utf8.encode(TOKEN_MANAGER_SEED), mint.toBuffer()],
     TOKEN_MANAGER_ADDRESS
   );
 };

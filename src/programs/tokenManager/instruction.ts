@@ -52,7 +52,6 @@ export const init = async (
   connection: Connection,
   wallet: Wallet,
   mint: PublicKey,
-  mintCount: BN,
   issuerTokenAccountId: PublicKey,
   numInvalidator = 1
 ): Promise<[TransactionInstruction, PublicKey]> => {
@@ -63,10 +62,8 @@ export const init = async (
     provider
   );
 
-  const [mintCounterId] = await findMintCounterId(mint);
   const [tokenManagerId, tokenManagerBump] = await findTokenManagerAddress(
-    mint,
-    mintCount
+    mint
   );
 
   return [
@@ -76,7 +73,6 @@ export const init = async (
       numInvalidator,
       {
         accounts: {
-          mintCounter: mintCounterId,
           tokenManager: tokenManagerId,
           issuer: wallet.publicKey,
           issuerTokenAccount: issuerTokenAccountId,

@@ -44,8 +44,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     // get PDA seeds to sign with
     let mint = token_manager.mint;
-    let token_manager_count = token_manager.count.to_le_bytes();
-    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), token_manager_count.as_ref(), &[token_manager.bump]];
+    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 
     if token_manager.payment_mint != None {

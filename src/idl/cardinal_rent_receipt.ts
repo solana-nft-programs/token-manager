@@ -6,11 +6,6 @@ export type CardinalRentReceipt = {
       name: "claim";
       accounts: [
         {
-          name: "mintCounter";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "tokenManager";
           isMut: true;
           isSigner: false;
@@ -163,11 +158,6 @@ export const IDL: CardinalRentReceipt = {
     {
       name: "claim",
       accounts: [
-        {
-          name: "mintCounter",
-          isMut: true,
-          isSigner: false,
-        },
         {
           name: "tokenManager",
           isMut: true,

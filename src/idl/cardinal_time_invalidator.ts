@@ -1,265 +1,265 @@
 export type CardinalTimeInvalidator = {
-  "version": "0.0.0",
-  "name": "cardinal_time_invalidator",
-  "instructions": [
+  version: "0.0.0";
+  name: "cardinal_time_invalidator";
+  instructions: [
     {
-      "name": "init",
-      "accounts": [
+      name: "init";
+      accounts: [
         {
-          "name": "tokenManager",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "timeInvalidator",
-          "isMut": true,
-          "isSigner": false
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          name: "payer";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
         }
-      ],
-      "args": [
+      ];
+      args: [
         {
-          "name": "bump",
-          "type": "u8"
+          name: "bump";
+          type: "u8";
         },
         {
-          "name": "expiration",
-          "type": "i64"
+          name: "expiration";
+          type: "i64";
         }
-      ]
+      ];
     },
     {
-      "name": "invalidate",
-      "accounts": [
+      name: "invalidate";
+      accounts: [
         {
-          "name": "tokenManager",
-          "isMut": true,
-          "isSigner": false
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "timeInvalidator",
-          "isMut": true,
-          "isSigner": false
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
         },
         {
-          "name": "invalidator",
-          "isMut": true,
-          "isSigner": true
+          name: "invalidator";
+          isMut: true;
+          isSigner: true;
         },
         {
-          "name": "cardinalTokenManager",
-          "isMut": false,
-          "isSigner": false
+          name: "cardinalTokenManager";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "tokenManagerTokenAccount",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenManagerTokenAccount";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
+          name: "mint";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "recipientTokenAccount",
-          "isMut": false,
-          "isSigner": false
+          name: "recipientTokenAccount";
+          isMut: false;
+          isSigner: false;
         },
         {
-          "name": "issuerTokenAccount",
-          "isMut": false,
-          "isSigner": false
+          name: "issuerTokenAccount";
+          isMut: false;
+          isSigner: false;
         }
-      ],
-      "args": []
+      ];
+      args: [];
     }
-  ],
-  "accounts": [
+  ];
+  accounts: [
     {
-      "name": "timeInvalidator",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "timeInvalidator";
+      type: {
+        kind: "struct";
+        fields: [
           {
-            "name": "bump",
-            "type": "u8"
+            name: "bump";
+            type: "u8";
           },
           {
-            "name": "expiration",
-            "type": "i64"
+            name: "expiration";
+            type: "i64";
           }
-        ]
-      }
+        ];
+      };
     }
-  ],
-  "errors": [
+  ];
+  errors: [
     {
-      "code": 300,
-      "name": "InvalidPaymentTokenAccount",
-      "msg": "Token account not owned by the claim approver"
+      code: 300;
+      name: "InvalidPaymentTokenAccount";
+      msg: "Token account not owned by the claim approver";
     },
     {
-      "code": 301,
-      "name": "InvalidIssuerTokenAccount",
-      "msg": "Token account not owned by the issuer"
+      code: 301;
+      name: "InvalidIssuerTokenAccount";
+      msg: "Token account not owned by the issuer";
     },
     {
-      "code": 302,
-      "name": "InvalidTokenManager",
-      "msg": "Invalid token manager for this claim approver"
+      code: 302;
+      name: "InvalidTokenManager";
+      msg: "Invalid token manager for this claim approver";
     },
     {
-      "code": 303,
-      "name": "InvalidExpiration",
-      "msg": "Expiration has not passed yet"
+      code: 303;
+      name: "InvalidExpiration";
+      msg: "Expiration has not passed yet";
     }
-  ]
+  ];
 };
 
 export const IDL: CardinalTimeInvalidator = {
-  "version": "0.0.0",
-  "name": "cardinal_time_invalidator",
-  "instructions": [
+  version: "0.0.0",
+  name: "cardinal_time_invalidator",
+  instructions: [
     {
-      "name": "init",
-      "accounts": [
+      name: "init",
+      accounts: [
         {
-          "name": "tokenManager",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "timeInvalidator",
-          "isMut": true,
-          "isSigner": false
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
         },
         {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          name: "payer",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
       ],
-      "args": [
+      args: [
         {
-          "name": "bump",
-          "type": "u8"
+          name: "bump",
+          type: "u8",
         },
         {
-          "name": "expiration",
-          "type": "i64"
-        }
-      ]
+          name: "expiration",
+          type: "i64",
+        },
+      ],
     },
     {
-      "name": "invalidate",
-      "accounts": [
+      name: "invalidate",
+      accounts: [
         {
-          "name": "tokenManager",
-          "isMut": true,
-          "isSigner": false
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
         },
         {
-          "name": "timeInvalidator",
-          "isMut": true,
-          "isSigner": false
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
         },
         {
-          "name": "invalidator",
-          "isMut": true,
-          "isSigner": true
+          name: "invalidator",
+          isMut: true,
+          isSigner: true,
         },
         {
-          "name": "cardinalTokenManager",
-          "isMut": false,
-          "isSigner": false
+          name: "cardinalTokenManager",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "tokenManagerTokenAccount",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenManagerTokenAccount",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
+          name: "mint",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "recipientTokenAccount",
-          "isMut": false,
-          "isSigner": false
+          name: "recipientTokenAccount",
+          isMut: false,
+          isSigner: false,
         },
         {
-          "name": "issuerTokenAccount",
-          "isMut": false,
-          "isSigner": false
-        }
+          name: "issuerTokenAccount",
+          isMut: false,
+          isSigner: false,
+        },
       ],
-      "args": []
-    }
+      args: [],
+    },
   ],
-  "accounts": [
+  accounts: [
     {
-      "name": "timeInvalidator",
-      "type": {
-        "kind": "struct",
-        "fields": [
+      name: "timeInvalidator",
+      type: {
+        kind: "struct",
+        fields: [
           {
-            "name": "bump",
-            "type": "u8"
+            name: "bump",
+            type: "u8",
           },
           {
-            "name": "expiration",
-            "type": "i64"
-          }
-        ]
-      }
-    }
+            name: "expiration",
+            type: "i64",
+          },
+        ],
+      },
+    },
   ],
-  "errors": [
+  errors: [
     {
-      "code": 300,
-      "name": "InvalidPaymentTokenAccount",
-      "msg": "Token account not owned by the claim approver"
+      code: 300,
+      name: "InvalidPaymentTokenAccount",
+      msg: "Token account not owned by the claim approver",
     },
     {
-      "code": 301,
-      "name": "InvalidIssuerTokenAccount",
-      "msg": "Token account not owned by the issuer"
+      code: 301,
+      name: "InvalidIssuerTokenAccount",
+      msg: "Token account not owned by the issuer",
     },
     {
-      "code": 302,
-      "name": "InvalidTokenManager",
-      "msg": "Invalid token manager for this claim approver"
+      code: 302,
+      name: "InvalidTokenManager",
+      msg: "Invalid token manager for this claim approver",
     },
     {
-      "code": 303,
-      "name": "InvalidExpiration",
-      "msg": "Expiration has not passed yet"
-    }
-  ]
+      code: 303,
+      name: "InvalidExpiration",
+      msg: "Expiration has not passed yet",
+    },
+  ],
 };

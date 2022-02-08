@@ -38,7 +38,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // get PDA seeds to sign with
-    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
+    let token_manager_count = token_manager.count.to_le_bytes();
+    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), token_manager_count.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 
     // transfer amount to recipient token account
@@ -64,6 +65,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token::approve(cpi_context, token_manager.amount)?;
         
         let mint_manager_info = next_account_info(remaining_accs)?;
+        let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
+        mint_manager.token_managers += 1;
         let mint = ctx.accounts.mint.key();
         let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
         let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;

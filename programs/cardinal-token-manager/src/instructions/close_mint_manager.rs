@@ -9,7 +9,7 @@ use anchor_spl::{
 
 #[derive(Accounts)]
 pub struct CloseMintManagerCtx<'info> {
-    #[account(constraint = mint_manager.outstanding_tokens == 0 @ ErrorCode::OutstandingTokens)]
+    #[account(constraint = mint_manager.token_managers == 0 @ ErrorCode::OutstandingTokens)]
     pub mint_manager: Account<'info, MintManager>, 
     #[account(mut, 
         constraint = mint.freeze_authority.unwrap() == mint_manager.key() @ ErrorCode::InvalidFreezeAuthority,

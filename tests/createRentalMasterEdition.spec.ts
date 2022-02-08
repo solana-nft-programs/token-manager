@@ -163,7 +163,8 @@ describe("Master editions", () => {
   it("Claim rental", async () => {
     const provider = getProvider();
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 

@@ -112,7 +112,8 @@ describe("Rentals", () => {
   it("Claim rental", async () => {
     const provider = getProvider();
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 
@@ -183,7 +184,8 @@ describe("Rentals", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
     const [useInvalidatorId] =
@@ -218,7 +220,8 @@ describe("Rentals", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 
@@ -276,7 +279,8 @@ describe("Rentals", () => {
   it("Claim rental", async () => {
     const provider = getProvider();
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 
@@ -347,7 +351,8 @@ describe("Rentals", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
     const [useInvalidatorId] =
@@ -382,7 +387,8 @@ describe("Rentals", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 

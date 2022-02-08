@@ -153,7 +153,7 @@ const getLinks = async (
         editionValue: editionNumber,
       }
     );
-    const [transaction, _tokenManagerId, otp] = await claimLinks.issueToken(
+    const [transaction, tokenManagerId, otp] = await claimLinks.issueToken(
       connection,
       new SignerWallet(wallet),
       {
@@ -181,7 +181,7 @@ const getLinks = async (
       `Edition data created editionId=(${editionId.toString()}) marker=(${editionMarkerId.toString()})`
     );
 
-    const claimLink = getLink(editionMint.publicKey, otp, cluster);
+    const claimLink = getLink(tokenManagerId, otp, cluster);
     allLinks.push(claimLink);
   }
 

@@ -16,6 +16,7 @@ import {
   useInvalidator,
 } from "./programs";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
+import { withInitMintCounter } from "./programs/tokenManager/transaction";
 import { withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export const createRental = async (
@@ -43,11 +44,19 @@ export const createRental = async (
 ): Promise<[Transaction, PublicKey]> => {
   const transaction = new Transaction();
 
+  const [mintCount] = await withInitMintCounter(
+    transaction,
+    connection,
+    wallet,
+    rentalMint
+  );
+
   // init token manager
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
     rentalMint,
+    mintCount,
     issuerTokenAccountId
   );
   transaction.add(tokenManagerIx);

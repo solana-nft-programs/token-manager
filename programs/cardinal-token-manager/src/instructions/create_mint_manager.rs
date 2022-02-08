@@ -31,7 +31,7 @@ pub fn handler(ctx: Context<CreateMintManagerCtx>, bump: u8) -> ProgramResult {
     // set mint manager data
     let mint_manager = &mut ctx.accounts.mint_manager;
     mint_manager.initializer = ctx.accounts.freeze_authority.key();
-    mint_manager.outstanding_tokens = 0;
+    mint_manager.token_managers = 0;
     mint_manager.bump = bump;
 
     // set freeze authority of mint to mint manager

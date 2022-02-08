@@ -1,6 +1,7 @@
 use {
     crate::{state::*, errors::*},
     anchor_lang::{prelude::*},
+    anchor_spl::{token::{TokenAccount}},
     cardinal_token_manager::{state::TokenManager},
 };
 
@@ -12,8 +13,9 @@ pub struct IncrementUsagesCtx<'info> {
     #[account(mut, constraint = use_invalidator.max_usages == None || use_invalidator.usages + num_usages <= use_invalidator.max_usages.unwrap() @ ErrorCode::InsufficientUsages)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
-    // TODO maybe add use authority to this state
-    // #[account(constraint = user.key() == token_manager.recipient_token_account.owner)]
+    #[account(constraint = token_manager.recipient_token_account == recipient_token_account.key() @ ErrorCode::InvalidTokenAccount)]
+    recipient_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(constraint = user.key() == recipient_token_account.owner @ ErrorCode::InvalidUser)]
     user: Signer<'info>,
 }
 

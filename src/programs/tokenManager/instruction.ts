@@ -17,15 +17,42 @@ import type {
 import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
 import {
   findClaimReceiptId,
+  findMintCounterId,
   findMintManagerId,
   findTokenManagerAddress,
 } from "./pda";
 import { getRemainingAccountsForKind } from "./utils";
 
+export const initMintCounter = async (
+  connection: Connection,
+  wallet: Wallet,
+  mint: PublicKey
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+  const [mintCounterId, mintCounterBump] = await findMintCounterId(mint);
+  return tokenManagerProgram.instruction.initMintCounter(
+    mintCounterBump,
+    mint,
+    {
+      accounts: {
+        mintCounter: mintCounterId,
+        payer: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }
+  );
+};
+
 export const init = async (
   connection: Connection,
   wallet: Wallet,
   mint: PublicKey,
+  mintCount: BN,
   issuerTokenAccountId: PublicKey,
   numInvalidator = 1
 ): Promise<[TransactionInstruction, PublicKey]> => {
@@ -36,17 +63,20 @@ export const init = async (
     provider
   );
 
+  const [mintCounterId] = await findMintCounterId(mint);
   const [tokenManagerId, tokenManagerBump] = await findTokenManagerAddress(
-    mint
+    mint,
+    mintCount
   );
 
   return [
     tokenManagerProgram.instruction.init(
-      mint,
       tokenManagerBump,
+      mint,
       numInvalidator,
       {
         accounts: {
+          mintCounter: mintCounterId,
           tokenManager: tokenManagerId,
           issuer: wallet.publicKey,
           issuerTokenAccount: issuerTokenAccountId,

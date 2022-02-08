@@ -6,6 +6,11 @@ export type CardinalTokenManager = {
       name: "init";
       accounts: [
         {
+          name: "mintCounter";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "tokenManager";
           isMut: true;
           isSigner: false;
@@ -28,12 +33,12 @@ export type CardinalTokenManager = {
       ];
       args: [
         {
-          name: "mint";
-          type: "publicKey";
-        },
-        {
           name: "bump";
           type: "u8";
+        },
+        {
+          name: "mint";
+          type: "publicKey";
         },
         {
           name: "numInvalidators";
@@ -66,6 +71,36 @@ export type CardinalTokenManager = {
         }
       ];
       args: [];
+    },
+    {
+      name: "initMintCounter";
+      accounts: [
+        {
+          name: "mintCounter";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "bump";
+          type: "u8";
+        },
+        {
+          name: "mint";
+          type: "publicKey";
+        }
+      ];
     },
     {
       name: "setPaymentMint";
@@ -466,6 +501,10 @@ export type CardinalTokenManager = {
             type: "u8";
           },
           {
+            name: "count";
+            type: "u64";
+          },
+          {
             name: "numInvalidators";
             type: "u8";
           },
@@ -538,8 +577,28 @@ export type CardinalTokenManager = {
             type: "publicKey";
           },
           {
-            name: "outstandingTokens";
-            type: "i64";
+            name: "tokenManagers";
+            type: "u64";
+          }
+        ];
+      };
+    },
+    {
+      name: "mintCounter";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "count";
+            type: "u64";
           }
         ];
       };
@@ -732,6 +791,11 @@ export const IDL: CardinalTokenManager = {
       name: "init",
       accounts: [
         {
+          name: "mintCounter",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "tokenManager",
           isMut: true,
           isSigner: false,
@@ -754,12 +818,12 @@ export const IDL: CardinalTokenManager = {
       ],
       args: [
         {
-          name: "mint",
-          type: "publicKey",
-        },
-        {
           name: "bump",
           type: "u8",
+        },
+        {
+          name: "mint",
+          type: "publicKey",
         },
         {
           name: "numInvalidators",
@@ -792,6 +856,36 @@ export const IDL: CardinalTokenManager = {
         },
       ],
       args: [],
+    },
+    {
+      name: "initMintCounter",
+      accounts: [
+        {
+          name: "mintCounter",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "bump",
+          type: "u8",
+        },
+        {
+          name: "mint",
+          type: "publicKey",
+        },
+      ],
     },
     {
       name: "setPaymentMint",
@@ -1192,6 +1286,10 @@ export const IDL: CardinalTokenManager = {
             type: "u8",
           },
           {
+            name: "count",
+            type: "u64",
+          },
+          {
             name: "numInvalidators",
             type: "u8",
           },
@@ -1264,8 +1362,28 @@ export const IDL: CardinalTokenManager = {
             type: "publicKey",
           },
           {
-            name: "outstandingTokens",
-            type: "i64",
+            name: "tokenManagers",
+            type: "u64",
+          },
+        ],
+      },
+    },
+    {
+      name: "mintCounter",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "bump",
+            type: "u8",
+          },
+          {
+            name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "count",
+            type: "u64",
           },
         ],
       },

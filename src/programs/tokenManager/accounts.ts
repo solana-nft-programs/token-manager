@@ -3,6 +3,7 @@ import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
 import type {
+  MintCounterData,
   MintManagerData,
   TOKEN_MANAGER_PROGRAM,
   TokenManagerData,
@@ -89,5 +90,30 @@ export const getMintManager = async (
     // @ts-ignore
     parsed,
     pubkey: mintManagerId,
+  };
+};
+
+// TODO fix types
+export const getMintCounter = async (
+  connection: Connection,
+  mintCounterId: PublicKey
+): Promise<AccountData<MintCounterData>> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const parsed = await tokenManagerProgram.account.mintCounter.fetch(
+    mintCounterId
+  );
+  return {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    parsed,
+    pubkey: mintCounterId,
   };
 };

@@ -56,6 +56,7 @@ export const incrementUsages = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
+  recipientTokenAccountId: PublicKey,
   usages: number
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -72,6 +73,7 @@ export const incrementUsages = async (
     accounts: {
       tokenManager: tokenManagerId,
       useInvalidator: useInvalidatorId,
+      recipientTokenAccount: recipientTokenAccountId,
       user: wallet.publicKey,
     },
   });

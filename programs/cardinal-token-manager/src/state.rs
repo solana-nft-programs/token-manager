@@ -45,6 +45,7 @@ pub const TOKEN_MANAGER_SEED: &str = "token-manager";
 #[account]
 pub struct TokenManager {
     pub bump: u8,
+    pub count: u64,
     pub num_invalidators: u8,
     pub issuer: Pubkey,
     pub mint: Pubkey,
@@ -65,7 +66,16 @@ pub const MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<MintManager>() + 8;
 pub struct MintManager {
     pub bump: u8,
     pub initializer: Pubkey,
-    pub outstanding_tokens: i64,
+    pub token_managers: u64,
+}
+
+pub const MINT_COUNTER_SEED: &str = "mint-counter";
+pub const MINT_COUNTER_SIZE: usize = 8 + std::mem::size_of::<MintCounter>() + 8; 
+#[account]
+pub struct MintCounter {
+    pub bump: u8,
+    pub token_manager: Pubkey,
+    pub count: u64,
 }
 
 pub const CLAIM_RECEIPT_SEED: &str = "claim-receipt";

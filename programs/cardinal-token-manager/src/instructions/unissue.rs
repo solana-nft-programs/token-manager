@@ -24,7 +24,8 @@ pub fn handler(ctx: Context<UnissueCtx>) -> ProgramResult {
     let token_manager = &ctx.accounts.token_manager;
         
     // get PDA seeds to sign with
-    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
+    let token_manager_count = token_manager.count.to_le_bytes();
+    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), token_manager_count.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 
     // transfer amount to destination token account

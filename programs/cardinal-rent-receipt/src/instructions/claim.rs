@@ -1,13 +1,16 @@
 use {
     crate::{state::*},
     anchor_lang::{prelude::*},
-    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManagerKind, TokenManager, InvalidationType}, instructions::IssueIx},
+    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManagerKind, TokenManager, MintCounter, InvalidationType}, instructions::IssueIx},
     anchor_spl::{token::{Token}}
 };
 
 #[derive(Accounts)]
 #[instruction(bump: u8, _receipt_token_manager_bump: u8)]
 pub struct ClaimCtx<'info> {
+    #[account(mut)]
+    mint_counter: Box<Account<'info, MintCounter>>,
+    #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(
@@ -42,13 +45,14 @@ pub fn handler(ctx: Context<ClaimCtx>, bump: u8, receipt_token_manager_bump: u8)
     let rent_receipt_signer = &[&rent_receipt_seeds[..]];
 
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InitCtx {
+        mint_counter: ctx.accounts.mint_counter.to_account_info(),
         token_manager: ctx.accounts.receipt_token_manager.to_account_info(),
         issuer: ctx.accounts.rent_receipt.to_account_info(),
         issuer_token_account: ctx.accounts.rent_receipt_token_account.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let init_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(rent_receipt_signer);
-    cardinal_token_manager::cpi::init(init_ctx, ctx.accounts.mint.key(), receipt_token_manager_bump, 1)?;
+    cardinal_token_manager::cpi::init(init_ctx, receipt_token_manager_bump, ctx.accounts.mint.key(), 1)?;
 
     let cpi_accounts = cardinal_token_manager::cpi::accounts::AddInvalidatorCtx {
         token_manager: ctx.accounts.receipt_token_manager.to_account_info(),

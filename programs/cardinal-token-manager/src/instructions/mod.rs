@@ -1,5 +1,6 @@
 pub mod init;
 pub mod uninit;
+pub mod init_mint_counter;
 pub mod set_payment_mint;
 pub mod set_claim_approver;
 pub mod set_transfer_authority;
@@ -15,6 +16,7 @@ pub mod close_mint_manager;
 
 pub use init::*;
 pub use uninit::*;
+pub use init_mint_counter::*;
 pub use set_payment_mint::*;
 pub use set_claim_approver::*;
 pub use set_transfer_authority::*;

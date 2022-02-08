@@ -4,7 +4,7 @@ import type { Connection, PublicKey } from "@solana/web3.js";
 import { Transaction } from "@solana/web3.js";
 
 import { timeInvalidator, tokenManager, useInvalidator } from "./programs";
-import { findTokenManagerAddress } from "./programs/tokenManager/pda";
+import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export const useTransaction = async (
@@ -14,15 +14,20 @@ export const useTransaction = async (
   usages: number
 ): Promise<Transaction> => {
   const transaction = new Transaction();
-  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerId = await tokenManagerAddressFromMint(connection, mintId);
 
   const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
     tokenManagerId
   );
 
-  const useInvalidatorData = await tryGetAccount(() =>
-    useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
-  );
+  const [useInvalidatorData, tokenManagerData] = await Promise.all([
+    tryGetAccount(() =>
+      useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
+    ),
+    tryGetAccount(() =>
+      tokenManager.accounts.getTokenManager(connection, tokenManagerId)
+    ),
+  ]);
 
   if (!useInvalidatorData) {
     // init
@@ -35,12 +40,16 @@ export const useTransaction = async (
     transaction.add(InitTx);
   }
 
+  if (!tokenManagerData?.parsed.recipientTokenAccount)
+    throw new Error("Token manager has not been claimed");
+
   // use
   transaction.add(
     await useInvalidator.instruction.incrementUsages(
       connection,
       wallet,
       tokenManagerId,
+      tokenManagerData?.parsed.recipientTokenAccount,
       usages
     )
   );
@@ -53,7 +62,7 @@ export const invalidate = async (
   mintId: PublicKey
 ): Promise<Transaction> => {
   const transaction = new Transaction();
-  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerId = await tokenManagerAddressFromMint(connection, mintId);
 
   const [[useInvalidatorId], [timeInvalidatorId]] = await Promise.all([
     useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId),

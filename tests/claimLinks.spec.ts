@@ -82,7 +82,7 @@ describe("Claim links", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    claimLink = claimLinks.getLink(rentalMint.publicKey, otp);
+    claimLink = claimLinks.getLink(tokenManagerId, otp);
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -108,12 +108,12 @@ describe("Claim links", () => {
   it("Claim from link", async () => {
     const provider = getProvider();
 
-    const [mintId, otpKeypair] = fromLink(claimLink);
+    const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
     const transaction = await claimLinks.claimFromLink(
       provider.connection,
       new SignerWallet(recipient),
-      mintId,
+      tokenManagerId,
       otpKeypair
     );
 
@@ -131,9 +131,6 @@ describe("Claim links", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
-      rentalMint.publicKey
-    );
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
       tokenManagerId
@@ -177,7 +174,8 @@ describe("Claim links", () => {
       provider.connection,
       transaction.serialize()
     );
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
     const [useInvalidatorId] =
@@ -213,7 +211,8 @@ describe("Claim links", () => {
       provider.connection,
       transaction.serialize()
     );
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
     const [useInvalidatorId] =

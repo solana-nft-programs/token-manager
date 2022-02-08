@@ -81,7 +81,7 @@ describe("Use without use invalidator", () => {
       [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
+      verbosity: "always",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -106,7 +106,8 @@ describe("Use without use invalidator", () => {
   it("Claim rental", async () => {
     const provider = getProvider();
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 
@@ -126,7 +127,7 @@ describe("Use without use invalidator", () => {
     );
 
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
+      verbosity: "always",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -174,11 +175,12 @@ describe("Use without use invalidator", () => {
     );
 
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
+      verbosity: "always",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
     const [useInvalidatorId] =

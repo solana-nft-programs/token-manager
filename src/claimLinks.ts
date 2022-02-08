@@ -11,23 +11,23 @@ import { Keypair, Transaction } from "@solana/web3.js";
 import { tryGetAccount } from ".";
 import { tokenManager, useInvalidator } from "./programs";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
-import { findTokenManagerAddress } from "./programs/tokenManager/pda";
+import { withInitMintCounter } from "./programs/tokenManager/transaction";
 import { withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export const getLink = (
-  mintId: PublicKey,
+  tokenManagerId: PublicKey,
   otp: Keypair,
   cluster = "devnet",
-  baseUrl = "https://stage.cardinal.so/claim"
+  baseUrl = "https://dev.cardinal.so/claim"
 ): string => {
-  return `${baseUrl}/${mintId.toString()}?otp=${utils.bytes.bs58.encode(
+  return `${baseUrl}/${tokenManagerId.toString()}?otp=${utils.bytes.bs58.encode(
     otp.secretKey
   )}${cluster === "devnet" ? "&cluster=devnet" : ""}`;
 };
 
 export const fromLink = (
   link: string,
-  baseUrl = "https://stage.cardinal.so/claim"
+  baseUrl = "https://dev.cardinal.so/claim"
 ): [PublicKey, Keypair] => {
   try {
     const regexMatches =
@@ -67,11 +67,19 @@ export const issueToken = async (
   const otp = Keypair.generate();
   const transaction = new Transaction();
 
+  const [mintCount] = await withInitMintCounter(
+    transaction,
+    connection,
+    wallet,
+    rentalMint
+  );
+
   // init token manager
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
     rentalMint,
+    mintCount,
     issuerTokenAccountId
   );
   transaction.add(tokenManagerIx);
@@ -138,14 +146,13 @@ export const issueToken = async (
 export const claimFromLink = async (
   connection: Connection,
   wallet: Wallet,
-  mintId: PublicKey,
+  tokenManagerId: PublicKey,
   otpKeypair: Keypair
 ): Promise<Transaction> => {
   const transaction = new Transaction();
   // const otp = utils.bytes.bs58.decode(otpString);
   // const keypair = Keypair.fromSecretKey(otp);
 
-  const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const tokenManagerData = await tokenManager.accounts.getTokenManager(
     connection,
     tokenManagerId

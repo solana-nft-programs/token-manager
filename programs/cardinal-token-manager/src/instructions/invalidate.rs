@@ -44,7 +44,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     // get PDA seeds to sign with
     let mint = token_manager.mint;
-    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
+    let token_manager_count = token_manager.count.to_le_bytes();
+    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), token_manager_count.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 
     if token_manager.payment_mint != None {
@@ -81,7 +82,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.state == TokenManagerState::Claimed as u8 {
         if token_manager.kind == TokenManagerKind::Managed as u8 {
             let mint_manager_info = next_account_info(remaining_accs)?;
-
+            let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
+            mint_manager.token_managers -= 1;
+    
             let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
             let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;
             let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];

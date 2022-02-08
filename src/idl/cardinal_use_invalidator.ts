@@ -53,6 +53,11 @@ export type CardinalUseInvalidator = {
           isSigner: false;
         },
         {
+          name: "recipientTokenAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "user";
           isMut: false;
           isSigner: true;
@@ -174,16 +179,21 @@ export type CardinalUseInvalidator = {
     },
     {
       code: 301;
-      name: "InvalidIssuerTokenAccount";
+      name: "InvalidTokenAccount";
       msg: "Token account not owned by the issuer";
     },
     {
       code: 302;
+      name: "InvalidUser";
+      msg: "User is not permitted to use";
+    },
+    {
+      code: 303;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
     },
     {
-      code: 303;
+      code: 304;
       name: "InsufficientUsages";
       msg: "Usages at the maximum";
     }
@@ -242,6 +252,11 @@ export const IDL: CardinalUseInvalidator = {
         {
           name: "useInvalidator",
           isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: false,
           isSigner: false,
         },
         {
@@ -366,16 +381,21 @@ export const IDL: CardinalUseInvalidator = {
     },
     {
       code: 301,
-      name: "InvalidIssuerTokenAccount",
+      name: "InvalidTokenAccount",
       msg: "Token account not owned by the issuer",
     },
     {
       code: 302,
+      name: "InvalidUser",
+      msg: "User is not permitted to use",
+    },
+    {
+      code: 303,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
     },
     {
-      code: 303,
+      code: 304,
       name: "InsufficientUsages",
       msg: "Usages at the maximum",
     },

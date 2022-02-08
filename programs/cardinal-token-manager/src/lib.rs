@@ -10,12 +10,16 @@ declare_id!("mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz");
 pub mod cardinal_token_manager {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, mint: Pubkey, bump: u8, num_invalidators: u8) -> ProgramResult {
-        init::handler(ctx, mint, bump, num_invalidators)
+    pub fn init(ctx: Context<InitCtx>, bump: u8,mint: Pubkey, num_invalidators: u8) -> ProgramResult {
+        init::handler(ctx, bump, mint, num_invalidators)
     }
 
     pub fn uninit(ctx: Context<UninitCtx>) -> ProgramResult {
         uninit::handler(ctx)
+    }
+
+    pub fn init_mint_counter(ctx: Context<InitMintCounterCtx>, bump: u8, mint: Pubkey) -> ProgramResult {
+        init_mint_counter::handler(ctx, bump, mint)
     }
 
     pub fn set_payment_mint(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> ProgramResult {

@@ -47,6 +47,7 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.mint = token_manager.mint;
     token_manager.amount = ix.amount;
+    token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.kind = ix.kind;
     token_manager.invalidation_type = ix.invalidation_type;
     token_manager.state = TokenManagerState::Issued as u8;

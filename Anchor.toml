@@ -10,7 +10,6 @@ wallet = "./tests/test-key.json"
 
 [programs.mainnet]
 cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
-cardinal_payment_manager = "cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
@@ -18,7 +17,6 @@ cardinal_rental_counter = "cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP"
 
 [programs.devnet]
 cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
-cardinal_payment_manager = "cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
@@ -26,7 +24,6 @@ cardinal_rental_counter = "cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP"
 
 [programs.testnet]
 cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
-cardinal_payment_manager = "cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
@@ -34,7 +31,6 @@ cardinal_rental_counter = "cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP"
 
 [programs.localnet]
 cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
-cardinal_payment_manager = "cpmTAQfUopUzqu2BAR5EfnUfqJSgZkMoU7QBvkueyEn"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"

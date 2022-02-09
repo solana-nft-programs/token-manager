@@ -9,10 +9,7 @@ pub struct InvalidateCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut,
-        constraint = use_invalidator.usages >= use_invalidator.max_usages.unwrap() @ ErrorCode::InsufficientUsages,
-        close = invalidator
-    )]
+    #[account(mut, constraint = use_invalidator.usages >= use_invalidator.max_usages.unwrap() @ ErrorCode::InsufficientUsages)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
     #[account(mut)]

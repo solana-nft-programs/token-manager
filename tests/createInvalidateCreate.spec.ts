@@ -10,13 +10,7 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import {
-  findAta,
-  invalidate,
-  rentals,
-  tryGetAccount,
-  useTransaction,
-} from "../src";
+import { findAta, rentals, tryGetAccount, useTransaction } from "../src";
 import { tokenManager, useInvalidator } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
@@ -195,41 +189,46 @@ describe("Rentals", () => {
       useInvalidatorId
     );
     expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
-  });
-
-  it("Invalidate rental", async () => {
-    const provider = getProvider();
-
-    const transaction = await invalidate(
-      provider.connection,
-      new SignerWallet(recipient),
-      rentalMint.publicKey
-    );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-
-    await expectTXTable(txEnvelope, "Invalidate rental", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
-      rentalMint.publicKey
-    );
 
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
     );
     expect(tokenManagerData).to.eq(null);
   });
+
+  // it("Invalidate rental", async () => {
+  //   const provider = getProvider();
+
+  //   const transaction = await invalidate(
+  //     provider.connection,
+  //     new SignerWallet(recipient),
+  //     rentalMint.publicKey
+  //   );
+
+  //   const txEnvelope = new TransactionEnvelope(
+  //     SolanaProvider.init({
+  //       connection: provider.connection,
+  //       wallet: new SignerWallet(recipient),
+  //       opts: provider.opts,
+  //     }),
+  //     [...transaction.instructions]
+  //   );
+
+  //   await expectTXTable(txEnvelope, "Invalidate rental", {
+  //     verbosity: "error",
+  //     formatLogs: true,
+  //   }).to.be.fulfilled;
+
+  //   const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+  //     provider.connection,
+  //     rentalMint.publicKey
+  //   );
+
+  //   const tokenManagerData = await tryGetAccount(() =>
+  //     tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
+  //   );
+  //   expect(tokenManagerData).to.eq(null);
+  // });
 
   it("Create rental", async () => {
     const provider = getProvider();
@@ -362,35 +361,6 @@ describe("Rentals", () => {
       useInvalidatorId
     );
     expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
-  });
-
-  it("Invalidate rental", async () => {
-    const provider = getProvider();
-
-    const transaction = await invalidate(
-      provider.connection,
-      new SignerWallet(recipient),
-      rentalMint.publicKey
-    );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-
-    await expectTXTable(txEnvelope, "Invalidate rental", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
-      rentalMint.publicKey
-    );
 
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)

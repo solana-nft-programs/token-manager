@@ -87,6 +87,27 @@ export type CardinalTimeInvalidator = {
         }
       ];
       args: [];
+    },
+    {
+      name: "close";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "closer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -217,6 +238,27 @@ export const IDL: CardinalTimeInvalidator = {
           name: "issuerTokenAccount",
           isMut: false,
           isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "close",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "closer",
+          isMut: true,
+          isSigner: true,
         },
       ],
       args: [],

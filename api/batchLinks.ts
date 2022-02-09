@@ -14,33 +14,26 @@ import {
   SolanaProvider,
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, Transaction } from "@solana/web3.js";
 
 import { claimLinks } from "../src";
 import { getLink } from "../src/claimLinks";
-import { TokenManagerKind } from "../src/programs/tokenManager";
-import { connectionFor, createMint } from "./utils";
+import {
+  InvalidationType,
+  TokenManagerKind,
+} from "../src/programs/tokenManager";
+import { connectionFor, createMintTransaction } from "./utils";
 
-console.log(
-  utils.bytes.bs58.encode([
-    97, 221, 81, 206, 33, 154, 180, 198, 241, 71, 117, 223, 205, 77, 12, 35, 70,
-    66, 32, 21, 118, 95, 104, 18, 195, 163, 179, 36, 205, 154, 205, 23, 13, 78,
-    16, 226, 117, 81, 58, 240, 152, 241, 171, 18, 168, 64, 38, 196, 236, 219,
-    15, 144, 100, 57, 210, 114, 161, 3, 44, 252, 203, 245, 217, 72,
-  ])
-);
 // twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX
 const wallet = Keypair.fromSecretKey(
-  utils.bytes.bs58.decode(
-    process.env.AIRDROP_KEY ||
-      "2xV66X7TbAtTHG4bziYKAJxMQPiw2FEbjVmJJzHc84baZp7Sct654Y1WMFT279sg6g1mEznowKkvJiHPiC9QsFX5"
-  )
+  utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
 );
 
-const getLinks = async (
+export const getEditionLinks = async (
   metadataUrl: string,
   numLinks: number,
-  cluster = "devnet"
+  cluster = "devnet",
+  baseUrl = "https://beta.cardinal.so"
 ) => {
   const allLinks = [];
   const connection = connectionFor(cluster);
@@ -48,12 +41,22 @@ const getLinks = async (
   ////////////////////////////////////////////
   ///////////// Master Edition ///////////////
   ////////////////////////////////////////////
-  const [masterEditionTokenAccountId, masterEditionMint] = await createMint(
+  // const [masterEditionTokenAccountId, masterEditionMint] = await createMint(
+  //   connection,
+  //   wallet,
+  //   wallet.publicKey,
+  //   1,
+  //   wallet.publicKey
+  // );
+  const masterEditionTransaction = new Transaction();
+  const masterEditionMint = Keypair.generate();
+  const [masterEditionTokenAccountId] = await createMintTransaction(
+    masterEditionTransaction,
     connection,
-    wallet,
+    new SignerWallet(wallet),
     wallet.publicKey,
-    1,
-    wallet.publicKey
+    masterEditionMint.publicKey,
+    1
   );
 
   const masterEditionMetadataId = await Metadata.getPDA(
@@ -92,7 +95,7 @@ const getLinks = async (
       updateAuthority: wallet.publicKey,
       mint: masterEditionMint.publicKey,
       mintAuthority: wallet.publicKey,
-      maxSupply: new BN(1),
+      maxSupply: new BN(numLinks),
     }
   );
   const txEnvelope = new TransactionEnvelope(
@@ -100,13 +103,18 @@ const getLinks = async (
       connection: connection,
       wallet: new SignerWallet(wallet),
       opts: {
-        commitment: "singleGossip",
+        commitment: "finalized",
       },
     }),
-    [...metadataTx.instructions, ...masterEditionTx.instructions]
+    [
+      ...masterEditionTransaction.instructions,
+      ...metadataTx.instructions,
+      ...masterEditionTx.instructions,
+    ],
+    [masterEditionMint]
   );
   await txEnvelope.send({
-    commitment: "singleGossip",
+    commitment: "finalized",
   });
   console.log(
     `Master edition (${masterEditionId.toString()}) created with metadata (${masterEditionMetadataId.toString()})`
@@ -117,13 +125,24 @@ const getLinks = async (
   ////////////////////////////////////////////
   for (let i = 0; i < numLinks; i++) {
     // create edition mint
-    const [editionTokenAccountId, editionMint] = await createMint(
+    // const [editionTokenAccountId, editionMint] = await createMint(
+    //   connection,
+    //   wallet,
+    //   wallet.publicKey,
+    //   1,
+    //   wallet.publicKey
+    // );
+    const editionMint = Keypair.generate();
+    const editionTransaction = new Transaction();
+    const [editionTokenAccountId] = await createMintTransaction(
+      editionTransaction,
       connection,
-      wallet,
+      new SignerWallet(wallet),
       wallet.publicKey,
-      1,
-      wallet.publicKey
+      editionMint.publicKey,
+      1
     );
+
     console.log(`Edition mint created (${editionMint.publicKey.toString()})`);
 
     const editionMetadataId = await Metadata.getPDA(editionMint.publicKey);
@@ -158,8 +177,9 @@ const getLinks = async (
       {
         rentalMint: editionMint.publicKey,
         issuerTokenAccountId: editionTokenAccountId,
-        usages: 4,
+        usages: 1,
         kind: TokenManagerKind.Edition,
+        invalidationType: InvalidationType.Invalidate,
       }
     );
 
@@ -171,7 +191,12 @@ const getLinks = async (
           commitment: "singleGossip",
         },
       }),
-      [...editionTx.instructions, ...transaction.instructions]
+      [
+        ...editionTransaction.instructions,
+        ...editionTx.instructions,
+        ...transaction.instructions,
+      ],
+      [editionMint]
     );
     await txEnvelope.send({
       commitment: "singleGossip",
@@ -180,14 +205,125 @@ const getLinks = async (
       `Edition data created editionId=(${editionId.toString()}) marker=(${editionMarkerId.toString()})`
     );
 
-    const claimLink = getLink(tokenManagerId, otp, cluster);
+    const claimLink = getLink(tokenManagerId, otp, cluster, `${baseUrl}/claim`);
     allLinks.push(claimLink);
   }
 
   return allLinks;
 };
 
-getLinks("https://arweave.net/DLDhnabWSXzAYktEhEKyukt3GIfagj2rPpWncw-KDQo", 1)
+export const getMasterEditionLinks = async (
+  metadataUrl: string,
+  numLinks: number,
+  cluster = "devnet",
+  baseUrl = "https://beta.cardinal.so"
+) => {
+  const allLinks = [];
+  const connection = connectionFor(cluster);
+
+  ////////////////////////////////////////////
+  ///////////// Master Edition ///////////////
+  ////////////////////////////////////////////
+  for (let i = 0; i < numLinks; i++) {
+    const masterEditionTransaction = new Transaction();
+    const masterEditionMint = Keypair.generate();
+    const [masterEditionTokenAccountId] = await createMintTransaction(
+      masterEditionTransaction,
+      connection,
+      new SignerWallet(wallet),
+      wallet.publicKey,
+      masterEditionMint.publicKey,
+      1
+    );
+
+    const masterEditionMetadataId = await Metadata.getPDA(
+      masterEditionMint.publicKey
+    );
+    const metadataTx = new CreateMetadataV2(
+      { feePayer: wallet.publicKey },
+      {
+        metadata: masterEditionMetadataId,
+        metadataData: new DataV2({
+          name: "Hacker House",
+          symbol: "HH",
+          uri: `${metadataUrl}`,
+          // uri: `https://api.cardinal.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}`,
+          sellerFeeBasisPoints: 10,
+          creators: null,
+          collection: null,
+          uses: null,
+        }),
+        updateAuthority: wallet.publicKey,
+        mint: masterEditionMint.publicKey,
+        mintAuthority: wallet.publicKey,
+      }
+    );
+
+    const masterEditionId = await MasterEdition.getPDA(
+      masterEditionMint.publicKey
+    );
+    const masterEditionTx = new CreateMasterEditionV3(
+      {
+        feePayer: wallet.publicKey,
+        recentBlockhash: (await connection.getRecentBlockhash("max")).blockhash,
+      },
+      {
+        edition: masterEditionId,
+        metadata: masterEditionMetadataId,
+        updateAuthority: wallet.publicKey,
+        mint: masterEditionMint.publicKey,
+        mintAuthority: wallet.publicKey,
+        maxSupply: new BN(1),
+      }
+    );
+
+    const [issueTransaction, tokenManagerId, otp] = await claimLinks.issueToken(
+      connection,
+      new SignerWallet(wallet),
+      {
+        rentalMint: masterEditionMint.publicKey,
+        issuerTokenAccountId: masterEditionTokenAccountId,
+        usages: 1,
+        kind: TokenManagerKind.Edition,
+        invalidationType: InvalidationType.Invalidate,
+      }
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: connection,
+        wallet: new SignerWallet(wallet),
+        opts: {
+          commitment: "singleGossip",
+        },
+      }),
+      [
+        ...masterEditionTransaction.instructions,
+        ...metadataTx.instructions,
+        ...masterEditionTx.instructions,
+        ...issueTransaction.instructions,
+      ],
+      [masterEditionMint]
+    );
+    await txEnvelope.send({
+      commitment: "singleGossip",
+    });
+    console.log(
+      `Master edition data created mintId=(${masterEditionMint.publicKey.toString()}) masterEditionId=(${masterEditionId.toString()}) metadataId=(${masterEditionMetadataId.toString()})`
+    );
+
+    const claimLink = getLink(tokenManagerId, otp, cluster, `${baseUrl}/claim`);
+    allLinks.push(claimLink);
+  }
+
+  return allLinks;
+};
+
+getMasterEditionLinks(
+  "https://ftjiltbo3riw43edz7ydmq462ij2j7b7d7nh3o35s42ve6zahm3a.arweave.net/LNKFzC7cUW5sg8_wNkOe0hOk_D8f2n27fZc1UnsgOzY/",
+  1,
+  "mainnet"
+)
   .then((links) => {
     console.log(links);
   })

@@ -46,6 +46,7 @@ export enum TokenManagerKind {
 export enum InvalidationType {
   Return = 1,
   Invalidate = 2,
+  Release = 3,
 }
 
 export enum TokenManagerState {

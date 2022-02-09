@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import type { Wallet } from "@saberhq/solana-contrib";
 import * as splToken from "@solana/spl-token";
-import type * as web3 from "@solana/web3.js";
 import { Connection } from "@solana/web3.js";
+import * as web3 from "@solana/web3.js";
+
+import { withFindOrInitAssociatedTokenAccount } from "../src";
 
 const networkURLs: { [s: string]: string } = {
   ["mainnet-beta"]: "https://ssc-dao.genesysgo.net/",
@@ -44,4 +48,63 @@ export const createMint = async (
   const tokenAccount = await mint.createAssociatedTokenAccount(recipient);
   await mint.mintTo(tokenAccount, creator.publicKey, [], amount);
   return [tokenAccount, mint];
+};
+
+/**
+ * Pay and create mint and token account
+ * @param connection
+ * @param creator
+ * @returns
+ */
+export const createMintTransaction = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  recipient: web3.PublicKey,
+  mintId: web3.PublicKey,
+  amount = 1,
+  freezeAuthority: web3.PublicKey = recipient
+): Promise<[web3.PublicKey, web3.Transaction]> => {
+  const mintBalanceNeeded = await splToken.Token.getMinBalanceRentForExemptMint(
+    connection
+  );
+  transaction.add(
+    web3.SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: mintId,
+      lamports: mintBalanceNeeded,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      space: splToken.MintLayout.span,
+      programId: splToken.TOKEN_PROGRAM_ID,
+    })
+  );
+  transaction.add(
+    splToken.Token.createInitMintInstruction(
+      splToken.TOKEN_PROGRAM_ID,
+      mintId,
+      0,
+      wallet.publicKey,
+      freezeAuthority
+    )
+  );
+  const walletAta = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    mintId,
+    wallet.publicKey,
+    wallet.publicKey
+  );
+  if (amount > 0) {
+    transaction.add(
+      splToken.Token.createMintToInstruction(
+        splToken.TOKEN_PROGRAM_ID,
+        mintId,
+        walletAta,
+        wallet.publicKey,
+        [],
+        amount
+      )
+    );
+  }
+  return [walletAta, transaction];
 };

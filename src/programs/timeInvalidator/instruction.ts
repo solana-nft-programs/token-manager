@@ -98,3 +98,26 @@ export const invalidate = async (
     remainingAccounts: [...paymentAccounts, ...transferAccounts],
   });
 };
+
+export const close = (
+  connection: Connection,
+  wallet: Wallet,
+  timeInvalidatorId: PublicKey,
+  tokenManagerId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.close({
+    accounts: {
+      tokenManager: tokenManagerId,
+      timeInvalidator: timeInvalidatorId,
+      closer: wallet.publicKey,
+    },
+  });
+};

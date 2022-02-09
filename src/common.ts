@@ -53,6 +53,58 @@ export const useTransaction = async (
       usages
     )
   );
+
+  if (
+    useInvalidatorData?.parsed.maxUsages &&
+    useInvalidatorData?.parsed.usages
+      .add(new BN(usages))
+      .gte(useInvalidatorData?.parsed.maxUsages)
+  ) {
+    const tokenManagerTokenAccountId =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        mintId,
+        tokenManagerId,
+        wallet.publicKey,
+        true
+      );
+
+    const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      mintId,
+      tokenManagerData?.parsed.issuer,
+      wallet.publicKey
+    );
+
+    let issuerPaymentMintTokenAccountId;
+    if (tokenManagerData.parsed.paymentMint) {
+      issuerPaymentMintTokenAccountId =
+        await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          tokenManagerData.parsed.paymentMint,
+          tokenManagerData?.parsed.issuer,
+          wallet.publicKey
+        );
+    }
+
+    transaction.add(
+      await useInvalidator.instruction.invalidate(
+        connection,
+        wallet,
+        mintId,
+        tokenManagerId,
+        tokenManagerData.parsed.kind,
+        tokenManagerTokenAccountId,
+        tokenManagerData?.parsed.recipientTokenAccount,
+        issuerTokenAccountId,
+        issuerPaymentMintTokenAccountId,
+        tokenManagerData.parsed.paymentMint
+      )
+    );
+  }
   return transaction;
 };
 

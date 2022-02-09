@@ -99,6 +99,22 @@ export const createRental = async (
         timeInvalidatorId
       )
     );
+  } else {
+    const [timeInvalidatorId] =
+      await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
+    const timeInvalidatorData = await tryGetAccount(() =>
+      timeInvalidator.accounts.getTimeInvalidator(connection, timeInvalidatorId)
+    );
+    if (timeInvalidatorData) {
+      transaction.add(
+        timeInvalidator.instruction.close(
+          connection,
+          wallet,
+          timeInvalidatorId,
+          tokenManagerId
+        )
+      );
+    }
   }
 
   // usages
@@ -110,7 +126,18 @@ export const createRental = async (
         tokenManagerId,
         usages
       );
-
+    transaction.add(useInvalidatorIx);
+    transaction.add(
+      tokenManager.instruction.addInvalidator(
+        connection,
+        wallet,
+        tokenManagerId,
+        useInvalidatorId
+      )
+    );
+  } else {
+    const [useInvalidatorId] =
+      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
     const useInvalidatorData = await tryGetAccount(() =>
       useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
     );
@@ -124,16 +151,6 @@ export const createRental = async (
         )
       );
     }
-
-    transaction.add(useInvalidatorIx);
-    transaction.add(
-      tokenManager.instruction.addInvalidator(
-        connection,
-        wallet,
-        tokenManagerId,
-        useInvalidatorId
-      )
-    );
   }
 
   if (kind === TokenManagerKind.Managed) {

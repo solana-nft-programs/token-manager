@@ -84,13 +84,22 @@ export const issueToken = async (
     )
   );
 
-  const [useInvalidatorIx] = await useInvalidator.instruction.init(
-    connection,
-    wallet,
-    tokenManagerId,
-    usages
-  );
+  const [useInvalidatorIx, useInvalidatorId] =
+    await useInvalidator.instruction.init(
+      connection,
+      wallet,
+      tokenManagerId,
+      usages
+    );
   transaction.add(useInvalidatorIx);
+  transaction.add(
+    tokenManager.instruction.addInvalidator(
+      connection,
+      wallet,
+      tokenManagerId,
+      useInvalidatorId
+    )
+  );
 
   if (kind === TokenManagerKind.Managed) {
     const [mintManagerIx, mintManagerId] =

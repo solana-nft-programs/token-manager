@@ -10,7 +10,7 @@ pub struct InitCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(
-        init,
+        init_if_needed,
         payer = payer,
         space = USE_INVALIDATOR_SIZE,
         seeds = [USE_INVALIDATOR_SEED.as_bytes(), token_manager.key().as_ref()], bump = bump,

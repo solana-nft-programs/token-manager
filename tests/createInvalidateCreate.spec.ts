@@ -196,40 +196,6 @@ describe("Rentals", () => {
     expect(tokenManagerData).to.eq(null);
   });
 
-  // it("Invalidate rental", async () => {
-  //   const provider = getProvider();
-
-  //   const transaction = await invalidate(
-  //     provider.connection,
-  //     new SignerWallet(recipient),
-  //     rentalMint.publicKey
-  //   );
-
-  //   const txEnvelope = new TransactionEnvelope(
-  //     SolanaProvider.init({
-  //       connection: provider.connection,
-  //       wallet: new SignerWallet(recipient),
-  //       opts: provider.opts,
-  //     }),
-  //     [...transaction.instructions]
-  //   );
-
-  //   await expectTXTable(txEnvelope, "Invalidate rental", {
-  //     verbosity: "error",
-  //     formatLogs: true,
-  //   }).to.be.fulfilled;
-
-  //   const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-  //     provider.connection,
-  //     rentalMint.publicKey
-  //   );
-
-  //   const tokenManagerData = await tryGetAccount(() =>
-  //     tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
-  //   );
-  //   expect(tokenManagerData).to.eq(null);
-  // });
-
   it("Create rental", async () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(

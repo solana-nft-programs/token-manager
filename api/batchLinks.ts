@@ -320,7 +320,7 @@ export const getMasterEditionLinks = async (
 };
 
 getMasterEditionLinks(
-  "https://ftjiltbo3riw43edz7ydmq462ij2j7b7d7nh3o35s42ve6zahm3a.arweave.net/LNKFzC7cUW5sg8_wNkOe0hOk_D8f2n27fZc1UnsgOzY/",
+  "https://2dhgxu5jouo2so3r7xnc6j2pbawfdzqmuyrmuql2ttep4p23zsga.arweave.net/0M5r06l1Hak7cf3aLydPCCxR5gymIspBepzI_j9bzIw/",
   1,
   "mainnet"
 )

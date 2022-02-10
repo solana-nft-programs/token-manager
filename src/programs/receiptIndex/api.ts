@@ -98,3 +98,16 @@ export const getTokenManagersForIssuerUnsafe = async (
     a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
   );
 };
+
+export const getTokenManagersForIssuer = async (
+  connection: Connection,
+  issuerId: PublicKey,
+  batchSize = 100,
+  fromIndex = false
+): Promise<AccountData<TokenManagerData>[]> => {
+  if (fromIndex) {
+    return getTokenManagersFromIndex(connection, issuerId, batchSize);
+  } else {
+    return getTokenManagersForIssuerUnsafe(connection, issuerId);
+  }
+};

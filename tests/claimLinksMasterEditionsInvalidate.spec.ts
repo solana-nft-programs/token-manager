@@ -110,7 +110,6 @@ describe("Claim links master editions", () => {
       1,
       tokenCreator.publicKey
     );
-
     console.log(editionIssuerTokenAccount);
     const editionMetadataId = await Metadata.getPDA(editionMint.publicKey);
 

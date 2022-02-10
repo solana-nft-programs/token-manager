@@ -3,6 +3,7 @@ import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Transaction } from "@solana/web3.js";
 
+import { findAta } from ".";
 import { timeInvalidator, tokenManager, useInvalidator } from "./programs";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
@@ -209,4 +210,37 @@ export const invalidate = async (
   }
 
   return transaction;
+};
+
+export const unissue = async (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey
+): Promise<Transaction> => {
+  const transaction = new Transaction();
+  const tokenManagerId = await tokenManagerAddressFromMint(connection, mintId);
+
+  const tokenManagerTokenAccountId = await findAta(
+    mintId,
+    tokenManagerId,
+    true
+  );
+
+  const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    mintId,
+    wallet.publicKey,
+    wallet.publicKey
+  );
+
+  return transaction.add(
+    tokenManager.instruction.unissue(
+      connection,
+      wallet,
+      tokenManagerId,
+      tokenManagerTokenAccountId,
+      issuerTokenAccountId
+    )
+  );
 };

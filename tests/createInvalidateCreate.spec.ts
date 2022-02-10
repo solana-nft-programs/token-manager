@@ -221,7 +221,7 @@ describe("Invalidate rentals", () => {
       [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "Create rental", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 

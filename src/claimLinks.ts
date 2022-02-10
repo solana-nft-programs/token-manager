@@ -17,7 +17,7 @@ export const getLink = (
   tokenManagerId: PublicKey,
   otp: Keypair,
   cluster = "devnet",
-  baseUrl = "https://dev.cardinal.so/claim"
+  baseUrl = "https://main.cardinal.so/claim"
 ): string => {
   return `${baseUrl}/${tokenManagerId.toString()}?otp=${utils.bytes.bs58.encode(
     otp.secretKey
@@ -26,7 +26,7 @@ export const getLink = (
 
 export const fromLink = (
   link: string,
-  baseUrl = "https://dev.cardinal.so/claim"
+  baseUrl = "https://main.cardinal.so/claim"
 ): [PublicKey, Keypair] => {
   try {
     const regexMatches =

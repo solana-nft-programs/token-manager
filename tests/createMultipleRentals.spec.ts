@@ -16,7 +16,7 @@ import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Rentals", () => {
+describe("Multiple rentals", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
@@ -103,12 +103,13 @@ describe("Rentals", () => {
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
 
     // check receipt-index
-    const tokenManagerIds = await receiptIndex.getTokenManagerIds(
+    const tokenManagers = await receiptIndex.getTokenManagersForIssuer(
       provider.connection,
       provider.wallet.publicKey
     );
-    expect(tokenManagerIds.length).to.eq(1);
-    expect(tokenManagerIds[0]).to.eq(tokenManagerId);
+    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+      tokenManagerId.toString()
+    );
   });
 
   it("Create another rental different mint", async () => {
@@ -165,12 +166,13 @@ describe("Rentals", () => {
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
 
     // check receipt-index
-    const tokenManagerIds = await receiptIndex.getTokenManagerIds(
+    const tokenManagers = await receiptIndex.getTokenManagersForIssuer(
       provider.connection,
       provider.wallet.publicKey
     );
-    expect(tokenManagerIds.length).to.eq(2);
-    expect(tokenManagerIds[1]).to.eq(tokenManagerId);
+    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+      tokenManagerId.toString()
+    );
   });
 
   it("Claim rental", async () => {

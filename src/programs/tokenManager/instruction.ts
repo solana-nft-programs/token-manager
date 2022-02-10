@@ -208,6 +208,31 @@ export const issue = (
   );
 };
 
+export const unissue = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey,
+  issuerTokenAccountId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.unissue({
+    accounts: {
+      tokenManager: tokenManagerId,
+      tokenManagerTokenAccount: tokenManagerTokenAccountId,
+      issuer: wallet.publicKey,
+      issuerTokenAccount: issuerTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    },
+  });
+};
+
 export const claim = async (
   connection: Connection,
   wallet: Wallet,

@@ -14,7 +14,11 @@ import {
   SolanaProvider,
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
-import { Keypair, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  sendAndConfirmRawTransaction,
+  Transaction,
+} from "@solana/web3.js";
 
 import { claimLinks } from "../src";
 import { getLink } from "../src/claimLinks";
@@ -188,7 +192,7 @@ export const getEditionLinks = async (
         connection: connection,
         wallet: new SignerWallet(wallet),
         opts: {
-          commitment: "singleGossip",
+          commitment: "finalized",
         },
       }),
       [
@@ -199,7 +203,7 @@ export const getEditionLinks = async (
       [editionMint]
     );
     await txEnvelope.send({
-      commitment: "singleGossip",
+      commitment: "finalized",
     });
     console.log(
       `Edition data created editionId=(${editionId.toString()}) marker=(${editionMarkerId.toString()})`
@@ -225,95 +229,125 @@ export const getMasterEditionLinks = async (
   ///////////// Master Edition ///////////////
   ////////////////////////////////////////////
   for (let i = 0; i < numLinks; i++) {
-    const masterEditionTransaction = new Transaction();
-    const masterEditionMint = Keypair.generate();
-    const [masterEditionTokenAccountId] = await createMintTransaction(
-      masterEditionTransaction,
-      connection,
-      new SignerWallet(wallet),
-      wallet.publicKey,
-      masterEditionMint.publicKey,
-      1
-    );
+    console.log(`----------(${i}/${numLinks})--------------`);
 
-    const masterEditionMetadataId = await Metadata.getPDA(
-      masterEditionMint.publicKey
-    );
-    const metadataTx = new CreateMetadataV2(
-      { feePayer: wallet.publicKey },
-      {
-        metadata: masterEditionMetadataId,
-        metadataData: new DataV2({
-          name: "Hacker House",
-          symbol: "HH",
-          uri: `${metadataUrl}`,
-          // uri: `https://api.cardinal.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}`,
-          sellerFeeBasisPoints: 10,
-          creators: null,
-          collection: null,
-          uses: null,
-        }),
-        updateAuthority: wallet.publicKey,
-        mint: masterEditionMint.publicKey,
-        mintAuthority: wallet.publicKey,
-      }
-    );
+    try {
+      const masterEditionTransaction = new Transaction();
+      const masterEditionMint = Keypair.generate();
+      const [masterEditionTokenAccountId] = await createMintTransaction(
+        masterEditionTransaction,
+        connection,
+        new SignerWallet(wallet),
+        wallet.publicKey,
+        masterEditionMint.publicKey,
+        1
+      );
 
-    const masterEditionId = await MasterEdition.getPDA(
-      masterEditionMint.publicKey
-    );
-    const masterEditionTx = new CreateMasterEditionV3(
-      {
-        feePayer: wallet.publicKey,
-        recentBlockhash: (await connection.getRecentBlockhash("max")).blockhash,
-      },
-      {
-        edition: masterEditionId,
-        metadata: masterEditionMetadataId,
-        updateAuthority: wallet.publicKey,
-        mint: masterEditionMint.publicKey,
-        mintAuthority: wallet.publicKey,
-        maxSupply: new BN(1),
-      }
-    );
+      const masterEditionMetadataId = await Metadata.getPDA(
+        masterEditionMint.publicKey
+      );
+      const metadataTx = new CreateMetadataV2(
+        { feePayer: wallet.publicKey },
+        {
+          metadata: masterEditionMetadataId,
+          metadataData: new DataV2({
+            name: "Hacker House",
+            symbol: "HH",
+            uri: `${metadataUrl}`,
+            // uri: `https://api.cardinal.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}`,
+            sellerFeeBasisPoints: 10,
+            creators: null,
+            collection: null,
+            uses: null,
+          }),
+          updateAuthority: wallet.publicKey,
+          mint: masterEditionMint.publicKey,
+          mintAuthority: wallet.publicKey,
+        }
+      );
 
-    const [issueTransaction, tokenManagerId, otp] = await claimLinks.issueToken(
-      connection,
-      new SignerWallet(wallet),
-      {
-        rentalMint: masterEditionMint.publicKey,
-        issuerTokenAccountId: masterEditionTokenAccountId,
-        usages: 1,
-        kind: TokenManagerKind.Edition,
-        invalidationType: InvalidationType.Invalidate,
-      }
-    );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: connection,
-        wallet: new SignerWallet(wallet),
-        opts: {
-          commitment: "singleGossip",
+      const masterEditionId = await MasterEdition.getPDA(
+        masterEditionMint.publicKey
+      );
+      const masterEditionTx = new CreateMasterEditionV3(
+        {
+          feePayer: wallet.publicKey,
+          recentBlockhash: (await connection.getRecentBlockhash("max"))
+            .blockhash,
         },
-      }),
-      [
+        {
+          edition: masterEditionId,
+          metadata: masterEditionMetadataId,
+          updateAuthority: wallet.publicKey,
+          mint: masterEditionMint.publicKey,
+          mintAuthority: wallet.publicKey,
+          maxSupply: new BN(1),
+        }
+      );
+
+      const [issueTransaction, tokenManagerId, otp] =
+        await claimLinks.issueToken(connection, new SignerWallet(wallet), {
+          rentalMint: masterEditionMint.publicKey,
+          issuerTokenAccountId: masterEditionTokenAccountId,
+          usages: 1,
+          kind: TokenManagerKind.Edition,
+          invalidationType: InvalidationType.Invalidate,
+        });
+
+      const transaction = new Transaction();
+      transaction.instructions = [
         ...masterEditionTransaction.instructions,
         ...metadataTx.instructions,
         ...masterEditionTx.instructions,
         ...issueTransaction.instructions,
-      ],
-      [masterEditionMint]
-    );
-    await txEnvelope.send({
-      commitment: "singleGossip",
-    });
-    console.log(
-      `Master edition data created mintId=(${masterEditionMint.publicKey.toString()}) masterEditionId=(${masterEditionId.toString()}) metadataId=(${masterEditionMetadataId.toString()})`
-    );
+      ];
+      transaction.feePayer = wallet.publicKey;
+      transaction.recentBlockhash = (
+        await connection.getRecentBlockhash("max")
+      ).blockhash;
+      transaction.sign(wallet, masterEditionMint);
+      await sendAndConfirmRawTransaction(connection, transaction.serialize(), {
+        commitment: "confirmed",
+      });
+      // const txEnvelope = new TransactionEnvelope(
+      //   SolanaProvider.init({
+      //     connection: connection,
+      //     wallet: new SignerWallet(wallet),
+      //     opts: {
+      //       commitment: "max",
+      //     },
+      //   }),
+      //   [
+      //     ...masterEditionTransaction.instructions,
+      //     ...metadataTx.instructions,
+      //     ...masterEditionTx.instructions,
+      //     ...issueTransaction.instructions,
+      //   ],
+      //   [masterEditionMint]
+      // );
+      // await txEnvelope.send({
+      //   commitment: "max",
+      // });
 
-    const claimLink = getLink(tokenManagerId, otp, cluster, `${baseUrl}/claim`);
-    allLinks.push(claimLink);
+      const claimLink = getLink(
+        tokenManagerId,
+        otp,
+        cluster,
+        `${baseUrl}/claim`
+      );
+
+      const tkm = await connection.getAccountInfo(tokenManagerId);
+      if (!tkm) {
+        console.log("Missing token manager", tokenManagerId.toString());
+      } else {
+        console.log(
+          `Master edition data created mintId=(${masterEditionMint.publicKey.toString()}) masterEditionId=(${masterEditionId.toString()}) metadataId=(${masterEditionMetadataId.toString()}) link=(${claimLink})`
+        );
+        allLinks.push(claimLink);
+      }
+    } catch (e) {
+      console.log("Failed", e);
+    }
   }
 
   return allLinks;

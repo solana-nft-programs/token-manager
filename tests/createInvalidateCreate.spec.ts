@@ -7,7 +7,11 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmRawTransaction,
+} from "@solana/web3.js";
 import { expect } from "chai";
 
 import { findAta, rentals, tryGetAccount, useTransaction } from "../src";
@@ -16,7 +20,7 @@ import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Rentals", () => {
+describe("Invalidate rentals", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
@@ -72,18 +76,16 @@ describe("Rentals", () => {
         amount: new BN(1),
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    transaction.feePayer = provider.wallet.publicKey;
+    transaction.recentBlockhash = (
+      await provider.connection.getRecentBlockhash("max")
+    ).blockhash;
+    await provider.wallet.signTransaction(transaction);
+    await sendAndConfirmRawTransaction(
+      provider.connection,
+      transaction.serialize(),
+      {}
     );
-    await expectTXTable(txEnvelope, "Create rental", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -219,7 +221,7 @@ describe("Rentals", () => {
       [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "Create rental", {
-      verbosity: "error",
+      verbosity: "always",
       formatLogs: true,
     }).to.be.fulfilled;
 

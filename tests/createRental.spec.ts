@@ -11,7 +11,7 @@ import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { findAta, rentals } from "../src";
-import { tokenManager } from "../src/programs";
+import { receiptIndex, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -101,6 +101,14 @@ describe("Rentals", () => {
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+
+    // check receipt-index
+    const tokenManagerIds = await receiptIndex.getTokenManagerIds(
+      provider.connection,
+      provider.wallet.publicKey
+    );
+    expect(tokenManagerIds.length).to.eq(1);
+    expect(tokenManagerIds[0]).to.eq(tokenManagerId);
   });
 
   it("Create another rental different mint", async () => {
@@ -155,6 +163,14 @@ describe("Rentals", () => {
       issuerTokenAccountId2
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+
+    // check receipt-index
+    const tokenManagerIds = await receiptIndex.getTokenManagerIds(
+      provider.connection,
+      provider.wallet.publicKey
+    );
+    expect(tokenManagerIds.length).to.eq(2);
+    expect(tokenManagerIds[1]).to.eq(tokenManagerId);
   });
 
   it("Claim rental", async () => {

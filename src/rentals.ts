@@ -11,6 +11,7 @@ import { Transaction } from "@solana/web3.js";
 import { tryGetAccount } from ".";
 import {
   claimApprover,
+  receiptIndex,
   timeInvalidator,
   tokenManager,
   useInvalidator,
@@ -192,6 +193,29 @@ export const createRental = async (
     )
   );
 
+  // add to receipt index
+  const receiptCounterData = await tryGetAccount(() =>
+    receiptIndex.accounts.getReceiptCounter(connection, wallet.publicKey)
+  );
+
+  if (!receiptCounterData) {
+    const [receiptCounterInitIx] = await receiptIndex.instruction.init(
+      connection,
+      wallet,
+      wallet.publicKey
+    );
+    transaction.add(receiptCounterInitIx);
+  }
+
+  transaction.add(
+    await receiptIndex.instruction.add(
+      connection,
+      wallet,
+      wallet.publicKey,
+      tokenManagerId,
+      receiptCounterData?.parsed.count.add(new BN(1)) || new BN(0)
+    )
+  );
   return [transaction, tokenManagerId];
 };
 

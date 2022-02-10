@@ -13,25 +13,25 @@ cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
-cardinal_rental_counter = "cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP"
+cardinal_receipt_index = "rcpCr9GVsP2CPmS11uuFXUXbzc5JJQFMDvDRn8JDQNh"
 
 [programs.devnet]
 cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
-cardinal_rental_counter = "cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP"
+cardinal_receipt_index = "rcpCr9GVsP2CPmS11uuFXUXbzc5JJQFMDvDRn8JDQNh"
 
 [programs.testnet]
 cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
-cardinal_rental_counter = "cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP"
+cardinal_receipt_index = "rcpCr9GVsP2CPmS11uuFXUXbzc5JJQFMDvDRn8JDQNh"
 
 [programs.localnet]
 cardinal_token_manager = "mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz"
 cardinal_paid_claim_approver = "pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF"
 cardinal_time_invalidator = "tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe"
 cardinal_use_invalidator = "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
-cardinal_rental_counter = "cntQPZbfxBeLa8HVBbA4fApyAKh8mUxUVeaCjBLFSFP"
+cardinal_receipt_index = "rcpCr9GVsP2CPmS11uuFXUXbzc5JJQFMDvDRn8JDQNh"

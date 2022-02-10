@@ -424,25 +424,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "cardinal-rent-receipt"
+name = "cardinal-receipt-index"
 version = "0.0.16"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
  "cardinal-token-manager",
- "proptest",
- "solana-program",
- "spl-associated-token-account",
- "spl-token",
-]
-
-[[package]]
-name = "cardinal-rental-counter"
-version = "0.0.16"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "cardinal-token-manager",
+ "mpl-token-metadata",
  "proptest",
  "solana-program",
  "spl-associated-token-account",

@@ -15,13 +15,13 @@ import { withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export const getLink = (
   tokenManagerId: PublicKey,
-  otp: Keypair,
+  otp: Keypair | undefined,
   cluster = "devnet",
   baseUrl = "https://main.cardinal.so/claim"
 ): string => {
-  return `${baseUrl}/${tokenManagerId.toString()}?otp=${utils.bytes.bs58.encode(
-    otp.secretKey
-  )}${cluster === "devnet" ? "&cluster=devnet" : ""}`;
+  return `${baseUrl}/${tokenManagerId.toString()}${
+    otp ? `?otp=${utils.bytes.bs58.encode(otp.secretKey)}` : ""
+  }${cluster === "devnet" ? "&cluster=devnet" : ""}`;
 };
 
 export const fromLink = (
@@ -29,11 +29,10 @@ export const fromLink = (
   baseUrl = "https://main.cardinal.so/claim"
 ): [PublicKey, Keypair] => {
   try {
-    const regexMatches =
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      new RegExp(`${baseUrl}/(.*)\\?otp=([^&]*)`).exec(
-        `${link}&cluster=devnet`
-      )!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const regexMatches = new RegExp(`${baseUrl}/(.*)\\?otp=([^&]*)`).exec(
+      link
+    )!;
     return [
       new web3.PublicKey(regexMatches[1] as string),
       Keypair.fromSecretKey(utils.bytes.bs58.decode(regexMatches[2] as string)),

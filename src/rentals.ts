@@ -6,9 +6,8 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import type { Connection, PublicKey } from "@solana/web3.js";
-import { Transaction } from "@solana/web3.js";
+import { Keypair, Transaction } from "@solana/web3.js";
 
-import { tryGetAccount } from ".";
 import {
   claimApprover,
   receiptIndex,
@@ -17,8 +16,16 @@ import {
   useInvalidator,
 } from "./programs";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
-import { withFindOrInitAssociatedTokenAccount } from "./utils";
+import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 
+/**
+ * Main method for creating any kind of rental
+ * Allows for optional payment, optional usages or expiration and includes a otp for private links
+ * @param connection
+ * @param wallet
+ * @param param2
+ * @returns Transaction, public key for the created token manager and a otp if necessary for private links
+ */
 export const createRental = async (
   connection: Connection,
   wallet: Wallet,
@@ -31,17 +38,23 @@ export const createRental = async (
     issuerTokenAccountId,
     amount = new BN(1),
     kind = TokenManagerKind.Managed,
+    invalidationType = InvalidationType.Return,
+    visibility = "public",
+    index = false,
   }: {
-    paymentAmount: number;
-    paymentMint: PublicKey;
+    paymentAmount?: number;
+    paymentMint?: PublicKey;
     expiration?: number;
     usages?: number;
     rentalMint: PublicKey;
     issuerTokenAccountId: PublicKey;
     amount?: BN;
+    visibility?: "private" | "public";
     kind?: TokenManagerKind;
+    invalidationType?: InvalidationType;
+    index?: boolean;
   }
-): Promise<[Transaction, PublicKey]> => {
+): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   const transaction = new Transaction();
 
   // init token manager
@@ -53,36 +66,57 @@ export const createRental = async (
   );
   transaction.add(tokenManagerIx);
 
-  // set payment mint
-  transaction.add(
-    tokenManager.instruction.setPaymentMint(
-      connection,
-      wallet,
-      tokenManagerId,
-      paymentMint
-    )
-  );
+  //////////////////////////////
+  /////// claim approver ///////
+  //////////////////////////////
+  let otp;
+  if (paymentAmount && paymentMint) {
+    if (visibility === "private") {
+      throw new Error("Private links do not currently support payment");
+    }
 
-  // init claim approver
-  const [claimApproverIx, claimApproverId] =
-    await claimApprover.instruction.init(
-      connection,
-      wallet,
-      tokenManagerId,
-      paymentAmount
+    // set payment mint
+    transaction.add(
+      tokenManager.instruction.setPaymentMint(
+        connection,
+        wallet,
+        tokenManagerId,
+        paymentMint
+      )
     );
-  transaction.add(claimApproverIx);
 
-  transaction.add(
-    tokenManager.instruction.setClaimApprover(
-      connection,
-      wallet,
-      tokenManagerId,
-      claimApproverId
-    )
-  );
+    // init claim approver
+    const [paidClaimApproverIx, paidClaimApproverId] =
+      await claimApprover.instruction.init(
+        connection,
+        wallet,
+        tokenManagerId,
+        paymentAmount
+      );
+    transaction.add(paidClaimApproverIx);
+    transaction.add(
+      tokenManager.instruction.setClaimApprover(
+        connection,
+        wallet,
+        tokenManagerId,
+        paidClaimApproverId
+      )
+    );
+  } else if (visibility === "private") {
+    otp = Keypair.generate();
+    transaction.add(
+      tokenManager.instruction.setClaimApprover(
+        connection,
+        wallet,
+        tokenManagerId,
+        otp.publicKey
+      )
+    );
+  }
 
-  // time invalidator
+  //////////////////////////////
+  /////// time invalidator /////
+  //////////////////////////////
   if (expiration) {
     const [timeInvalidatorIx, timeInvalidatorId] =
       await timeInvalidator.instruction.init(
@@ -118,7 +152,9 @@ export const createRental = async (
     }
   }
 
-  // usages
+  //////////////////////////////
+  /////////// usages ///////////
+  //////////////////////////////
   if (usages) {
     const [useInvalidatorIx, useInvalidatorId] =
       await useInvalidator.instruction.init(
@@ -189,34 +225,39 @@ export const createRental = async (
       tokenManagerTokenAccountId,
       issuerTokenAccountId,
       kind,
-      InvalidationType.Return
+      invalidationType
     )
   );
 
-  // add to receipt index
-  const receiptCounterData = await tryGetAccount(() =>
-    receiptIndex.accounts.getReceiptCounter(connection, wallet.publicKey)
-  );
-
-  if (!receiptCounterData) {
-    const [receiptCounterInitIx] = await receiptIndex.instruction.init(
-      connection,
-      wallet,
-      wallet.publicKey
+  //////////////////////////////
+  //////////// index ///////////
+  //////////////////////////////
+  if (index) {
+    const receiptCounterData = await tryGetAccount(() =>
+      receiptIndex.accounts.getReceiptCounter(connection, wallet.publicKey)
     );
-    transaction.add(receiptCounterInitIx);
+
+    if (!receiptCounterData) {
+      const [receiptCounterInitIx] = await receiptIndex.instruction.init(
+        connection,
+        wallet,
+        wallet.publicKey
+      );
+      transaction.add(receiptCounterInitIx);
+    }
+
+    transaction.add(
+      await receiptIndex.instruction.add(
+        connection,
+        wallet,
+        wallet.publicKey,
+        tokenManagerId,
+        receiptCounterData?.parsed.count.add(new BN(1)) || new BN(0)
+      )
+    );
   }
 
-  transaction.add(
-    await receiptIndex.instruction.add(
-      connection,
-      wallet,
-      wallet.publicKey,
-      tokenManagerId,
-      receiptCounterData?.parsed.count.add(new BN(1)) || new BN(0)
-    )
-  );
-  return [transaction, tokenManagerId];
+  return [transaction, tokenManagerId, otp];
 };
 
 export const claimRental = async (

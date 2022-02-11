@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -7,24 +6,31 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmRawTransaction,
+  Transaction,
+} from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals, useTransaction } from "../src";
+import { claimLinks, findAta, rentals, useTransaction } from "../src";
+import { fromLink } from "../src/claimLinks";
 import { tokenManager, useInvalidator } from "../src/programs";
-import { TokenManagerState } from "../src/programs/tokenManager";
+import {
+  TokenManagerKind,
+  TokenManagerState,
+} from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Use without use invalidator", () => {
-  const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
-  const RENTAL_PAYMENT_AMONT = 10;
+describe("Private rental", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
-  let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  let paymentMint: Token;
   let rentalMint: Token;
+  let claimLink: string;
+  let serializedUsage: string;
 
   before(async () => {
     const provider = getProvider();
@@ -40,14 +46,6 @@ describe("Use without use invalidator", () => {
     );
     await provider.connection.confirmTransaction(airdropRecipient);
 
-    // create payment mint
-    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
-      provider.connection,
-      tokenCreator,
-      recipient.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT
-    );
-
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
@@ -58,20 +56,20 @@ describe("Use without use invalidator", () => {
     );
   });
 
-  it("Create rental", async () => {
+  it("Create link", async () => {
     const provider = getProvider();
-    const [transaction, tokenManagerId] = await rentals.createRental(
+    const [transaction, tokenManagerId, otp] = await rentals.createRental(
       provider.connection,
       provider.wallet,
       {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
-        expiration: Date.now() / 1000 + 1,
         rentalMint: rentalMint.publicKey,
-        issuerTokenAccountId: issuerTokenAccountId,
-        amount: new BN(1),
+        issuerTokenAccountId,
+        usages: 4,
+        kind: TokenManagerKind.Managed,
+        visibility: "private",
       }
     );
+
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
@@ -85,6 +83,8 @@ describe("Use without use invalidator", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
+    claimLink = claimLinks.getLink(tokenManagerId, otp);
+
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
       tokenManagerId
@@ -92,29 +92,31 @@ describe("Use without use invalidator", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
+    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
     expect(tokenManagerData.parsed.issuer).to.eqAddress(
       provider.wallet.publicKey
     );
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(otp!.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+
+    console.log("Link created: ", claimLink);
   });
 
-  it("Claim rental", async () => {
+  it("Claim from link", async () => {
     const provider = getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
-      rentalMint.publicKey
-    );
+    const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
-    const transaction = await rentals.claimRental(
+    const transaction = await claimLinks.claimFromLink(
       provider.connection,
       new SignerWallet(recipient),
-      tokenManagerId
+      tokenManagerId,
+      otpKeypair
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -123,9 +125,9 @@ describe("Use without use invalidator", () => {
         wallet: new SignerWallet(recipient),
         opts: provider.opts,
       }),
-      [...transaction.instructions]
+      [...transaction.instructions],
+      [otpKeypair]
     );
-
     await expectTXTable(txEnvelope, "test", {
       verbosity: "error",
       formatLogs: true,
@@ -147,16 +149,10 @@ describe("Use without use invalidator", () => {
       await findAta(rentalMint.publicKey, recipient.publicKey)
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
-
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
-      recipientPaymentTokenAccountId
-    );
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT
-    );
+    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
   });
 
-  it("Use", async () => {
+  it("Get use tx", async () => {
     const provider = getProvider();
     const transaction = await useTransaction(
       provider.connection,
@@ -164,21 +160,22 @@ describe("Use without use invalidator", () => {
       rentalMint.publicKey,
       1
     );
+    transaction.feePayer = recipient.publicKey;
+    transaction.recentBlockhash = (
+      await provider.connection.getRecentBlockhash("max")
+    ).blockhash;
+    await new SignerWallet(recipient).signTransaction(transaction);
+    serializedUsage = transaction.serialize().toString("base64");
+  });
 
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+  it("Execute use tx", async () => {
+    const provider = getProvider();
+    const buffer = Buffer.from(serializedUsage, "base64");
+    const transaction = Transaction.from(buffer);
+    await sendAndConfirmRawTransaction(
+      provider.connection,
+      transaction.serialize()
     );
-
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       rentalMint.publicKey
@@ -190,5 +187,21 @@ describe("Use without use invalidator", () => {
       useInvalidatorId
     );
     expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+  });
+
+  it("Get new use tx", async () => {
+    const provider = getProvider();
+    const transaction = await useTransaction(
+      provider.connection,
+      new SignerWallet(recipient),
+      rentalMint.publicKey,
+      2
+    );
+    transaction.feePayer = recipient.publicKey;
+    transaction.recentBlockhash = (
+      await provider.connection.getRecentBlockhash("max")
+    ).blockhash;
+    await new SignerWallet(recipient).signTransaction(transaction);
+    serializedUsage = transaction.serialize().toString("base64");
   });
 });

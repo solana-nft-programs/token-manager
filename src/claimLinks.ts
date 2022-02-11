@@ -20,22 +20,19 @@ export const getLink = (
   baseUrl = "https://main.cardinal.so/claim"
 ): string => {
   return `${baseUrl}/${tokenManagerId.toString()}${
-    otp ? `?otp=${utils.bytes.bs58.encode(otp.secretKey)}` : ""
+    otp ? `?otp=${utils.bytes.bs58.encode(otp.secretKey)}` : "?"
   }${cluster === "devnet" ? "&cluster=devnet" : ""}`;
 };
 
-export const fromLink = (
-  link: string,
-  baseUrl = "https://main.cardinal.so/claim"
-): [PublicKey, Keypair] => {
+export const fromLink = (link: string): [PublicKey, Keypair] => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const regexMatches = new RegExp(`${baseUrl}/(.*)\\?otp=([^&]*)`).exec(
-      link
-    )!;
+    const idRegex = new RegExp(`/claim/([^?]*)`).exec(link)!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const otpRegex = /otp=([^&]*)/.exec(link)!;
     return [
-      new web3.PublicKey(regexMatches[1] as string),
-      Keypair.fromSecretKey(utils.bytes.bs58.decode(regexMatches[2] as string)),
+      new web3.PublicKey(idRegex[1] as string),
+      Keypair.fromSecretKey(utils.bytes.bs58.decode(otpRegex[1] as string)),
     ];
   } catch (e) {
     console.log("Error decoding link: ", e, link);

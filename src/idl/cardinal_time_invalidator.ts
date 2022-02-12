@@ -123,6 +123,10 @@ export type CardinalTimeInvalidator = {
           {
             name: "expiration";
             type: "i64";
+          },
+          {
+            name: "tokenManager";
+            type: "publicKey";
           }
         ];
       };
@@ -277,6 +281,10 @@ export const IDL: CardinalTimeInvalidator = {
           {
             name: "expiration",
             type: "i64",
+          },
+          {
+            name: "tokenManager",
+            type: "publicKey",
           },
         ],
       },

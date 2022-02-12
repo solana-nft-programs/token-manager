@@ -27,5 +27,6 @@ pub fn handler(ctx: Context<InitCtx>, bump: u8, expiration: i64) -> ProgramResul
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     time_invalidator.bump = bump;
     time_invalidator.expiration = expiration;
+    time_invalidator.token_manager = ctx.accounts.token_manager.key();
     return Ok(())
 }

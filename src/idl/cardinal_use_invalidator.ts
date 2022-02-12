@@ -166,6 +166,10 @@ export type CardinalUseInvalidator = {
           {
             name: "useAuthority";
             type: "publicKey";
+          },
+          {
+            name: "tokenManager";
+            type: "publicKey";
           }
         ];
       };
@@ -367,6 +371,10 @@ export const IDL: CardinalUseInvalidator = {
           },
           {
             name: "useAuthority",
+            type: "publicKey",
+          },
+          {
+            name: "tokenManager",
             type: "publicKey",
           },
         ],

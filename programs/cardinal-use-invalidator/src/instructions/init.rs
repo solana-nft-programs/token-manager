@@ -26,6 +26,7 @@ pub fn handler(ctx: Context<InitCtx>, bump: u8, max_usages: Option<u64>) -> Prog
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     use_invalidator.bump = bump;
     use_invalidator.usages = 0;
+    use_invalidator.token_manager = ctx.accounts.token_manager.key();
     if ctx.accounts.token_manager.state == TokenManagerState::Initialized as u8 {
         use_invalidator.max_usages = max_usages;
     }

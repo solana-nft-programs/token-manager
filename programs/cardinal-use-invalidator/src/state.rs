@@ -8,4 +8,5 @@ pub struct UseInvalidator {
     pub usages: u64,
     pub max_usages: Option<u64>,
     pub use_authority: Pubkey,
+    pub token_manager: Pubkey,
 }

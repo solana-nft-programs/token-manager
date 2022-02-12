@@ -16,12 +16,16 @@ pub struct InvalidateCtx<'info> {
     invalidator: Signer<'info>,
 
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
+    token_program: UncheckedAccount<'info>,
 
     // cpi accounts
+    #[account(mut)]
     token_manager_token_account: UncheckedAccount<'info>,
-    token_program: UncheckedAccount<'info>,
+    #[account(mut)]
     mint: UncheckedAccount<'info>,
+    #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
+    #[account(mut)]
     issuer_token_account: UncheckedAccount<'info>,
 }
 

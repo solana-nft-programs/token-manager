@@ -158,7 +158,7 @@ describe("Invalidate rentals", () => {
     );
   });
 
-  it("Use rental", async () => {
+  it("Use rental and invalidate", async () => {
     const provider = getProvider();
     const transaction = await useTransaction(
       provider.connection,

@@ -61,28 +61,28 @@ export type CardinalTimeInvalidator = {
           isSigner: false;
         },
         {
-          name: "tokenManagerTokenAccount";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "tokenProgram";
           isMut: false;
           isSigner: false;
         },
         {
+          name: "tokenManagerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "mint";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
           name: "recipientTokenAccount";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
           name: "issuerTokenAccount";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         }
       ];
@@ -219,28 +219,28 @@ export const IDL: CardinalTimeInvalidator = {
           isSigner: false,
         },
         {
-          name: "tokenManagerTokenAccount",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "tokenProgram",
           isMut: false,
           isSigner: false,
         },
         {
+          name: "tokenManagerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "mint",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
           name: "recipientTokenAccount",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
           name: "issuerTokenAccount",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
       ],

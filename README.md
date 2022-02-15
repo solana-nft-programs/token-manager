@@ -50,9 +50,9 @@ When instantiating a token-manager, the issuer can set a claim approver, transfe
 
 ## Documentation
 
-Documentation is a work in progress. For now, one should read [the tests](/tests/createRental.spec.ts).
+Documentation is a work in progress. For now, one should read [the tests](/tests/issueUnissue.spec.ts).
 
-We soon plan on releasing a React library to make it easy to integrate Cardinal with your frontend.
+We soon plan on releasing a React library to make it easy to integrate Cardinal ui components with your frontend.
 
 ## License
 

@@ -104,7 +104,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let edition_info = next_account_info(remaining_accs)?;
             let metadata_program = next_account_info(remaining_accs)?;
             // edition will be validated by metadata_program
-            assert_keys_eq!(metadata_program.key, mpl_token_metadata::id());
+            assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
             
             invoke_signed(
                 &thaw_delegated_account(

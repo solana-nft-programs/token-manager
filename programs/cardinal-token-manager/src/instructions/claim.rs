@@ -86,7 +86,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let metadata_program = next_account_info(remaining_accs)?;
 
         // edition will be validated by metadata_program
-        assert_keys_eq!(metadata_program.key(), &mpl_token_metadata::id());
+        assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
 
         // set account delegate of recipient token account to token manager PDA
         let cpi_accounts = Approve {

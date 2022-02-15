@@ -35,3 +35,36 @@ export const getClaimApprover = async (
     pubkey: claimApproverId,
   };
 };
+
+export const getClaimApprovers = async (
+  connection: Connection,
+  claimApproverIds: PublicKey[]
+): Promise<AccountData<PaidClaimApproverData>[]> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
+    CLAIM_APPROVER_IDL,
+    CLAIM_APPROVER_ADDRESS,
+    provider
+  );
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  let claimApprovers = [];
+  try {
+    claimApprovers =
+      await claimApproverProgram.account.paidClaimApprover.fetchMultiple(
+        claimApproverIds
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  return claimApprovers.map((tm, i) => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    parsed: tm,
+    pubkey: claimApproverIds[i],
+  }));
+};

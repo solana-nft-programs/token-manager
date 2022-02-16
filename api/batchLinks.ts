@@ -179,7 +179,7 @@ export const getEditionLinks = async (
       connection,
       new SignerWallet(wallet),
       {
-        rentalMint: editionMint.publicKey,
+        mint: editionMint.publicKey,
         issuerTokenAccountId: editionTokenAccountId,
         usages: 1,
         kind: TokenManagerKind.Edition,
@@ -287,7 +287,7 @@ export const getMasterEditionLinks = async (
 
       const [issueTransaction, tokenManagerId, otp] =
         await claimLinks.issueToken(connection, new SignerWallet(wallet), {
-          rentalMint: masterEditionMint.publicKey,
+          mint: masterEditionMint.publicKey,
           issuerTokenAccountId: masterEditionTokenAccountId,
           usages: 1,
           kind: TokenManagerKind.Edition,

@@ -13,7 +13,7 @@
 
 ## Background
 
-Cardinal is a composable protocol for issuing conditional NFTs that are managed by the protocol. Using the invalidators and approvers in various ways allows for building rentals, in-game items, DNS services and more.
+Cardinal is a composable protocol for issuing conditional NFTs that are managed by the protocol. Using the invalidators and approvers in various ways allows for building rentals, expiring in-game items, subscriptions, permits, tickets, passes and more.
 
 Carinal protocol provides a token-manager implementation as well as basic plugins for paid claim, permissioned transfer, and time invalidation. These plugins can be extended to support various use cases or similar ones built with entirely new logic for token handling the token invalidation.
 
@@ -51,6 +51,49 @@ When instantiating a token-manager, the issuer can set a claim approver, transfe
 Documentation is a work in progress. For now, one should read [the tests](/tests/issueUnissue.spec.ts).
 
 We soon plan on releasing a React library to make it easy to integrate Cardinal ui components with your frontend.
+
+## Installation
+
+- Javascript
+
+```
+npm i @cardinal/token-manager
+
+import { Connection } from "@solana/web3.js";
+```
+
+_Check the SDK for other types and utility functions._
+
+#### Create stream
+
+```javascript
+const issueTokenParameters = {
+  paymentAmount: new BN(10),
+  paymentMint: new PublicKey('...'),
+  expiration: (Date.now() / 1000) + 86400,
+  usages: 1,
+  mint: new PublicKey('...'),
+  amount: new BN(1), // default 1
+  issuerTokenAccountId: new PublicKey('3c5mtZ9PpGu3hj1W1a13Hie1CAXKnRyj2xruNxwWcWTz'),
+  visibility: "public" // default public
+  kind: TokenManagerKind.Edition, // used for metaplex master / editions,
+  invalidationType: InvalidationType.Return // indicates this token will be returned when invalidated
+};
+
+try {
+    const [transaction] = await issueToken(issueTokenParameters);
+    transaction.feePayer = wallet.publicKey;
+    transaction.recentBlockhash = (
+    await connection.getRecentBlockhash("max")
+    ).blockhash;
+    transaction.sign(wallet, masterEditionMint);
+    await sendAndConfirmRawTransaction(connection, transaction.serialize(), {
+        commitment: "confirmed",
+    });
+} catch (exception) {
+  // handle exception
+}
+```
 
 ## License
 

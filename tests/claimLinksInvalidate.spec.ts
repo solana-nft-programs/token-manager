@@ -63,7 +63,7 @@ describe("Claim links invalidate", () => {
       provider.connection,
       provider.wallet,
       {
-        rentalMint: rentalMint.publicKey,
+        mint: rentalMint.publicKey,
         issuerTokenAccountId,
         usages: 1,
         kind: TokenManagerKind.Managed,

@@ -123,7 +123,7 @@ describe("Master editions", () => {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
         expiration: Date.now() / 1000 + 1,
-        rentalMint: rentalMint.publicKey,
+        mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
         kind: TokenManagerKind.Edition,

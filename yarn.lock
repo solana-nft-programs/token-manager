@@ -27,6 +27,7 @@ __metadata:
     "@saberhq/solana-contrib": ^1.12.32
     "@saberhq/token-utils": ^1.12.32
     "@saberhq/tsconfig": ^1.12.32
+    "@solana/buffer-layout": ^4.0.0
     "@solana/spl-token": ^0.1.8
     "@solana/web3.js": ^1.31.0
     "@types/bn.js": ^5.1.0

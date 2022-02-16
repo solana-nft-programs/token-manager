@@ -6,7 +6,7 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { rentals, tryGetAccount, unissue } from "../src";
+import { rentals, tryGetAccount, unissueToken } from "../src";
 import { receiptIndex, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
@@ -63,7 +63,7 @@ describe("Issue Unissue", () => {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
         expiration: Date.now() / 1000 + 1,
-        rentalMint: rentalMint.publicKey,
+        mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
@@ -111,7 +111,7 @@ describe("Issue Unissue", () => {
   it("Unissue rental", async () => {
     const provider = getProvider();
 
-    const transaction = await unissue(
+    const transaction = await unissueToken(
       provider.connection,
       provider.wallet,
       rentalMint.publicKey

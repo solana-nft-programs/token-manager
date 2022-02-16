@@ -67,7 +67,7 @@ describe("Multiple rentals", () => {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
         expiration: Date.now() / 1000 + 1,
-        rentalMint: rentalMint.publicKey,
+        mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
@@ -129,7 +129,7 @@ describe("Multiple rentals", () => {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
         expiration: Date.now() / 1000 + 1,
-        rentalMint: rentalMint2.publicKey,
+        mint: rentalMint2.publicKey,
         issuerTokenAccountId: issuerTokenAccountId2,
         amount: new BN(1),
       }

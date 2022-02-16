@@ -158,7 +158,7 @@ describe("Claim links master editions", () => {
       provider.connection,
       new SignerWallet(tokenCreator),
       {
-        rentalMint: rentalMint.publicKey,
+        mint: rentalMint.publicKey,
         issuerTokenAccountId,
         usages: 4,
         kind: TokenManagerKind.Edition,
@@ -325,7 +325,7 @@ describe("Claim links master editions", () => {
       provider.connection,
       provider.wallet,
       {
-        rentalMint: editionMint.publicKey,
+        mint: editionMint.publicKey,
         issuerTokenAccountId: editionIssuerTokenAccount,
         usages: 4,
         kind: TokenManagerKind.Edition,

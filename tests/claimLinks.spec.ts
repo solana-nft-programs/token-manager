@@ -14,7 +14,7 @@ import {
 } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimLinks, findAta, useTransaction } from "../src";
+import { claimLinks, findAta, useTransaction, withIssueToken } from "../src";
 import { fromLink } from "../src/claimLinks";
 import { tokenManager, useInvalidator } from "../src/programs";
 import {
@@ -58,14 +58,16 @@ describe("Claim links", () => {
 
   it("Create link", async () => {
     const provider = getProvider();
-    const [transaction, tokenManagerId, otp] = await claimLinks.issueToken(
+    const [transaction, tokenManagerId, otp] = await withIssueToken(
+      new Transaction(),
       provider.connection,
       provider.wallet,
       {
-        rentalMint: rentalMint.publicKey,
+        mint: rentalMint.publicKey,
         issuerTokenAccountId,
         usages: 4,
         kind: TokenManagerKind.Managed,
+        visibility: "private",
       }
     );
 
@@ -95,7 +97,7 @@ describe("Claim links", () => {
     expect(tokenManagerData.parsed.issuer).to.eqAddress(
       provider.wallet.publicKey
     );
-    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(otp.publicKey);
+    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(otp!.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId

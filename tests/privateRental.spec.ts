@@ -62,7 +62,7 @@ describe("Private rental", () => {
       provider.connection,
       provider.wallet,
       {
-        rentalMint: rentalMint.publicKey,
+        mint: rentalMint.publicKey,
         issuerTokenAccountId,
         usages: 4,
         kind: TokenManagerKind.Managed,

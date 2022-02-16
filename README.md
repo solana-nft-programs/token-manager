@@ -1,7 +1,7 @@
 # Cardinal
 
 [![License](https://img.shields.io/badge/license-AGPL%203.0-blue)](https://github.com/cardinal-labs/cardinal-token-manager/blob/master/LICENSE)
-[![Release](https://github.com/cardinal-labs/cardinal-token-manager/actions/workflows/release.yml/badge.svg)](https://github.com/cardinal-labs/cardinal-token-manager/actions/workflows/release.yml)
+[![Release](https://github.com/cardinal-labs/cardinal-token-manager/actions/workflows/release.yml/badge.svg?branch=v0.0.27)](https://github.com/cardinal-labs/cardinal-token-manager/actions/workflows/release.yml)
 
 <p align="center">
     <img src="./images/banner.png" />

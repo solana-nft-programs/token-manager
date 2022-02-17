@@ -2,14 +2,21 @@ import {
   Edition,
   MetadataProgram,
 } from "@metaplex-foundation/mpl-token-metadata";
+import type { Wallet } from "@saberhq/solana-contrib";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import type { AccountMeta, PublicKey } from "@solana/web3.js";
+import type {
+  AccountMeta,
+  Connection,
+  PublicKey,
+  Transaction,
+} from "@solana/web3.js";
 
-import { TokenManagerKind } from ".";
+import { withFindOrInitAssociatedTokenAccount } from "../..";
+import { InvalidationType, TokenManagerKind } from ".";
 import { findMintManagerId } from "./pda";
 
 export const getRemainingAccountsForKind = async (
@@ -66,6 +73,34 @@ export const getRemainingAccountsForPayment = async (
       },
       {
         pubkey: issuerPaymentMintTokenAccountId,
+        isSigner: false,
+        isWritable: true,
+      },
+    ];
+  } else {
+    return [];
+  }
+};
+
+export const withRemainingAccountsForReturn = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  issuerId: PublicKey,
+  mintId: PublicKey,
+  invalidationType?: InvalidationType
+): Promise<AccountMeta[]> => {
+  if (invalidationType === InvalidationType.Return) {
+    const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      mintId,
+      issuerId,
+      wallet.publicKey
+    );
+    return [
+      {
+        pubkey: issuerTokenAccountId,
         isSigner: false,
         isWritable: true,
       },

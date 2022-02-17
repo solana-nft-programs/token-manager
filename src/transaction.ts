@@ -18,6 +18,7 @@ import {
 } from "./programs";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
+import { withRemainingAccountsForReturn } from "./programs/tokenManager/utils";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export type IssueParameters = {
@@ -444,12 +445,13 @@ export const withInvalidate = async (
     true
   );
 
-  const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+  const remainingAccountsForReturn = await withRemainingAccountsForReturn(
     transaction,
     connection,
-    mintId,
+    wallet,
     tokenManagerData?.parsed.issuer,
-    wallet.publicKey
+    mintId,
+    tokenManagerData?.parsed.invalidationType
   );
 
   let issuerPaymentMintTokenAccountId;
@@ -478,7 +480,7 @@ export const withInvalidate = async (
         tokenManagerData.parsed.kind,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
-        issuerTokenAccountId,
+        remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
       )
@@ -497,7 +499,7 @@ export const withInvalidate = async (
         tokenManagerData.parsed.kind,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
-        issuerTokenAccountId,
+        remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
       )
@@ -570,12 +572,13 @@ export const withUse = async (
         true
       );
 
-    const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    const remainingAccountsForReturn = await withRemainingAccountsForReturn(
       transaction,
       connection,
-      mintId,
+      wallet,
       tokenManagerData?.parsed.issuer,
-      wallet.publicKey
+      mintId,
+      tokenManagerData?.parsed.invalidationType
     );
 
     let issuerPaymentMintTokenAccountId;
@@ -599,7 +602,7 @@ export const withUse = async (
         tokenManagerData.parsed.kind,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
-        issuerTokenAccountId,
+        remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
       )

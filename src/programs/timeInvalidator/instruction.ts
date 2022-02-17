@@ -2,6 +2,7 @@ import { BN, Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
+  AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
@@ -60,7 +61,7 @@ export const invalidate = async (
   tokenManagerKind: TokenManagerKind,
   tokenManagerTokenAccountId: PublicKey,
   recipientTokenAccountId: PublicKey,
-  issuerTokenAccountId: PublicKey,
+  returnAccounts: AccountMeta[],
   issuerPaymentMintTokenAccountId?: PublicKey | null,
   tokenManagerPaymentMint?: PublicKey | null
 ): Promise<TransactionInstruction> => {
@@ -93,9 +94,12 @@ export const invalidate = async (
       tokenProgram: TOKEN_PROGRAM_ID,
       mint: mintId,
       recipientTokenAccount: recipientTokenAccountId,
-      issuerTokenAccount: issuerTokenAccountId,
     },
-    remainingAccounts: [...paymentAccounts, ...transferAccounts],
+    remainingAccounts: [
+      ...paymentAccounts,
+      ...transferAccounts,
+      ...returnAccounts,
+    ],
   });
 };
 

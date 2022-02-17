@@ -47,7 +47,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_manager_token_account: ctx.accounts.receipt_token_manager_token_account.to_account_info(),
         mint: ctx.accounts.receipt_mint.to_account_info(),
         recipient_token_account: ctx.accounts.recipient_token_account.to_account_info(),
-        issuer_token_account: ctx.accounts.receipt_marker_token_account.to_account_info(),
         invalidator: ctx.accounts.receipt_marker.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };

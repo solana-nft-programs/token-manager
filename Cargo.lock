@@ -412,7 +412,7 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "cardinal-paid-claim-approver"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -425,7 +425,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-receipt-index"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -439,7 +439,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-time-invalidator"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -452,7 +452,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-token-manager"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -466,7 +466,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-use-invalidator"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -747,7 +747,7 @@ dependencies = [
 
 [[package]]
 name = "keccak"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67c21572b4949434e4fc1e1978b99c5f77064153c59d998bf13ecd96fb5ecba7"
 
@@ -863,7 +863,7 @@ dependencies = [
 
 [[package]]
 name = "mpl-token-vault"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ade4ef15bc06a6033076c4ff28cba9b42521df5ec61211d6f419415ace2746a"
 dependencies = [

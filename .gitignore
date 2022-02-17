@@ -3,6 +3,8 @@
 
 # Ignore the build directory for Rust/Anchor
 target
+# Anchor verified builds directory
+docker-target
 
 # Ignore backup files creates by cargo fmt.
 **/*.rs.bk

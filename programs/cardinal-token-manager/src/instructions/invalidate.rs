@@ -2,7 +2,7 @@ use {
     crate::{state::*, errors::*},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
     anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, ThawAccount, CloseAccount}},
-    mpl_token_metadata::{instruction::thaw_delegated_account, utils::assert_derivation},
+    mpl_token_metadata::{instruction::thaw_delegated_account, utils::{assert_derivation,assert_initialized}},
     vipers::assert_keys_eq
 };
 
@@ -22,14 +22,6 @@ pub struct InvalidateCtx<'info> {
     // recipient
     #[account(mut, constraint = recipient_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidRecipientTokenAccount)]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
-
-    // issuer
-    #[account(mut, constraint =
-        issuer_token_account.owner == token_manager.issuer
-        && issuer_token_account.mint == token_manager.mint
-        @ ErrorCode::InvalidIssuerTokenAccount
-    )]
-    issuer_token_account: Box<Account<'info, TokenAccount>>,
 
     // invalidator
     #[account(mut, constraint = token_manager.invalidators.contains(&invalidator.key()) @ ErrorCode::InvalidInvalidator)]
@@ -137,15 +129,14 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     token_manager.state = TokenManagerState::Invalidated as u8;
     if token_manager.invalidation_type == InvalidationType::Return as u8 {
-        // let remaining_accs = &mut ctx.remaining_accounts.iter();
-        // let issuer_token_account_info = next_account_info(remaining_accs)?;
-        // let issuer_token_account: spl_token::state::Account = assert_initialized(issuer_token_account_info)?;
-        // assert_keys_eq!(issuer_token_account.owner, token_manager.issuer);
+        let issuer_token_account_info = next_account_info(remaining_accs)?;
+        let issuer_token_account: spl_token::state::Account = assert_initialized(issuer_token_account_info)?;
+        assert_keys_eq!(issuer_token_account.owner, token_manager.issuer);
 
         // transfer back to issuer
         let cpi_accounts = Transfer {
             from: ctx.accounts.recipient_token_account.to_account_info(),
-            to: ctx.accounts.issuer_token_account.to_account_info(),
+            to: issuer_token_account_info.to_account_info(),
             authority: token_manager.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();

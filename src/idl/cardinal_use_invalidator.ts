@@ -112,11 +112,6 @@ export type CardinalUseInvalidator = {
           name: "recipientTokenAccount";
           isMut: true;
           isSigner: false;
-        },
-        {
-          name: "issuerTokenAccount";
-          isMut: true;
-          isSigner: false;
         }
       ];
       args: [];
@@ -312,11 +307,6 @@ export const IDL: CardinalUseInvalidator = {
         },
         {
           name: "recipientTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "issuerTokenAccount",
           isMut: true,
           isSigner: false,
         },

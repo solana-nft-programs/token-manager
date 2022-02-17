@@ -25,8 +25,6 @@ pub struct InvalidateCtx<'info> {
     mint: UncheckedAccount<'info>,
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
-    #[account(mut)]
-    issuer_token_account: UncheckedAccount<'info>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
@@ -40,7 +38,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_manager_token_account: ctx.accounts.token_manager_token_account.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
         recipient_token_account: ctx.accounts.recipient_token_account.to_account_info(),
-        issuer_token_account: ctx.accounts.issuer_token_account.to_account_info(),
         invalidator: ctx.accounts.time_invalidator.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };

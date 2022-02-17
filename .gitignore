@@ -1,6 +1,9 @@
 # Ignore Mac OS noise
 .DS_Store
 
+# VSCode history
+.history
+
 # Ignore the build directory for Rust/Anchor
 target
 # Anchor verified builds directory

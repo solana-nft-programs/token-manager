@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import * as USE_INVALIDATOR_TYPES from "../../idl/cardinal_use_invalidator";
 
 export const USE_INVALIDATOR_ADDRESS = new PublicKey(
-  "useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L"
+  "useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp"
 );
 
 export const USE_INVALIDATOR_SEED = "use-invalidator";

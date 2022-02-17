@@ -31,10 +31,10 @@ Carinal protocol provides a token-manager implementation as well as basic plugin
 
 Program addresses are the same on devnet, testnet, and mainnet-beta.
 
-- TokenManager: [`mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz`](https://explorer.solana.com/address/mgrMbgLbusR19KEKMa9WsYDAeL94Tavgc9JHRB1CCGz)
-- PaidClaimApprover: [`pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF`](https://explorer.solana.com/address/pcaQ9jQLzb8VszyM6oPRoiGsdjizxMyvGjauhKPD5EF)
-- TimeInvalidator: [`tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe`](https://explorer.solana.com/address/tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe)
-- UseInvalidator: [`useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L`](https://explorer.solana.com/address/useB5qbYZgjE14qXxWx17Zm4JS5bzWrDcWXt3uBq62L)
+- TokenManager: [`mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM`](https://explorer.solana.com/address/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM)
+- PaidClaimApprover: [`pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR`](https://explorer.solana.com/address/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR)
+- TimeInvalidator: [`tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE`](https://explorer.solana.com/address/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE)
+- UseInvalidator: [`useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp`](https://explorer.solana.com/address/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp)
 
 ## Plugins
 

@@ -4,7 +4,7 @@ pub mod errors;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("tmexpMz3HojAQ4i97rgaJYhPHM9hV6AzWmQ7EprRPGe");
+declare_id!("tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE");
 
 #[program]
 pub mod cardinal_time_invalidator {

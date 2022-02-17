@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-time-invalidator"
-version = "0.1.3"
+version = "0.1.4"
 description = "Program for a invalidating token managers based on time"
 edition = "2021"
 homepage = "https://cardinal.so"

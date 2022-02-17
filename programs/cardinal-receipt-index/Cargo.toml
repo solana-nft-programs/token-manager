@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-receipt-index"
-version = "0.1.1"
+version = "0.1.3"
 description = "Cardinal receipt index"
 edition = "2021"
 homepage = "https://cardinal.so"

@@ -126,7 +126,7 @@ describe("Issue Unissue", () => {
       [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
+      verbosity: "always",
       formatLogs: true,
     }).to.be.fulfilled;
 

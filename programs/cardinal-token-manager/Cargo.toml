@@ -20,13 +20,12 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.20.1"
-anchor-spl = "0.20.1"
+anchor-lang = ">=0.21"
+anchor-spl = ">=0.21"
 spl-associated-token-account = "1.0.2"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
-solana-program = "1.8.1"
 mpl-token-metadata = { version = "1.2.4", features = ["no-entrypoint"] }
-vipers = "<=1.5.7"
+vipers = ">=1.6"
 
 [dev-dependencies]
 proptest = { version = "1.0" }

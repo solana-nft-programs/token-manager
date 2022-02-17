@@ -527,6 +527,12 @@ export type CardinalTokenManager = {
             type: "publicKey";
           },
           {
+            name: "receiptMint";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
             name: "paymentMint";
             type: {
               option: "publicKey";
@@ -1300,6 +1306,12 @@ export const IDL: CardinalTokenManager = {
           {
             name: "recipientTokenAccount",
             type: "publicKey",
+          },
+          {
+            name: "receiptMint",
+            type: {
+              option: "publicKey",
+            },
           },
           {
             name: "paymentMint",

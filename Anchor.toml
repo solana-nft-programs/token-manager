@@ -2,7 +2,7 @@ anchor_version = "0.20.1"
 solana_version = "1.9.0"
 
 [scripts]
-test = "yarn mocha tests/claimLinks.spec.ts"
+test = "yarn mocha tests/*.spec.ts"
 
 [provider]
 cluster = "localnet"

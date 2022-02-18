@@ -52,9 +52,9 @@ Documentation is a work in progress. For now, one should read [the tests](/tests
 
 We soon plan on releasing a React library to make it easy to integrate Cardinal ui components with your frontend.
 
-## Installation
+## Example usage
 
-#### Javascript create time based fixed rental example
+#### Javascript create fixed price 24h rental
 
 ```
 npm i @cardinal/token-manager

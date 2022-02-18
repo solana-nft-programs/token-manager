@@ -54,7 +54,7 @@ We soon plan on releasing a React library to make it easy to integrate Cardinal 
 
 ## Installation
 
-#### Javascript create rental example
+#### Javascript create time based fixed rental example
 
 ```
 npm i @cardinal/token-manager
@@ -63,29 +63,63 @@ npm i @cardinal/token-manager
 ```javascript
 import { Connection } from "@solana/web3.js";
 
+// payment amount, 10 for expiration of 86400 (24 hours)
 const issueTokenParameters = {
   paymentAmount: new BN(10),
-  paymentMint: new PublicKey('...'),
-  expiration: (Date.now() / 1000) + 86400,
-  usages: 1,
-  mint: new PublicKey('...'),
-  amount: new BN(1), // default 1
-  issuerTokenAccountId: new PublicKey('3c5mtZ9PpGu3hj1W1a13Hie1CAXKnRyj2xruNxwWcWTz'),
-  visibility: "public" // default public
+  paymentMint: new PublicKey("..."),
+  expiration: Date.now() / 1000 + 86400,
+  mint: new PublicKey("..."), // NFT rental mint
+  issuerTokenAccountId: new PublicKey("..."),
+  visibility: "public", // default public means anyone can claim this rental
   kind: TokenManagerKind.Edition, // used for metaplex master / editions,
-  invalidationType: InvalidationType.Return // indicates this token will be returned when invalidated
+  invalidationType: InvalidationType.Return, // indicates this token will be returned when invalidated
 };
 
 try {
-    const [transaction] = await issueToken(issueTokenParameters);
-    transaction.feePayer = wallet.publicKey;
-    transaction.recentBlockhash = (
+  const [transaction] = await issueToken(issueTokenParameters);
+  transaction.feePayer = wallet.publicKey;
+  transaction.recentBlockhash = (
     await connection.getRecentBlockhash("max")
-    ).blockhash;
-    transaction.sign(wallet, masterEditionMint);
-    await sendAndConfirmRawTransaction(connection, transaction.serialize(), {
-        commitment: "confirmed",
-    });
+  ).blockhash;
+  transaction.sign(wallet, masterEditionMint);
+  await sendAndConfirmRawTransaction(connection, transaction.serialize(), {
+    commitment: "confirmed",
+  });
+} catch (exception) {
+  // handle exception
+}
+```
+
+#### Javascript create single use ticket example
+
+```
+npm i @cardinal/token-manager
+```
+
+```javascript
+import { Connection } from "@solana/web3.js";
+
+// no payment specified, 1 usage and private link means only the holder of the link can claim it
+// Releases on use as a memento
+const issueTokenParameters = {
+  usages: 1, // 1 use
+  mint: new PublicKey("..."), // ticket image
+  issuerTokenAccountId: new PublicKey("..."),
+  visibility: "private", // private so you can send this out via email
+  kind: TokenManagerKind.Edition, // used for metaplex master / editions,
+  invalidationType: InvalidationType.Release, // indicates this token will be released after being used
+};
+
+try {
+  const [transaction] = await issueToken(issueTokenParameters);
+  transaction.feePayer = wallet.publicKey;
+  transaction.recentBlockhash = (
+    await connection.getRecentBlockhash("max")
+  ).blockhash;
+  transaction.sign(wallet, masterEditionMint);
+  await sendAndConfirmRawTransaction(connection, transaction.serialize(), {
+    commitment: "confirmed",
+  });
 } catch (exception) {
   // handle exception
 }

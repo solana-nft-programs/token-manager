@@ -232,18 +232,7 @@ export const withIssueToken = async (
   //////////// index ///////////
   //////////////////////////////
   if (receipt) {
-    throw new Error("Index not implemented");
-    // const receiptCounterData = await tryGetAccount(() =>
-    //   receiptIndex.accounts.getReceiptCounter(connection, wallet.publicKey)
-    // );
-    // if (!receiptCounterData) {
-    //   const [receiptCounterInitIx] = await receiptIndex.instruction.init(
-    //     connection,
-    //     wallet,
-    //     wallet.publicKey
-    //   );
-    //   transaction.add(receiptCounterInitIx);
-    // }
+    throw new Error("Receipts not implemented");
     // transaction.add(
     //   await receiptIndex.instruction.add(
     //     connection,

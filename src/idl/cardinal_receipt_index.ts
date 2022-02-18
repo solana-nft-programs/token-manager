@@ -41,6 +41,11 @@ export type CardinalReceiptIndex = {
           isSigner: false;
         },
         {
+          name: "recipientTokenAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "cardinalTokenManager";
           isMut: false;
           isSigner: false;
@@ -220,6 +225,11 @@ export const IDL: CardinalReceiptIndex = {
         },
         {
           name: "receiptMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "recipientTokenAccount",
           isMut: false,
           isSigner: false,
         },

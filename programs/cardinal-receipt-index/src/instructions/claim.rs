@@ -28,6 +28,7 @@ pub struct ClaimCtx<'info> {
     #[account(mut)]
     receipt_mint_metadata: UncheckedAccount<'info>,
     receipt_mint: UncheckedAccount<'info>,
+    recipient_token_account: UncheckedAccount<'info>,
 
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
 
@@ -162,7 +163,7 @@ pub fn handler(ctx: Context<ClaimCtx>, name: String) -> ProgramResult {
         token_manager: ctx.accounts.receipt_token_manager.to_account_info(),
         token_manager_token_account: ctx.accounts.receipt_token_manager_token_account.to_account_info(),
         recipient: ctx.accounts.issuer.to_account_info(),
-        recipient_token_account: ctx.accounts.receipt_marker_token_account.to_account_info(),
+        recipient_token_account: ctx.accounts.recipient_token_account.to_account_info(),
         mint: ctx.accounts.receipt_mint.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };

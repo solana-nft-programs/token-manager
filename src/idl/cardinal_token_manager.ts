@@ -492,6 +492,10 @@ export type CardinalTokenManager = {
         kind: "struct";
         fields: [
           {
+            name: "version";
+            type: "u8";
+          },
+          {
             name: "bump";
             type: "u8";
           },
@@ -522,6 +526,10 @@ export type CardinalTokenManager = {
           {
             name: "state";
             type: "u8";
+          },
+          {
+            name: "stateChangedAt";
+            type: "i64";
           },
           {
             name: "invalidationType";
@@ -1278,6 +1286,10 @@ export const IDL: CardinalTokenManager = {
         kind: "struct",
         fields: [
           {
+            name: "version",
+            type: "u8",
+          },
+          {
             name: "bump",
             type: "u8",
           },
@@ -1308,6 +1320,10 @@ export const IDL: CardinalTokenManager = {
           {
             name: "state",
             type: "u8",
+          },
+          {
+            name: "stateChangedAt",
+            type: "i64",
           },
           {
             name: "invalidationType",

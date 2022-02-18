@@ -128,6 +128,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     token::close_account(cpi_context)?;
 
     token_manager.state = TokenManagerState::Invalidated as u8;
+    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     if token_manager.invalidation_type == InvalidationType::Return as u8 {
         let issuer_token_account_info = next_account_info(remaining_accs)?;
         let issuer_token_account: spl_token::state::Account = assert_initialized(issuer_token_account_info)?;

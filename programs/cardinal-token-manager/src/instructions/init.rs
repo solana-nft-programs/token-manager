@@ -41,6 +41,7 @@ pub fn handler(ctx: Context<InitCtx>, bump: u8, mint: Pubkey,  num_invalidators:
     token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.mint = mint;
     token_manager.state = TokenManagerState::Initialized as u8;
+    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     // default to itself to avoid someone not setting it
     token_manager.transfer_authority = Some(token_manager.key());
     return Ok(())

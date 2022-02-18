@@ -37,13 +37,14 @@ pub enum InvalidationType {
 }
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {
-    return (8 + 1 + 8 + 1 + 32 + 32 + 8 + 1 + 1 + 1 + 32 + 33 + 33 + 33 + 33 + num_invalidators * 32) + 8 as usize
+    return (8 + 1 + 1 + 8 + 1 + 32 + 32 + 8 + 1 + 1 + 8 + 1 + 32 + 33 + 33 + 33 + 33 + num_invalidators * 32) + 8 as usize
 }
 
 pub const MAX_INVALIDATORS: u8 = 5;
 pub const TOKEN_MANAGER_SEED: &str = "token-manager";
 #[account]
 pub struct TokenManager {
+    pub version: u8,
     pub bump: u8,
     pub count: u64,
     pub num_invalidators: u8,
@@ -52,6 +53,7 @@ pub struct TokenManager {
     pub amount: u64,
     pub kind: u8,
     pub state: u8,
+    pub state_changed_at: i64,
     pub invalidation_type: u8,
     pub recipient_token_account: Pubkey,
     pub receipt_mint: Option<Pubkey>,

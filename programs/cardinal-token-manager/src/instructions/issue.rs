@@ -51,6 +51,7 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
     token_manager.kind = ix.kind;
     token_manager.invalidation_type = ix.invalidation_type;
     token_manager.state = TokenManagerState::Issued as u8;
+    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
 
     // transfer token to token manager token account
     let cpi_accounts = Transfer {

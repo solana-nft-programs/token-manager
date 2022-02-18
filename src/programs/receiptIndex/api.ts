@@ -70,7 +70,7 @@ export const getTokenManagersForIssuerUnsafe = async (
   const programAccounts = await connection.getProgramAccounts(
     TOKEN_MANAGER_ADDRESS,
     {
-      filters: [{ memcmp: { offset: 18, bytes: issuerId.toBase58() } }],
+      filters: [{ memcmp: { offset: 19, bytes: issuerId.toBase58() } }],
     }
   );
 

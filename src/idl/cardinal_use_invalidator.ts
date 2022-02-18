@@ -28,10 +28,6 @@ export type CardinalUseInvalidator = {
       ];
       args: [
         {
-          name: "bump";
-          type: "u8";
-        },
-        {
           name: "maxUsages";
           type: {
             option: "u64";
@@ -224,10 +220,6 @@ export const IDL: CardinalUseInvalidator = {
         },
       ],
       args: [
-        {
-          name: "bump",
-          type: "u8",
-        },
         {
           name: "maxUsages",
           type: {

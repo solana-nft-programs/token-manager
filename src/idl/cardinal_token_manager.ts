@@ -33,10 +33,6 @@ export type CardinalTokenManager = {
       ];
       args: [
         {
-          name: "bump";
-          type: "u8";
-        },
-        {
           name: "mint";
           type: "publicKey";
         },
@@ -92,10 +88,6 @@ export type CardinalTokenManager = {
         }
       ];
       args: [
-        {
-          name: "bump";
-          type: "u8";
-        },
         {
           name: "mint";
           type: "publicKey";
@@ -217,10 +209,6 @@ export type CardinalTokenManager = {
       ];
       args: [
         {
-          name: "bump";
-          type: "u8";
-        },
-        {
           name: "target";
           type: "publicKey";
         }
@@ -251,10 +239,6 @@ export type CardinalTokenManager = {
         }
       ];
       args: [
-        {
-          name: "bump";
-          type: "u8";
-        },
         {
           name: "target";
           type: "publicKey";
@@ -446,12 +430,7 @@ export type CardinalTokenManager = {
           isSigner: false;
         }
       ];
-      args: [
-        {
-          name: "bump";
-          type: "u8";
-        }
-      ];
+      args: [];
     },
     {
       name: "closeMintManager";
@@ -788,6 +767,21 @@ export type CardinalTokenManager = {
       code: 316;
       name: "InvalidFreezeAuthority";
       msg: "Invalid freeze authority";
+    },
+    {
+      code: 317;
+      name: "InvalidProgramId";
+      msg: "Invalid program id";
+    },
+    {
+      code: 318;
+      name: "InvalidClaimReceipt";
+      msg: "Invalid claim receipt";
+    },
+    {
+      code: 319;
+      name: "PublicKeyMismatch";
+      msg: "Public key mismatch";
     }
   ];
 };
@@ -826,10 +820,6 @@ export const IDL: CardinalTokenManager = {
         },
       ],
       args: [
-        {
-          name: "bump",
-          type: "u8",
-        },
         {
           name: "mint",
           type: "publicKey",
@@ -886,10 +876,6 @@ export const IDL: CardinalTokenManager = {
         },
       ],
       args: [
-        {
-          name: "bump",
-          type: "u8",
-        },
         {
           name: "mint",
           type: "publicKey",
@@ -1011,10 +997,6 @@ export const IDL: CardinalTokenManager = {
       ],
       args: [
         {
-          name: "bump",
-          type: "u8",
-        },
-        {
           name: "target",
           type: "publicKey",
         },
@@ -1045,10 +1027,6 @@ export const IDL: CardinalTokenManager = {
         },
       ],
       args: [
-        {
-          name: "bump",
-          type: "u8",
-        },
         {
           name: "target",
           type: "publicKey",
@@ -1240,12 +1218,7 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
       ],
-      args: [
-        {
-          name: "bump",
-          type: "u8",
-        },
-      ],
+      args: [],
     },
     {
       name: "closeMintManager",
@@ -1582,6 +1555,21 @@ export const IDL: CardinalTokenManager = {
       code: 316,
       name: "InvalidFreezeAuthority",
       msg: "Invalid freeze authority",
+    },
+    {
+      code: 317,
+      name: "InvalidProgramId",
+      msg: "Invalid program id",
+    },
+    {
+      code: 318,
+      name: "InvalidClaimReceipt",
+      msg: "Invalid claim receipt",
+    },
+    {
+      code: 319,
+      name: "PublicKeyMismatch",
+      msg: "Public key mismatch",
     },
   ],
 };

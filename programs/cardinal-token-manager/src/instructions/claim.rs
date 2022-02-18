@@ -3,7 +3,6 @@ use {
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
     anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, FreezeAccount, Approve}},
     mpl_token_metadata::{instruction::freeze_delegated_account, utils::assert_derivation},
-    vipers::prelude::*,
 };
 
 #[derive(Accounts)]
@@ -87,7 +86,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let metadata_program = next_account_info(remaining_accs)?;
 
         // edition will be validated by metadata_program
-        assert_keys_eq!(metadata_program, mpl_token_metadata::id());
+        // assert_keys_eq!(metadata_program.key, mpl_token_metadata::id());
+        if metadata_program.key() != mpl_token_metadata::id() {
+            return Err(ErrorCode::InvalidProgramId.into());
+        }
 
         // set account delegate of recipient token account to token manager PDA
         let cpi_accounts = Approve {
@@ -128,7 +130,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             recipient_key.as_ref(),
         ];
         let (claim_receipt_address, _bump) = Pubkey::find_program_address(seed, ctx.program_id);
-        assert_keys_eq!(claim_receipt_address, claim_receipt_info.key());
+        if claim_receipt_address != claim_receipt_info.key() { return Err(ErrorCode::InvalidClaimReceipt.into()); }
+        // assert_keys_eq!(claim_receipt_address, claim_receipt_info.key());
         let claim_receipt = Account::<ClaimReceipt>::try_from(claim_receipt_info)?;
         claim_receipt.close(token_manager.to_account_info())?;
     }

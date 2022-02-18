@@ -36,4 +36,10 @@ pub enum ErrorCode {
     OutstandingTokens,
     #[msg("Invalid freeze authority")]
     InvalidFreezeAuthority,
+    #[msg("Invalid program id")]
+    InvalidProgramId,
+    #[msg("Invalid claim receipt")]
+    InvalidClaimReceipt,
+    #[msg("Public key mismatch")]
+    PublicKeyMismatch,
 }

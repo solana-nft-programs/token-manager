@@ -33,22 +33,18 @@ export const init = async (
     provider
   );
 
-  const [timeInvalidatorId, timeInvalidatorBump] =
+  const [timeInvalidatorId, _timeInvalidatorBump] =
     await findTimeInvalidatorAddress(tokenManagerId);
 
   return [
-    timeInvalidatorProgram.instruction.init(
-      timeInvalidatorBump,
-      new BN(expiration),
-      {
-        accounts: {
-          tokenManager: tokenManagerId,
-          timeInvalidator: timeInvalidatorId,
-          payer: wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
+    timeInvalidatorProgram.instruction.init(new BN(expiration), {
+      accounts: {
+        tokenManager: tokenManagerId,
+        timeInvalidator: timeInvalidatorId,
+        payer: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
     timeInvalidatorId,
   ];
 };

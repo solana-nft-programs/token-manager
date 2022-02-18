@@ -33,22 +33,20 @@ export const init = async (
     provider
   );
 
-  const [useInvalidatorId, useInvalidatorBump] =
+  const [useInvalidatorId, _useInvalidatorBump] =
     await findUseInvalidatorAddress(tokenManagerId);
 
   return [
-    useInvalidatorProgram.instruction.init(
-      useInvalidatorBump,
-      usages ? new BN(usages) : null,
-      {
-        accounts: {
-          tokenManager: tokenManagerId,
-          useInvalidator: useInvalidatorId,
-          payer: wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    useInvalidatorProgram.instruction.init(usages ? new BN(usages) : null, {
+      accounts: {
+        tokenManager: tokenManagerId,
+        useInvalidator: useInvalidatorId,
+        payer: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
     useInvalidatorId,
   ];
 };

@@ -11,7 +11,6 @@ import { Keypair } from "@solana/web3.js";
 import { findAta } from ".";
 import {
   claimApprover,
-  receiptIndex,
   timeInvalidator,
   tokenManager,
   useInvalidator,
@@ -32,7 +31,7 @@ export type IssueParameters = {
   visibility?: "private" | "public";
   kind?: TokenManagerKind;
   invalidationType?: InvalidationType;
-  index?: boolean;
+  receipt?: boolean;
 };
 
 /**
@@ -58,7 +57,7 @@ export const withIssueToken = async (
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
-    index = false,
+    receipt = false,
   }: IssueParameters
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   // init token manager
@@ -232,29 +231,28 @@ export const withIssueToken = async (
   //////////////////////////////
   //////////// index ///////////
   //////////////////////////////
-  if (index) {
-    const receiptCounterData = await tryGetAccount(() =>
-      receiptIndex.accounts.getReceiptCounter(connection, wallet.publicKey)
-    );
-
-    if (!receiptCounterData) {
-      const [receiptCounterInitIx] = await receiptIndex.instruction.init(
-        connection,
-        wallet,
-        wallet.publicKey
-      );
-      transaction.add(receiptCounterInitIx);
-    }
-
-    transaction.add(
-      await receiptIndex.instruction.add(
-        connection,
-        wallet,
-        wallet.publicKey,
-        tokenManagerId,
-        receiptCounterData?.parsed.count.add(new BN(1)) || new BN(0)
-      )
-    );
+  if (receipt) {
+    throw new Error("Index not implemented");
+    // const receiptCounterData = await tryGetAccount(() =>
+    //   receiptIndex.accounts.getReceiptCounter(connection, wallet.publicKey)
+    // );
+    // if (!receiptCounterData) {
+    //   const [receiptCounterInitIx] = await receiptIndex.instruction.init(
+    //     connection,
+    //     wallet,
+    //     wallet.publicKey
+    //   );
+    //   transaction.add(receiptCounterInitIx);
+    // }
+    // transaction.add(
+    //   await receiptIndex.instruction.add(
+    //     connection,
+    //     wallet,
+    //     wallet.publicKey,
+    //     tokenManagerId,
+    //     receiptCounterData?.parsed.count.add(new BN(1)) || new BN(0)
+    //   )
+    // );
   }
 
   return [transaction, tokenManagerId, otp];

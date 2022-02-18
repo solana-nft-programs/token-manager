@@ -28,10 +28,6 @@ export type CardinalTimeInvalidator = {
       ];
       args: [
         {
-          name: "bump";
-          type: "u8";
-        },
-        {
           name: "expiration";
           type: "i64";
         }
@@ -180,10 +176,6 @@ export const IDL: CardinalTimeInvalidator = {
         },
       ],
       args: [
-        {
-          name: "bump",
-          type: "u8",
-        },
         {
           name: "expiration",
           type: "i64",

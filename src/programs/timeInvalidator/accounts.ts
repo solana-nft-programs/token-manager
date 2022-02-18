@@ -1,4 +1,4 @@
-import { Coder, Program, Provider } from "@project-serum/anchor";
+import { BorshAccountsCoder, Program, Provider } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
@@ -74,11 +74,11 @@ export const getExpiredTimeInvalidators = async (
   );
 
   const expiredTimeInvalidators: AccountData<TimeInvalidatorData>[] = [];
-  const coder = new Coder(TIME_INVALIDATOR_IDL);
+  const coder = new BorshAccountsCoder(TIME_INVALIDATOR_IDL);
   programAccounts.forEach((account) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const timeInvalidatorData: TimeInvalidatorData = coder.accounts.decode(
+      const timeInvalidatorData: TimeInvalidatorData = coder.decode(
         "timeInvalidator",
         account.account.data
       );

@@ -38,7 +38,7 @@ pub struct PayCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<PayCtx>, claim_receipt_bump: u8) -> ProgramResult {
+pub fn handler(ctx: Context<PayCtx>) -> ProgramResult {
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),
         to: ctx.accounts.payment_token_account.to_account_info(),
@@ -61,6 +61,6 @@ pub fn handler(ctx: Context<PayCtx>, claim_receipt_bump: u8) -> ProgramResult {
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(claim_approver_signer);
-    cardinal_token_manager::cpi::create_claim_receipt(cpi_ctx, claim_receipt_bump, ctx.accounts.payer.key())?;
+    cardinal_token_manager::cpi::create_claim_receipt(cpi_ctx, ctx.accounts.payer.key())?;
     return Ok(())
 }

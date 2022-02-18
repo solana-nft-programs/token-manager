@@ -28,23 +28,19 @@ export const init = async (
     provider
   );
 
-  const [claimApproverId, claimApproverBump] = await findClaimApproverAddress(
+  const [claimApproverId, _claimApproverBump] = await findClaimApproverAddress(
     tokenManagerId
   );
 
   return [
-    claimApproverProgram.instruction.init(
-      claimApproverBump,
-      new BN(paymentAmount),
-      {
-        accounts: {
-          tokenManager: tokenManagerId,
-          claimApprover: claimApproverId,
-          payer: wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
+    claimApproverProgram.instruction.init(new BN(paymentAmount), {
+      accounts: {
+        tokenManager: tokenManagerId,
+        claimApprover: claimApproverId,
+        payer: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
     claimApproverId,
   ];
 };
@@ -64,13 +60,13 @@ export const pay = async (
     provider
   );
 
-  const [claimReceiptId, claimReceiptBump] = await findClaimReceiptId(
+  const [claimReceiptId, _claimReceiptBump] = await findClaimReceiptId(
     tokenManagerId,
     wallet.publicKey
   );
 
   const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
-  return claimApproverProgram.instruction.pay(claimReceiptBump, {
+  return claimApproverProgram.instruction.pay({
     accounts: {
       tokenManager: tokenManagerId,
       paymentTokenAccount: paymentTokenAccountId,

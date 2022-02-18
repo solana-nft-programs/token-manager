@@ -28,10 +28,6 @@ export type CardinalPaidClaimApprover = {
       ];
       args: [
         {
-          name: "bump";
-          type: "u8";
-        },
-        {
           name: "paymentAmount";
           type: "u64";
         }
@@ -86,12 +82,7 @@ export type CardinalPaidClaimApprover = {
           isSigner: false;
         }
       ];
-      args: [
-        {
-          name: "claimReceiptBump";
-          type: "u8";
-        }
-      ];
+      args: [];
     }
   ];
   accounts: [
@@ -161,10 +152,6 @@ export const IDL: CardinalPaidClaimApprover = {
       ],
       args: [
         {
-          name: "bump",
-          type: "u8",
-        },
-        {
           name: "paymentAmount",
           type: "u64",
         },
@@ -219,12 +206,7 @@ export const IDL: CardinalPaidClaimApprover = {
           isSigner: false,
         },
       ],
-      args: [
-        {
-          name: "claimReceiptBump",
-          type: "u8",
-        },
-      ],
+      args: [],
     },
   ],
   accounts: [

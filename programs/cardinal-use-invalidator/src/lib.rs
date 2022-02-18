@@ -10,8 +10,8 @@ declare_id!("useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp");
 pub mod cardinal_use_invalidator {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, bump: u8, max_usages: Option<u64>) -> ProgramResult {
-        init::handler(ctx, bump, max_usages)
+    pub fn init(ctx: Context<InitCtx>, max_usages: Option<u64>) -> ProgramResult {
+        init::handler(ctx, max_usages)
     }
 
     pub fn increment_usages(ctx: Context<IncrementUsagesCtx>, num_usages: u64) -> ProgramResult {

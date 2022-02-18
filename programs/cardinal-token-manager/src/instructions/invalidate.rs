@@ -3,7 +3,6 @@ use {
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
     anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, ThawAccount, CloseAccount}},
     mpl_token_metadata::{instruction::thaw_delegated_account, utils::{assert_derivation,assert_initialized}},
-    vipers::assert_keys_eq
 };
 
 #[derive(Accounts)]
@@ -42,13 +41,19 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.payment_mint != None {
         let payment_token_account_info = next_account_info(remaining_accs)?;
         let payment_token_account = Account::<TokenAccount>::try_from(payment_token_account_info)?;
-        assert_keys_eq!(payment_token_account.mint, token_manager.payment_mint.unwrap());
-        assert_keys_eq!(payment_token_account.owner, token_manager.key());
+
+        if payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(ErrorCode::PublicKeyMismatch.into()); }
+        if payment_token_account.owner != token_manager.key() { return Err(ErrorCode::PublicKeyMismatch.into()); }
+        // assert_keys_eq!(payment_token_account.mint, token_manager.payment_mint.unwrap());
+        // assert_keys_eq!(payment_token_account.owner, token_manager.key());
 
         let issuer_payment_token_account_info = next_account_info(remaining_accs)?;
         let issuer_payment_token_account = Account::<TokenAccount>::try_from(issuer_payment_token_account_info)?;
-        assert_keys_eq!(issuer_payment_token_account.mint, token_manager.payment_mint.unwrap());
-        assert_keys_eq!(issuer_payment_token_account.owner, token_manager.issuer);
+
+        if issuer_payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(ErrorCode::PublicKeyMismatch.into()); }
+        if issuer_payment_token_account.owner != token_manager.issuer { return Err(ErrorCode::PublicKeyMismatch.into()); }
+        // assert_keys_eq!(issuer_payment_token_account.mint, token_manager.payment_mint.unwrap());
+        // assert_keys_eq!(issuer_payment_token_account.owner, token_manager.issuer);
 
         let cpi_accounts = Transfer {
             from: payment_token_account_info.clone(),
@@ -96,7 +101,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let edition_info = next_account_info(remaining_accs)?;
             let metadata_program = next_account_info(remaining_accs)?;
             // edition will be validated by metadata_program
-            assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
+            if metadata_program.key() != mpl_token_metadata::id() { return Err(ErrorCode::PublicKeyMismatch.into()); }
+            // assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
             
             invoke_signed(
                 &thaw_delegated_account(
@@ -132,7 +138,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.invalidation_type == InvalidationType::Return as u8 {
         let issuer_token_account_info = next_account_info(remaining_accs)?;
         let issuer_token_account: spl_token::state::Account = assert_initialized(issuer_token_account_info)?;
-        assert_keys_eq!(issuer_token_account.owner, token_manager.issuer);
+        if issuer_token_account.owner != token_manager.issuer { return Err(ErrorCode::PublicKeyMismatch.into()); }
+        // assert_keys_eq!(issuer_token_account.owner, token_manager.issuer);
 
         // transfer back to issuer
         let cpi_accounts = Transfer {

@@ -10,8 +10,8 @@ declare_id!("tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE");
 pub mod cardinal_time_invalidator {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, bump: u8, expiration: i64) -> ProgramResult {
-        init::handler(ctx, bump, expiration)
+    pub fn init(ctx: Context<InitCtx>, expiration: i64) -> ProgramResult {
+        init::handler(ctx, expiration)
     }
 
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {

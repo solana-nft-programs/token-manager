@@ -54,19 +54,15 @@ We soon plan on releasing a React library to make it easy to integrate Cardinal 
 
 ## Installation
 
-- Javascript
+#### Javascript create rental example
 
 ```
 npm i @cardinal/token-manager
-
-import { Connection } from "@solana/web3.js";
 ```
 
-_Check the SDK for other types and utility functions._
-
-#### Create stream
-
 ```javascript
+import { Connection } from "@solana/web3.js";
+
 const issueTokenParameters = {
   paymentAmount: new BN(10),
   paymentMint: new PublicKey('...'),

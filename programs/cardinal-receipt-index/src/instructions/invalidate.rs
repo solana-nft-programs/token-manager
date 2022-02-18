@@ -11,10 +11,11 @@ pub struct InvalidateCtx<'info> {
     #[account(
         mut,
         seeds = [RECEIPT_MARKER_SEED.as_bytes(), token_manager.key().as_ref()], bump = receipt_marker.bump,
+        close = invalidator,
     )]
     receipt_marker: Box<Account<'info, ReceiptMarker>>,
 
-    user: Signer<'info>,
+    invalidator: Signer<'info>,
 
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
     // cpi accounts
@@ -26,9 +27,6 @@ pub struct InvalidateCtx<'info> {
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
-    let receipt_marker = &mut ctx.accounts.receipt_marker;
-    receipt_marker.receipt_manager = None;
-
     let token_manager_key = ctx.accounts.token_manager.key();
     let receipt_marker_seeds = &[RECEIPT_MARKER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.receipt_marker.bump]];
     let receipt_marker_signer = &[&receipt_marker_seeds[..]];

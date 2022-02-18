@@ -3,94 +3,11 @@ export type CardinalReceiptIndex = {
   name: "cardinal_receipt_index";
   instructions: [
     {
-      name: "init";
-      accounts: [
-        {
-          name: "receiptCounter";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "payer";
-          isMut: false;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "issuer";
-          type: "publicKey";
-        },
-        {
-          name: "bump";
-          type: "u8";
-        }
-      ];
-    },
-    {
-      name: "add";
-      accounts: [
-        {
-          name: "tokenManager";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "receiptCounter";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "receiptSlot";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "receiptMarker";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "payer";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "issuer";
-          type: "publicKey";
-        },
-        {
-          name: "receiptSlotBump";
-          type: "u8";
-        },
-        {
-          name: "receiptMarkerBump";
-          type: "u8";
-        },
-        {
-          name: "slotNum";
-          type: "u64";
-        }
-      ];
-    },
-    {
       name: "claim";
       accounts: [
         {
           name: "tokenManager";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -135,7 +52,11 @@ export type CardinalReceiptIndex = {
         },
         {
           name: "payer";
+<<<<<<< HEAD
           isMut: true;
+=======
+          isMut: false;
+>>>>>>> 358d27c (Saving progress)
           isSigner: true;
         },
         {
@@ -161,10 +82,6 @@ export type CardinalReceiptIndex = {
       ];
       args: [
         {
-          name: "receiptTokenManagerBump";
-          type: "u8";
-        },
-        {
           name: "name";
           type: "string";
         }
@@ -184,7 +101,7 @@ export type CardinalReceiptIndex = {
           isSigner: false;
         },
         {
-          name: "user";
+          name: "invalidator";
           isMut: false;
           isSigner: true;
         },
@@ -220,63 +137,9 @@ export type CardinalReceiptIndex = {
         }
       ];
       args: [];
-    },
-    {
-      name: "remove";
-      accounts: [
-        {
-          name: "tokenManager";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "receiptSlot";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "receiptMarker";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "closer";
-          isMut: true;
-          isSigner: true;
-        }
-      ];
-      args: [];
     }
   ];
   accounts: [
-    {
-      name: "receiptCounter";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "bump";
-            type: "u8";
-          },
-          {
-            name: "count";
-            type: "u64";
-          }
-        ];
-      };
-    },
-    {
-      name: "receiptSlot";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "tokenManager";
-            type: "publicKey";
-          }
-        ];
-      };
-    },
     {
       name: "receiptMarker";
       type: {
@@ -288,9 +151,7 @@ export type CardinalReceiptIndex = {
           },
           {
             name: "receiptManager";
-            type: {
-              option: "publicKey";
-            };
+            type: "publicKey";
           }
         ];
       };
@@ -325,94 +186,11 @@ export const IDL: CardinalReceiptIndex = {
   name: "cardinal_receipt_index",
   instructions: [
     {
-      name: "init",
-      accounts: [
-        {
-          name: "receiptCounter",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "payer",
-          isMut: false,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "issuer",
-          type: "publicKey",
-        },
-        {
-          name: "bump",
-          type: "u8",
-        },
-      ],
-    },
-    {
-      name: "add",
-      accounts: [
-        {
-          name: "tokenManager",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "receiptCounter",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "receiptSlot",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "receiptMarker",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "payer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "issuer",
-          type: "publicKey",
-        },
-        {
-          name: "receiptSlotBump",
-          type: "u8",
-        },
-        {
-          name: "receiptMarkerBump",
-          type: "u8",
-        },
-        {
-          name: "slotNum",
-          type: "u64",
-        },
-      ],
-    },
-    {
       name: "claim",
       accounts: [
         {
           name: "tokenManager",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -457,7 +235,11 @@ export const IDL: CardinalReceiptIndex = {
         },
         {
           name: "payer",
+<<<<<<< HEAD
           isMut: true,
+=======
+          isMut: false,
+>>>>>>> 358d27c (Saving progress)
           isSigner: true,
         },
         {
@@ -483,10 +265,6 @@ export const IDL: CardinalReceiptIndex = {
       ],
       args: [
         {
-          name: "receiptTokenManagerBump",
-          type: "u8",
-        },
-        {
           name: "name",
           type: "string",
         },
@@ -506,7 +284,7 @@ export const IDL: CardinalReceiptIndex = {
           isSigner: false,
         },
         {
-          name: "user",
+          name: "invalidator",
           isMut: false,
           isSigner: true,
         },
@@ -543,62 +321,8 @@ export const IDL: CardinalReceiptIndex = {
       ],
       args: [],
     },
-    {
-      name: "remove",
-      accounts: [
-        {
-          name: "tokenManager",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "receiptSlot",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "receiptMarker",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "closer",
-          isMut: true,
-          isSigner: true,
-        },
-      ],
-      args: [],
-    },
   ],
   accounts: [
-    {
-      name: "receiptCounter",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "bump",
-            type: "u8",
-          },
-          {
-            name: "count",
-            type: "u64",
-          },
-        ],
-      },
-    },
-    {
-      name: "receiptSlot",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "tokenManager",
-            type: "publicKey",
-          },
-        ],
-      },
-    },
     {
       name: "receiptMarker",
       type: {
@@ -610,9 +334,7 @@ export const IDL: CardinalReceiptIndex = {
           },
           {
             name: "receiptManager",
-            type: {
-              option: "publicKey",
-            },
+            type: "publicKey",
           },
         ],
       },

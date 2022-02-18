@@ -34,18 +34,14 @@ export const initMintCounter = async (
     TOKEN_MANAGER_ADDRESS,
     provider
   );
-  const [mintCounterId, mintCounterBump] = await findMintCounterId(mint);
-  return tokenManagerProgram.instruction.initMintCounter(
-    mintCounterBump,
-    mint,
-    {
-      accounts: {
-        mintCounter: mintCounterId,
-        payer: wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    }
-  );
+  const [mintCounterId, _mintCounterBump] = await findMintCounterId(mint);
+  return tokenManagerProgram.instruction.initMintCounter(mint, {
+    accounts: {
+      mintCounter: mintCounterId,
+      payer: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+    },
+  });
 };
 
 export const init = async (
@@ -62,25 +58,20 @@ export const init = async (
     provider
   );
 
-  const [tokenManagerId, tokenManagerBump] = await findTokenManagerAddress(
+  const [tokenManagerId, _tokenManagerBump] = await findTokenManagerAddress(
     mint
   );
 
   return [
-    tokenManagerProgram.instruction.init(
-      tokenManagerBump,
-      mint,
-      numInvalidator,
-      {
-        accounts: {
-          tokenManager: tokenManagerId,
-          issuer: wallet.publicKey,
-          payer: wallet.publicKey,
-          issuerTokenAccount: issuerTokenAccountId,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
+    tokenManagerProgram.instruction.init(mint, numInvalidator, {
+      accounts: {
+        tokenManager: tokenManagerId,
+        issuer: wallet.publicKey,
+        payer: wallet.publicKey,
+        issuerTokenAccount: issuerTokenAccountId,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
     tokenManagerId,
   ];
 };
@@ -287,25 +278,21 @@ export const createClaimReceipt = async (
     provider
   );
 
-  const [claimReceiptId, claimReceiptBump] = await findClaimReceiptId(
+  const [claimReceiptId, _claimReceiptBump] = await findClaimReceiptId(
     tokenManagerId,
     wallet.publicKey
   );
 
   return [
-    tokenManagerProgram.instruction.createClaimReceipt(
-      claimReceiptBump,
-      wallet.publicKey,
-      {
-        accounts: {
-          tokenManager: tokenManagerId,
-          claimApprover: claimApproverId,
-          claimReceipt: claimReceiptId,
-          payer: wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
+    tokenManagerProgram.instruction.createClaimReceipt(wallet.publicKey, {
+      accounts: {
+        tokenManager: tokenManagerId,
+        claimApprover: claimApproverId,
+        claimReceipt: claimReceiptId,
+        payer: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
     claimReceiptId,
   ];
 };
@@ -322,10 +309,10 @@ export const creatMintManager = async (
     provider
   );
 
-  const [mintManagerId, mintManagerBump] = await findMintManagerId(mintId);
+  const [mintManagerId, _mintManagerBump] = await findMintManagerId(mintId);
 
   return [
-    tokenManagerProgram.instruction.createMintManager(mintManagerBump, {
+    tokenManagerProgram.instruction.createMintManager({
       accounts: {
         mintManager: mintManagerId,
         mint: mintId,

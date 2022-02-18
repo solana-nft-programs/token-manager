@@ -5,12 +5,12 @@ use {
 };
 
 #[derive(Accounts)]
-#[instruction(bump: u8, mint: Pubkey, num_invalidators: u8)]
+#[instruction(mint: Pubkey, num_invalidators: u8)]
 pub struct InitCtx<'info> {
     #[account(
         init,
         payer = payer,
-        seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref()], bump = bump,
+        seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref()], bump,
         space = token_manager_size(num_invalidators as usize),
     )]
     token_manager: Box<Account<'info, TokenManager>>,
@@ -29,14 +29,14 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, bump: u8, mint: Pubkey,  num_invalidators: u8) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> ProgramResult {
     if num_invalidators > MAX_INVALIDATORS {
         return Err(ErrorCode::InvalidIssuerTokenAccount.into());
     }
 
     let token_manager = &mut ctx.accounts.token_manager;
     
-    token_manager.bump = bump;
+    token_manager.bump = *ctx.bumps.get("token_manager").unwrap();
     token_manager.num_invalidators = num_invalidators;
     token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.mint = mint;

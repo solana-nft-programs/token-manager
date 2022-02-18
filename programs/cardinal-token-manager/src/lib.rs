@@ -10,16 +10,16 @@ declare_id!("mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM");
 pub mod cardinal_token_manager {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, bump: u8,mint: Pubkey, num_invalidators: u8) -> ProgramResult {
-        init::handler(ctx, bump, mint, num_invalidators)
+    pub fn init(ctx: Context<InitCtx>, mint: Pubkey, num_invalidators: u8) -> ProgramResult {
+        init::handler(ctx, mint, num_invalidators)
     }
 
     pub fn uninit(ctx: Context<UninitCtx>) -> ProgramResult {
         uninit::handler(ctx)
     }
 
-    pub fn init_mint_counter(ctx: Context<InitMintCounterCtx>, bump: u8, mint: Pubkey) -> ProgramResult {
-        init_mint_counter::handler(ctx, bump, mint)
+    pub fn init_mint_counter(ctx: Context<InitMintCounterCtx>, mint: Pubkey) -> ProgramResult {
+        init_mint_counter::handler(ctx, mint)
     }
 
     pub fn set_payment_mint(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> ProgramResult {
@@ -38,12 +38,12 @@ pub mod cardinal_token_manager {
         add_invalidator::handler(ctx, invalidator)
     }
 
-    pub fn create_claim_receipt(ctx: Context<CreateClaimReceiptCtx>, bump: u8, target: Pubkey) -> ProgramResult {
-        create_claim_receipt::handler(ctx, bump, target)
+    pub fn create_claim_receipt(ctx: Context<CreateClaimReceiptCtx>, target: Pubkey) -> ProgramResult {
+        create_claim_receipt::handler(ctx, target)
     }
 
-    pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, bump: u8, target: Pubkey) -> ProgramResult {
-        create_transfer_receipt::handler(ctx, bump, target)
+    pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> ProgramResult {
+        create_transfer_receipt::handler(ctx, target)
     }
 
     pub fn issue(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
@@ -62,8 +62,8 @@ pub mod cardinal_token_manager {
         invalidate::handler(ctx)
     }
 
-    pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>, bump: u8) -> ProgramResult {
-        create_mint_manager::handler(ctx, bump)
+    pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>) -> ProgramResult {
+        create_mint_manager::handler(ctx)
     }
 
     pub fn close_mint_manager(ctx: Context<CloseMintManagerCtx>) -> ProgramResult {

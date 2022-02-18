@@ -8,9 +8,15 @@ use {
 
 #[derive(Accounts)]
 pub struct ClaimCtx<'info> {
+    #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut)]
+    #[account(
+        init,
+        payer = payer,
+        space = RECEIPT_MARKER_SIZE,
+        seeds = [RECEIPT_MARKER_SEED.as_bytes(), token_manager.key().as_ref()], bump,
+    )]
     receipt_marker: Box<Account<'info, ReceiptMarker>>,
 
     #[account(mut)]
@@ -36,12 +42,17 @@ pub struct ClaimCtx<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<ClaimCtx>, receipt_token_manager_bump: u8, name: String) -> ProgramResult {
+pub fn handler(ctx: Context<ClaimCtx>, name: String) -> ProgramResult {
     let token_manager_key = ctx.accounts.token_manager.key();
-    let receipt_marker_seeds = &[RECEIPT_MARKER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.receipt_marker.bump]];
+    let receipt_marker_bump = *ctx.bumps.get("receipt_marker").unwrap();
+    let receipt_marker_seeds = &[RECEIPT_MARKER_SEED.as_bytes(), token_manager_key.as_ref(), &[receipt_marker_bump]];
     let receipt_marker_signer = &[&receipt_marker_seeds[..]];
 
-    // initialize certificate mint
+    let receipt_marker = &mut ctx.accounts.receipt_marker;
+    receipt_marker.bump = receipt_marker_bump;
+    receipt_marker.receipt_manager = ctx.accounts.receipt_token_manager.key();
+
+    // initialize receipt mint
     let cpi_accounts = token::InitializeMint {
         mint: ctx.accounts.receipt_mint.to_account_info(),
         rent: ctx.accounts.rent.to_account_info(),
@@ -126,7 +137,7 @@ pub fn handler(ctx: Context<ClaimCtx>, receipt_token_manager_bump: u8, name: Str
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let init_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(receipt_marker_signer);
-    cardinal_token_manager::cpi::init(init_ctx, receipt_token_manager_bump, ctx.accounts.receipt_mint.key(), 1)?;
+    cardinal_token_manager::cpi::init(init_ctx, ctx.accounts.receipt_mint.key(), 1)?;
 
     let cpi_accounts = cardinal_token_manager::cpi::accounts::AddInvalidatorCtx {
         token_manager: ctx.accounts.receipt_token_manager.to_account_info(),

@@ -87,9 +87,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
         // edition will be validated by metadata_program
         // assert_keys_eq!(metadata_program.key, mpl_token_metadata::id());
-        if metadata_program.key() != mpl_token_metadata::id() {
-            return Err(ErrorCode::InvalidProgramId.into());
-        }
+        if metadata_program.key() != mpl_token_metadata::id() { return Err(ErrorCode::PublicKeyMismatch.into()); }
 
         // set account delegate of recipient token account to token manager PDA
         let cpi_accounts = Approve {

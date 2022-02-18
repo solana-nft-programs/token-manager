@@ -103,7 +103,7 @@ import { Connection } from "@solana/web3.js";
 // Releases on use as a memento
 const issueTokenParameters = {
   usages: 1, // 1 use
-  mint: new PublicKey("..."), // ticket image
+  mint: new PublicKey("..."), // ticket mint
   issuerTokenAccountId: new PublicKey("..."),
   visibility: "private", // private so you can send this out via email
   kind: TokenManagerKind.Edition, // used for metaplex master / editions,
@@ -124,6 +124,12 @@ try {
   // handle exception
 }
 ```
+
+#### Image generator
+
+Cardinal also provides an image generator API. You provide your NFT metadata and image, or a URL to where its hosted, and use the url `https://api.cardinal.so/metadata/{mintId}` when minting the token and the API will dynamically update the image and metadata based on usages or expiration associated with it so that its always up to date forever and wherever it is viewed.
+
+Reach out to team@cardinal.so if you are interested in using this service.
 
 ## License
 

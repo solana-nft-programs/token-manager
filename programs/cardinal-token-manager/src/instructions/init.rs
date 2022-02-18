@@ -9,7 +9,7 @@ use {
 pub struct InitCtx<'info> {
     #[account(
         init,
-        payer = issuer,
+        payer = payer,
         seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref()], bump = bump,
         space = token_manager_size(num_invalidators as usize),
     )]
@@ -17,6 +17,8 @@ pub struct InitCtx<'info> {
 
     #[account(mut)]
     issuer: Signer<'info>,
+    #[account(mut)]
+    payer: Signer<'info>,
     #[account(mut, constraint =
         issuer_token_account.owner == issuer.key()
         && issuer_token_account.mint == mint

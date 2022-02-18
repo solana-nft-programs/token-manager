@@ -1,6 +1,6 @@
 {
   "name": "@cardinal/token-manager",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Cardinal token manager SDK",
   "keywords": [
     "solana",
@@ -45,7 +45,7 @@
     "@types/node": "^17.0.10",
     "@types/prettier": "^2.4.3",
     "bn.js": "^5.2.0",
-    "chai": "^4.3.4",
+    "chai": "=4.3.4",
     "eslint": "^8.7.0",
     "eslint-import-resolver-node": "^0.3.6",
     "eslint-plugin-import": "^2.25.4",

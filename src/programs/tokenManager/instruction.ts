@@ -75,6 +75,7 @@ export const init = async (
         accounts: {
           tokenManager: tokenManagerId,
           issuer: wallet.publicKey,
+          payer: wallet.publicKey,
           issuerTokenAccount: issuerTokenAccountId,
           systemProgram: SystemProgram.programId,
         },

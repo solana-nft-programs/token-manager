@@ -57,11 +57,7 @@ export type CardinalReceiptIndex = {
         },
         {
           name: "payer";
-<<<<<<< HEAD
           isMut: true;
-=======
-          isMut: false;
->>>>>>> 358d27c (Saving progress)
           isSigner: true;
         },
         {
@@ -245,11 +241,7 @@ export const IDL: CardinalReceiptIndex = {
         },
         {
           name: "payer",
-<<<<<<< HEAD
           isMut: true,
-=======
-          isMut: false,
->>>>>>> 358d27c (Saving progress)
           isSigner: true,
         },
         {

@@ -1,4 +1,7 @@
-name: Publish Docs
+name: Publish docs
+
+on:
+  workflow_dispatch: {}
 
 env:
   CARGO_TERM_COLOR: always

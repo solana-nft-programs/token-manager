@@ -37,7 +37,7 @@ export const getEditionLinks = async (
   metadataUrl: string,
   numLinks: number,
   cluster = "devnet",
-  baseUrl = "https://beta.cardinal.so"
+  baseUrl = "https://main.cardinal.so"
 ) => {
   const allLinks = [];
   const connection = connectionFor(cluster);
@@ -220,7 +220,7 @@ export const getMasterEditionLinks = async (
   metadataUrl: string,
   numLinks: number,
   cluster = "devnet",
-  baseUrl = "https://beta.cardinal.so"
+  baseUrl = "https://main.cardinal.so"
 ) => {
   const allLinks = [];
   const connection = connectionFor(cluster);
@@ -355,7 +355,7 @@ export const getMasterEditionLinks = async (
 
 getMasterEditionLinks(
   "https://2dhgxu5jouo2so3r7xnc6j2pbawfdzqmuyrmuql2ttep4p23zsga.arweave.net/0M5r06l1Hak7cf3aLydPCCxR5gymIspBepzI_j9bzIw/",
-  1,
+  4,
   "mainnet"
 )
   .then((links) => {

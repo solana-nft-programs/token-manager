@@ -54,6 +54,57 @@ We soon plan on releasing a React library to make it easy to integrate Cardinal 
 
 ## Example usage
 
+#### All rental parameters
+
+```js
+export type IssueParameters = {
+  // Optional amount to pay to claim the token
+  paymentAmount?: number,
+
+  // Optional mint to accept payment up front
+  paymentMint?: PublicKey,
+
+  // Optional expiration when the token manager is automatically invalidated
+  expiration?: number,
+
+  // Optional number of usages before invalidation
+  usages?: number,
+
+  // Mint of the tokens this token manager will manager
+  mint: PublicKey,
+
+  // Amoun of tokens to put into token manager
+  amount?: BN,
+
+  // Token account where the token is currently held
+  issuerTokenAccountId: PublicKey,
+
+  // Whether anyone can claim this or only specified person
+  visibility?: "private" | "public",
+
+  // What kind of token manager this is
+  // /// Token a managed rental and will use freeze authority to manage the token
+  // Managed = 1,
+  // /// Token is unmanaged and can be traded freely until expiration
+  // Unmanaged = 2,
+  // /// Token is a metaplex edition and so it uses metaplex program to freeze
+  // Edition = 3,
+  kind?: TokenManagerKind,
+
+  // What happens to the token upon invalidation
+  // /// Upon invalidation it will be returned to the issuer
+  // Return = 1,
+  // /// Upon invalidation it will remain marked as invalid
+  // Invalidate = 2,
+  // /// Upon invalidation the token manager will be deleted and thus the tokens are released
+  // Release = 3,
+  invalidationType?: InvalidationType,
+
+  // Whether the issuer wants to claim a receipt NFT from their rental
+  receipt?: boolean,
+};
+```
+
 #### Javascript create fixed price 24h rental
 
 ```

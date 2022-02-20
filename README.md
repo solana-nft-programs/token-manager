@@ -105,7 +105,11 @@ export type IssueParameters = {
 };
 ```
 
-#### Javascript create fixed price 24h rental
+---
+
+<p>&nbsp;</p>
+
+### Javascript create fixed price 24h rental
 
 ```
 npm i @cardinal/token-manager
@@ -141,7 +145,11 @@ try {
 }
 ```
 
-#### Javascript create single use ticket example
+---
+
+<p>&nbsp;</p>
+
+### Javascript create single use ticket example
 
 ```
 npm i @cardinal/token-manager
@@ -176,11 +184,19 @@ try {
 }
 ```
 
-#### Image generator
+---
+
+<p>&nbsp;</p>
+
+## Image generator
 
 Cardinal also provides an image generator API. You provide your NFT metadata and image, or a URL to where its hosted, and use the url `https://api.cardinal.so/metadata/{mintId}` when minting the token and the API will dynamically update the image and metadata based on usages or expiration associated with it so that its always up to date forever and wherever it is viewed.
 
 Reach out to team@cardinal.so if you are interested in using this service.
+
+---
+
+<p>&nbsp;</p>
 
 ## License
 

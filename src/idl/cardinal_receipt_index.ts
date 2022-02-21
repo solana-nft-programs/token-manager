@@ -31,23 +31,23 @@ export type CardinalReceiptIndex = {
           isSigner: false;
         },
         {
+          name: "receiptMint";
+          isMut: true;
+          isSigner: true;
+        },
+        {
           name: "receiptMintMetadata";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "receiptMint";
-          isMut: false;
+          name: "receiptMintMasterEdition";
+          isMut: true;
           isSigner: false;
         },
         {
           name: "recipientTokenAccount";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "cardinalTokenManager";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -61,7 +61,17 @@ export type CardinalReceiptIndex = {
           isSigner: true;
         },
         {
+          name: "cardinalTokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "associatedToken";
           isMut: false;
           isSigner: false;
         },
@@ -85,6 +95,14 @@ export type CardinalReceiptIndex = {
         {
           name: "name";
           type: "string";
+        },
+        {
+          name: "kind";
+          type: "u8";
+        },
+        {
+          name: "invalidationType";
+          type: "u8";
         }
       ];
     },
@@ -178,6 +196,16 @@ export type CardinalReceiptIndex = {
       code: 303;
       name: "MustInvalidateReceipt";
       msg: "Must invalidate receipt";
+    },
+    {
+      code: 304;
+      name: "InvalidTokenManagerKind";
+      msg: "Token manager kind is not valid";
+    },
+    {
+      code: 305;
+      name: "InvalidInvalidationType";
+      msg: "Invalid invalidation type";
     }
   ];
 };
@@ -215,23 +243,23 @@ export const IDL: CardinalReceiptIndex = {
           isSigner: false,
         },
         {
+          name: "receiptMint",
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: "receiptMintMetadata",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "receiptMint",
-          isMut: false,
+          name: "receiptMintMasterEdition",
+          isMut: true,
           isSigner: false,
         },
         {
           name: "recipientTokenAccount",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "cardinalTokenManager",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -245,7 +273,17 @@ export const IDL: CardinalReceiptIndex = {
           isSigner: true,
         },
         {
+          name: "cardinalTokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "associatedToken",
           isMut: false,
           isSigner: false,
         },
@@ -269,6 +307,14 @@ export const IDL: CardinalReceiptIndex = {
         {
           name: "name",
           type: "string",
+        },
+        {
+          name: "kind",
+          type: "u8",
+        },
+        {
+          name: "invalidationType",
+          type: "u8",
         },
       ],
     },
@@ -362,6 +408,16 @@ export const IDL: CardinalReceiptIndex = {
       code: 303,
       name: "MustInvalidateReceipt",
       msg: "Must invalidate receipt",
+    },
+    {
+      code: 304,
+      name: "InvalidTokenManagerKind",
+      msg: "Token manager kind is not valid",
+    },
+    {
+      code: 305,
+      name: "InvalidInvalidationType",
+      msg: "Invalid invalidation type",
     },
   ],
 };

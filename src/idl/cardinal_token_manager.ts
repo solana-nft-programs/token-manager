@@ -246,6 +246,72 @@ export type CardinalTokenManager = {
       ];
     },
     {
+      name: "claimReceiptMint";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "issuer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "receiptMint";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "receiptMintMetadata";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipientTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "associatedToken";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenMetadataProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "name";
+          type: "string";
+        }
+      ];
+    },
+    {
       name: "issue";
       accounts: [
         {
@@ -770,18 +836,18 @@ export type CardinalTokenManager = {
     },
     {
       code: 317;
-      name: "InvalidProgramId";
-      msg: "Invalid program id";
-    },
-    {
-      code: 318;
       name: "InvalidClaimReceipt";
       msg: "Invalid claim receipt";
     },
     {
-      code: 319;
+      code: 318;
       name: "PublicKeyMismatch";
       msg: "Public key mismatch";
+    },
+    {
+      code: 319;
+      name: "InvalidReceiptMintAccount";
+      msg: "Invalid receipt mint account";
     }
   ];
 };
@@ -1030,6 +1096,72 @@ export const IDL: CardinalTokenManager = {
         {
           name: "target",
           type: "publicKey",
+        },
+      ],
+    },
+    {
+      name: "claimReceiptMint",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "issuer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "receiptMint",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "receiptMintMetadata",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "associatedToken",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenMetadataProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "name",
+          type: "string",
         },
       ],
     },
@@ -1558,18 +1690,18 @@ export const IDL: CardinalTokenManager = {
     },
     {
       code: 317,
-      name: "InvalidProgramId",
-      msg: "Invalid program id",
-    },
-    {
-      code: 318,
       name: "InvalidClaimReceipt",
       msg: "Invalid claim receipt",
     },
     {
-      code: 319,
+      code: 318,
       name: "PublicKeyMismatch",
       msg: "Public key mismatch",
+    },
+    {
+      code: 319,
+      name: "InvalidReceiptMintAccount",
+      msg: "Invalid receipt mint account",
     },
   ],
 };

@@ -1,14 +1,22 @@
+import {
+  Metadata,
+  MetadataProgram,
+} from "@metaplex-foundation/mpl-token-metadata";
 import type { BN } from "@project-serum/anchor";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import type {
   Connection,
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { SystemProgram } from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
+import { findAta } from "../..";
 import type {
   InvalidationType,
   TOKEN_MANAGER_PROGRAM,
@@ -326,7 +334,7 @@ export const creatMintManager = async (
   ];
 };
 
-export const closMintManager = async (
+export const closeMintManager = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey
@@ -352,4 +360,40 @@ export const closMintManager = async (
     }),
     mintManagerId,
   ];
+};
+
+export const claimReceiptMint = async (
+  connection: Connection,
+  wallet: Wallet,
+  name: string,
+  tokenManagerId: PublicKey,
+  receiptMintId: PublicKey
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [receiptMintMetadataId, recipientTokenAccountId] = await Promise.all([
+    Metadata.getPDA(receiptMintId),
+    findAta(receiptMintId, wallet.publicKey),
+  ]);
+
+  return tokenManagerProgram.instruction.claimReceiptMint(name, {
+    accounts: {
+      tokenManager: tokenManagerId,
+      receiptMint: receiptMintId,
+      receiptMintMetadata: receiptMintMetadataId,
+      recipientTokenAccount: recipientTokenAccountId,
+      issuer: wallet.publicKey,
+      payer: wallet.publicKey,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      tokenMetadataProgram: MetadataProgram.PUBKEY,
+      rent: SYSVAR_RENT_PUBKEY,
+    },
+  });
 };

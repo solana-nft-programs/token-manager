@@ -2,7 +2,7 @@ anchor_version = "0.21.0"
 solana_version = "1.8.5"
 
 [scripts]
-test = "yarn mocha tests/*.spec.ts"
+test = "yarn mocha tests/receipts.spec.ts"
 
 [provider]
 cluster = "localnet"

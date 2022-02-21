@@ -46,6 +46,10 @@ pub mod cardinal_token_manager {
         create_transfer_receipt::handler(ctx, target)
     }
 
+    pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMint>, name: String) -> ProgramResult {
+        claim_receipt_mint::handler(ctx, name)
+    }
+
     pub fn issue(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
         issue::handler(ctx, ix)
     }

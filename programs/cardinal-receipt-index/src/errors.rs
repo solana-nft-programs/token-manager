@@ -9,5 +9,9 @@ pub enum ErrorCode {
     #[msg("Invalid token manager")]
     InvalidTokenManager,
     #[msg("Must invalidate receipt")]
-    MustInvalidateReceipt
+    MustInvalidateReceipt,
+    #[msg("Token manager kind is not valid")]
+    InvalidTokenManagerKind,
+    #[msg("Invalid invalidation type")]
+    InvalidInvalidationType,
 }

@@ -97,7 +97,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token::thaw_account(cpi_context)?;
             
         } else if token_manager.kind == TokenManagerKind::Edition as u8 {
-            let remaining_accs = &mut ctx.remaining_accounts.iter();
             let edition_info = next_account_info(remaining_accs)?;
             let metadata_program = next_account_info(remaining_accs)?;
             // edition will be validated by metadata_program

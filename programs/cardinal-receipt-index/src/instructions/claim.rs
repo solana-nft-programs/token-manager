@@ -45,7 +45,7 @@ pub struct ClaimCtx<'info> {
 
 pub fn handler(ctx: Context<ClaimCtx>, name: String) -> ProgramResult {
     let token_manager_key = ctx.accounts.token_manager.key();
-    let receipt_marker_bump = *ctx.bumps.get("receipt-marker").unwrap();
+    let receipt_marker_bump = *ctx.bumps.get("receipt_marker").unwrap();
     let receipt_marker_seeds = &[RECEIPT_MARKER_SEED.as_bytes(), token_manager_key.as_ref(), &[receipt_marker_bump]];
     let receipt_marker_signer = &[&receipt_marker_seeds[..]];
 

@@ -1,7 +1,14 @@
-import { Program, Provider } from "@project-serum/anchor";
+import {
+  BN,
+  BorshAccountsCoder,
+  Program,
+  Provider,
+  utils,
+} from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
+import type { TokenManagerState } from ".";
 import type {
   MintCounterData,
   MintManagerData,
@@ -66,6 +73,51 @@ export const getTokenManagers = async (
     parsed: tm,
     pubkey: tokenManagerIds[i],
   }));
+};
+
+export const getAllIssuedTokenManagersByState = async (
+  connection: Connection,
+  state: TokenManagerState
+): Promise<AccountData<TokenManagerData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    TOKEN_MANAGER_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: {
+            offset: 92,
+            bytes: utils.bytes.bs58.encode(
+              new BN(1).toArrayLike(Buffer, "le", 1)
+            ),
+          },
+        },
+      ],
+    }
+  );
+
+  const tokenManagerDatas: AccountData<TokenManagerData>[] = [];
+  const coder = new BorshAccountsCoder(TOKEN_MANAGER_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const tokenManagerData: TokenManagerData = coder.decode(
+        "tokenManager",
+        account.account.data
+      );
+      if (tokenManagerData) {
+        tokenManagerDatas.push({
+          ...account,
+          parsed: tokenManagerData,
+        });
+      }
+    } catch (e) {
+      console.log(`Failed to decode token manager data`);
+    }
+  });
+
+  return tokenManagerDatas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
 };
 
 // TODO fix types

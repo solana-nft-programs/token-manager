@@ -65,7 +65,8 @@ export const withIssueToken = async (
     connection,
     wallet,
     mint,
-    issuerTokenAccountId
+    issuerTokenAccountId,
+    usages && expiration ? 2 : usages || expiration ? 1 : 0
   );
   transaction.add(tokenManagerIx);
 

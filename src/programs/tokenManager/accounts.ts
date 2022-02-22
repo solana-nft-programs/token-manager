@@ -87,7 +87,7 @@ export const getAllIssuedTokenManagersByState = async (
           memcmp: {
             offset: 92,
             bytes: utils.bytes.bs58.encode(
-              new BN(1).toArrayLike(Buffer, "le", 1)
+              new BN(state).toArrayLike(Buffer, "le", 1)
             ),
           },
         },

@@ -180,7 +180,12 @@ describe("Multiple rentals", () => {
       provider.connection,
       TokenManagerState.Issued
     );
-    expect(issuedTokens.length).to.eq(2);
+    expect(
+      issuedTokens.filter(
+        (i) =>
+          i.parsed.issuer.toString() === provider.wallet.publicKey.toString()
+      ).length
+    ).to.eq(2);
   });
 
   it("Claim rental", async () => {

@@ -13,6 +13,7 @@ import { expect } from "chai";
 import { findAta, rentals } from "../src";
 import { receiptIndex, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
+import { getAllIssuedTokenManagersByState } from "../src/programs/tokenManager/accounts";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -173,6 +174,18 @@ describe("Multiple rentals", () => {
     expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
       tokenManagerId.toString()
     );
+
+    // check number of issued tokens
+    const issuedTokens = await getAllIssuedTokenManagersByState(
+      provider.connection,
+      TokenManagerState.Issued
+    );
+    expect(
+      issuedTokens.filter(
+        (i) =>
+          i.parsed.issuer.toString() === provider.wallet.publicKey.toString()
+      ).length
+    ).to.eq(2);
   });
 
   it("Claim rental", async () => {

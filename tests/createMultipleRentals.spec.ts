@@ -11,7 +11,7 @@ import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { findAta, rentals } from "../src";
-import { receiptIndex, tokenManager } from "../src/programs";
+import { tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { getAllIssuedTokenManagersByState } from "../src/programs/tokenManager/accounts";
 import { createMint } from "./utils";
@@ -104,7 +104,7 @@ describe("Multiple rentals", () => {
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
 
     // check receipt-index
-    const tokenManagers = await receiptIndex.getTokenManagersForIssuer(
+    const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
       provider.wallet.publicKey
     );
@@ -167,7 +167,7 @@ describe("Multiple rentals", () => {
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
 
     // check receipt-index
-    const tokenManagers = await receiptIndex.getTokenManagersForIssuer(
+    const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
       provider.wallet.publicKey
     );

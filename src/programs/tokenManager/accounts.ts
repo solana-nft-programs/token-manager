@@ -17,7 +17,6 @@ import type {
 } from "./constants";
 import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
 
-// TODO fix types
 export const getTokenManager = async (
   connection: Connection,
   tokenManagerId: PublicKey
@@ -35,8 +34,6 @@ export const getTokenManager = async (
     tokenManagerId
   );
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     parsed,
     pubkey: tokenManagerId,
   };
@@ -138,14 +135,11 @@ export const getMintManager = async (
     mintManagerId
   );
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     parsed,
     pubkey: mintManagerId,
   };
 };
 
-// TODO fix types
 export const getMintCounter = async (
   connection: Connection,
   mintCounterId: PublicKey
@@ -163,9 +157,42 @@ export const getMintCounter = async (
     mintCounterId
   );
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     parsed,
     pubkey: mintCounterId,
   };
+};
+
+export const getTokenManagersForIssuer = async (
+  connection: Connection,
+  issuerId: PublicKey
+): Promise<AccountData<TokenManagerData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    TOKEN_MANAGER_ADDRESS,
+    {
+      filters: [{ memcmp: { offset: 19, bytes: issuerId.toBase58() } }],
+    }
+  );
+
+  const tokenManagerDatas: AccountData<TokenManagerData>[] = [];
+  const coder = new BorshAccountsCoder(TOKEN_MANAGER_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const tokenManagerData: TokenManagerData = coder.decode(
+        "tokenManager",
+        account.account.data
+      );
+      if (tokenManagerData) {
+        tokenManagerDatas.push({
+          ...account,
+          parsed: tokenManagerData,
+        });
+      }
+    } catch (e) {
+      console.log(`Failed to decode token manager data`);
+    }
+  });
+
+  return tokenManagerDatas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
 };

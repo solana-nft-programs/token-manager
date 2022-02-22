@@ -35,7 +35,6 @@ export const claim = async (
   connection: Connection,
   wallet: Wallet,
   name: string,
-  mintId: PublicKey,
   tokenManagerId: PublicKey,
   recipientTokenAccountId: PublicKey,
   receiptMintId: PublicKey

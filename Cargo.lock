@@ -711,6 +711,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
+name = "identity-gateway-verifier"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "cardinal-token-manager",
+ "solana-gateway",
+]
+
+[[package]]
 name = "instant"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1271,6 +1281,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 
 [[package]]
+name = "sol-did"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2546d424d6898908c205d99d3af07ad42e2e8aec8f0d459235dc0bd4e9866fe"
+dependencies = [
+ "borsh",
+ "num-derive",
+ "num-traits",
+ "solana-program",
+ "thiserror",
+]
+
+[[package]]
 name = "solana-frozen-abi"
 version = "1.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1300,6 +1323,20 @@ dependencies = [
  "quote",
  "rustc_version",
  "syn",
+]
+
+[[package]]
+name = "solana-gateway"
+version = "0.1.1"
+source = "git+https://github.com/identity-com/on-chain-identity-gateway.git?rev=ebfec7f4b0b517bf33ae5db0b8c1bd3437a810a2#ebfec7f4b0b517bf33ae5db0b8c1bd3437a810a2"
+dependencies = [
+ "bitflags",
+ "borsh",
+ "num-derive",
+ "num-traits",
+ "sol-did",
+ "solana-program",
+ "thiserror",
 ]
 
 [[package]]

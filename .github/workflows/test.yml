@@ -57,11 +57,11 @@ jobs:
       - name: Install Yarn dependencies
         run: yarn install
       - name: Test
-        run: nix shell .#ci --command	solana-test-validator --url https://api.devnet.solana.com --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --reset
-      - run: sleep 4
-      - run: solana airdrop 1000 twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX --url http://localhost:8899
-      - run: anchor deploy --provider.cluster localnet
-      - run: anchor test --skip-local-validator --skip-build --skip-deploy --provider.cluster localnet
+        run: nix shell .#ci --command	solana-test-validator --url https://api.devnet.solana.com --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --reset & echo $$! > validator.PID
+      - run: nix shell .#ci --command sleep 6
+      - run: nix shell .#ci --command solana airdrop 1000 twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX --url http://localhost:8899
+      - run: nix shell .#ci --command anchor deploy --provider.cluster localnet
+      - run: nix shell .#ci --command anchor test --skip-local-validator --skip-build --skip-deploy --provider.cluster localnet
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/composite@v1

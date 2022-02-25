@@ -7,6 +7,12 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  checks: write
+  contents: read
+  issues: read
+  pull-requests: write
+
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: 1.8.5
@@ -71,6 +77,12 @@ jobs:
       #     name: Local Tests
       #     path: tests/*.json
       #     reporter: mocha-json
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: tests/out.xml
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action/composite@v1
         if: always()

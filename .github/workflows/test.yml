@@ -50,7 +50,7 @@ jobs:
 
       - name: Setup
         run: mkdir -p target/deploy
-      - run: cp -r tests/test-keypairs target/deploy
+      - run: cp -r tests/test-keypairs/* target/deploy
       - run: find . -type f -name "*" -exec sed -i'' -e "s/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM/$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)/g" {} +
       - run: find . -type f -name "*" -exec sed -i'' -e "s/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)/g" {} +
       - run: find . -type f -name "*" -exec sed -i'' -e "s/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/g" {} +
@@ -61,14 +61,18 @@ jobs:
       - run: sleep 6
 
       - run: cat Anchor.toml
-      - run: solana airdrop 1000 twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX --url http://localhost:8899
+      - run: solana airdrop 1000 $(solana-keygen pubkey tests/test-key.json) --url http://localhost:8899
       - run: anchor test --skip-local-validator --provider.cluster localnet
-      - run: ls tests
 
-      - uses: dorny/test-reporter@v1
+      # - uses: dorny/test-reporter@v1
+      #   if: always()
+      #   with:
+      #     artifact: test-results
+      #     name: Local Tests
+      #     path: tests/*.json
+      #     reporter: mocha-json
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action/composite@v1
         if: always()
         with:
-          artifact: test-results
-          name: Local Tests
-          path: tests/out.json
-          reporter: mocha-json
+          files: tests/out.xml

@@ -4,6 +4,10 @@
 # VSCode history
 .history
 
+# Ignore makefile output
+validator.PID
+tests/out.xml
+
 # Ignore the build directory for Rust/Anchor
 target
 # Anchor verified builds directory

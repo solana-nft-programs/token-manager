@@ -21,7 +21,7 @@ runs:
           ./target/
         key: cargo-${{ runner.os }}-anchor-${{ hashFiles('**/Cargo.lock') }}
     - name: Install anchor
-      if: ${{ !env.ACT }} && steps.cache-anchor.cache-hit != 'true'
+      if: ${{ !env.ACT }} && steps.cache-anchor.outputs.cache-hit != 'true'
       run: cargo install --git ${{inputs.anchor_git}} --tag v0.21.0 anchor-cli --locked --force
       shell: bash
     - uses: actions/upload-artifact@v2

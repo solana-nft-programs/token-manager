@@ -51,7 +51,7 @@ jobs:
         run: yarn install
 
       - name: Test
-        run: make
+        run: nix shell .#ci --command make
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/composite@v1

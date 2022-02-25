@@ -2,7 +2,7 @@ anchor_version = "0.21.0"
 solana_version = "1.8.5"
 
 [scripts]
-test = "yarn mocha tests/*.spec.ts --reporter mocha-junit-reporter --reporter-options mochaFile=tests/out.xml"
+test = "yarn mocha tests/*.spec.ts --reporter json > tests/out.json"
 
 [provider]
 cluster = "localnet"

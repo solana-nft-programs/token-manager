@@ -2,10 +2,10 @@ name: Test
 
 on:
   workflow_dispatch: {}
-  # push:
-  #   branches: [main]
-  # pull_request:
-  #   branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -35,7 +35,6 @@ jobs:
         with:
           anchor_git: ${{ env.ANCHOR_GIT }}
 
-      # Restore Cache from previous build/test
       - uses: actions/cache@v2
         with:
           path: |
@@ -67,8 +66,10 @@ jobs:
       - run: solana airdrop 1000 twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX --url http://localhost:8899
       - run: anchor test --skip-local-validator --provider.cluster localnet
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+      - uses: dorny/test-reporter@v1
         if: always()
         with:
-          files: tests/out.xml
+          artifact: test-results
+          name: Local Tests
+          path: "tests/out.json"
+          reporter: mocha-json

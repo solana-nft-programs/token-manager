@@ -54,16 +54,17 @@ jobs:
       - run: cp -r tests/test-keypairs target/deploy
 
       - run: cat tests/test-keypairs/cardinal_token_manager-keypair.json
+      - run: solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json
       - run: export TOKEN_MANAGER_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)
       - run: export CLAIM_APPROVER_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)
       - run: export TIME_INVALIDATOR_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)
       - run: export USE_INVALIDATOR_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)
       - run: echo $TOKEN_MANAGER_KEYPAIR
 
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM/$TOKEN_MANAGER_KEYPAIR/g" {} +
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/$CLAIM_APPROVER_KEYPAIR/g" {} +
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/$TIME_INVALIDATOR_KEYPAIR/g" {} +
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/$USE_INVALIDATOR_KEYPAIR/g" {} +
+      - run: find . -type f -name "*" -exec sed -i'' -e "s/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM/$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)/g" {} +
+      - run: find . -type f -name "*" -exec sed -i'' -e "s/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)/g" {} +
+      - run: find . -type f -name "*" -exec sed -i'' -e "s/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/g" {} +
+      - run: find . -type f -name "*" -exec sed -i'' -e "s/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)/g" {} +
 
       - run: cat README.md
       - run: cat Anchor.toml

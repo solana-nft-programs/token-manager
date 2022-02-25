@@ -9,6 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  SOLANA_VERSION: 1.8.5
   RUST_TOOLCHAIN: nightly-2021-12-10
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 

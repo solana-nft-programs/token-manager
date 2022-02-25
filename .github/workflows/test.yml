@@ -47,35 +47,28 @@ jobs:
 
       - name: Install Yarn dependencies
         run: yarn install
-      - name: Test
-        run: solana-test-validator --url https://api.devnet.solana.com --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --reset & echo $$! > validator.PID
-      - run: sleep 6
-      - run: mkdir -p target/deploy
+
+      - name: Setup
+        run: mkdir -p target/deploy
       - run: cp -r tests/test-keypairs target/deploy
-
-      - run: cat tests/test-keypairs/cardinal_token_manager-keypair.json
-      - run: solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json
-      - run: export TOKEN_MANAGER_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)
-      - run: export CLAIM_APPROVER_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)
-      - run: export TIME_INVALIDATOR_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)
-      - run: export USE_INVALIDATOR_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)
-      - run: echo $TOKEN_MANAGER_KEYPAIR
-
       - run: find . -type f -name "*" -exec sed -i'' -e "s/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM/$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)/g" {} +
       - run: find . -type f -name "*" -exec sed -i'' -e "s/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)/g" {} +
       - run: find . -type f -name "*" -exec sed -i'' -e "s/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/g" {} +
       - run: find . -type f -name "*" -exec sed -i'' -e "s/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)/g" {} +
 
-      - run: cat README.md
-      - run: cat Anchor.toml
+      - name: Test
+        run: solana-test-validator --url https://api.devnet.solana.com --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --reset & echo $$! > validator.PID
+      - run: sleep 6
 
+      - run: cat Anchor.toml
       - run: solana airdrop 1000 twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX --url http://localhost:8899
       - run: anchor test --skip-local-validator --provider.cluster localnet
+      - run: ls tests
 
       - uses: dorny/test-reporter@v1
         if: always()
         with:
           artifact: test-results
           name: Local Tests
-          path: "tests/out.json"
+          path: tests/out.json
           reporter: mocha-json

@@ -9,7 +9,6 @@ runs:
   using: "composite"
   steps:
     - name: Cache Solana Install
-      if: ${{ !env.ACT }}
       id: cache-solana-install
       uses: actions/cache@v2
       with:
@@ -17,7 +16,7 @@ runs:
         key: ${{ runner.os }}-Solana-v${{ inputs.solana_version  }}
 
     - name: Install Solana
-      if: ${{ !env.ACT }} && steps.cache-solana-install.outputs.cache-hit != 'true'
+      # if: steps.cache-solana-install.outputs.cache-hit != 'true'
       run: |
         sh -c "$(curl -sSfL https://release.solana.com/v${{ inputs.solana_version }}/install)"
       shell: bash

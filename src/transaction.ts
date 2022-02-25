@@ -31,7 +31,9 @@ export type IssueParameters = {
   visibility?: "private" | "public";
   kind?: TokenManagerKind;
   invalidationType?: InvalidationType;
-  receipt?: boolean;
+  receiptOptions?: {
+    receiptMintKeypair: Keypair;
+  };
 };
 
 /**
@@ -57,7 +59,7 @@ export const withIssueToken = async (
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
-    receipt = false,
+    receiptOptions = undefined,
   }: IssueParameters
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   // init token manager
@@ -232,17 +234,17 @@ export const withIssueToken = async (
   //////////////////////////////
   //////////// index ///////////
   //////////////////////////////
-  if (receipt) {
-    throw new Error("Receipts not implemented");
-    // transaction.add(
-    //   await receiptIndex.instruction.add(
-    //     connection,
-    //     wallet,
-    //     wallet.publicKey,
-    //     tokenManagerId,
-    //     receiptCounterData?.parsed.count.add(new BN(1)) || new BN(0)
-    //   )
-    // );
+  if (receiptOptions) {
+    const { receiptMintKeypair } = receiptOptions;
+    transaction.add(
+      await tokenManager.instruction.claimReceiptMint(
+        connection,
+        wallet,
+        "receipt",
+        tokenManagerId,
+        receiptMintKeypair.publicKey
+      )
+    );
   }
 
   return [transaction, tokenManagerId, otp];
@@ -439,7 +441,8 @@ export const withInvalidate = async (
     wallet,
     tokenManagerData?.parsed.issuer,
     mintId,
-    tokenManagerData?.parsed.invalidationType
+    tokenManagerData?.parsed.invalidationType,
+    tokenManagerData?.parsed.receiptMint
   );
 
   let issuerPaymentMintTokenAccountId;
@@ -566,7 +569,8 @@ export const withUse = async (
       wallet,
       tokenManagerData?.parsed.issuer,
       mintId,
-      tokenManagerData?.parsed.invalidationType
+      tokenManagerData?.parsed.invalidationType,
+      tokenManagerData?.parsed.receiptMint
     );
 
     let issuerPaymentMintTokenAccountId;

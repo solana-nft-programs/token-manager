@@ -100,7 +100,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let edition_info = next_account_info(remaining_accs)?;
             let metadata_program = next_account_info(remaining_accs)?;
             // edition will be validated by metadata_program
-            if metadata_program.key() != mpl_token_metadata::id() { return Err(ErrorCode::PublicKeyMismatch.into()); }
+            if metadata_program.key() != mpl_token_metadata::id() { return Err(ErrorCode::InvalidMetadataProgramId.into()); }
             // assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
             
             invoke_signed(
@@ -135,15 +135,21 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     token_manager.state = TokenManagerState::Invalidated as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     if token_manager.invalidation_type == InvalidationType::Return as u8 {
-        let issuer_token_account_info = next_account_info(remaining_accs)?;
-        let issuer_token_account: spl_token::state::Account = assert_initialized(issuer_token_account_info)?;
-        if issuer_token_account.owner != token_manager.issuer { return Err(ErrorCode::PublicKeyMismatch.into()); }
-        // assert_keys_eq!(issuer_token_account.owner, token_manager.issuer);
+        let return_token_account_info = next_account_info(remaining_accs)?;
+        let return_token_account: spl_token::state::Account = assert_initialized(return_token_account_info)?;
+        if token_manager.receipt_mint == None {
+            if return_token_account.owner != token_manager.issuer { return Err(ErrorCode::InvalidIssuerTokenAccount.into()); }
+        } else {
+            let receipt_token_account_info = next_account_info(remaining_accs)?;
+            let receipt_token_account: spl_token::state::Account = assert_initialized(receipt_token_account_info)?;
+            if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) { return Err(ErrorCode::InvalidReceiptMintAccount.into())}
+            if receipt_token_account.owner != return_token_account.owner { return Err(ErrorCode::InvalidReceiptMintOwner.into()); }
+        }
 
         // transfer back to issuer
         let cpi_accounts = Transfer {
             from: ctx.accounts.recipient_token_account.to_account_info(),
-            to: issuer_token_account_info.to_account_info(),
+            to: return_token_account_info.to_account_info(),
             authority: token_manager.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();

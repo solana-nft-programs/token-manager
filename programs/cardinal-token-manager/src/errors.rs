@@ -40,4 +40,10 @@ pub enum ErrorCode {
     InvalidClaimReceipt,
     #[msg("Public key mismatch")]
     PublicKeyMismatch,
+    #[msg("Invalid metadata program id")]
+    InvalidMetadataProgramId,
+    #[msg("Invalid receipt mint account")]
+    InvalidReceiptMintAccount,
+    #[msg("Invalid receipt mint owner")]
+    InvalidReceiptMintOwner
 }

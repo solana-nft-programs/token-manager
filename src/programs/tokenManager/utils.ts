@@ -14,6 +14,7 @@ import type {
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 
 import { withFindOrInitAssociatedTokenAccount } from "../..";
 import { InvalidationType, TokenManagerKind } from ".";
@@ -88,23 +89,63 @@ export const withRemainingAccountsForReturn = async (
   wallet: Wallet,
   issuerId: PublicKey,
   mintId: PublicKey,
-  invalidationType?: InvalidationType
+  invalidationType?: InvalidationType,
+  receiptMint?: PublicKey | null
 ): Promise<AccountMeta[]> => {
   if (invalidationType === InvalidationType.Return) {
-    const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      mintId,
-      issuerId,
-      wallet.publicKey
-    );
-    return [
-      {
-        pubkey: issuerTokenAccountId,
-        isSigner: false,
-        isWritable: true,
-      },
-    ];
+    if (receiptMint) {
+      const receiptMintLargestAccount =
+        await connection.getTokenLargestAccounts(receiptMint);
+
+      // get holder of receipt mint
+      const receiptTokenAccountId = receiptMintLargestAccount.value[0]?.address;
+      if (!receiptTokenAccountId) throw new Error("No token accounts found");
+      const receiptMintToken = new Token(
+        connection,
+        receiptMint,
+        TOKEN_PROGRAM_ID,
+        Keypair.generate()
+      );
+      const receiptTokenAccount = await receiptMintToken.getAccountInfo(
+        receiptTokenAccountId
+      );
+
+      // get ATA for this mint of receipt mint holder
+      const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        mintId,
+        receiptTokenAccount.owner,
+        wallet.publicKey
+      );
+      return [
+        {
+          pubkey: returnTokenAccountId,
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: receiptTokenAccountId,
+          isSigner: false,
+          isWritable: true,
+        },
+      ];
+    } else {
+      const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        mintId,
+        issuerId,
+        wallet.publicKey
+      );
+      return [
+        {
+          pubkey: issuerTokenAccountId,
+          isSigner: false,
+          isWritable: true,
+        },
+      ];
+    }
   } else {
     return [];
   }

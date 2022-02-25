@@ -1,15 +1,28 @@
+import {
+  MasterEdition,
+  Metadata,
+  MetadataProgram,
+} from "@metaplex-foundation/mpl-token-metadata";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import type {
   Connection,
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import { findAta } from "../..";
-import type { TokenManagerKind } from "../tokenManager";
-import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
+import {
+  InvalidationType,
+  TOKEN_MANAGER_ADDRESS,
+  TokenManagerKind,
+} from "../tokenManager";
+import { findTokenManagerAddress } from "../tokenManager/pda";
 import {
   getRemainingAccountsForKind,
   getRemainingAccountsForPayment,
@@ -17,6 +30,67 @@ import {
 import type { RECEIPT_INDEX_PROGRAM } from "./constants";
 import { RECEIPT_INDEX_ADDRESS, RECEIPT_INDEX_IDL } from "./constants";
 import { findReceiptMarkerAddress } from "./pda";
+
+export const claim = async (
+  connection: Connection,
+  wallet: Wallet,
+  name: string,
+  tokenManagerId: PublicKey,
+  recipientTokenAccountId: PublicKey,
+  receiptMintId: PublicKey
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const receiptIndexProgram = new Program<RECEIPT_INDEX_PROGRAM>(
+    RECEIPT_INDEX_IDL,
+    RECEIPT_INDEX_ADDRESS,
+    provider
+  );
+
+  const [
+    [receiptMarkerId],
+    [receiptTokenManagerId],
+    receiptMintMetadataId,
+    receiptMintMasterEditionId,
+  ] = await Promise.all([
+    findReceiptMarkerAddress(tokenManagerId),
+    findTokenManagerAddress(receiptMintId),
+    Metadata.getPDA(receiptMintId),
+    MasterEdition.getPDA(receiptMintId),
+  ]);
+
+  const [receiptMarkerTokenAccountId, receiptTokenManagerTokenAccountId] =
+    await Promise.all([
+      findAta(receiptMintId, receiptMarkerId, true),
+      findAta(receiptMintId, receiptTokenManagerId, true),
+    ]);
+
+  return receiptIndexProgram.instruction.claim(
+    name,
+    TokenManagerKind.Edition,
+    InvalidationType.Return,
+    {
+      accounts: {
+        tokenManager: tokenManagerId,
+        receiptMarker: receiptMarkerId,
+        receiptMarkerTokenAccount: receiptMarkerTokenAccountId,
+        receiptTokenManager: receiptTokenManagerId,
+        receiptTokenManagerTokenAccount: receiptTokenManagerTokenAccountId,
+        receiptMint: receiptMintId,
+        receiptMintMetadata: receiptMintMetadataId,
+        receiptMintMasterEdition: receiptMintMasterEditionId,
+        recipientTokenAccount: recipientTokenAccountId,
+        issuer: wallet.publicKey,
+        payer: wallet.publicKey,
+        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        tokenMetadataProgram: MetadataProgram.PUBKEY,
+        rent: SYSVAR_RENT_PUBKEY,
+      },
+    }
+  );
+};
 
 export const invalidate = async (
   connection: Connection,
@@ -29,7 +103,7 @@ export const invalidate = async (
   tokenManagerPaymentMint?: PublicKey | null
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
-  const rentalCounterProgram = new Program<RECEIPT_INDEX_PROGRAM>(
+  const receiptIndexProgram = new Program<RECEIPT_INDEX_PROGRAM>(
     RECEIPT_INDEX_IDL,
     RECEIPT_INDEX_ADDRESS,
     provider
@@ -58,7 +132,7 @@ export const invalidate = async (
     getRemainingAccountsForKind(mintId, tokenManagerKind),
   ]);
 
-  return rentalCounterProgram.instruction.invalidate({
+  return receiptIndexProgram.instruction.invalidate({
     accounts: {
       tokenManager: tokenManagerId,
       receiptMarker: receiptMarkerId,

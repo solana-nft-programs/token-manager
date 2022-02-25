@@ -10,6 +10,7 @@ runs:
   steps:
     - uses: actions/cache@v2
       name: Cache Cargo registry + index
+      if: ${{ !env.ACT }}
       id: cache-anchor
       with:
         path: |
@@ -19,7 +20,9 @@ runs:
           ~/.cargo/git/db/
           ./target/
         key: cargo-${{ runner.os }}-anchor-${{ hashFiles('**/Cargo.lock') }}
-    - run: cargo install --git ${{inputs.anchor_git}} --tag v0.21.0 anchor-cli --locked --force
+    - name: Install anchor
+      if: ${{ !env.ACT }} && steps.cache-anchor.cache-hit != 'true'
+      run: cargo install --git ${{inputs.anchor_git}} --tag v0.21.0 anchor-cli --locked --force
       shell: bash
     - uses: actions/upload-artifact@v2
       with:

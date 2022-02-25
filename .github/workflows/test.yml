@@ -35,6 +35,17 @@ jobs:
         with:
           anchor_git: ${{ env.ANCHOR_GIT }}
 
+      # Restore Cache from previous build/test
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ./rust/target
+          key: ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{ env.RUSTC_HASH }}
+
       - name: Install Yarn dependencies
         run: yarn install
       - name: Test

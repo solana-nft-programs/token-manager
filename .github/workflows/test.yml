@@ -53,6 +53,7 @@ jobs:
       - run: mkdir -p target/deploy
       - run: cp -r tests/test-keypairs target/deploy
 
+      - run: cat tests/test-keypairs/cardinal_token_manager-keypair.json
       - run: export TOKEN_MANAGER_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)
       - run: export CLAIM_APPROVER_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)
       - run: export TIME_INVALIDATOR_KEYPAIR=$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)

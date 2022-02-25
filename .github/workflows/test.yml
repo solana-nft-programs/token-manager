@@ -1,6 +1,7 @@
 name: Test
 
 on:
+  workflow_dispatch: {}
   push:
     branches: [main]
   pull_request:
@@ -49,7 +50,6 @@ jobs:
 
       - name: Install Yarn dependencies
         run: yarn install
-
       - name: Test
         run: nix shell .#ci --command make
 

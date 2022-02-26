@@ -28,10 +28,30 @@ export type CardinalTimeInvalidator = {
       ];
       args: [
         {
-          name: "expiration";
+          name: "duration";
           type: "i64";
+        },
+        {
+          name: "startOnInit";
+          type: "bool";
         }
       ];
+    },
+    {
+      name: "setExpiration";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
     },
     {
       name: "invalidate";
@@ -113,11 +133,21 @@ export type CardinalTimeInvalidator = {
           },
           {
             name: "expiration";
-            type: "i64";
+            type: {
+              option: "i64";
+            };
           },
           {
             name: "tokenManager";
             type: "publicKey";
+          },
+          {
+            name: "duration";
+            type: "i64";
+          },
+          {
+            name: "startOnInit";
+            type: "bool";
           }
         ];
       };
@@ -143,6 +173,11 @@ export type CardinalTimeInvalidator = {
       code: 303;
       name: "InvalidExpiration";
       msg: "Expiration has not passed yet";
+    },
+    {
+      code: 304;
+      name: "InvalidTimeInvalidator";
+      msg: "Invalid time invalidator";
     }
   ];
 };
@@ -177,10 +212,30 @@ export const IDL: CardinalTimeInvalidator = {
       ],
       args: [
         {
-          name: "expiration",
+          name: "duration",
           type: "i64",
         },
+        {
+          name: "startOnInit",
+          type: "bool",
+        },
       ],
+    },
+    {
+      name: "setExpiration",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
     },
     {
       name: "invalidate",
@@ -262,11 +317,21 @@ export const IDL: CardinalTimeInvalidator = {
           },
           {
             name: "expiration",
-            type: "i64",
+            type: {
+              option: "i64",
+            },
           },
           {
             name: "tokenManager",
             type: "publicKey",
+          },
+          {
+            name: "duration",
+            type: "i64",
+          },
+          {
+            name: "startOnInit",
+            type: "bool",
           },
         ],
       },
@@ -292,6 +357,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 303,
       name: "InvalidExpiration",
       msg: "Expiration has not passed yet",
+    },
+    {
+      code: 304,
+      name: "InvalidTimeInvalidator",
+      msg: "Invalid time invalidator",
     },
   ],
 };

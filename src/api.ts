@@ -44,12 +44,15 @@ export const claimToken = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  otpKeypair?: Keypair | null
+  additionalOptions?: {
+    otpKeypair?: Keypair | null;
+    timeInvalidatorId?: PublicKey;
+  }
 ): Promise<Transaction> =>
   withClaimToken(
     new Transaction(),
     connection,
     wallet,
     tokenManagerId,
-    otpKeypair
+    additionalOptions
   );

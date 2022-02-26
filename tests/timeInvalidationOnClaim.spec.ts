@@ -1,10 +1,3 @@
-import {
-  CreateMasterEditionV3,
-  CreateMetadataV2,
-  DataV2,
-  MasterEdition,
-  Metadata,
-} from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
@@ -17,23 +10,17 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals } from "../src";
-import { tokenManager } from "../src/programs";
-import {
-  TokenManagerKind,
-  TokenManagerState,
-} from "../src/programs/tokenManager";
+import { findAta, invalidate, rentals, tryGetAccount } from "../src";
+import { timeInvalidator, tokenManager } from "../src/programs";
+import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Master editions", () => {
-  const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
-  const RENTAL_PAYMENT_AMONT = 10;
+describe("Time invalidation on claim", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
-  let recipientPaymentTokenAccountId: PublicKey;
+  const duration = 1;
   let issuerTokenAccountId: PublicKey;
-  let paymentMint: Token;
   let rentalMint: Token;
 
   before(async () => {
@@ -50,68 +37,14 @@ describe("Master editions", () => {
     );
     await provider.connection.confirmTransaction(airdropRecipient);
 
-    // create payment mint
-    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
-      provider.connection,
-      tokenCreator,
-      recipient.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT
-    );
-
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
       tokenCreator,
       provider.wallet.publicKey,
       1,
-      tokenCreator.publicKey
+      provider.wallet.publicKey
     );
-
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
-    const metadataTx = new CreateMetadataV2(
-      { feePayer: tokenCreator.publicKey },
-      {
-        metadata: metadataId,
-        metadataData: new DataV2({
-          name: "test",
-          symbol: "TST",
-          uri: "http://test/",
-          sellerFeeBasisPoints: 10,
-          creators: null,
-          collection: null,
-          uses: null,
-        }),
-        updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
-        mintAuthority: tokenCreator.publicKey,
-      }
-    );
-
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
-    const masterEditionTx = new CreateMasterEditionV3(
-      { feePayer: tokenCreator.publicKey },
-      {
-        edition: masterEditionId,
-        metadata: metadataId,
-        updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
-        mintAuthority: tokenCreator.publicKey,
-        maxSupply: new BN(1),
-      }
-    );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(tokenCreator),
-        opts: provider.opts,
-      }),
-      [...metadataTx.instructions, ...masterEditionTx.instructions]
-    );
-
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
   });
 
   it("Create rental", async () => {
@@ -120,13 +53,12 @@ describe("Master editions", () => {
       provider.connection,
       provider.wallet,
       {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
-        expiration: { duration: Date.now() / 1000 + 1, startOnInit: true },
+        expiration: {
+          duration,
+        },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
-        kind: TokenManagerKind.Edition,
       }
     );
     const txEnvelope = new TransactionEnvelope(
@@ -137,7 +69,7 @@ describe("Master editions", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "create", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -154,10 +86,15 @@ describe("Master editions", () => {
       provider.wallet.publicKey
     );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
-      issuerTokenAccountId
-    );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    const checkTimeInvalidator =
+      await timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        (
+          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+        )[0]
+      );
+    expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
+    expect(checkTimeInvalidator.parsed.duration.toNumber()).to.eq(duration);
   });
 
   it("Claim rental", async () => {
@@ -171,7 +108,10 @@ describe("Master editions", () => {
     const transaction = await rentals.claimRental(
       provider.connection,
       new SignerWallet(recipient),
-      tokenManagerId
+      tokenManagerId,
+      (
+        await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+      )[0]
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -183,7 +123,7 @@ describe("Master editions", () => {
       [...transaction.instructions]
     );
 
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "claim", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -204,13 +144,59 @@ describe("Master editions", () => {
       await findAta(rentalMint.publicKey, recipient.publicKey)
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
-      recipientPaymentTokenAccountId
+    const checkTimeInvalidator =
+      await timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        (
+          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+        )[0]
+      );
+    expect(checkTimeInvalidator.parsed.expiration?.toNumber()).to.eq(
+      checkTimeInvalidator.parsed.duration
+        .add(tokenManagerData.parsed.stateChangedAt)
+        .toNumber()
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT
+    expect(checkTimeInvalidator.parsed.duration.toNumber()).to.eq(duration);
+  });
+
+  it("Invalidate", async () => {
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const provider = getProvider();
+    const transaction = await invalidate(
+      provider.connection,
+      new SignerWallet(recipient),
+      rentalMint.publicKey
     );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "use", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    const tokenManagerData = await tryGetAccount(() =>
+      tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
+    );
+    expect(tokenManagerData).to.eq(null);
+
+    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+      issuerTokenAccountId
+    );
+    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(1);
   });
 });

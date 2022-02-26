@@ -23,7 +23,8 @@ export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  expiration: number
+  duration: number,
+  startOnInit?: boolean
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -37,16 +38,42 @@ export const init = async (
     await findTimeInvalidatorAddress(tokenManagerId);
 
   return [
-    timeInvalidatorProgram.instruction.init(new BN(expiration), {
-      accounts: {
-        tokenManager: tokenManagerId,
-        timeInvalidator: timeInvalidatorId,
-        payer: wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    }),
+    timeInvalidatorProgram.instruction.init(
+      new BN(duration),
+      startOnInit || false,
+      {
+        accounts: {
+          tokenManager: tokenManagerId,
+          timeInvalidator: timeInvalidatorId,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
     timeInvalidatorId,
   ];
+};
+
+export const setExpiration = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  timeInvalidatorId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.setExpiration({
+    accounts: {
+      tokenManager: tokenManagerId,
+      timeInvalidator: timeInvalidatorId,
+    },
+  });
 };
 
 export const invalidate = async (

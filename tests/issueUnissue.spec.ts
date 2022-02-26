@@ -62,7 +62,10 @@ describe("Issue Unissue", () => {
       {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
-        expiration: Date.now() / 1000 + 1,
+        expiration: {
+          duration: Date.now() / 1000 + 1,
+          startOnInit: true,
+        },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),

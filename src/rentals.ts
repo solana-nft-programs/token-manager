@@ -22,12 +22,9 @@ export const createRental = async (
 export const claimRental = async (
   connection: Connection,
   wallet: Wallet,
-  tokenManagerId: PublicKey
+  tokenManagerId: PublicKey,
+  timeInvalidatorId?: PublicKey
 ): Promise<Transaction> =>
-  withClaimToken(
-    new Transaction(),
-    connection,
-    wallet,
-    tokenManagerId,
-    undefined
-  );
+  withClaimToken(new Transaction(), connection, wallet, tokenManagerId, {
+    timeInvalidatorId,
+  });

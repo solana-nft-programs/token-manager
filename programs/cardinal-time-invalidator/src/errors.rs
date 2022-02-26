@@ -9,5 +9,7 @@ pub enum ErrorCode {
     #[msg("Invalid token manager for this claim approver")]
     InvalidTokenManager,
     #[msg("Expiration has not passed yet")]
-    InvalidExpiration
+    InvalidExpiration,
+    #[msg("Invalid time invalidator")]
+    InvalidTimeInvalidator
 }

@@ -52,7 +52,7 @@ describe("Issue Invalidate", () => {
       provider.connection,
       provider.wallet,
       {
-        expiration: Date.now() / 1000 + 1,
+        expiration: Date.now() / 1000,
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),

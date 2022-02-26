@@ -333,6 +333,7 @@ describe("Invalidate rentals", () => {
         )[0]
       )
     );
+    console.log(useInvalidatorData);
     expect(useInvalidatorData).to.eq(null);
 
     const tokenManagerData = await tryGetAccount(() =>

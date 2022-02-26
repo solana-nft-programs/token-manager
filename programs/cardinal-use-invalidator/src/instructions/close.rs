@@ -1,7 +1,7 @@
 use {
     crate::{state::*},
     anchor_lang::{prelude::*, AccountsClose},
-    // cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
+    cardinal_token_manager::{state::{TokenManager, TokenManagerState, InvalidationType}},
 };
 
 #[derive(Accounts)]
@@ -21,8 +21,14 @@ pub struct CloseCtx<'info> {
 pub fn handler(ctx: Context<CloseCtx>) -> ProgramResult {
     if ctx.accounts.token_manager.data_is_empty() {
         ctx.accounts.use_invalidator.close(ctx.accounts.closer.to_account_info())?;
-        // let token_manager = Account::<TokenManager>::try_from(&ctx.accounts.token_manager)?;
-        // assert_eq!(token_manager.state, TokenManagerState::Invalidated as u8)
+    } else {
+        let token_manager = Account::<TokenManager>::try_from(&ctx.accounts.token_manager)?;
+        if token_manager.state == TokenManagerState::Initialized as u8 && ctx.accounts.closer.key() == token_manager.issuer {
+            ctx.accounts.use_invalidator.close(ctx.accounts.closer.to_account_info())?;
+        }
+        if token_manager.state == TokenManagerState::Invalidated as u8 && token_manager.invalidation_type != InvalidationType::Invalidate as u8 {
+            ctx.accounts.use_invalidator.close(ctx.accounts.closer.to_account_info())?;
+        }
     }
     return Ok(())
 }

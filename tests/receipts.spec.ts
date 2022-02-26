@@ -268,13 +268,16 @@ describe("Issue claim receipt invalidate", () => {
       provider.connection,
       rentalMint.publicKey
     );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
-    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
-      provider.connection,
-      useInvalidatorId
+
+    const useInvalidatorData = await tryGetAccount(async () =>
+      useInvalidator.accounts.getUseInvalidator(
+        provider.connection,
+        (
+          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
+        )[0]
+      )
     );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+    expect(useInvalidatorData).to.eq(null);
 
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)

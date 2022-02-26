@@ -14,7 +14,7 @@ import {
 } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimLinks, findAta, tryGetAccount, useTransaction } from "../src";
+import { claimLinks, findAta, useTransaction } from "../src";
 import { fromLink } from "../src/claimLinks";
 import { tokenManager, useInvalidator } from "../src/programs";
 import {
@@ -79,7 +79,7 @@ describe("Claim links invalidate", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "create", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -180,16 +180,13 @@ describe("Claim links invalidate", () => {
       provider.connection,
       rentalMint.publicKey
     );
-
-    const useInvalidatorData = await tryGetAccount(async () =>
-      useInvalidator.accounts.getUseInvalidator(
-        provider.connection,
-        (
-          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
-        )[0]
-      )
+    const [useInvalidatorId] =
+      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
+    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
+      provider.connection,
+      useInvalidatorId
     );
-    expect(useInvalidatorData).to.eq(null);
+    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,

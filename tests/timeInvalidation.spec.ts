@@ -53,7 +53,7 @@ describe("Use without use invalidator", () => {
       provider.wallet,
       {
         expiration: {
-          duration: Date.now() / 1000 + 1,
+          duration: 1,
           startOnInit: true,
         },
         mint: rentalMint.publicKey,

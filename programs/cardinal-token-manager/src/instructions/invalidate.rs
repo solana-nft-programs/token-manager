@@ -19,7 +19,7 @@ pub struct InvalidateCtx<'info> {
     mint: Box<Account<'info, Mint>>,
 
     // recipient
-    #[account(mut, constraint = recipient_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidRecipientTokenAccount)]
+    #[account(mut)]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
 
     // invalidator
@@ -122,16 +122,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         }
     }
 
-    // close token_manager_token_account
-    let cpi_accounts = CloseAccount {
-        account: ctx.accounts.token_manager_token_account.to_account_info(),
-        destination: ctx.accounts.invalidator.to_account_info(),
-        authority: token_manager.to_account_info(),
-    };
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-    token::close_account(cpi_context)?;
-
     token_manager.state = TokenManagerState::Invalidated as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     if token_manager.invalidation_type == InvalidationType::Return as u8 {
@@ -155,8 +145,19 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
         token::transfer(cpi_context, token_manager.amount)?;
-        token_manager.close(ctx.accounts.invalidator.to_account_info())?;
-    } else if token_manager.invalidation_type == InvalidationType::Release as u8 {
+    }
+
+    // close token_manager_token_account
+    let cpi_accounts = CloseAccount {
+        account: ctx.accounts.token_manager_token_account.to_account_info(),
+        destination: ctx.accounts.invalidator.to_account_info(),
+        authority: token_manager.to_account_info(),
+    };
+    let cpi_program = ctx.accounts.token_program.to_account_info();
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+    token::close_account(cpi_context)?;
+
+    if token_manager.invalidation_type != InvalidationType::Invalidate as u8 {
         token_manager.close(ctx.accounts.invalidator.to_account_info())?;
     }
     return Ok(())

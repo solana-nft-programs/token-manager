@@ -49,6 +49,7 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
     token_manager.amount = ix.amount;
     token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.kind = ix.kind;
+    token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();
     token_manager.invalidation_type = ix.invalidation_type;
     token_manager.state = TokenManagerState::Issued as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;

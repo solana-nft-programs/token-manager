@@ -91,6 +91,16 @@ export const withIssueToken = async (
       )
     );
 
+    // create account to accept payment
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      paymentMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
+    );
+
     // init claim approver
     const [paidClaimApproverIx, paidClaimApproverId] =
       await claimApprover.instruction.init(
@@ -469,6 +479,7 @@ export const withInvalidate = async (
         mintId,
         tokenManagerId,
         tokenManagerData.parsed.kind,
+        tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
         remainingAccountsForReturn,
@@ -488,11 +499,20 @@ export const withInvalidate = async (
         mintId,
         tokenManagerId,
         tokenManagerData.parsed.kind,
+        tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
         remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
+      )
+    );
+    transaction.add(
+      timeInvalidator.instruction.close(
+        connection,
+        wallet,
+        timeInvalidatorData.pubkey,
+        timeInvalidatorData.parsed.tokenManager
       )
     );
   }
@@ -592,6 +612,7 @@ export const withUse = async (
         mintId,
         tokenManagerId,
         tokenManagerData.parsed.kind,
+        tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
         remainingAccountsForReturn,

@@ -846,8 +846,18 @@ export type CardinalTokenManager = {
     },
     {
       code: 319;
+      name: "InvalidMetadataProgramId";
+      msg: "Invalid metadata program id";
+    },
+    {
+      code: 320;
       name: "InvalidReceiptMintAccount";
       msg: "Invalid receipt mint account";
+    },
+    {
+      code: 321;
+      name: "InvalidReceiptMintOwner";
+      msg: "Invalid receipt mint owner";
     }
   ];
 };
@@ -1700,8 +1710,18 @@ export const IDL: CardinalTokenManager = {
     },
     {
       code: 319,
+      name: "InvalidMetadataProgramId",
+      msg: "Invalid metadata program id",
+    },
+    {
+      code: 320,
       name: "InvalidReceiptMintAccount",
       msg: "Invalid receipt mint account",
+    },
+    {
+      code: 321,
+      name: "InvalidReceiptMintOwner",
+      msg: "Invalid receipt mint owner",
     },
   ],
 };

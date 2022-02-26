@@ -487,6 +487,14 @@ export const withInvalidate = async (
         tokenManagerData.parsed.paymentMint
       )
     );
+    transaction.add(
+      useInvalidator.instruction.close(
+        connection,
+        wallet,
+        useInvalidatorId,
+        tokenManagerId
+      )
+    );
   } else if (
     timeInvalidatorData &&
     timeInvalidatorData.parsed.expiration &&
@@ -618,6 +626,14 @@ export const withUse = async (
         remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
+      )
+    );
+    transaction.add(
+      useInvalidator.instruction.close(
+        connection,
+        wallet,
+        useInvalidatorId,
+        tokenManagerId
       )
     );
   }

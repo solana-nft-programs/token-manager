@@ -14,7 +14,7 @@ import {
 } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimLinks, findAta, useTransaction } from "../src";
+import { claimLinks, findAta, tryGetAccount, useTransaction } from "../src";
 import { fromLink } from "../src/claimLinks";
 import { tokenManager, useInvalidator } from "../src/programs";
 import {
@@ -180,13 +180,16 @@ describe("Claim links invalidate", () => {
       provider.connection,
       rentalMint.publicKey
     );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
-    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
-      provider.connection,
-      useInvalidatorId
+
+    const useInvalidatorData = await tryGetAccount(async () =>
+      useInvalidator.accounts.getUseInvalidator(
+        provider.connection,
+        (
+          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
+        )[0]
+      )
     );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+    expect(useInvalidatorData).to.eq(null);
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,

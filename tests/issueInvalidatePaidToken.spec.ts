@@ -67,7 +67,7 @@ describe("Issue Invalidate", () => {
       {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
-        expiration: { duration: 1 },
+        expiration: { duration: 1, startOnInit: true },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),

@@ -36,7 +36,7 @@ import {
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Claim links master editions", () => {
+describe("Claim links master editions invalidate", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;

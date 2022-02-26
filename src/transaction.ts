@@ -455,6 +455,16 @@ export const withInvalidate = async (
         tokenManagerData?.parsed.issuer,
         wallet.publicKey
       );
+
+    // create account to accept payment
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      tokenManagerData.parsed.paymentMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
+    );
   }
 
   if (
@@ -469,11 +479,20 @@ export const withInvalidate = async (
         mintId,
         tokenManagerId,
         tokenManagerData.parsed.kind,
+        tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
         remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
+      )
+    );
+    transaction.add(
+      useInvalidator.instruction.close(
+        connection,
+        wallet,
+        useInvalidatorId,
+        tokenManagerId
       )
     );
   } else if (
@@ -488,11 +507,20 @@ export const withInvalidate = async (
         mintId,
         tokenManagerId,
         tokenManagerData.parsed.kind,
+        tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
         remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
+      )
+    );
+    transaction.add(
+      timeInvalidator.instruction.close(
+        connection,
+        wallet,
+        timeInvalidatorData.pubkey,
+        timeInvalidatorData.parsed.tokenManager
       )
     );
   }
@@ -592,11 +620,20 @@ export const withUse = async (
         mintId,
         tokenManagerId,
         tokenManagerData.parsed.kind,
+        tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
         remainingAccountsForReturn,
         issuerPaymentMintTokenAccountId,
         tokenManagerData.parsed.paymentMint
+      )
+    );
+    transaction.add(
+      useInvalidator.instruction.close(
+        connection,
+        wallet,
+        useInvalidatorId,
+        tokenManagerId
       )
     );
   }

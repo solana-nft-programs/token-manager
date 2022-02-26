@@ -79,7 +79,7 @@ describe("Claim links invalidate", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "create", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;

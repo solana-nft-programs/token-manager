@@ -10,7 +10,7 @@ import type {
 import { SystemProgram } from "@solana/web3.js";
 
 import type { TokenManagerKind } from "../tokenManager";
-import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
+import { TOKEN_MANAGER_ADDRESS, TokenManagerState } from "../tokenManager";
 import {
   getRemainingAccountsForKind,
   getRemainingAccountsForPayment,
@@ -55,6 +55,7 @@ export const invalidate = async (
   mintId: PublicKey,
   tokenManagerId: PublicKey,
   tokenManagerKind: TokenManagerKind,
+  tokenManagerState: TokenManagerState,
   tokenManagerTokenAccountId: PublicKey,
   recipientTokenAccountId: PublicKey,
   returnAccounts: AccountMeta[],
@@ -85,15 +86,17 @@ export const invalidate = async (
       tokenManager: tokenManagerId,
       timeInvalidator: timeInvalidatorId,
       invalidator: wallet.publicKey,
-      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenManagerTokenAccount: tokenManagerTokenAccountId,
-      tokenProgram: TOKEN_PROGRAM_ID,
       mint: mintId,
       recipientTokenAccount: recipientTokenAccountId,
+      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      tokenProgram: TOKEN_PROGRAM_ID,
     },
     remainingAccounts: [
       ...paymentAccounts,
-      ...transferAccounts,
+      ...(tokenManagerState === TokenManagerState.Claimed
+        ? transferAccounts
+        : []),
       ...returnAccounts,
     ],
   });

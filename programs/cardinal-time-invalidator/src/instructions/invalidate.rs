@@ -1,7 +1,7 @@
 use {
     crate::{state::*, errors::*},
     anchor_lang::{prelude::*},
-    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager}}, 
+    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager, TokenManagerState}}, 
 };
 
 #[derive(Accounts)]
@@ -9,7 +9,11 @@ pub struct InvalidateCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut, constraint = Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration @ ErrorCode::InvalidExpiration)]
+    #[account(mut,
+        constraint = time_invalidator.expiration != None && Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration.unwrap()
+        || token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= token_manager.state_changed_at + time_invalidator.duration
+        @ ErrorCode::InvalidIssuerTokenAccount
+    )]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
     #[account(mut)]

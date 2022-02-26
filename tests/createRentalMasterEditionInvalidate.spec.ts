@@ -17,7 +17,7 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals, useTransaction } from "../src";
+import { findAta, rentals, tryGetAccount, useTransaction } from "../src";
 import { tokenManager, useInvalidator } from "../src/programs";
 import {
   TokenManagerKind,
@@ -241,12 +241,14 @@ describe("Master editions", () => {
       provider.connection,
       rentalMint.publicKey
     );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
-    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
-      provider.connection,
-      useInvalidatorId
+    const useInvalidatorData = await tryGetAccount(async () =>
+      useInvalidator.accounts.getUseInvalidator(
+        provider.connection,
+        (
+          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
+        )[0]
+      )
     );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+    expect(useInvalidatorData).to.eq(null);
   });
 });

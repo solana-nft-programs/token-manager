@@ -91,16 +91,6 @@ export const withIssueToken = async (
       )
     );
 
-    // create account to accept payment
-    await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      paymentMint,
-      tokenManagerId,
-      wallet.publicKey,
-      true
-    );
-
     // init claim approver
     const [paidClaimApproverIx, paidClaimApproverId] =
       await claimApprover.instruction.init(
@@ -465,6 +455,16 @@ export const withInvalidate = async (
         tokenManagerData?.parsed.issuer,
         wallet.publicKey
       );
+
+    // create account to accept payment
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      tokenManagerData.parsed.paymentMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
+    );
   }
 
   if (

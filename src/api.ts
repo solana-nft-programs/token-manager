@@ -5,6 +5,7 @@ import { Transaction } from "@solana/web3.js";
 import type { IssueParameters } from ".";
 import {
   withClaimToken,
+  withExtendExpiration,
   withInvalidate,
   withIssueToken,
   withUnissueToken,
@@ -55,4 +56,18 @@ export const claimToken = async (
     wallet,
     tokenManagerId,
     additionalOptions
+  );
+
+export const extendExpiration = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentAmount: number
+): Promise<Transaction> =>
+  withExtendExpiration(
+    new Transaction(),
+    connection,
+    wallet,
+    tokenManagerId,
+    paymentAmount
   );

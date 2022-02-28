@@ -24,7 +24,9 @@ export const init = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   expiration?: number,
-  duration?: number
+  duration?: number,
+  extensionPaymentAmount?: number,
+  extensionDuration?: number
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -37,6 +39,11 @@ export const init = async (
   const [timeInvalidatorId, _timeInvalidatorBump] =
     await findTimeInvalidatorAddress(tokenManagerId);
 
+  if (!extensionPaymentAmount || !extensionDuration) {
+    extensionPaymentAmount = undefined;
+    extensionDuration = undefined;
+  }
+
   return [
     timeInvalidatorProgram.instruction.init(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -44,6 +51,8 @@ export const init = async (
       {
         duration: duration ? new BN(duration) : null,
         expiration: expiration ? new BN(expiration) : null,
+        extensionPaymentAmount: extensionPaymentAmount ? new BN(extensionPaymentAmount) : null,
+        extensionDurationAmount: extensionDuration ? new BN(extensionDuration) : null,
       },
       {
         accounts: {
@@ -78,6 +87,39 @@ export const setExpiration = (
       timeInvalidator: timeInvalidatorId,
     },
   });
+};
+
+export const extendExpiration = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentTokenAccountId: PublicKey,
+  payerTokenAccountId: PublicKey,
+  timeInvalidatorId: PublicKey,
+  extensionPaymentAmount: number
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.extendExpiration(
+    new BN(extensionPaymentAmount),
+    {
+      accounts: {
+        tokenManager: tokenManagerId,
+        paymentTokenAccount: paymentTokenAccountId,
+        payer: wallet.publicKey,
+        payerTokenAccount: payerTokenAccountId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        timeInvalidator: timeInvalidatorId,
+      },
+    }
+  );
 };
 
 export const invalidate = async (

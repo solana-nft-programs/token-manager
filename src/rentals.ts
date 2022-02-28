@@ -3,7 +3,7 @@ import type { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { Transaction } from "@solana/web3.js";
 
 import type { IssueParameters } from ".";
-import { withClaimToken, withIssueToken } from ".";
+import { withClaimToken, withExtendExpiration, withIssueToken } from ".";
 
 /**
  * Main method for creating any kind of rental
@@ -28,3 +28,17 @@ export const claimRental = async (
   withClaimToken(new Transaction(), connection, wallet, tokenManagerId, {
     timeInvalidatorId,
   });
+
+export const extendRentalExpiration = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentAmount: number
+): Promise<Transaction> =>
+  withExtendExpiration(
+    new Transaction(),
+    connection,
+    wallet,
+    tokenManagerId,
+    paymentAmount
+  );

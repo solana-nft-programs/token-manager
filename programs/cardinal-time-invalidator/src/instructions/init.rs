@@ -1,13 +1,15 @@
 use {
-    crate::{state::*, errors::*},
-    anchor_lang::{prelude::*},
-    cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
+    crate::{errors::*, state::*},
+    anchor_lang::prelude::*,
+    cardinal_token_manager::state::{TokenManager, TokenManagerState},
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitIx {
     pub duration: Option<i64>,
     pub expiration: Option<i64>,
+    pub extension_payment_amount: Option<u64>,
+    pub extension_duration: Option<u64>,
 }
 
 #[derive(Accounts)]
@@ -37,5 +39,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> ProgramResult {
     time_invalidator.token_manager = ctx.accounts.token_manager.key();
     time_invalidator.duration = ix.duration;
     time_invalidator.expiration = ix.expiration;
-    return Ok(())
+    time_invalidator.extension_payment_amount = ix.extension_payment_amount;
+    time_invalidator.extension_duration = ix.extension_duration;
+    return Ok(());
 }

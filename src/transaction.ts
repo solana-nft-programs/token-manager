@@ -26,6 +26,8 @@ export type IssueParameters = {
   timeInvalidation?: {
     duration?: number;
     expiration?: number;
+    extension_payment_amount?: number;
+    extension_duration?: number;
   };
   usages?: number;
   mint: PublicKey;
@@ -127,7 +129,7 @@ export const withIssueToken = async (
   /////// time invalidator /////
   //////////////////////////////
   if (timeInvalidation) {
-    const { duration, expiration } = timeInvalidation;
+    const { duration, expiration, extension_payment_amount, extension_duration } = timeInvalidation;
     const [timeInvalidatorIx, timeInvalidatorId] =
       await timeInvalidator.instruction.init(
         connection,
@@ -135,6 +137,8 @@ export const withIssueToken = async (
         tokenManagerId,
         expiration,
         duration
+        extension_payment_amount,
+        extension_duration
       );
     transaction.add(timeInvalidatorIx);
     transaction.add(
@@ -659,5 +663,54 @@ export const withUse = async (
       )
     );
   }
+  return transaction;
+};
+
+export const withExtendExpiration = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentAmount: number
+): Promise<Transaction> => {
+  const tokenManagerData = await tokenManager.accounts.getTokenManager(
+    connection,
+    tokenManagerId
+  );
+  const [timeInvalidatorId] =
+    await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
+
+  if (tokenManagerData.parsed.paymentMint) {
+    const paymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      tokenManagerData.parsed.paymentMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
+    );
+
+    const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      tokenManagerData.parsed.paymentMint,
+      wallet.publicKey,
+      wallet.publicKey
+    );
+    transaction.add(
+      timeInvalidator.instruction.extendExpiration(
+        connection,
+        wallet,
+        tokenManagerId,
+        paymentTokenAccountId,
+        payerTokenAccountId,
+        timeInvalidatorId,
+        paymentAmount
+      )
+    );
+  } else {
+    console.log("No payment mint");
+  }
+
   return transaction;
 };

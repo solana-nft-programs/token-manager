@@ -1,5 +1,5 @@
 export type CardinalPaidClaimApprover = {
-  version: "0.0.0";
+  version: "0.2.4";
   name: "cardinal_paid_claim_approver";
   instructions: [
     {
@@ -105,17 +105,17 @@ export type CardinalPaidClaimApprover = {
   ];
   errors: [
     {
-      code: 300;
+      code: 6000;
       name: "InvalidPaymentTokenAccount";
       msg: "Token account not owned by the claim approver";
     },
     {
-      code: 301;
+      code: 6001;
       name: "InvalidPayerTokenAccount";
       msg: "Token account not owned by the payer";
     },
     {
-      code: 302;
+      code: 6002;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
     }
@@ -123,7 +123,7 @@ export type CardinalPaidClaimApprover = {
 };
 
 export const IDL: CardinalPaidClaimApprover = {
-  version: "0.0.0",
+  version: "0.2.4",
   name: "cardinal_paid_claim_approver",
   instructions: [
     {
@@ -229,17 +229,17 @@ export const IDL: CardinalPaidClaimApprover = {
   ],
   errors: [
     {
-      code: 300,
+      code: 6000,
       name: "InvalidPaymentTokenAccount",
       msg: "Token account not owned by the claim approver",
     },
     {
-      code: 301,
+      code: 6001,
       name: "InvalidPayerTokenAccount",
       msg: "Token account not owned by the payer",
     },
     {
-      code: 302,
+      code: 6002,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
     },

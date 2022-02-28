@@ -9,4 +9,6 @@ pub struct TimeInvalidator {
     pub token_manager: Pubkey,
     pub duration: Option<i64>,
     // TODO extendability
+    pub extension_payment_amount: Option<u64>,
+    pub extension_duration: Option<u64>
 }

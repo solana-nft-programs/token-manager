@@ -89,7 +89,7 @@ jobs:
       - run: cp -R images/ site/
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
           branch: gh-pages
           folder: site

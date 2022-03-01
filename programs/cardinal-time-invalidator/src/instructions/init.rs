@@ -9,7 +9,9 @@ pub struct InitIx {
     pub duration: Option<i64>,
     pub expiration: Option<i64>,
     pub extension_payment_amount: Option<u64>,
-    pub extension_duration: Option<u64>,
+    pub extension_duration_amount: Option<u64>,
+    pub payment_mint: Option<Pubkey>,
+    pub max_expiration: Option<i64>,
 }
 
 #[derive(Accounts)]
@@ -33,6 +35,12 @@ pub struct InitCtx<'info> {
 pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> ProgramResult {
     if ix.duration == None && ix.expiration == None {
         return Err(ErrorCode::InvalidInstruction.into());
+    } else if (ix.extension_payment_amount == None && ix.extension_duration_amount != None)
+        || (ix.extension_payment_amount != None && ix.extension_duration_amount == None)
+    {
+        return Err(ErrorCode::InvalidInstruction.into());
+    } else if ix.extension_payment_amount != None && ix.payment_mint == None {
+        return Err(ErrorCode::InvalidInstruction.into());
     }
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     time_invalidator.bump = *ctx.bumps.get("time_invalidator").unwrap();
@@ -40,6 +48,8 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> ProgramResult {
     time_invalidator.duration = ix.duration;
     time_invalidator.expiration = ix.expiration;
     time_invalidator.extension_payment_amount = ix.extension_payment_amount;
-    time_invalidator.extension_duration = ix.extension_duration;
+    time_invalidator.extension_duration_amount = ix.extension_duration_amount;
+    time_invalidator.payment_mint = ix.payment_mint;
+    time_invalidator.max_expiration = ix.max_expiration;
     return Ok(());
 }

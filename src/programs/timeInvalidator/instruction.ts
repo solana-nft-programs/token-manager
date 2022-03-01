@@ -26,7 +26,9 @@ export const init = async (
   expiration?: number,
   duration?: number,
   extensionPaymentAmount?: number,
-  extensionDuration?: number
+  extensionDurationAmount?: number,
+  paymentMint?: PublicKey,
+  maxExpiration?: number
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -39,9 +41,10 @@ export const init = async (
   const [timeInvalidatorId, _timeInvalidatorBump] =
     await findTimeInvalidatorAddress(tokenManagerId);
 
-  if (!extensionPaymentAmount || !extensionDuration) {
+  if (!extensionPaymentAmount || !extensionDurationAmount || !paymentMint) {
     extensionPaymentAmount = undefined;
-    extensionDuration = undefined;
+    extensionDurationAmount = undefined;
+    paymentMint = undefined;
   }
 
   return [
@@ -51,8 +54,14 @@ export const init = async (
       {
         duration: duration ? new BN(duration) : null,
         expiration: expiration ? new BN(expiration) : null,
-        extensionPaymentAmount: extensionPaymentAmount ? new BN(extensionPaymentAmount) : null,
-        extensionDurationAmount: extensionDuration ? new BN(extensionDuration) : null,
+        extensionPaymentAmount: extensionPaymentAmount
+          ? new BN(extensionPaymentAmount)
+          : null,
+        extensionDurationAmount: extensionDurationAmount
+          ? new BN(extensionDurationAmount)
+          : null,
+        paymentMint: paymentMint ? paymentMint : null,
+        maxExpiration: maxExpiration ? new BN(maxExpiration) : null,
       },
       {
         accounts: {
@@ -111,12 +120,12 @@ export const extendExpiration = (
     {
       accounts: {
         tokenManager: tokenManagerId,
+        timeInvalidator: timeInvalidatorId,
         paymentTokenAccount: paymentTokenAccountId,
         payer: wallet.publicKey,
         payerTokenAccount: payerTokenAccountId,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-        timeInvalidator: timeInvalidatorId,
       },
     }
   );

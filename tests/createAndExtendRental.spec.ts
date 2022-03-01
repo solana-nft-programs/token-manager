@@ -67,11 +67,12 @@ describe("Create and Extend Rental", () => {
       {
         paymentAmount: RENTAL_PAYMENT_AMONT,
         paymentMint: paymentMint.publicKey,
-        expiration: {
+        timeInvalidation: {
           duration: 1000,
-          startOnInit: false,
-          extension_payment_amount: 1, // Pay 1 lamport to add 1000 seconds of expiration time
-          extension_duration: 1000,
+          extensionPaymentAmount: 1, // Pay 1 lamport to add 1000 seconds of expiration time
+          extensionDurationAmount: 1000,
+          paymentMint: paymentMint.publicKey,
+          maxExpiration: Date.now() / 1000 + 3000,
         },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
@@ -228,5 +229,35 @@ describe("Create and Extend Rental", () => {
     expect(timeInvalidatorData?.parsed.expiration?.toNumber()).to.eq(
       expiration + 1000
     );
+  });
+  it("Exceed Max Expiration", async () => {
+    const provider = getProvider();
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    const transaction = await rentals.extendRentalExpiration(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId,
+      4
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    expect(async () => {
+      await expectTXTable(txEnvelope, "extend", {
+        verbosity: "error",
+        formatLogs: true,
+      }).to.be.rejectedWith(Error);
+    });
   });
 });

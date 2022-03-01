@@ -10,10 +10,13 @@ pub struct ExtendExpirationCtx<'info> {
   #[account(constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
   token_manager: Box<Account<'info, TokenManager>>,
 
+  #[account(mut, constraint = time_invalidator.token_manager == token_manager.key() @ ErrorCode::InvalidTimeInvalidator)]
+  time_invalidator: Box<Account<'info, TimeInvalidator>>,
+
   #[account(mut, constraint =
       token_manager.payment_mint != None
       && payment_token_account.owner == token_manager.key()
-      && payment_token_account.mint == token_manager.payment_mint.unwrap()
+      && payment_token_account.mint == time_invalidator.payment_mint.unwrap()
       @ ErrorCode::InvalidPaymentTokenAccount,
   )]
   payment_token_account: Box<Account<'info, TokenAccount>>,
@@ -22,25 +25,31 @@ pub struct ExtendExpirationCtx<'info> {
   payer: Signer<'info>,
   #[account(mut, constraint =
       payer_token_account.owner == payer.key()
-      && payer_token_account.mint == token_manager.payment_mint.unwrap()
+      && payer_token_account.mint == time_invalidator.payment_mint.unwrap()
       @ ErrorCode::InvalidPayerTokenAccount
   )]
   payer_token_account: Box<Account<'info, TokenAccount>>,
 
   token_program: Program<'info, Token>,
   system_program: Program<'info, System>,
-
-  #[account(mut, constraint = time_invalidator.token_manager == token_manager.key() @ ErrorCode::InvalidTimeInvalidator)]
-  time_invalidator: Box<Account<'info, TimeInvalidator>>,
 }
 
 pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> ProgramResult {
   let time_invalidator = &mut ctx.accounts.time_invalidator;
 
   if time_invalidator.extension_payment_amount.is_none()
-    || time_invalidator.extension_duration.is_none()
+    || time_invalidator.extension_duration_amount.is_none()
+    || time_invalidator.payment_mint.is_none()
   {
     return Err(ErrorCode::InvalidTimeInvalidator.into());
+  }
+
+  let time_to_add = payment_amount * time_invalidator.extension_duration_amount.unwrap()
+    / time_invalidator.extension_payment_amount.unwrap();
+  let new_expiration = Some(time_invalidator.expiration.unwrap() + time_to_add as i64);
+
+  if time_invalidator.max_expiration != None && new_expiration > time_invalidator.max_expiration {
+    return Err(ErrorCode::InvalidExtendExpiration.into());
   }
 
   let cpi_accounts = Transfer {
@@ -53,8 +62,6 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Progra
   let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
   token::transfer(cpi_context, payment_amount)?;
 
-  let time_to_add = payment_amount * time_invalidator.extension_duration.unwrap()
-    / time_invalidator.extension_payment_amount.unwrap();
-  time_invalidator.expiration = Some(time_invalidator.expiration.unwrap() + time_to_add as i64);
+  time_invalidator.expiration = new_expiration;
   return Ok(());
 }

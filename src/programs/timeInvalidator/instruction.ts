@@ -24,9 +24,9 @@ export const init = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   expiration?: number,
-  duration?: number,
+  durationSeconds?: number,
   extensionPaymentAmount?: number,
-  extensionDurationAmount?: number,
+  extensionDurationSeconds?: number,
   paymentMint?: PublicKey,
   maxExpiration?: number
 ): Promise<[TransactionInstruction, PublicKey]> => {
@@ -41,9 +41,9 @@ export const init = async (
   const [timeInvalidatorId, _timeInvalidatorBump] =
     await findTimeInvalidatorAddress(tokenManagerId);
 
-  if (!extensionPaymentAmount || !extensionDurationAmount || !paymentMint) {
+  if (!extensionPaymentAmount || !extensionDurationSeconds || !paymentMint) {
     extensionPaymentAmount = undefined;
-    extensionDurationAmount = undefined;
+    extensionDurationSeconds = undefined;
     paymentMint = undefined;
   }
 
@@ -52,13 +52,13 @@ export const init = async (
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       {
-        duration: duration ? new BN(duration) : null,
+        durationSeconds: durationSeconds ? new BN(durationSeconds) : null,
         expiration: expiration ? new BN(expiration) : null,
         extensionPaymentAmount: extensionPaymentAmount
           ? new BN(extensionPaymentAmount)
           : null,
-        extensionDurationAmount: extensionDurationAmount
-          ? new BN(extensionDurationAmount)
+        extensionDurationSeconds: extensionDurationSeconds
+          ? new BN(extensionDurationSeconds)
           : null,
         paymentMint: paymentMint ? paymentMint : null,
         maxExpiration: maxExpiration ? new BN(maxExpiration) : null,
@@ -125,7 +125,6 @@ export const extendExpiration = (
         payer: wallet.publicKey,
         payerTokenAccount: payerTokenAccountId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
       },
     }
   );

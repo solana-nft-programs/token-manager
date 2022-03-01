@@ -24,10 +24,10 @@ export type IssueParameters = {
   paymentAmount?: number;
   paymentMint?: PublicKey;
   timeInvalidation?: {
-    duration?: number;
+    durationSeconds?: number;
     expiration?: number;
     extensionPaymentAmount?: number;
-    extensionDurationAmount?: number;
+    extensionDurationSeconds?: number;
     paymentMint?: PublicKey;
     maxExpiration?: number;
   };
@@ -132,10 +132,10 @@ export const withIssueToken = async (
   //////////////////////////////
   if (timeInvalidation) {
     const {
-      duration,
+      durationSeconds,
       expiration,
       extensionPaymentAmount,
-      extensionDurationAmount,
+      extensionDurationSeconds,
       paymentMint,
       maxExpiration,
     } = timeInvalidation;
@@ -145,9 +145,9 @@ export const withIssueToken = async (
         wallet,
         tokenManagerId,
         expiration,
-        duration,
+        durationSeconds,
         extensionPaymentAmount,
-        extensionDurationAmount,
+        extensionDurationSeconds,
         paymentMint,
         maxExpiration
       );
@@ -532,9 +532,9 @@ export const withInvalidate = async (
     timeInvalidatorData &&
     ((timeInvalidatorData.parsed.expiration &&
       timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
-      (timeInvalidatorData.parsed.duration &&
+      (timeInvalidatorData.parsed.durationSeconds &&
         tokenManagerData.parsed.stateChangedAt
-          .add(timeInvalidatorData.parsed.duration)
+          .add(timeInvalidatorData.parsed.durationSeconds)
           .lte(new BN(Date.now() / 1000))))
   ) {
     transaction.add(

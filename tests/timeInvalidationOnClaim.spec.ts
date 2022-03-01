@@ -19,7 +19,7 @@ import { getProvider } from "./workspace";
 describe("Time invalidation on claim", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
-  const duration = 1;
+  const durationSeconds = 1;
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
 
@@ -54,7 +54,7 @@ describe("Time invalidation on claim", () => {
       provider.wallet,
       {
         timeInvalidation: {
-          duration,
+          durationSeconds,
         },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
@@ -94,7 +94,9 @@ describe("Time invalidation on claim", () => {
         )[0]
       );
     expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
-    expect(checkTimeInvalidator.parsed.duration?.toNumber()).to.eq(duration);
+    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
+      durationSeconds
+    );
   });
 
   it("Claim rental", async () => {
@@ -153,11 +155,13 @@ describe("Time invalidation on claim", () => {
         )[0]
       );
     expect(checkTimeInvalidator.parsed.expiration?.toNumber()).to.eq(
-      (checkTimeInvalidator.parsed.duration || new BN(0))
+      (checkTimeInvalidator.parsed.durationSeconds || new BN(0))
         .add(tokenManagerData.parsed.stateChangedAt)
         .toNumber()
     );
-    expect(checkTimeInvalidator.parsed.duration?.toNumber()).to.eq(duration);
+    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
+      durationSeconds
+    );
   });
 
   it("Invalidate", async () => {

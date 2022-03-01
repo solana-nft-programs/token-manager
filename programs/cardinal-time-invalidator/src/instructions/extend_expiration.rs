@@ -31,20 +31,20 @@ pub struct ExtendExpirationCtx<'info> {
   payer_token_account: Box<Account<'info, TokenAccount>>,
 
   token_program: Program<'info, Token>,
-  system_program: Program<'info, System>,
 }
 
 pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> ProgramResult {
   let time_invalidator = &mut ctx.accounts.time_invalidator;
 
-  if time_invalidator.extension_payment_amount.is_none()
-    || time_invalidator.extension_duration_amount.is_none()
-    || time_invalidator.payment_mint.is_none()
+  if time_invalidator.extension_payment_amount == None
+    || time_invalidator.extension_duration_seconds == None
+    || time_invalidator.payment_mint == None
+    || time_invalidator.max_expiration == None
   {
     return Err(ErrorCode::InvalidTimeInvalidator.into());
   }
 
-  let time_to_add = payment_amount * time_invalidator.extension_duration_amount.unwrap()
+  let time_to_add = payment_amount * time_invalidator.extension_duration_seconds.unwrap()
     / time_invalidator.extension_payment_amount.unwrap();
   let new_expiration = Some(time_invalidator.expiration.unwrap() + time_to_add as i64);
 

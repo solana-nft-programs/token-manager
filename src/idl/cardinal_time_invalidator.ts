@@ -83,11 +83,6 @@ export type CardinalTimeInvalidator = {
           name: "tokenProgram";
           isMut: false;
           isSigner: false;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
         }
       ];
       args: [
@@ -186,7 +181,7 @@ export type CardinalTimeInvalidator = {
             type: "publicKey";
           },
           {
-            name: "duration";
+            name: "durationSeconds";
             type: {
               option: "i64";
             };
@@ -198,7 +193,7 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "extensionDurationAmount";
+            name: "extensionDurationSeconds";
             type: {
               option: "u64";
             };
@@ -226,7 +221,7 @@ export type CardinalTimeInvalidator = {
         kind: "struct";
         fields: [
           {
-            name: "duration";
+            name: "durationSeconds";
             type: {
               option: "i64";
             };
@@ -244,7 +239,7 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "extensionDurationAmount";
+            name: "extensionDurationSeconds";
             type: {
               option: "u64";
             };
@@ -400,11 +395,6 @@ export const IDL: CardinalTimeInvalidator = {
           isMut: false,
           isSigner: false,
         },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
       ],
       args: [
         {
@@ -502,7 +492,7 @@ export const IDL: CardinalTimeInvalidator = {
             type: "publicKey",
           },
           {
-            name: "duration",
+            name: "durationSeconds",
             type: {
               option: "i64",
             },
@@ -514,7 +504,7 @@ export const IDL: CardinalTimeInvalidator = {
             },
           },
           {
-            name: "extensionDurationAmount",
+            name: "extensionDurationSeconds",
             type: {
               option: "u64",
             },
@@ -542,7 +532,7 @@ export const IDL: CardinalTimeInvalidator = {
         kind: "struct",
         fields: [
           {
-            name: "duration",
+            name: "durationSeconds",
             type: {
               option: "i64",
             },
@@ -560,7 +550,7 @@ export const IDL: CardinalTimeInvalidator = {
             },
           },
           {
-            name: "extensionDurationAmount",
+            name: "extensionDurationSeconds",
             type: {
               option: "u64",
             },

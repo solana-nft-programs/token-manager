@@ -20,4 +20,6 @@ pub enum ErrorCode {
     InvalidInstruction,
     #[msg("Max expiration exceeded")]
     InvalidExtendExpiration,
+    #[msg("Invalid payment mint on time invalidator")]
+    InvalidPaymentMint
 }

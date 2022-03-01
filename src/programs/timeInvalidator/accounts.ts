@@ -77,7 +77,6 @@ export const getExpiredTimeInvalidators = async (
   const coder = new BorshAccountsCoder(TIME_INVALIDATOR_IDL);
   programAccounts.forEach((account) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const timeInvalidatorData: TimeInvalidatorData = coder.decode(
         "timeInvalidator",
         account.account.data
@@ -88,6 +87,32 @@ export const getExpiredTimeInvalidators = async (
           parsed: timeInvalidatorData,
         });
       }
+    } catch (e) {
+      console.log(`Failed to decode time invalidator data`);
+    }
+  });
+  return expiredTimeInvalidators;
+};
+
+export const getAllTimeInvalidators = async (
+  connection: Connection
+): Promise<AccountData<TimeInvalidatorData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    TIME_INVALIDATOR_ADDRESS
+  );
+
+  const expiredTimeInvalidators: AccountData<TimeInvalidatorData>[] = [];
+  const coder = new BorshAccountsCoder(TIME_INVALIDATOR_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const timeInvalidatorData: TimeInvalidatorData = coder.decode(
+        "timeInvalidator",
+        account.account.data
+      );
+      expiredTimeInvalidators.push({
+        ...account,
+        parsed: timeInvalidatorData,
+      });
     } catch (e) {
       console.log(`Failed to decode time invalidator data`);
     }

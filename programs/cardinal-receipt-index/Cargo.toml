@@ -26,7 +26,7 @@ spl-associated-token-account = "1.0.2"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
 solana-program = "1.8.1"
 cardinal-token-manager = { version = "^0.2.4", path = "../cardinal-token-manager", features = ["cpi"] }
-mpl-token-metadata = { version = "1.2.3", features = ["no-entrypoint"] }
+mpl-token-metadata = { version = "1.2.5", features = ["no-entrypoint"] }
 
 [dev-dependencies]
 proptest = { version = "1.0" }

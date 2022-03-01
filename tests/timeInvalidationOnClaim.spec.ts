@@ -53,7 +53,7 @@ describe("Time invalidation on claim", () => {
       provider.connection,
       provider.wallet,
       {
-        expiration: {
+        timeInvalidation: {
           duration,
         },
         mint: rentalMint.publicKey,
@@ -94,7 +94,7 @@ describe("Time invalidation on claim", () => {
         )[0]
       );
     expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
-    expect(checkTimeInvalidator.parsed.duration.toNumber()).to.eq(duration);
+    expect(checkTimeInvalidator.parsed.duration?.toNumber()).to.eq(duration);
   });
 
   it("Claim rental", async () => {
@@ -153,11 +153,11 @@ describe("Time invalidation on claim", () => {
         )[0]
       );
     expect(checkTimeInvalidator.parsed.expiration?.toNumber()).to.eq(
-      checkTimeInvalidator.parsed.duration
+      (checkTimeInvalidator.parsed.duration || new BN(0))
         .add(tokenManagerData.parsed.stateChangedAt)
         .toNumber()
     );
-    expect(checkTimeInvalidator.parsed.duration.toNumber()).to.eq(duration);
+    expect(checkTimeInvalidator.parsed.duration?.toNumber()).to.eq(duration);
   });
 
   it("Invalidate", async () => {

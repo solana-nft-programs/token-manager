@@ -11,8 +11,8 @@ pub struct InvalidateCtx<'info> {
 
     #[account(mut,
         constraint = time_invalidator.expiration != None && Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration.unwrap()
-        || token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= token_manager.state_changed_at + time_invalidator.duration
-        @ ErrorCode::InvalidIssuerTokenAccount
+        || token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= token_manager.state_changed_at + time_invalidator.duration.unwrap()
+        @ ErrorCode::InvalidTimeInvalidator
     )]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 

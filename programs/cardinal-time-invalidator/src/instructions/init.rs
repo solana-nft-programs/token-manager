@@ -4,8 +4,13 @@ use {
     cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
 };
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct InitIx {
+    pub duration: Option<i64>,
+    pub expiration: Option<i64>,
+}
+
 #[derive(Accounts)]
-#[instruction(duration: i64, start_on_init: bool)]
 pub struct InitCtx<'info> {
     #[account(constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
@@ -18,19 +23,19 @@ pub struct InitCtx<'info> {
     )]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
-    #[account(mut)]
+    #[account(mut, constraint = payer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, duration: i64, start_on_init: bool) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> ProgramResult {
+    if ix.duration == None && ix.expiration == None {
+        return Err(ErrorCode::InvalidInstruction.into());
+    }
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     time_invalidator.bump = *ctx.bumps.get("time_invalidator").unwrap();
     time_invalidator.token_manager = ctx.accounts.token_manager.key();
-    time_invalidator.duration = duration;
-    time_invalidator.start_on_init = start_on_init;
-    if start_on_init {
-        time_invalidator.expiration = Some(Clock::get().unwrap().unix_timestamp + duration);
-    }
+    time_invalidator.duration = ix.duration;
+    time_invalidator.expiration = ix.expiration;
     return Ok(())
 }

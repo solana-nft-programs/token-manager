@@ -23,8 +23,8 @@ export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  duration: number,
-  startOnInit?: boolean
+  expiration?: number,
+  duration?: number
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -39,8 +39,12 @@ export const init = async (
 
   return [
     timeInvalidatorProgram.instruction.init(
-      new BN(duration),
-      startOnInit || false,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      {
+        duration: duration ? new BN(duration) : null,
+        expiration: expiration ? new BN(expiration) : null,
+      },
       {
         accounts: {
           tokenManager: tokenManagerId,

@@ -26,8 +26,10 @@ export type IssueParameters = {
   timeInvalidation?: {
     duration?: number;
     expiration?: number;
-    extension_payment_amount?: number;
-    extension_duration?: number;
+    extensionPaymentAmount?: number;
+    extensionDurationAmount?: number;
+    paymentMint?: PublicKey;
+    maxExpiration?: number;
   };
   usages?: number;
   mint: PublicKey;
@@ -129,16 +131,25 @@ export const withIssueToken = async (
   /////// time invalidator /////
   //////////////////////////////
   if (timeInvalidation) {
-    const { duration, expiration, extension_payment_amount, extension_duration } = timeInvalidation;
+    const {
+      duration,
+      expiration,
+      extensionPaymentAmount,
+      extensionDurationAmount,
+      paymentMint,
+      maxExpiration,
+    } = timeInvalidation;
     const [timeInvalidatorIx, timeInvalidatorId] =
       await timeInvalidator.instruction.init(
         connection,
         wallet,
         tokenManagerId,
         expiration,
-        duration
-        extension_payment_amount,
-        extension_duration
+        duration,
+        extensionPaymentAmount,
+        extensionDurationAmount,
+        paymentMint,
+        maxExpiration
       );
     transaction.add(timeInvalidatorIx);
     transaction.add(
@@ -673,18 +684,17 @@ export const withExtendExpiration = async (
   tokenManagerId: PublicKey,
   paymentAmount: number
 ): Promise<Transaction> => {
-  const tokenManagerData = await tokenManager.accounts.getTokenManager(
-    connection,
-    tokenManagerId
-  );
   const [timeInvalidatorId] =
     await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
+  const timeInvalidatorData = await tryGetAccount(() =>
+    timeInvalidator.accounts.getTimeInvalidator(connection, timeInvalidatorId)
+  );
 
-  if (tokenManagerData.parsed.paymentMint) {
+  if (timeInvalidatorData && timeInvalidatorData.parsed.paymentMint) {
     const paymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
-      tokenManagerData.parsed.paymentMint,
+      timeInvalidatorData.parsed.paymentMint,
       tokenManagerId,
       wallet.publicKey,
       true
@@ -693,10 +703,11 @@ export const withExtendExpiration = async (
     const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
-      tokenManagerData.parsed.paymentMint,
+      timeInvalidatorData.parsed.paymentMint,
       wallet.publicKey,
       wallet.publicKey
     );
+
     transaction.add(
       timeInvalidator.instruction.extendExpiration(
         connection,

@@ -18,4 +18,6 @@ pub enum ErrorCode {
     InvalidTimeInvalidator,
     #[msg("Invalid instruction")]
     InvalidInstruction,
+    #[msg("Max expiration exceeded")]
+    InvalidExtendExpiration,
 }

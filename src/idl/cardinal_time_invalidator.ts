@@ -28,12 +28,10 @@ export type CardinalTimeInvalidator = {
       ];
       args: [
         {
-          name: "duration";
-          type: "i64";
-        },
-        {
-          name: "startOnInit";
-          type: "bool";
+          name: "ix";
+          type: {
+            defined: "InitIx";
+          };
         }
       ];
     },
@@ -143,11 +141,31 @@ export type CardinalTimeInvalidator = {
           },
           {
             name: "duration";
-            type: "i64";
+            type: {
+              option: "i64";
+            };
+          }
+        ];
+      };
+    }
+  ];
+  types: [
+    {
+      name: "InitIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "duration";
+            type: {
+              option: "i64";
+            };
           },
           {
-            name: "startOnInit";
-            type: "bool";
+            name: "expiration";
+            type: {
+              option: "i64";
+            };
           }
         ];
       };
@@ -161,8 +179,8 @@ export type CardinalTimeInvalidator = {
     },
     {
       code: 301;
-      name: "InvalidIssuerTokenAccount";
-      msg: "Token account not owned by the issuer";
+      name: "InvalidIssuer";
+      msg: "Invalid issuer";
     },
     {
       code: 302;
@@ -178,6 +196,11 @@ export type CardinalTimeInvalidator = {
       code: 304;
       name: "InvalidTimeInvalidator";
       msg: "Invalid time invalidator";
+    },
+    {
+      code: 305;
+      name: "InvalidInstruction";
+      msg: "Invalid instruction";
     }
   ];
 };
@@ -212,12 +235,10 @@ export const IDL: CardinalTimeInvalidator = {
       ],
       args: [
         {
-          name: "duration",
-          type: "i64",
-        },
-        {
-          name: "startOnInit",
-          type: "bool",
+          name: "ix",
+          type: {
+            defined: "InitIx",
+          },
         },
       ],
     },
@@ -327,11 +348,31 @@ export const IDL: CardinalTimeInvalidator = {
           },
           {
             name: "duration",
-            type: "i64",
+            type: {
+              option: "i64",
+            },
+          },
+        ],
+      },
+    },
+  ],
+  types: [
+    {
+      name: "InitIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "duration",
+            type: {
+              option: "i64",
+            },
           },
           {
-            name: "startOnInit",
-            type: "bool",
+            name: "expiration",
+            type: {
+              option: "i64",
+            },
           },
         ],
       },
@@ -345,8 +386,8 @@ export const IDL: CardinalTimeInvalidator = {
     },
     {
       code: 301,
-      name: "InvalidIssuerTokenAccount",
-      msg: "Token account not owned by the issuer",
+      name: "InvalidIssuer",
+      msg: "Invalid issuer",
     },
     {
       code: 302,
@@ -362,6 +403,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 304,
       name: "InvalidTimeInvalidator",
       msg: "Invalid time invalidator",
+    },
+    {
+      code: 305,
+      name: "InvalidInstruction",
+      msg: "Invalid instruction",
     },
   ],
 };

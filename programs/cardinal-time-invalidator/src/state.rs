@@ -7,7 +7,6 @@ pub struct TimeInvalidator {
     pub bump: u8,
     pub expiration: Option<i64>,
     pub token_manager: Pubkey,
-    pub duration: i64,
-    pub start_on_init: bool,
+    pub duration: Option<i64>,
     // TODO extendability
 }

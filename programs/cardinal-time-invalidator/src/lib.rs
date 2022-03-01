@@ -10,8 +10,8 @@ declare_id!("tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE");
 pub mod cardinal_time_invalidator {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, duration: i64, start_on_init: bool) -> ProgramResult {
-        init::handler(ctx, duration, start_on_init)
+    pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> ProgramResult {
+        init::handler(ctx, ix)
     }
 
     pub fn set_expiration(ctx: Context<SetExpirationCtx>) -> ProgramResult {

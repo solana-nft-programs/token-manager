@@ -23,9 +23,9 @@ import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 export type IssueParameters = {
   paymentAmount?: number;
   paymentMint?: PublicKey;
-  expiration?: {
-    duration: number;
-    startOnInit?: boolean;
+  timeInvalidation?: {
+    duration?: number;
+    expiration?: number;
   };
   usages?: number;
   mint: PublicKey;
@@ -54,7 +54,7 @@ export const withIssueToken = async (
   {
     paymentAmount,
     paymentMint,
-    expiration,
+    timeInvalidation,
     usages,
     mint,
     amount = new BN(1),
@@ -71,7 +71,7 @@ export const withIssueToken = async (
     wallet,
     mint,
     issuerTokenAccountId,
-    usages && expiration ? 2 : usages || expiration ? 1 : 0
+    usages && timeInvalidation ? 2 : usages || timeInvalidation ? 1 : 0
   );
   transaction.add(tokenManagerIx);
 
@@ -126,15 +126,15 @@ export const withIssueToken = async (
   //////////////////////////////
   /////// time invalidator /////
   //////////////////////////////
-  if (expiration) {
-    const { duration, startOnInit } = expiration;
+  if (timeInvalidation) {
+    const { duration, expiration } = timeInvalidation;
     const [timeInvalidatorIx, timeInvalidatorId] =
       await timeInvalidator.instruction.init(
         connection,
         wallet,
         tokenManagerId,
-        duration,
-        startOnInit
+        expiration,
+        duration
       );
     transaction.add(timeInvalidatorIx);
     transaction.add(
@@ -517,9 +517,10 @@ export const withInvalidate = async (
     timeInvalidatorData &&
     ((timeInvalidatorData.parsed.expiration &&
       timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
-      tokenManagerData.parsed.stateChangedAt
-        .add(timeInvalidatorData.parsed.duration)
-        .lte(new BN(Date.now() / 1000)))
+      (timeInvalidatorData.parsed.duration &&
+        tokenManagerData.parsed.stateChangedAt
+          .add(timeInvalidatorData.parsed.duration)
+          .lte(new BN(Date.now() / 1000))))
   ) {
     transaction.add(
       await timeInvalidator.instruction.invalidate(

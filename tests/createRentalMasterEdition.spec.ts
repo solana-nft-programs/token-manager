@@ -120,8 +120,10 @@ describe("Master editions", () => {
       provider.connection,
       provider.wallet,
       {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
+        claimPayment: {
+          paymentAmount: RENTAL_PAYMENT_AMONT,
+          paymentMint: paymentMint.publicKey,
+        },
         timeInvalidation: { expiration: Date.now() / 1000 + 1 },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,

@@ -28,6 +28,10 @@ export type CardinalPaidClaimApprover = {
       ];
       args: [
         {
+          name: "paymentMint";
+          type: "publicKey";
+        },
+        {
           name: "paymentAmount";
           type: "u64";
         }
@@ -98,6 +102,14 @@ export type CardinalPaidClaimApprover = {
           {
             name: "paymentAmount";
             type: "u64";
+          },
+          {
+            name: "paymentMint";
+            type: "publicKey";
+          },
+          {
+            name: "tokenManager";
+            type: "publicKey";
           }
         ];
       };
@@ -151,6 +163,10 @@ export const IDL: CardinalPaidClaimApprover = {
         },
       ],
       args: [
+        {
+          name: "paymentMint",
+          type: "publicKey",
+        },
         {
           name: "paymentAmount",
           type: "u64",
@@ -222,6 +238,14 @@ export const IDL: CardinalPaidClaimApprover = {
           {
             name: "paymentAmount",
             type: "u64",
+          },
+          {
+            name: "paymentMint",
+            type: "publicKey",
+          },
+          {
+            name: "tokenManager",
+            type: "publicKey",
           },
         ],
       },

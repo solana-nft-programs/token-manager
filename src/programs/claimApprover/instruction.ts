@@ -14,12 +14,18 @@ import type { CLAIM_APPROVER_PROGRAM } from "./constants";
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
 import { findClaimApproverAddress } from "./pda";
 
+export type ClaimApproverParams = {
+  paymentMint: PublicKey;
+  paymentAmount: number;
+};
+
 export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentAmount: number
+  claimApproverParams: ClaimApproverParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
+  const { paymentMint, paymentAmount } = claimApproverParams;
   const provider = new Provider(connection, wallet, {});
 
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
@@ -33,7 +39,7 @@ export const init = async (
   );
 
   return [
-    claimApproverProgram.instruction.init(new BN(paymentAmount), {
+    claimApproverProgram.instruction.init(paymentMint, new BN(paymentAmount), {
       accounts: {
         tokenManager: tokenManagerId,
         claimApprover: claimApproverId,

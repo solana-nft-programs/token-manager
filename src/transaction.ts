@@ -15,6 +15,7 @@ import {
   tokenManager,
   useInvalidator,
 } from "./programs";
+import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
 import { withRemainingAccountsForReturn } from "./programs/tokenManager/utils";
@@ -23,14 +24,7 @@ import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 export type IssueParameters = {
   paymentAmount?: number;
   paymentMint?: PublicKey;
-  timeInvalidation?: {
-    durationSeconds?: number;
-    expiration?: number;
-    extensionPaymentAmount?: number;
-    extensionDurationSeconds?: number;
-    paymentMint?: PublicKey;
-    maxExpiration?: number;
-  };
+  timeInvalidation?: TimeInvalidationParams;
   usages?: number;
   mint: PublicKey;
   amount?: BN;
@@ -131,25 +125,12 @@ export const withIssueToken = async (
   /////// time invalidator /////
   //////////////////////////////
   if (timeInvalidation) {
-    const {
-      durationSeconds,
-      expiration,
-      extensionPaymentAmount,
-      extensionDurationSeconds,
-      paymentMint,
-      maxExpiration,
-    } = timeInvalidation;
     const [timeInvalidatorIx, timeInvalidatorId] =
       await timeInvalidator.instruction.init(
         connection,
         wallet,
         tokenManagerId,
-        expiration,
-        durationSeconds,
-        extensionPaymentAmount,
-        extensionDurationSeconds,
-        paymentMint,
-        maxExpiration
+        timeInvalidation
       );
     transaction.add(timeInvalidatorIx);
     transaction.add(

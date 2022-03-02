@@ -19,16 +19,22 @@ import type { TIME_INVALIDATOR_PROGRAM } from "./constants";
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
 import { findTimeInvalidatorAddress } from "./pda";
 
+export type TimeInvalidationParams = {
+  expiration?: number;
+  durationSeconds?: number;
+  extension?: {
+    extensionPaymentAmount: number;
+    extensionDurationSeconds: number;
+    paymentMint: PublicKey;
+    maxExpiration: number;
+  };
+};
+
 export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  expiration?: number,
-  durationSeconds?: number,
-  extensionPaymentAmount?: number,
-  extensionDurationSeconds?: number,
-  paymentMint?: PublicKey,
-  maxExpiration?: number
+  timeInvalidation: TimeInvalidationParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -41,27 +47,31 @@ export const init = async (
   const [timeInvalidatorId, _timeInvalidatorBump] =
     await findTimeInvalidatorAddress(tokenManagerId);
 
-  if (!extensionPaymentAmount || !extensionDurationSeconds || !paymentMint) {
-    extensionPaymentAmount = undefined;
-    extensionDurationSeconds = undefined;
-    paymentMint = undefined;
-  }
-
   return [
     timeInvalidatorProgram.instruction.init(
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       {
-        durationSeconds: durationSeconds ? new BN(durationSeconds) : null,
-        expiration: expiration ? new BN(expiration) : null,
-        extensionPaymentAmount: extensionPaymentAmount
-          ? new BN(extensionPaymentAmount)
+        expiration: timeInvalidation.expiration
+          ? new BN(timeInvalidation.expiration)
           : null,
-        extensionDurationSeconds: extensionDurationSeconds
-          ? new BN(extensionDurationSeconds)
+        durationSeconds: timeInvalidation.durationSeconds
+          ? new BN(timeInvalidation.durationSeconds)
           : null,
-        paymentMint: paymentMint ? paymentMint : null,
-        maxExpiration: maxExpiration ? new BN(maxExpiration) : null,
+        extensionPaymentAmount: timeInvalidation.extension
+          ?.extensionPaymentAmount
+          ? new BN(timeInvalidation.extension?.extensionPaymentAmount)
+          : null,
+        extensionDurationSeconds: timeInvalidation.extension
+          ?.extensionDurationSeconds
+          ? new BN(timeInvalidation.extension?.extensionDurationSeconds)
+          : null,
+        paymentMint: timeInvalidation.extension?.paymentMint
+          ? timeInvalidation.extension?.paymentMint
+          : null,
+        maxExpiration: timeInvalidation.extension?.maxExpiration
+          ? new BN(timeInvalidation.extension?.maxExpiration)
+          : null,
       },
       {
         accounts: {

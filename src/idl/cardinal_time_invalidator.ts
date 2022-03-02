@@ -305,6 +305,11 @@ export type CardinalTimeInvalidator = {
       code: 6008;
       name: "InvalidExtendExpiration";
       msg: "Max expiration exceeded";
+    },
+    {
+      code: 6009;
+      name: "InvalidPaymentMint";
+      msg: "Invalid payment mint on time invalidator";
     }
   ];
 };
@@ -616,6 +621,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6008,
       name: "InvalidExtendExpiration",
       msg: "Max expiration exceeded",
+    },
+    {
+      code: 6009,
+      name: "InvalidPaymentMint",
+      msg: "Invalid payment mint on time invalidator",
     },
   ],
 };

@@ -23,7 +23,7 @@ pub struct InvalidateCtx<'info> {
     recipient_token_account: Box<Account<'info, TokenAccount>>,
 
     // invalidator
-    #[account(mut, constraint = token_manager.invalidators.contains(&invalidator.key()) @ ErrorCode::InvalidInvalidator)]
+    #[account(mut)]
     invalidator: Signer<'info>,
     
     token_program: Program<'info, Token>,

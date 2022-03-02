@@ -1,4 +1,4 @@
-import { Program, Provider } from "@project-serum/anchor";
+import { BorshAccountsCoder, Program, Provider } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
@@ -67,4 +67,30 @@ export const getClaimApprovers = async (
     parsed: tm,
     pubkey: claimApproverIds[i],
   }));
+};
+
+export const getAllClaimApprovers = async (
+  connection: Connection
+): Promise<AccountData<PaidClaimApproverData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    CLAIM_APPROVER_ADDRESS
+  );
+
+  const claimApprovers: AccountData<PaidClaimApproverData>[] = [];
+  const coder = new BorshAccountsCoder(CLAIM_APPROVER_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const timeInvalidatorData: PaidClaimApproverData = coder.decode(
+        "paidClaimApprover",
+        account.account.data
+      );
+      claimApprovers.push({
+        ...account,
+        parsed: timeInvalidatorData,
+      });
+    } catch (e) {
+      console.log(`Failed to decode claim approver data`);
+    }
+  });
+  return claimApprovers;
 };

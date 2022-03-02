@@ -1,5 +1,5 @@
 export type CardinalUseInvalidator = {
-  version: "0.0.0";
+  version: "0.1.1";
   name: "cardinal_use_invalidator";
   instructions: [
     {
@@ -164,27 +164,27 @@ export type CardinalUseInvalidator = {
   ];
   errors: [
     {
-      code: 300;
+      code: 6000;
       name: "InvalidPaymentTokenAccount";
       msg: "Token account not owned by the claim approver";
     },
     {
-      code: 301;
+      code: 6001;
       name: "InvalidTokenAccount";
       msg: "Token account not owned by the issuer";
     },
     {
-      code: 302;
+      code: 6002;
       name: "InvalidUser";
       msg: "User is not permitted to use";
     },
     {
-      code: 303;
+      code: 6003;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
     },
     {
-      code: 304;
+      code: 6004;
       name: "InsufficientUsages";
       msg: "Usages at the maximum";
     }
@@ -192,7 +192,7 @@ export type CardinalUseInvalidator = {
 };
 
 export const IDL: CardinalUseInvalidator = {
-  version: "0.0.0",
+  version: "0.1.1",
   name: "cardinal_use_invalidator",
   instructions: [
     {
@@ -357,27 +357,27 @@ export const IDL: CardinalUseInvalidator = {
   ],
   errors: [
     {
-      code: 300,
+      code: 6000,
       name: "InvalidPaymentTokenAccount",
       msg: "Token account not owned by the claim approver",
     },
     {
-      code: 301,
+      code: 6001,
       name: "InvalidTokenAccount",
       msg: "Token account not owned by the issuer",
     },
     {
-      code: 302,
+      code: 6002,
       name: "InvalidUser",
       msg: "User is not permitted to use",
     },
     {
-      code: 303,
+      code: 6003,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
     },
     {
-      code: 304,
+      code: 6004,
       name: "InsufficientUsages",
       msg: "Usages at the maximum",
     },

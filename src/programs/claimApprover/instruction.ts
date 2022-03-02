@@ -80,3 +80,26 @@ export const pay = async (
     },
   });
 };
+
+export const close = (
+  connection: Connection,
+  wallet: Wallet,
+  claimApproverId: PublicKey,
+  tokenManagerId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+
+  const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
+    CLAIM_APPROVER_IDL,
+    CLAIM_APPROVER_ADDRESS,
+    provider
+  );
+
+  return claimApproverProgram.instruction.close({
+    accounts: {
+      tokenManager: tokenManagerId,
+      claimApprover: claimApproverId,
+      closer: wallet.publicKey,
+    },
+  });
+};

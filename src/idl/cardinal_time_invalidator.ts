@@ -1,5 +1,5 @@
 export type CardinalTimeInvalidator = {
-  version: "0.0.0";
+  version: "0.2.4";
   name: "cardinal_time_invalidator";
   instructions: [
     {
@@ -125,22 +125,22 @@ export type CardinalTimeInvalidator = {
   ];
   errors: [
     {
-      code: 300;
+      code: 6000;
       name: "InvalidPaymentTokenAccount";
       msg: "Token account not owned by the claim approver";
     },
     {
-      code: 301;
+      code: 6001;
       name: "InvalidIssuerTokenAccount";
       msg: "Token account not owned by the issuer";
     },
     {
-      code: 302;
+      code: 6002;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
     },
     {
-      code: 303;
+      code: 6003;
       name: "InvalidExpiration";
       msg: "Expiration has not passed yet";
     }
@@ -148,7 +148,7 @@ export type CardinalTimeInvalidator = {
 };
 
 export const IDL: CardinalTimeInvalidator = {
-  version: "0.0.0",
+  version: "0.2.4",
   name: "cardinal_time_invalidator",
   instructions: [
     {
@@ -274,22 +274,22 @@ export const IDL: CardinalTimeInvalidator = {
   ],
   errors: [
     {
-      code: 300,
+      code: 6000,
       name: "InvalidPaymentTokenAccount",
       msg: "Token account not owned by the claim approver",
     },
     {
-      code: 301,
+      code: 6001,
       name: "InvalidIssuerTokenAccount",
       msg: "Token account not owned by the issuer",
     },
     {
-      code: 302,
+      code: 6002,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
     },
     {
-      code: 303,
+      code: 6003,
       name: "InvalidExpiration",
       msg: "Expiration has not passed yet",
     },

@@ -27,7 +27,7 @@ pub fn handler(ctx: Context<CloseCtx>) -> ProgramResult {
         if token_manager.state == TokenManagerState::Initialized as u8 && ctx.accounts.closer.key() == token_manager.issuer {
             ctx.accounts.time_invalidator.close(ctx.accounts.closer.to_account_info())?;
         }
-        if token_manager.state == TokenManagerState::Invalidated as u8 && token_manager.invalidation_type != InvalidationType::Invalidate as u8 {
+        if token_manager.state == TokenManagerState::Invalidated as u8 {
             ctx.accounts.time_invalidator.close(ctx.accounts.closer.to_account_info())?;
         }
     }

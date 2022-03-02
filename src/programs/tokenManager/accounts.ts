@@ -74,21 +74,23 @@ export const getTokenManagers = async (
 
 export const getAllIssuedTokenManagersByState = async (
   connection: Connection,
-  state: TokenManagerState
+  state: TokenManagerState | null
 ): Promise<AccountData<TokenManagerData>[]> => {
   const programAccounts = await connection.getProgramAccounts(
     TOKEN_MANAGER_ADDRESS,
     {
-      filters: [
-        {
-          memcmp: {
-            offset: 92,
-            bytes: utils.bytes.bs58.encode(
-              new BN(state).toArrayLike(Buffer, "le", 1)
-            ),
-          },
-        },
-      ],
+      filters: state
+        ? [
+            {
+              memcmp: {
+                offset: 92,
+                bytes: utils.bytes.bs58.encode(
+                  new BN(state).toArrayLike(Buffer, "le", 1)
+                ),
+              },
+            },
+          ]
+        : [],
     }
   );
 

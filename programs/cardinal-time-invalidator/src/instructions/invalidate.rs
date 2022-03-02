@@ -9,7 +9,7 @@ pub struct InvalidateCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut, constraint = Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration @ ErrorCode::InvalidExpiration)]
+    #[account(mut)]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
     #[account(mut)]

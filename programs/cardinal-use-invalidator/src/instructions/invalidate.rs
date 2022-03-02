@@ -17,13 +17,17 @@ pub struct InvalidateCtx<'info> {
 
     // programs
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     token_program: UncheckedAccount<'info>,
 
     // cpi accounts
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     token_manager_token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     mint: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
 }

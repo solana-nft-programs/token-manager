@@ -20,18 +20,24 @@ pub struct ClaimCtx<'info> {
     )]
     receipt_marker: Box<Account<'info, ReceiptMarker>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_marker_token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_token_manager: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_token_manager_token_account: UncheckedAccount<'info>,
     #[account(mut)]
     receipt_mint: Signer<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_mint_metadata: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_mint_master_edition: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
 
@@ -44,6 +50,7 @@ pub struct ClaimCtx<'info> {
     token_program: Program<'info, Token>,
     associated_token: Program<'info, AssociatedToken>,
     system_program: Program<'info, System>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(address = mpl_token_metadata::id())]
     token_metadata_program: UncheckedAccount<'info>,
     rent: Sysvar<'info, Rent>,

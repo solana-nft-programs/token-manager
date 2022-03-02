@@ -30,6 +30,7 @@ pub struct PayCtx<'info> {
     )]
     payer_token_account: Box<Account<'info, TokenAccount>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     claim_receipt: UncheckedAccount<'info>,
     cardinal_token_manager: Program<'info, CardinalTokenManager>,

@@ -6,6 +6,7 @@ use {
 
 #[derive(Accounts)]
 pub struct InvalidateCtx<'info> {
+    /// CHECK: This is not dangerous because we don't read or write from this account
     token_manager: UncheckedAccount<'info>,
 
     #[account(
@@ -19,10 +20,15 @@ pub struct InvalidateCtx<'info> {
 
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
     // cpi accounts
+    /// CHECK: This is not dangerous because we don't read or write from this account
     receipt_token_manager_token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     receipt_marker_token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     receipt_mint: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     recipient_token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     token_program: UncheckedAccount<'info>,
 }
 

@@ -6,6 +6,7 @@ use {
 
 #[derive(Accounts)]
 pub struct CloseCtx<'info> {
+    /// CHECK: This is not dangerous because we expect it to potentially be empty
     token_manager: UncheckedAccount<'info>,
 
     #[account(

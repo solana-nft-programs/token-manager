@@ -26,7 +26,7 @@ export type TimeInvalidationParams = {
     extensionPaymentAmount: number;
     extensionDurationSeconds: number;
     paymentMint: PublicKey;
-    maxExpiration: number;
+    maxExpiration?: number;
   };
 };
 

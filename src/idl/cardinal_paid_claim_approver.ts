@@ -87,6 +87,27 @@ export type CardinalPaidClaimApprover = {
         }
       ];
       args: [];
+    },
+    {
+      name: "close";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "claimApprover";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "closer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -220,6 +241,27 @@ export const IDL: CardinalPaidClaimApprover = {
           name: "systemProgram",
           isMut: false,
           isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "close",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "claimApprover",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "closer",
+          isMut: true,
+          isSigner: true,
         },
       ],
       args: [],

@@ -17,4 +17,8 @@ pub mod cardinal_paid_claim_approver {
     pub fn pay(ctx: Context<PayCtx>) -> ProgramResult {
         pay::handler(ctx)
     }
+
+    pub fn close(ctx: Context<CloseCtx>) -> ProgramResult {
+        close::handler(ctx)
+    }
 }

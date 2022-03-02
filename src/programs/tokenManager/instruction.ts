@@ -10,6 +10,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import type {
+  AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
@@ -17,6 +18,7 @@ import type {
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import { findAta } from "../..";
+import { getRemainingAccountsForPayment, TokenManagerState } from ".";
 import type {
   InvalidationType,
   TOKEN_MANAGER_PROGRAM,
@@ -395,5 +397,53 @@ export const claimReceiptMint = async (
       tokenMetadataProgram: MetadataProgram.PUBKEY,
       rent: SYSVAR_RENT_PUBKEY,
     },
+  });
+};
+
+export const invalidate = async (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  tokenManagerId: PublicKey,
+  tokenManagerKind: TokenManagerKind,
+  tokenManagerState: TokenManagerState,
+  tokenManagerTokenAccountId: PublicKey,
+  recipientTokenAccountId: PublicKey,
+  returnAccounts: AccountMeta[],
+  issuerPaymentMintTokenAccountId?: PublicKey | null,
+  tokenManagerPaymentMint?: PublicKey | null
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [paymentAccounts, transferAccounts] = await Promise.all([
+    getRemainingAccountsForPayment(
+      tokenManagerId,
+      issuerPaymentMintTokenAccountId,
+      tokenManagerPaymentMint
+    ),
+    getRemainingAccountsForKind(mintId, tokenManagerKind),
+  ]);
+
+  return tokenManagerProgram.instruction.invalidate({
+    accounts: {
+      tokenManager: tokenManagerId,
+      invalidator: wallet.publicKey,
+      tokenManagerTokenAccount: tokenManagerTokenAccountId,
+      mint: mintId,
+      recipientTokenAccount: recipientTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    },
+    remainingAccounts: [
+      ...paymentAccounts,
+      ...(tokenManagerState === TokenManagerState.Claimed
+        ? transferAccounts
+        : []),
+      ...returnAccounts,
+    ],
   });
 };

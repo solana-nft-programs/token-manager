@@ -52,7 +52,7 @@ pub fn handler(ctx: Context<PayCtx>) -> ProgramResult {
     let claim_approver_seeds = &[PAID_CLAIM_APPROVER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.claim_approver.bump]];
     let claim_approver_signer = &[&claim_approver_seeds[..]];
 
-    // invalidate
+    // approve
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateClaimReceiptCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
         claim_approver: ctx.accounts.claim_approver.to_account_info(),

@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
 };
 
@@ -26,6 +26,6 @@ pub struct CreateTransferReceiptCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(_ctx: Context<CreateTransferReceiptCtx>, _target: Pubkey) -> ProgramResult {
+pub fn handler(_ctx: Context<CreateTransferReceiptCtx>, _target: Pubkey) -> Result<()> {
     return Ok(())
 }

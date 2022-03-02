@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
     anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, ThawAccount, CloseAccount}},
     mpl_token_metadata::{instruction::thaw_delegated_account, utils::{assert_derivation,assert_initialized}},
@@ -29,7 +29,7 @@ pub struct InvalidateCtx<'info> {
     token_program: Program<'info, Token>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     let token_manager = &mut ctx.accounts.token_manager;
     let remaining_accs = &mut ctx.remaining_accounts.iter();
 
@@ -42,16 +42,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let payment_token_account_info = next_account_info(remaining_accs)?;
         let payment_token_account = Account::<TokenAccount>::try_from(payment_token_account_info)?;
 
-        if payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(ErrorCode::PublicKeyMismatch.into()); }
-        if payment_token_account.owner != token_manager.key() { return Err(ErrorCode::PublicKeyMismatch.into()); }
+        if payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
+        if payment_token_account.owner != token_manager.key() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
         // assert_keys_eq!(payment_token_account.mint, token_manager.payment_mint.unwrap());
         // assert_keys_eq!(payment_token_account.owner, token_manager.key());
 
         let issuer_payment_token_account_info = next_account_info(remaining_accs)?;
         let issuer_payment_token_account = Account::<TokenAccount>::try_from(issuer_payment_token_account_info)?;
 
-        if issuer_payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(ErrorCode::PublicKeyMismatch.into()); }
-        if issuer_payment_token_account.owner != token_manager.issuer { return Err(ErrorCode::PublicKeyMismatch.into()); }
+        if issuer_payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
+        if issuer_payment_token_account.owner != token_manager.issuer { return Err(error!(ErrorCode::PublicKeyMismatch)); }
         // assert_keys_eq!(issuer_payment_token_account.mint, token_manager.payment_mint.unwrap());
         // assert_keys_eq!(issuer_payment_token_account.owner, token_manager.issuer);
 
@@ -100,7 +100,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let edition_info = next_account_info(remaining_accs)?;
             let metadata_program = next_account_info(remaining_accs)?;
             // edition will be validated by metadata_program
-            if metadata_program.key() != mpl_token_metadata::id() { return Err(ErrorCode::InvalidMetadataProgramId.into()); }
+            if metadata_program.key() != mpl_token_metadata::id() { return Err(error!(ErrorCode::InvalidMetadataProgramId)); }
             // assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
             
             invoke_signed(
@@ -128,12 +128,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let return_token_account_info = next_account_info(remaining_accs)?;
         let return_token_account: spl_token::state::Account = assert_initialized(return_token_account_info)?;
         if token_manager.receipt_mint == None {
-            if return_token_account.owner != token_manager.issuer { return Err(ErrorCode::InvalidIssuerTokenAccount.into()); }
+            if return_token_account.owner != token_manager.issuer { return Err(error!(ErrorCode::InvalidIssuerTokenAccount)); }
         } else {
             let receipt_token_account_info = next_account_info(remaining_accs)?;
             let receipt_token_account: spl_token::state::Account = assert_initialized(receipt_token_account_info)?;
-            if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) { return Err(ErrorCode::InvalidReceiptMintAccount.into())}
-            if receipt_token_account.owner != return_token_account.owner { return Err(ErrorCode::InvalidReceiptMintOwner.into()); }
+            if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) { return Err(error!(ErrorCode::InvalidReceiptMintAccount))}
+            if receipt_token_account.owner != return_token_account.owner { return Err(error!(ErrorCode::InvalidReceiptMintOwner)); }
         }
 
         // transfer back to issuer

@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{self, Token, TokenAccount, Transfer}},
     cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager},
@@ -30,6 +30,7 @@ pub struct PayCtx<'info> {
     )]
     payer_token_account: Box<Account<'info, TokenAccount>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     claim_receipt: UncheckedAccount<'info>,
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
@@ -38,7 +39,7 @@ pub struct PayCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<PayCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),
         to: ctx.accounts.payment_token_account.to_account_info(),

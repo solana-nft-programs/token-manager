@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     solana_program::{system_instruction::create_account, program_pack::Pack},
     anchor_lang::{prelude::*, solana_program::{program::{invoke_signed, invoke}}},
     cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManagerKind, TokenManager, InvalidationType}, instructions::IssueIx},
@@ -20,18 +20,24 @@ pub struct ClaimCtx<'info> {
     )]
     receipt_marker: Box<Account<'info, ReceiptMarker>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_marker_token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_token_manager: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_token_manager_token_account: UncheckedAccount<'info>,
     #[account(mut)]
     receipt_mint: Signer<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_mint_metadata: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_mint_master_edition: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
 
@@ -44,12 +50,13 @@ pub struct ClaimCtx<'info> {
     token_program: Program<'info, Token>,
     associated_token: Program<'info, AssociatedToken>,
     system_program: Program<'info, System>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(address = mpl_token_metadata::id())]
     token_metadata_program: UncheckedAccount<'info>,
     rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<ClaimCtx>, name: String, kind: u8, invalidation_type: u8) -> ProgramResult {
+pub fn handler(ctx: Context<ClaimCtx>, name: String, kind: u8, invalidation_type: u8) -> Result<()> {
     let token_manager_key = ctx.accounts.token_manager.key();
     let receipt_marker_bump = *ctx.bumps.get("receipt_marker").unwrap();
     let receipt_marker_seeds = &[RECEIPT_MARKER_SEED.as_bytes(), token_manager_key.as_ref(), &[receipt_marker_bump]];
@@ -181,11 +188,11 @@ pub fn handler(ctx: Context<ClaimCtx>, name: String, kind: u8, invalidation_type
 
     if kind != TokenManagerKind::Unmanaged as u8
         && kind != TokenManagerKind::Edition as u8 {
-        return Err(ErrorCode::InvalidTokenManagerKind.into());
+        return Err(error!(ErrorCode::InvalidTokenManagerKind));
     }
     if invalidation_type != InvalidationType::Return as u8
         && invalidation_type != InvalidationType::Invalidate as u8 {
-        return Err(ErrorCode::InvalidInvalidationType.into());
+        return Err(error!(ErrorCode::InvalidInvalidationType));
     }
 
     // create associated token account for token_manager

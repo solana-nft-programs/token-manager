@@ -19,7 +19,7 @@ pub struct InitMintCounterCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitMintCounterCtx>, _mint: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<InitMintCounterCtx>, _mint: Pubkey) -> Result<()> {
     let mint_counter = &mut ctx.accounts.mint_counter;
     mint_counter.bump = *ctx.bumps.get("mint_counter").unwrap();
     mint_counter.count = 0;

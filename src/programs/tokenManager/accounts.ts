@@ -98,7 +98,6 @@ export const getTokenManagersByState = async (
   const coder = new BorshAccountsCoder(TOKEN_MANAGER_IDL);
   programAccounts.forEach((account) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const tokenManagerData: TokenManagerData = coder.decode(
         "tokenManager",
         account.account.data

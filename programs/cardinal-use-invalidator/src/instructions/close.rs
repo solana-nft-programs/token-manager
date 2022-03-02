@@ -6,6 +6,7 @@ use {
 
 #[derive(Accounts)]
 pub struct CloseCtx<'info> {
+    /// CHECK: This is not dangerous because we expect it to potentially be empty
     token_manager: UncheckedAccount<'info>,
 
     #[account(
@@ -18,7 +19,7 @@ pub struct CloseCtx<'info> {
     closer: Signer<'info>,
 }
 
-pub fn handler(ctx: Context<CloseCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<CloseCtx>) -> Result<()> {
     if ctx.accounts.token_manager.data_is_empty() {
         ctx.accounts.use_invalidator.close(ctx.accounts.closer.to_account_info())?;
     } else {

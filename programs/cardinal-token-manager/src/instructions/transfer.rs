@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, FreezeAccount, Approve}}
 };
@@ -39,7 +39,7 @@ pub struct TransferCtx<'info> {
     token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<TransferCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<TransferCtx>) -> Result<()> {
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.recipient_token_account = ctx.accounts.recipient_token_account.key();
 

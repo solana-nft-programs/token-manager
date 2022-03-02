@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
 };
@@ -26,7 +26,7 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, payment_mint: Pubkey, payment_amount: u64) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, payment_mint: Pubkey, payment_amount: u64) -> Result<()> {
     let claim_approver = &mut ctx.accounts.claim_approver;
     claim_approver.bump = *ctx.bumps.get("claim_approver").unwrap();
     claim_approver.payment_amount = payment_amount;

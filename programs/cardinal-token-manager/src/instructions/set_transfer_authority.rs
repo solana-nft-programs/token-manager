@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
 };
 
@@ -13,7 +13,7 @@ pub struct SetTransferAuthorityCtx<'info> {
     issuer: Signer<'info>
 }
 
-pub fn handler(ctx: Context<SetTransferAuthorityCtx>, transfer_authority: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<SetTransferAuthorityCtx>, transfer_authority: Pubkey) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.transfer_authority = Some(transfer_authority);

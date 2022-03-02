@@ -136,21 +136,23 @@ export type CardinalPaidClaimApprover = {
       };
     }
   ];
-  errors: [
+  types: [
     {
-      code: 6000;
-      name: "InvalidPaymentTokenAccount";
-      msg: "Token account not owned by the claim approver";
-    },
-    {
-      code: 6001;
-      name: "InvalidPayerTokenAccount";
-      msg: "Token account not owned by the payer";
-    },
-    {
-      code: 6002;
-      name: "InvalidTokenManager";
-      msg: "Invalid token manager for this claim approver";
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount";
+          },
+          {
+            name: "InvalidPayerTokenAccount";
+          },
+          {
+            name: "InvalidTokenManager";
+          }
+        ];
+      };
     }
   ];
 };
@@ -293,21 +295,23 @@ export const IDL: CardinalPaidClaimApprover = {
       },
     },
   ],
-  errors: [
+  types: [
     {
-      code: 6000,
-      name: "InvalidPaymentTokenAccount",
-      msg: "Token account not owned by the claim approver",
-    },
-    {
-      code: 6001,
-      name: "InvalidPayerTokenAccount",
-      msg: "Token account not owned by the payer",
-    },
-    {
-      code: 6002,
-      name: "InvalidTokenManager",
-      msg: "Invalid token manager for this claim approver",
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount",
+          },
+          {
+            name: "InvalidPayerTokenAccount",
+          },
+          {
+            name: "InvalidTokenManager",
+          },
+        ],
+      },
     },
   ],
 };

@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
 };
 
@@ -13,7 +13,7 @@ pub struct SetClaimApproverCtx<'info> {
     issuer: Signer<'info>
 }
 
-pub fn handler(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.claim_approver = Some(claim_approver);

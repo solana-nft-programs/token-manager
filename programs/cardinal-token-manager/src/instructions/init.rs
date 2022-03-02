@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{TokenAccount}}
 };
@@ -29,9 +29,9 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> Result<()> {
     if num_invalidators > MAX_INVALIDATORS {
-        return Err(ErrorCode::InvalidIssuerTokenAccount.into());
+        return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
     }
 
     let token_manager = &mut ctx.accounts.token_manager;

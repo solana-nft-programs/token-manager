@@ -162,31 +162,29 @@ export type CardinalUseInvalidator = {
       };
     }
   ];
-  errors: [
+  types: [
     {
-      code: 6000;
-      name: "InvalidPaymentTokenAccount";
-      msg: "Token account not owned by the claim approver";
-    },
-    {
-      code: 6001;
-      name: "InvalidTokenAccount";
-      msg: "Token account not owned by the issuer";
-    },
-    {
-      code: 6002;
-      name: "InvalidUser";
-      msg: "User is not permitted to use";
-    },
-    {
-      code: 6003;
-      name: "InvalidTokenManager";
-      msg: "Invalid token manager for this claim approver";
-    },
-    {
-      code: 6004;
-      name: "InsufficientUsages";
-      msg: "Usages at the maximum";
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount";
+          },
+          {
+            name: "InvalidTokenAccount";
+          },
+          {
+            name: "InvalidUser";
+          },
+          {
+            name: "InvalidTokenManager";
+          },
+          {
+            name: "InsufficientUsages";
+          }
+        ];
+      };
     }
   ];
 };
@@ -355,31 +353,29 @@ export const IDL: CardinalUseInvalidator = {
       },
     },
   ],
-  errors: [
+  types: [
     {
-      code: 6000,
-      name: "InvalidPaymentTokenAccount",
-      msg: "Token account not owned by the claim approver",
-    },
-    {
-      code: 6001,
-      name: "InvalidTokenAccount",
-      msg: "Token account not owned by the issuer",
-    },
-    {
-      code: 6002,
-      name: "InvalidUser",
-      msg: "User is not permitted to use",
-    },
-    {
-      code: 6003,
-      name: "InvalidTokenManager",
-      msg: "Invalid token manager for this claim approver",
-    },
-    {
-      code: 6004,
-      name: "InsufficientUsages",
-      msg: "Usages at the maximum",
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount",
+          },
+          {
+            name: "InvalidTokenAccount",
+          },
+          {
+            name: "InvalidUser",
+          },
+          {
+            name: "InvalidTokenManager",
+          },
+          {
+            name: "InsufficientUsages",
+          },
+        ],
+      },
     },
   ],
 };

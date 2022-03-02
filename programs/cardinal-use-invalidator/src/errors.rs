@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-#[error]
+#[error_code]
 pub enum ErrorCode {
     #[msg("Token account not owned by the claim approver")]
     InvalidPaymentTokenAccount,

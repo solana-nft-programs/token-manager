@@ -21,7 +21,7 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, max_usages: Option<u64>) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, max_usages: Option<u64>) -> Result<()> {
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     use_invalidator.bump = *ctx.bumps.get("use_invalidator").unwrap();
     use_invalidator.usages = 0;

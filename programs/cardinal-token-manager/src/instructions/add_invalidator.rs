@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
 };
 
@@ -13,11 +13,11 @@ pub struct AddInvalidatorCtx<'info> {
     issuer: Signer<'info>
 }
 
-pub fn handler(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     if token_manager.invalidators.len() as u8 >= token_manager.num_invalidators {
-        return Err(ErrorCode::InvalidIssuerTokenAccount.into());
+        return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
     }
 
     token_manager.invalidators.push(invalidator);

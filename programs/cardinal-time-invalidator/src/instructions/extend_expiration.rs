@@ -1,5 +1,5 @@
 use {
-  crate::{errors::*, state::*},
+  crate::{errors::ErrorCode, state::*},
   anchor_lang::prelude::*,
   anchor_spl::token::{self, Token, TokenAccount, Transfer},
   cardinal_token_manager::state::{TokenManager, TokenManagerState},
@@ -33,7 +33,7 @@ pub struct ExtendExpirationCtx<'info> {
   token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> ProgramResult {
+pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result<()> {
   let time_invalidator = &mut ctx.accounts.time_invalidator;
 
   if time_invalidator.extension_payment_amount == None
@@ -41,7 +41,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Progra
     || time_invalidator.payment_mint == None
     || time_invalidator.max_expiration == None
   {
-    return Err(ErrorCode::InvalidTimeInvalidator.into());
+    return Err(error!(ErrorCode::InvalidTimeInvalidator));
   }
 
   let time_to_add = payment_amount * time_invalidator.extension_duration_seconds.unwrap()
@@ -49,7 +49,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Progra
   let new_expiration = Some(time_invalidator.expiration.unwrap() + time_to_add as i64);
 
   if time_invalidator.max_expiration != None && new_expiration > time_invalidator.max_expiration {
-    return Err(ErrorCode::InvalidExtendExpiration.into());
+    return Err(error!(ErrorCode::InvalidExtendExpiration));
   }
 
   let cpi_accounts = Transfer {

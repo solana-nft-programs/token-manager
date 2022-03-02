@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
 };
 
@@ -13,7 +13,7 @@ pub struct SetPaymentMintCtx<'info> {
     issuer: Signer<'info>
 }
 
-pub fn handler(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> ProgramResult {
+pub fn handler(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.payment_mint = Some(payment_mint);

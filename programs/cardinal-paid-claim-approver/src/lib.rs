@@ -10,15 +10,15 @@ declare_id!("pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR");
 pub mod cardinal_paid_claim_approver {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, payment_mint: Pubkey, payment_amount: u64) -> ProgramResult {
+    pub fn init(ctx: Context<InitCtx>, payment_mint: Pubkey, payment_amount: u64) -> Result<()> {
         init::handler(ctx, payment_mint, payment_amount)
     }
 
-    pub fn pay(ctx: Context<PayCtx>) -> ProgramResult {
+    pub fn pay(ctx: Context<PayCtx>) -> Result<()> {
         pay::handler(ctx)
     }
 
-    pub fn close(ctx: Context<CloseCtx>) -> ProgramResult {
+    pub fn close(ctx: Context<CloseCtx>) -> Result<()> {
         close::handler(ctx)
     }
 }

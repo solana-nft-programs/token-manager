@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*}
 };
 use spl_token::instruction::AuthorityType;
@@ -26,7 +26,7 @@ pub struct CreateMintManagerCtx<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<CreateMintManagerCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
     // set mint manager data
     let mint_manager = &mut ctx.accounts.mint_manager;
     mint_manager.initializer = ctx.accounts.freeze_authority.key();

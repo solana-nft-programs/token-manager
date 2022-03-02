@@ -1,5 +1,5 @@
 export type CardinalTimeInvalidator = {
-  version: "0.0.0";
+  version: "0.2.5";
   name: "cardinal_time_invalidator";
   instructions: [
     {
@@ -28,8 +28,67 @@ export type CardinalTimeInvalidator = {
       ];
       args: [
         {
-          name: "expiration";
-          type: "i64";
+          name: "ix";
+          type: {
+            defined: "InitIx";
+          };
+        }
+      ];
+    },
+    {
+      name: "setExpiration";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "extendExpiration";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "paymentTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "payerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "paymentAmount";
+          type: "u64";
         }
       ];
     },
@@ -113,11 +172,89 @@ export type CardinalTimeInvalidator = {
           },
           {
             name: "expiration";
-            type: "i64";
+            type: {
+              option: "i64";
+            };
           },
           {
             name: "tokenManager";
             type: "publicKey";
+          },
+          {
+            name: "durationSeconds";
+            type: {
+              option: "i64";
+            };
+          },
+          {
+            name: "extensionPaymentAmount";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "extensionDurationSeconds";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "paymentMint";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "maxExpiration";
+            type: {
+              option: "i64";
+            };
+          }
+        ];
+      };
+    }
+  ];
+  types: [
+    {
+      name: "InitIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "durationSeconds";
+            type: {
+              option: "i64";
+            };
+          },
+          {
+            name: "expiration";
+            type: {
+              option: "i64";
+            };
+          },
+          {
+            name: "extensionPaymentAmount";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "extensionDurationSeconds";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "paymentMint";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "maxExpiration";
+            type: {
+              option: "i64";
+            };
           }
         ];
       };
@@ -125,30 +262,60 @@ export type CardinalTimeInvalidator = {
   ];
   errors: [
     {
-      code: 300;
+      code: 6000;
       name: "InvalidPaymentTokenAccount";
       msg: "Token account not owned by the claim approver";
     },
     {
-      code: 301;
-      name: "InvalidIssuerTokenAccount";
+      code: 6001;
+      name: "InvalidIssuer";
+      msg: "Invalid issuer";
+    },
+    {
+      code: 6002;
+      name: "InvalidPayerTokenAccount";
       msg: "Token account not owned by the issuer";
     },
     {
-      code: 302;
+      code: 6003;
+      name: "InvalidIssuerTokenAccount";
+      msg: "Invalid token manager for this claim approver";
+    },
+    {
+      code: 6004;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
     },
     {
-      code: 303;
+      code: 6005;
       name: "InvalidExpiration";
       msg: "Expiration has not passed yet";
+    },
+    {
+      code: 6006;
+      name: "InvalidTimeInvalidator";
+      msg: "Invalid time invalidator";
+    },
+    {
+      code: 6007;
+      name: "InvalidInstruction";
+      msg: "Invalid instruction";
+    },
+    {
+      code: 6008;
+      name: "InvalidExtendExpiration";
+      msg: "Max expiration exceeded";
+    },
+    {
+      code: 6009;
+      name: "InvalidPaymentMint";
+      msg: "Invalid payment mint on time invalidator";
     }
   ];
 };
 
 export const IDL: CardinalTimeInvalidator = {
-  version: "0.0.0",
+  version: "0.2.5",
   name: "cardinal_time_invalidator",
   instructions: [
     {
@@ -177,8 +344,67 @@ export const IDL: CardinalTimeInvalidator = {
       ],
       args: [
         {
-          name: "expiration",
-          type: "i64",
+          name: "ix",
+          type: {
+            defined: "InitIx",
+          },
+        },
+      ],
+    },
+    {
+      name: "setExpiration",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "extendExpiration",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "payerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "paymentAmount",
+          type: "u64",
         },
       ],
     },
@@ -262,11 +488,89 @@ export const IDL: CardinalTimeInvalidator = {
           },
           {
             name: "expiration",
-            type: "i64",
+            type: {
+              option: "i64",
+            },
           },
           {
             name: "tokenManager",
             type: "publicKey",
+          },
+          {
+            name: "durationSeconds",
+            type: {
+              option: "i64",
+            },
+          },
+          {
+            name: "extensionPaymentAmount",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "extensionDurationSeconds",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "paymentMint",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "maxExpiration",
+            type: {
+              option: "i64",
+            },
+          },
+        ],
+      },
+    },
+  ],
+  types: [
+    {
+      name: "InitIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "durationSeconds",
+            type: {
+              option: "i64",
+            },
+          },
+          {
+            name: "expiration",
+            type: {
+              option: "i64",
+            },
+          },
+          {
+            name: "extensionPaymentAmount",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "extensionDurationSeconds",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "paymentMint",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "maxExpiration",
+            type: {
+              option: "i64",
+            },
           },
         ],
       },
@@ -274,24 +578,54 @@ export const IDL: CardinalTimeInvalidator = {
   ],
   errors: [
     {
-      code: 300,
+      code: 6000,
       name: "InvalidPaymentTokenAccount",
       msg: "Token account not owned by the claim approver",
     },
     {
-      code: 301,
-      name: "InvalidIssuerTokenAccount",
+      code: 6001,
+      name: "InvalidIssuer",
+      msg: "Invalid issuer",
+    },
+    {
+      code: 6002,
+      name: "InvalidPayerTokenAccount",
       msg: "Token account not owned by the issuer",
     },
     {
-      code: 302,
+      code: 6003,
+      name: "InvalidIssuerTokenAccount",
+      msg: "Invalid token manager for this claim approver",
+    },
+    {
+      code: 6004,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
     },
     {
-      code: 303,
+      code: 6005,
       name: "InvalidExpiration",
       msg: "Expiration has not passed yet",
+    },
+    {
+      code: 6006,
+      name: "InvalidTimeInvalidator",
+      msg: "Invalid time invalidator",
+    },
+    {
+      code: 6007,
+      name: "InvalidInstruction",
+      msg: "Invalid instruction",
+    },
+    {
+      code: 6008,
+      name: "InvalidExtendExpiration",
+      msg: "Max expiration exceeded",
+    },
+    {
+      code: 6009,
+      name: "InvalidPaymentMint",
+      msg: "Invalid payment mint on time invalidator",
     },
   ],
 };

@@ -68,8 +68,10 @@ describe("Invalidate rentals", () => {
       provider.connection,
       provider.wallet,
       {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
+        claimPayment: {
+          paymentAmount: RENTAL_PAYMENT_AMONT,
+          paymentMint: paymentMint.publicKey,
+        },
         usages: 1,
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
@@ -206,8 +208,10 @@ describe("Invalidate rentals", () => {
       provider.connection,
       provider.wallet,
       {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
+        claimPayment: {
+          paymentAmount: RENTAL_PAYMENT_AMONT,
+          paymentMint: paymentMint.publicKey,
+        },
         usages: 1,
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,

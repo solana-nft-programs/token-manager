@@ -65,8 +65,10 @@ describe("Create and Extend Rental", () => {
       provider.connection,
       provider.wallet,
       {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
+        claimPayment: {
+          paymentAmount: RENTAL_PAYMENT_AMONT,
+          paymentMint: paymentMint.publicKey,
+        },
         timeInvalidation: {
           durationSeconds: 1000,
           extension: {

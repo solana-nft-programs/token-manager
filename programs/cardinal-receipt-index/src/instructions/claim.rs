@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     solana_program::{system_instruction::create_account, program_pack::Pack},
     anchor_lang::{prelude::*, solana_program::{program::{invoke_signed, invoke}}},
     cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManagerKind, TokenManager, InvalidationType}, instructions::IssueIx},
@@ -49,7 +49,7 @@ pub struct ClaimCtx<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<ClaimCtx>, name: String, kind: u8, invalidation_type: u8) -> ProgramResult {
+pub fn handler(ctx: Context<ClaimCtx>, name: String, kind: u8, invalidation_type: u8) -> Result<()> {
     let token_manager_key = ctx.accounts.token_manager.key();
     let receipt_marker_bump = *ctx.bumps.get("receipt_marker").unwrap();
     let receipt_marker_seeds = &[RECEIPT_MARKER_SEED.as_bytes(), token_manager_key.as_ref(), &[receipt_marker_bump]];
@@ -181,11 +181,11 @@ pub fn handler(ctx: Context<ClaimCtx>, name: String, kind: u8, invalidation_type
 
     if kind != TokenManagerKind::Unmanaged as u8
         && kind != TokenManagerKind::Edition as u8 {
-        return Err(ErrorCode::InvalidTokenManagerKind.into());
+        return Err(error!(ErrorCode::InvalidTokenManagerKind));
     }
     if invalidation_type != InvalidationType::Return as u8
         && invalidation_type != InvalidationType::Invalidate as u8 {
-        return Err(ErrorCode::InvalidInvalidationType.into());
+        return Err(error!(ErrorCode::InvalidInvalidationType));
     }
 
     // create associated token account for token_manager

@@ -258,58 +258,44 @@ export type CardinalTimeInvalidator = {
           }
         ];
       };
-    }
-  ];
-  errors: [
-    {
-      code: 6000;
-      name: "InvalidPaymentTokenAccount";
-      msg: "Token account not owned by the claim approver";
     },
     {
-      code: 6001;
-      name: "InvalidIssuer";
-      msg: "Invalid issuer";
-    },
-    {
-      code: 6002;
-      name: "InvalidPayerTokenAccount";
-      msg: "Token account not owned by the issuer";
-    },
-    {
-      code: 6003;
-      name: "InvalidIssuerTokenAccount";
-      msg: "Invalid token manager for this claim approver";
-    },
-    {
-      code: 6004;
-      name: "InvalidTokenManager";
-      msg: "Invalid token manager for this claim approver";
-    },
-    {
-      code: 6005;
-      name: "InvalidExpiration";
-      msg: "Expiration has not passed yet";
-    },
-    {
-      code: 6006;
-      name: "InvalidTimeInvalidator";
-      msg: "Invalid time invalidator";
-    },
-    {
-      code: 6007;
-      name: "InvalidInstruction";
-      msg: "Invalid instruction";
-    },
-    {
-      code: 6008;
-      name: "InvalidExtendExpiration";
-      msg: "Max expiration exceeded";
-    },
-    {
-      code: 6009;
-      name: "InvalidPaymentMint";
-      msg: "Invalid payment mint on time invalidator";
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount";
+          },
+          {
+            name: "InvalidIssuer";
+          },
+          {
+            name: "InvalidPayerTokenAccount";
+          },
+          {
+            name: "InvalidIssuerTokenAccount";
+          },
+          {
+            name: "InvalidTokenManager";
+          },
+          {
+            name: "InvalidExpiration";
+          },
+          {
+            name: "InvalidTimeInvalidator";
+          },
+          {
+            name: "InvalidInstruction";
+          },
+          {
+            name: "InvalidExtendExpiration";
+          },
+          {
+            name: "InvalidPaymentMint";
+          }
+        ];
+      };
     }
   ];
 };
@@ -575,57 +561,43 @@ export const IDL: CardinalTimeInvalidator = {
         ],
       },
     },
-  ],
-  errors: [
     {
-      code: 6000,
-      name: "InvalidPaymentTokenAccount",
-      msg: "Token account not owned by the claim approver",
-    },
-    {
-      code: 6001,
-      name: "InvalidIssuer",
-      msg: "Invalid issuer",
-    },
-    {
-      code: 6002,
-      name: "InvalidPayerTokenAccount",
-      msg: "Token account not owned by the issuer",
-    },
-    {
-      code: 6003,
-      name: "InvalidIssuerTokenAccount",
-      msg: "Invalid token manager for this claim approver",
-    },
-    {
-      code: 6004,
-      name: "InvalidTokenManager",
-      msg: "Invalid token manager for this claim approver",
-    },
-    {
-      code: 6005,
-      name: "InvalidExpiration",
-      msg: "Expiration has not passed yet",
-    },
-    {
-      code: 6006,
-      name: "InvalidTimeInvalidator",
-      msg: "Invalid time invalidator",
-    },
-    {
-      code: 6007,
-      name: "InvalidInstruction",
-      msg: "Invalid instruction",
-    },
-    {
-      code: 6008,
-      name: "InvalidExtendExpiration",
-      msg: "Max expiration exceeded",
-    },
-    {
-      code: 6009,
-      name: "InvalidPaymentMint",
-      msg: "Invalid payment mint on time invalidator",
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount",
+          },
+          {
+            name: "InvalidIssuer",
+          },
+          {
+            name: "InvalidPayerTokenAccount",
+          },
+          {
+            name: "InvalidIssuerTokenAccount",
+          },
+          {
+            name: "InvalidTokenManager",
+          },
+          {
+            name: "InvalidExpiration",
+          },
+          {
+            name: "InvalidTimeInvalidator",
+          },
+          {
+            name: "InvalidInstruction",
+          },
+          {
+            name: "InvalidExtendExpiration",
+          },
+          {
+            name: "InvalidPaymentMint",
+          },
+        ],
+      },
     },
   ],
 };

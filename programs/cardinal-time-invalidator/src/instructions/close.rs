@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*, AccountsClose},
     cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
 };
@@ -16,7 +16,7 @@ pub struct CloseCtx<'info> {
     closer: Signer<'info>,
 }
 
-pub fn handler(ctx: Context<CloseCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<CloseCtx>) -> Result<()> {
     if ctx.accounts.token_manager.data_is_empty() {
         ctx.accounts.time_invalidator.close(ctx.accounts.closer.to_account_info())?;
     } else {

@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*, AccountsClose},
     anchor_spl::{token::{self, Token, TokenAccount, Transfer, CloseAccount}}
 };
@@ -20,7 +20,7 @@ pub struct UnissueCtx<'info> {
     token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<UnissueCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<UnissueCtx>) -> Result<()> {
     let token_manager = &ctx.accounts.token_manager;
         
     // get PDA seeds to sign with

@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{TokenAccount}}
 };
@@ -22,6 +22,6 @@ pub struct UninitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(_ctx: Context<UninitCtx>) -> ProgramResult {
+pub fn handler(_ctx: Context<UninitCtx>) -> Result<()> {
     return Ok(())
 }

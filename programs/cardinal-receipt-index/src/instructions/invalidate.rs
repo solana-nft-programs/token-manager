@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager, TokenManagerState}}, 
 };
@@ -26,7 +26,7 @@ pub struct InvalidateCtx<'info> {
     token_program: UncheckedAccount<'info>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     let token_manager_key = ctx.accounts.token_manager.key();
     let receipt_marker_seeds = &[RECEIPT_MARKER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.receipt_marker.bump]];
     let receipt_marker_signer = &[&receipt_marker_seeds[..]];
@@ -35,7 +35,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if !ctx.accounts.token_manager.data_is_empty() {
         let token_manager = Account::<TokenManager>::try_from(&ctx.accounts.token_manager)?;
         if token_manager.state != TokenManagerState::Initialized as u8 {
-            return Err(ErrorCode::InvalidTokenManager.into())
+            return Err(error!(ErrorCode::InvalidTokenManager))
         }
     }
 

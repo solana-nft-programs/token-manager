@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{self, Token, TokenAccount, Transfer}},
     cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager},
@@ -38,7 +38,7 @@ pub struct PayCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<PayCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),
         to: ctx.accounts.payment_token_account.to_account_info(),

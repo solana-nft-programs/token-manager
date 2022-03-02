@@ -1,5 +1,5 @@
 use {
-    crate::{errors::*, state::*},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     cardinal_token_manager::{
         program::CardinalTokenManager,
@@ -36,7 +36,7 @@ pub struct InvalidateCtx<'info> {
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(
     ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     let token_manager_key = ctx.accounts.token_manager.key();
     let time_invalidator_seeds = &[
         TIME_INVALIDATOR_SEED.as_bytes(),

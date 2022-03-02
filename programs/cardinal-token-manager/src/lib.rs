@@ -10,67 +10,67 @@ declare_id!("mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM");
 pub mod cardinal_token_manager {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, mint: Pubkey, num_invalidators: u8) -> ProgramResult {
+    pub fn init(ctx: Context<InitCtx>, mint: Pubkey, num_invalidators: u8) -> Result<()> {
         init::handler(ctx, mint, num_invalidators)
     }
 
-    pub fn uninit(ctx: Context<UninitCtx>) -> ProgramResult {
+    pub fn uninit(ctx: Context<UninitCtx>) -> Result<()> {
         uninit::handler(ctx)
     }
 
-    pub fn init_mint_counter(ctx: Context<InitMintCounterCtx>, mint: Pubkey) -> ProgramResult {
+    pub fn init_mint_counter(ctx: Context<InitMintCounterCtx>, mint: Pubkey) -> Result<()> {
         init_mint_counter::handler(ctx, mint)
     }
 
-    pub fn set_payment_mint(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> ProgramResult {
+    pub fn set_payment_mint(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> Result<()> {
         set_payment_mint::handler(ctx, payment_mint)
     }
 
-    pub fn set_claim_approver(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> ProgramResult {
+    pub fn set_claim_approver(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> Result<()> {
         set_claim_approver::handler(ctx, claim_approver)
     }
 
-    pub fn set_transfer_authority(ctx: Context<SetTransferAuthorityCtx>, transfer_authority: Pubkey) -> ProgramResult {
+    pub fn set_transfer_authority(ctx: Context<SetTransferAuthorityCtx>, transfer_authority: Pubkey) -> Result<()> {
         set_transfer_authority::handler(ctx, transfer_authority)
     }
 
-    pub fn add_invalidator(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> ProgramResult {
+    pub fn add_invalidator(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> Result<()> {
         add_invalidator::handler(ctx, invalidator)
     }
 
-    pub fn create_claim_receipt(ctx: Context<CreateClaimReceiptCtx>, target: Pubkey) -> ProgramResult {
+    pub fn create_claim_receipt(ctx: Context<CreateClaimReceiptCtx>, target: Pubkey) -> Result<()> {
         create_claim_receipt::handler(ctx, target)
     }
 
-    pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> ProgramResult {
+    pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
         create_transfer_receipt::handler(ctx, target)
     }
 
-    pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMint>, name: String) -> ProgramResult {
+    pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMint>, name: String) -> Result<()> {
         claim_receipt_mint::handler(ctx, name)
     }
 
-    pub fn issue(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
+    pub fn issue(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
         issue::handler(ctx, ix)
     }
 
-    pub fn unissue(ctx: Context<UnissueCtx>) -> ProgramResult {
+    pub fn unissue(ctx: Context<UnissueCtx>) -> Result<()> {
         unissue::handler(ctx)
     }
 
-    pub fn claim<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimCtx<'info>>) -> ProgramResult {
+    pub fn claim<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimCtx<'info>>) -> Result<()> {
         claim::handler(ctx)
     }
 
-    pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
+    pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
         invalidate::handler(ctx)
     }
 
-    pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>) -> ProgramResult {
+    pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
         create_mint_manager::handler(ctx)
     }
 
-    pub fn close_mint_manager(ctx: Context<CloseMintManagerCtx>) -> ProgramResult {
+    pub fn close_mint_manager(ctx: Context<CloseMintManagerCtx>) -> Result<()> {
         close_mint_manager::handler(ctx)
     }
 }

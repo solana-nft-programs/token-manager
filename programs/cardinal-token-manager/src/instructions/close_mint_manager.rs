@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*}
 };
 use spl_token::instruction::AuthorityType;
@@ -22,7 +22,7 @@ pub struct CloseMintManagerCtx<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<CloseMintManagerCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<CloseMintManagerCtx>) -> Result<()> {
     // get PDA seeds to sign with
     let mint = ctx.accounts.mint.key();
     let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[ctx.accounts.mint_manager.bump]];

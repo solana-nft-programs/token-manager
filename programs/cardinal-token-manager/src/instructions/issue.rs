@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{self, Token, TokenAccount, Transfer}}
 };
@@ -32,15 +32,15 @@ pub struct IssueCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> ProgramResult {
+pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
     if ix.kind != TokenManagerKind::Managed as u8
         && ix.kind != TokenManagerKind::Unmanaged as u8
         && ix.kind != TokenManagerKind::Edition as u8 {
-        return Err(ErrorCode::InvalidTokenManagerKind.into());
+        return Err(error!(ErrorCode::InvalidTokenManagerKind));
     }
     if ix.invalidation_type != InvalidationType::Return as u8
         && ix.invalidation_type != InvalidationType::Invalidate as u8 {
-        return Err(ErrorCode::InvalidInvalidationType.into());
+        return Err(error!(ErrorCode::InvalidInvalidationType));
     }
 
     // set token manager data

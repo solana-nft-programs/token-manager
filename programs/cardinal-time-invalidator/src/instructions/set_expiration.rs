@@ -1,5 +1,5 @@
 use {
-    crate::{errors::*, state::*},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     cardinal_token_manager::state::{TokenManager, TokenManagerState},
 };
@@ -13,7 +13,7 @@ pub struct SetExpirationCtx<'info> {
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 }
 
-pub fn handler(ctx: Context<SetExpirationCtx>) -> ProgramResult {
+pub fn handler(ctx: Context<SetExpirationCtx>) -> Result<()> {
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     if time_invalidator.expiration == None {
         time_invalidator.expiration = Some(

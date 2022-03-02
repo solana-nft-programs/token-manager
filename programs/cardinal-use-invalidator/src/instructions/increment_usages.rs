@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{TokenAccount}},
     cardinal_token_manager::{state::TokenManager},
@@ -19,7 +19,7 @@ pub struct IncrementUsagesCtx<'info> {
     user: Signer<'info>,
 }
 
-pub fn handler(ctx: Context<IncrementUsagesCtx>, num_usages: u64) -> ProgramResult {
+pub fn handler(ctx: Context<IncrementUsagesCtx>, num_usages: u64) -> Result<()> {
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     use_invalidator.usages += num_usages;
     return Ok(())

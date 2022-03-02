@@ -1,5 +1,5 @@
 use {
-    crate::{errors::*, state::*},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     cardinal_token_manager::state::{TokenManager, TokenManagerState},
 };
@@ -32,20 +32,20 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> ProgramResult {
+pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     if ix.duration_seconds == None && ix.expiration == None {
-        return Err(ErrorCode::InvalidInstruction.into());
+        return Err(error!(ErrorCode::InvalidInstruction));
     } else if (ix.extension_payment_amount == None && ix.extension_duration_seconds != None)
         || (ix.extension_payment_amount != None && ix.extension_duration_seconds == None)
     {
-        return Err(ErrorCode::InvalidInstruction.into());
+        return Err(error!(ErrorCode::InvalidInstruction));
     } else if ix.extension_payment_amount != None && ix.payment_mint == None {
-        return Err(ErrorCode::InvalidInstruction.into());
+        return Err(error!(ErrorCode::InvalidInstruction));
     } else if ix.payment_mint != None
         && ctx.accounts.token_manager.payment_mint != None
         && ctx.accounts.token_manager.payment_mint.unwrap() != ix.payment_mint.unwrap()
     {
-        return Err(ErrorCode::InvalidPaymentMint.into());
+        return Err(error!(ErrorCode::InvalidPaymentMint));
     }
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     time_invalidator.bump = *ctx.bumps.get("time_invalidator").unwrap();

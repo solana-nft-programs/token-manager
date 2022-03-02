@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager}}, 
 };
@@ -28,7 +28,7 @@ pub struct InvalidateCtx<'info> {
     recipient_token_account: UncheckedAccount<'info>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> ProgramResult {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     let token_manager_key = ctx.accounts.token_manager.key();
     let use_invalidator_seeds = &[USE_INVALIDATOR_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.use_invalidator.bump]];
     let use_invalidator_signer = &[&use_invalidator_seeds[..]];

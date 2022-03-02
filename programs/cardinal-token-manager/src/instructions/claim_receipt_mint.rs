@@ -1,5 +1,5 @@
 use {
-    crate::{state::*, errors::*},
+    crate::{state::*, errors::ErrorCode},
     solana_program::{system_instruction::create_account, program_pack::Pack},
     anchor_lang::{prelude::*, solana_program::{program::{invoke_signed, invoke}}},
     anchor_spl::{token::{self, Token}, associated_token::{self, AssociatedToken}},
@@ -32,7 +32,7 @@ pub struct ClaimReceiptMint<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<ClaimReceiptMint>, name: String) -> ProgramResult {
+pub fn handler(ctx: Context<ClaimReceiptMint>, name: String) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.receipt_mint = Some(ctx.accounts.receipt_mint.key());

@@ -37,8 +37,6 @@ export const init = async (
     await findUseInvalidatorAddress(tokenManagerId);
 
   return [
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     useInvalidatorProgram.instruction.init(usages ? new BN(usages) : null, {
       accounts: {
         tokenManager: tokenManagerId,

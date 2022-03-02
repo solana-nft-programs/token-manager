@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Publish devnet test results
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: ./.github/actions/install-linux-build-deps
       - name: Install Rust nightly

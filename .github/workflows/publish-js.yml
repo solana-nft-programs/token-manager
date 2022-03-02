@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Release SDK on NPM
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: cachix/install-nix-action@v16
         with:
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: cachix/install-nix-action@v16
         with:

@@ -1,4 +1,9 @@
-import { BorshAccountsCoder, Program, Provider } from "@project-serum/anchor";
+import {
+  BN,
+  BorshAccountsCoder,
+  Program,
+  Provider,
+} from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
@@ -26,8 +31,6 @@ export const getTimeInvalidator = async (
     timeInvalidatorId
   );
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     parsed,
     pubkey: timeInvalidatorId,
   };
@@ -81,7 +84,7 @@ export const getExpiredTimeInvalidators = async (
         "timeInvalidator",
         account.account.data
       );
-      if (timeInvalidatorData.expiration.toNumber() <= Date.now() / 1000) {
+      if (timeInvalidatorData.expiration?.lte(new BN(Date.now() / 1000))) {
         expiredTimeInvalidators.push({
           ...account,
           parsed: timeInvalidatorData,

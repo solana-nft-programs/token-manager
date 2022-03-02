@@ -1,25 +1,26 @@
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
-import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
+import {
+  SignerWallet,
+  SolanaProvider,
+  TransactionEnvelope,
+} from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { rentals, tryGetAccount, unissueToken } from "../src";
-import { tokenManager } from "../src/programs";
+import { findAta, invalidate, rentals, tryGetAccount } from "../src";
+import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Issue Unissue", () => {
-  const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
-  const RENTAL_PAYMENT_AMONT = 10;
+describe("Time invalidation on claim", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
-  let recipientPaymentTokenAccountId: PublicKey;
+  const durationSeconds = 1;
   let issuerTokenAccountId: PublicKey;
-  let paymentMint: Token;
   let rentalMint: Token;
 
   before(async () => {
@@ -35,14 +36,6 @@ describe("Issue Unissue", () => {
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropRecipient);
-
-    // create payment mint
-    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
-      provider.connection,
-      tokenCreator,
-      recipient.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT
-    );
 
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
@@ -60,9 +53,9 @@ describe("Issue Unissue", () => {
       provider.connection,
       provider.wallet,
       {
-        paymentAmount: RENTAL_PAYMENT_AMONT,
-        paymentMint: paymentMint.publicKey,
-        timeInvalidation: { expiration: Date.now() / 1000 + 1 },
+        timeInvalidation: {
+          durationSeconds,
+        },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
@@ -76,7 +69,7 @@ describe("Issue Unissue", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "create", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -93,44 +86,110 @@ describe("Issue Unissue", () => {
       provider.wallet.publicKey
     );
 
+    const checkTimeInvalidator =
+      await timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        (
+          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+        )[0]
+      );
+    expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
+    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
+      durationSeconds
+    );
+  });
+
+  it("Claim rental", async () => {
+    const provider = getProvider();
+
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    const transaction = await rentals.claimRental(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId,
+      (
+        await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+      )[0]
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "claim", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const tokenManagerData = await tokenManager.accounts.getTokenManager(
+      provider.connection,
+      tokenManagerId
+    );
+    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
 
-    // check receipt-index
-    const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
-      provider.connection,
-      provider.wallet.publicKey
+    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
+      await findAta(rentalMint.publicKey, recipient.publicKey)
     );
-    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
-      tokenManagerId.toString()
+    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+
+    const checkTimeInvalidator =
+      await timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        (
+          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+        )[0]
+      );
+    expect(checkTimeInvalidator.parsed.expiration?.toNumber()).to.eq(
+      (checkTimeInvalidator.parsed.durationSeconds || new BN(0))
+        .add(tokenManagerData.parsed.stateChangedAt)
+        .toNumber()
+    );
+    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
+      durationSeconds
     );
   });
 
-  it("Unissue rental", async () => {
-    const provider = getProvider();
+  it("Invalidate", async () => {
+    await new Promise((r) => setTimeout(r, 2000));
 
-    const transaction = await unissueToken(
+    const provider = getProvider();
+    const transaction = await invalidate(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(recipient),
       rentalMint.publicKey
     );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(recipient),
         opts: provider.opts,
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+
+    await expectTXTable(txEnvelope, "use", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 
@@ -143,12 +202,5 @@ describe("Issue Unissue", () => {
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(1);
-
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
-      recipientPaymentTokenAccountId
-    );
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT
-    );
   });
 });

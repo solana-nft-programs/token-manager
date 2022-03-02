@@ -19,11 +19,22 @@ import type { TIME_INVALIDATOR_PROGRAM } from "./constants";
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
 import { findTimeInvalidatorAddress } from "./pda";
 
+export type TimeInvalidationParams = {
+  expiration?: number;
+  durationSeconds?: number;
+  extension?: {
+    extensionPaymentAmount: number;
+    extensionDurationSeconds: number;
+    paymentMint: PublicKey;
+    maxExpiration: number;
+  };
+};
+
 export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  expiration: number
+  timeInvalidation: TimeInvalidationParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -37,16 +48,96 @@ export const init = async (
     await findTimeInvalidatorAddress(tokenManagerId);
 
   return [
-    timeInvalidatorProgram.instruction.init(new BN(expiration), {
+    timeInvalidatorProgram.instruction.init(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      {
+        expiration: timeInvalidation.expiration
+          ? new BN(timeInvalidation.expiration)
+          : null,
+        durationSeconds: timeInvalidation.durationSeconds
+          ? new BN(timeInvalidation.durationSeconds)
+          : null,
+        extensionPaymentAmount: timeInvalidation.extension
+          ?.extensionPaymentAmount
+          ? new BN(timeInvalidation.extension?.extensionPaymentAmount)
+          : null,
+        extensionDurationSeconds: timeInvalidation.extension
+          ?.extensionDurationSeconds
+          ? new BN(timeInvalidation.extension?.extensionDurationSeconds)
+          : null,
+        paymentMint: timeInvalidation.extension?.paymentMint
+          ? timeInvalidation.extension?.paymentMint
+          : null,
+        maxExpiration: timeInvalidation.extension?.maxExpiration
+          ? new BN(timeInvalidation.extension?.maxExpiration)
+          : null,
+      },
+      {
+        accounts: {
+          tokenManager: tokenManagerId,
+          timeInvalidator: timeInvalidatorId,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
+    timeInvalidatorId,
+  ];
+};
+
+export const setExpiration = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  timeInvalidatorId: PublicKey
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.setExpiration({
+    accounts: {
+      tokenManager: tokenManagerId,
+      timeInvalidator: timeInvalidatorId,
+    },
+  });
+};
+
+export const extendExpiration = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentTokenAccountId: PublicKey,
+  payerTokenAccountId: PublicKey,
+  timeInvalidatorId: PublicKey,
+  extensionPaymentAmount: number
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.extendExpiration(
+    new BN(extensionPaymentAmount),
+    {
       accounts: {
         tokenManager: tokenManagerId,
         timeInvalidator: timeInvalidatorId,
+        paymentTokenAccount: paymentTokenAccountId,
         payer: wallet.publicKey,
-        systemProgram: SystemProgram.programId,
+        payerTokenAccount: payerTokenAccountId,
+        tokenProgram: TOKEN_PROGRAM_ID,
       },
-    }),
-    timeInvalidatorId,
-  ];
+    }
+  );
 };
 
 export const invalidate = async (

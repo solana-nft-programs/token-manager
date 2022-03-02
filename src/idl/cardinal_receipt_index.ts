@@ -1,5 +1,5 @@
 export type CardinalReceiptIndex = {
-  version: "0.0.0";
+  version: "0.2.5";
   name: "cardinal_receipt_index";
   instructions: [
     {
@@ -178,32 +178,32 @@ export type CardinalReceiptIndex = {
   ];
   errors: [
     {
-      code: 300;
+      code: 6000;
       name: "SlotNumberTooLarge";
       msg: "Slot number is too large";
     },
     {
-      code: 301;
+      code: 6001;
       name: "InvalidIssuer";
       msg: "Invalid issuer";
     },
     {
-      code: 302;
+      code: 6002;
       name: "InvalidTokenManager";
       msg: "Invalid token manager";
     },
     {
-      code: 303;
+      code: 6003;
       name: "MustInvalidateReceipt";
       msg: "Must invalidate receipt";
     },
     {
-      code: 304;
+      code: 6004;
       name: "InvalidTokenManagerKind";
       msg: "Token manager kind is not valid";
     },
     {
-      code: 305;
+      code: 6005;
       name: "InvalidInvalidationType";
       msg: "Invalid invalidation type";
     }
@@ -211,7 +211,7 @@ export type CardinalReceiptIndex = {
 };
 
 export const IDL: CardinalReceiptIndex = {
-  version: "0.0.0",
+  version: "0.2.5",
   name: "cardinal_receipt_index",
   instructions: [
     {
@@ -390,32 +390,32 @@ export const IDL: CardinalReceiptIndex = {
   ],
   errors: [
     {
-      code: 300,
+      code: 6000,
       name: "SlotNumberTooLarge",
       msg: "Slot number is too large",
     },
     {
-      code: 301,
+      code: 6001,
       name: "InvalidIssuer",
       msg: "Invalid issuer",
     },
     {
-      code: 302,
+      code: 6002,
       name: "InvalidTokenManager",
       msg: "Invalid token manager",
     },
     {
-      code: 303,
+      code: 6003,
       name: "MustInvalidateReceipt",
       msg: "Must invalidate receipt",
     },
     {
-      code: 304,
+      code: 6004,
       name: "InvalidTokenManagerKind",
       msg: "Token manager kind is not valid",
     },
     {
-      code: 305,
+      code: 6005,
       name: "InvalidInvalidationType",
       msg: "Invalid invalidation type",
     },

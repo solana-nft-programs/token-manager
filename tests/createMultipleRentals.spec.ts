@@ -13,7 +13,7 @@ import { expect } from "chai";
 import { findAta, rentals } from "../src";
 import { tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getAllIssuedTokenManagersByState } from "../src/programs/tokenManager/accounts";
+import { getTokenManagersByState } from "../src/programs/tokenManager/accounts";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -180,7 +180,7 @@ describe("Multiple rentals", () => {
     );
 
     // check number of issued tokens
-    const issuedTokens = await getAllIssuedTokenManagersByState(
+    const issuedTokens = await getTokenManagersByState(
       provider.connection,
       TokenManagerState.Issued
     );

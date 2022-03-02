@@ -17,7 +17,10 @@ import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
 import type { TimeInvalidatorData } from "../src/programs/timeInvalidator";
 import { getAllTimeInvalidators } from "../src/programs/timeInvalidator/accounts";
 import type { TokenManagerData } from "../src/programs/tokenManager";
-import { withRemainingAccountsForReturn } from "../src/programs/tokenManager";
+import {
+  TokenManagerState,
+  withRemainingAccountsForReturn,
+} from "../src/programs/tokenManager";
 import { getTokenManagersByState } from "../src/programs/tokenManager/accounts";
 import { connectionFor } from "./connection";
 
@@ -25,7 +28,7 @@ import { connectionFor } from "./connection";
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(
     process.env.CRANK_SOLANA_KEY ||
-      "4QsMvFnug6dzkHYmaQhepc5FjQZ5DgxAKCWryzWZDNyDcqk9wcwibTbE71NcjUK6UBKWrAbNw3rzFE374P4TDo5x"
+      "X7zEh63ccM2Jb9aAWLSVfwmE8NJVdWuwEi3BJSVizqtbW9qmo5oeszcofVaefAZ9vscjXqGEVZ4eH2CrgiNwHrs"
   )
 );
 
@@ -284,7 +287,7 @@ const claimApprovers = async (cluster: string) => {
   const connection = connectionFor(cluster);
   const tokenManagerDatas = await getTokenManagersByState(connection, null);
   const claimApproverDatas = await getAllClaimApprovers(connection);
-  const claimApproverIds = claimApproverDatas.map((i) => i.pubkey.toString());
+  // const claimApproverIds = claimApproverDatas.map((i) => i.pubkey.toString());
   console.log(
     `---------------Found ${claimApproverDatas.length} claim approvers on ${cluster} ---------------`
   );
@@ -294,9 +297,7 @@ const claimApprovers = async (cluster: string) => {
     if (
       tokenManagerData &&
       tokenManagerData.parsed.claimApprover &&
-      claimApproverIds.includes(
-        tokenManagerData.parsed.claimApprover?.toString()
-      )
+      tokenManagerData.parsed.state === TokenManagerState.Issued
     ) {
       try {
         const transaction = new Transaction();
@@ -306,14 +307,6 @@ const claimApprovers = async (cluster: string) => {
           connection,
           new SignerWallet(wallet),
           tokenManagerData
-        );
-        transaction.add(
-          claimApprover.instruction.close(
-            connection,
-            new SignerWallet(wallet),
-            tokenManagerData.parsed.claimApprover,
-            tokenManagerData.pubkey
-          )
         );
         count += 1;
         const txid = await executeTx(transaction, connection);
@@ -329,7 +322,7 @@ const claimApprovers = async (cluster: string) => {
   console.log(
     `---------------Found ${remainingClaimApproverDatas.length} claim approvers remaining on ${cluster} ---------------`
   );
-  // console.log(tokenManagerDatas[2]);
+  console.log(tokenManagerDatas[2]);
   for (let i = 0; i < remainingClaimApproverDatas.length; i++) {
     const claimApproverData = remainingClaimApproverDatas[i];
     if (claimApproverData) {
@@ -371,7 +364,7 @@ const executeTx = async (transaction: Transaction, connection: Connection) => {
 export const invalidateAll = async (mainnet = true) => {
   if (mainnet) {
     try {
-      await main("mainnet");
+      // await main("mainnet");
       await claimApprovers("mainnet");
     } catch (e) {
       console.log("Failed to invalidate on mainnet: ", e);

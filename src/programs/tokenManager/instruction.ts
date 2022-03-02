@@ -432,10 +432,11 @@ export const invalidate = async (
   return tokenManagerProgram.instruction.invalidate({
     accounts: {
       tokenManager: tokenManagerId,
-      invalidator: wallet.publicKey,
       tokenManagerTokenAccount: tokenManagerTokenAccountId,
       mint: mintId,
       recipientTokenAccount: recipientTokenAccountId,
+      invalidator: wallet.publicKey,
+      collector: wallet.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
     },
     remainingAccounts: [

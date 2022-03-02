@@ -15,6 +15,7 @@ import {
   tokenManager,
   useInvalidator,
 } from "./programs";
+import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
@@ -22,8 +23,7 @@ import { withRemainingAccountsForReturn } from "./programs/tokenManager/utils";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export type IssueParameters = {
-  paymentAmount?: number;
-  paymentMint?: PublicKey;
+  claimPayment?: ClaimApproverParams;
   timeInvalidation?: TimeInvalidationParams;
   usages?: number;
   mint: PublicKey;
@@ -50,8 +50,7 @@ export const withIssueToken = async (
   connection: Connection,
   wallet: Wallet,
   {
-    paymentAmount,
-    paymentMint,
+    claimPayment,
     timeInvalidation,
     usages,
     mint,
@@ -77,7 +76,7 @@ export const withIssueToken = async (
   /////// claim approver ///////
   //////////////////////////////
   let otp;
-  if (paymentAmount && paymentMint) {
+  if (claimPayment) {
     if (visibility === "private") {
       throw new Error("Private links do not currently support payment");
     }
@@ -88,7 +87,7 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        paymentMint
+        claimPayment.paymentMint
       )
     );
 
@@ -98,7 +97,7 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        paymentAmount
+        claimPayment
       );
     transaction.add(paidClaimApproverIx);
     transaction.add(

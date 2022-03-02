@@ -56,6 +56,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(
         mint: ctx.accounts.mint.to_account_info(),
         recipient_token_account: ctx.accounts.recipient_token_account.to_account_info(),
         invalidator: ctx.accounts.time_invalidator.to_account_info(),
+        collector: ctx.accounts.invalidator.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(

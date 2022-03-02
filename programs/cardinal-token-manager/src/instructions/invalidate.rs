@@ -23,9 +23,12 @@ pub struct InvalidateCtx<'info> {
     recipient_token_account: Box<Account<'info, TokenAccount>>,
 
     // invalidator
-    #[account(mut, constraint = token_manager.invalidators.contains(&invalidator.key()) @ ErrorCode::InvalidInvalidator)]
+    #[account(constraint = token_manager.invalidators.contains(&invalidator.key()) @ ErrorCode::InvalidInvalidator)]
     invalidator: Signer<'info>,
-    
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    collector: AccountInfo<'info>,
+
     token_program: Program<'info, Token>,
 }
 
@@ -67,7 +70,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         // close token account
         let cpi_accounts = CloseAccount {
             account: payment_token_account_info.to_account_info(),
-            destination: ctx.accounts.invalidator.to_account_info(),
+            destination: ctx.accounts.collector.to_account_info(),
             authority: token_manager.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -150,7 +153,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     // close token_manager_token_account
     let cpi_accounts = CloseAccount {
         account: ctx.accounts.token_manager_token_account.to_account_info(),
-        destination: ctx.accounts.invalidator.to_account_info(),
+        destination: ctx.accounts.collector.to_account_info(),
         authority: token_manager.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -158,7 +161,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     token::close_account(cpi_context)?;
 
     if token_manager.invalidation_type != InvalidationType::Invalidate as u8 {
-        token_manager.close(ctx.accounts.invalidator.to_account_info())?;
+        token_manager.close(ctx.accounts.collector.to_account_info())?;
     }
     return Ok(())
 }

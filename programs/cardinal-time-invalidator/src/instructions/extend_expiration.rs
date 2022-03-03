@@ -14,8 +14,7 @@ pub struct ExtendExpirationCtx<'info> {
   time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
   #[account(mut, constraint =
-      token_manager.payment_mint != None
-      && payment_token_account.owner == token_manager.key()
+      payment_token_account.owner == token_manager.key()
       && payment_token_account.mint == time_invalidator.payment_mint.unwrap()
       @ ErrorCode::InvalidPaymentTokenAccount,
   )]
@@ -39,7 +38,6 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
   if time_invalidator.extension_payment_amount == None
     || time_invalidator.extension_duration_seconds == None
     || time_invalidator.payment_mint == None
-    || time_invalidator.max_expiration == None
   {
     return Err(error!(ErrorCode::InvalidTimeInvalidator));
   }

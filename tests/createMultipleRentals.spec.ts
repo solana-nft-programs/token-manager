@@ -72,7 +72,6 @@ describe("Multiple rentals", () => {
         timeInvalidation: { expiration: Date.now() / 1000 + 1 },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
-        amount: new BN(1),
       }
     );
     const txEnvelope = new TransactionEnvelope(

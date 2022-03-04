@@ -19,11 +19,22 @@ import type { USE_INVALIDATOR_PROGRAM } from "./constants";
 import { USE_INVALIDATOR_ADDRESS, USE_INVALIDATOR_IDL } from "./constants";
 import { findUseInvalidatorAddress } from "./pda";
 
+export type UseInvalidationParams = {
+  totalUsages?: number;
+  useAuthority?: PublicKey;
+  extension?: {
+    extensionUsages: number;
+    extensionPaymentMint: PublicKey;
+    extensionPaymentAmount: number;
+    maxUsages?: number;
+  };
+};
+
 export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  usages: number | null
+  usageParams: UseInvalidationParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -37,14 +48,34 @@ export const init = async (
     await findUseInvalidatorAddress(tokenManagerId);
 
   return [
-    useInvalidatorProgram.instruction.init(usages ? new BN(usages) : null, {
-      accounts: {
-        tokenManager: tokenManagerId,
-        useInvalidator: useInvalidatorId,
-        payer: wallet.publicKey,
-        systemProgram: SystemProgram.programId,
+    useInvalidatorProgram.instruction.init(
+      {
+        totalUsages: usageParams.totalUsages
+          ? new BN(usageParams.totalUsages)
+          : null,
+        maxUsages: usageParams.extension?.maxUsages
+          ? new BN(usageParams.extension?.maxUsages)
+          : null,
+        useAuthority: usageParams.useAuthority || null,
+        extensionPaymentAmount: usageParams.extension?.extensionPaymentAmount
+          ? new BN(usageParams.extension?.extensionPaymentAmount)
+          : null,
+        extensionPaymentMint:
+          usageParams.extension?.extensionPaymentMint || null,
+        extensionUsages: usageParams.extension?.extensionUsages
+          ? new BN(usageParams.extension?.extensionUsages)
+          : null,
       },
-    }),
+      {
+        accounts: {
+          tokenManager: tokenManagerId,
+          useInvalidator: useInvalidatorId,
+          user: wallet.publicKey,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
     useInvalidatorId,
   ];
 };
@@ -127,6 +158,38 @@ export const invalidate = async (
       ...returnAccounts,
     ],
   });
+};
+
+export const extendUsages = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentTokenAccountId: PublicKey,
+  payerTokenAccountId: PublicKey,
+  useInvalidatorId: PublicKey,
+  extensionPaymentAmount: number
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+
+  const useInvalidatorProgram = new Program<USE_INVALIDATOR_PROGRAM>(
+    USE_INVALIDATOR_IDL,
+    USE_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return useInvalidatorProgram.instruction.extendUsages(
+    new BN(extensionPaymentAmount),
+    {
+      accounts: {
+        tokenManager: tokenManagerId,
+        useInvalidator: useInvalidatorId,
+        paymentTokenAccount: paymentTokenAccountId,
+        payer: wallet.publicKey,
+        payerTokenAccount: payerTokenAccountId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+    }
+  );
 };
 
 export const close = (

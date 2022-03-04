@@ -20,12 +20,13 @@ import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruct
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
 import { withRemainingAccountsForReturn } from "./programs/tokenManager/utils";
+import type { UseInvalidationParams } from "./programs/useInvalidator/instruction";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export type IssueParameters = {
   claimPayment?: ClaimApproverParams;
   timeInvalidation?: TimeInvalidationParams;
-  usages?: number;
+  useInvalidation?: UseInvalidationParams;
   mint: PublicKey;
   amount?: BN;
   issuerTokenAccountId: PublicKey;
@@ -52,7 +53,7 @@ export const withIssueToken = async (
   {
     claimPayment,
     timeInvalidation,
-    usages,
+    useInvalidation,
     mint,
     amount = new BN(1),
     issuerTokenAccountId,
@@ -68,7 +69,11 @@ export const withIssueToken = async (
     wallet,
     mint,
     issuerTokenAccountId,
-    usages && timeInvalidation ? 2 : usages || timeInvalidation ? 1 : 0
+    useInvalidation && timeInvalidation
+      ? 2
+      : useInvalidation || timeInvalidation
+      ? 1
+      : 0
   );
   transaction.add(tokenManagerIx);
 
@@ -161,13 +166,13 @@ export const withIssueToken = async (
   //////////////////////////////
   /////////// usages ///////////
   //////////////////////////////
-  if (usages) {
+  if (useInvalidation) {
     const [useInvalidatorIx, useInvalidatorId] =
       await useInvalidator.instruction.init(
         connection,
         wallet,
         tokenManagerId,
-        usages
+        useInvalidation
       );
     transaction.add(useInvalidatorIx);
     transaction.add(
@@ -482,8 +487,8 @@ export const withInvalidate = async (
 
   if (
     useInvalidatorData &&
-    useInvalidatorData.parsed.maxUsages &&
-    useInvalidatorData.parsed.usages.gte(useInvalidatorData.parsed.maxUsages)
+    useInvalidatorData.parsed.totalUsages &&
+    useInvalidatorData.parsed.usages.gte(useInvalidatorData.parsed.totalUsages)
   ) {
     transaction.add(
       await useInvalidator.instruction.invalidate(
@@ -573,7 +578,7 @@ export const withUse = async (
       connection,
       wallet,
       tokenManagerId,
-      null
+      {}
     );
     transaction.add(InitTx);
   }
@@ -593,10 +598,10 @@ export const withUse = async (
   );
 
   if (
-    useInvalidatorData?.parsed.maxUsages &&
+    useInvalidatorData?.parsed.totalUsages &&
     useInvalidatorData?.parsed.usages
       .add(new BN(usages))
-      .gte(useInvalidatorData?.parsed.maxUsages)
+      .gte(useInvalidatorData?.parsed.totalUsages)
   ) {
     const tokenManagerTokenAccountId =
       await withFindOrInitAssociatedTokenAccount(
@@ -696,6 +701,56 @@ export const withExtendExpiration = async (
         paymentTokenAccountId,
         payerTokenAccountId,
         timeInvalidatorId,
+        paymentAmount
+      )
+    );
+  } else {
+    console.log("No payment mint");
+  }
+
+  return transaction;
+};
+
+export const withExtendUsages = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentAmount: number
+): Promise<Transaction> => {
+  const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
+    tokenManagerId
+  );
+  const useInvalidatorData = await tryGetAccount(() =>
+    useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
+  );
+
+  if (useInvalidatorData && useInvalidatorData.parsed.extensionPaymentMint) {
+    const paymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      useInvalidatorData.parsed.extensionPaymentMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
+    );
+
+    const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      useInvalidatorData.parsed.extensionPaymentMint,
+      wallet.publicKey,
+      wallet.publicKey
+    );
+
+    transaction.add(
+      useInvalidator.instruction.extendUsages(
+        connection,
+        wallet,
+        tokenManagerId,
+        paymentTokenAccountId,
+        payerTokenAccountId,
+        useInvalidatorId,
         paymentAmount
       )
     );

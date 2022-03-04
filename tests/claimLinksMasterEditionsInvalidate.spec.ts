@@ -161,7 +161,7 @@ describe("Claim links master editions invalidate", () => {
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
-        usages: 1,
+        useInvalidation: { totalUsages: 1 },
         kind: TokenManagerKind.Edition,
         invalidationType: InvalidationType.Invalidate,
       }

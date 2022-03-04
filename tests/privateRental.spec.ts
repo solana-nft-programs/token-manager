@@ -64,7 +64,7 @@ describe("Private rental", () => {
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
-        usages: 4,
+        useInvalidation: { totalUsages: 4 },
         kind: TokenManagerKind.Managed,
         visibility: "private",
       }

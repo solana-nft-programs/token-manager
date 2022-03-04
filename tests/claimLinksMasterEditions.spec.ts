@@ -160,7 +160,7 @@ describe("Claim links master editions", () => {
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
-        usages: 4,
+        useInvalidation: { totalUsages: 4 },
         kind: TokenManagerKind.Edition,
       }
     );
@@ -327,7 +327,7 @@ describe("Claim links master editions", () => {
       {
         mint: editionMint.publicKey,
         issuerTokenAccountId: editionIssuerTokenAccount,
-        usages: 4,
+        useInvalidation: { totalUsages: 4 },
         kind: TokenManagerKind.Edition,
       }
     );

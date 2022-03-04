@@ -18,4 +18,6 @@ pub enum ErrorCode {
     InvalidUseInvalidator,
     #[msg("Max usages reached")]
     MaxUsagesReached,
+    #[msg("Extension must be a multiple of extension payment")]
+    InvalidExtensionAmount,
 }

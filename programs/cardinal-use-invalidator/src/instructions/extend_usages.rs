@@ -42,8 +42,13 @@ use {
     {
       return Err(error!(ErrorCode::InvalidUseInvalidator));
     }
-  
-    let new_total_usages = Some(use_invalidator.total_usages.unwrap() + use_invalidator.extension_usages.unwrap());    
+
+    if payment_amount % use_invalidator.extension_payment_amount.unwrap() != 0 {
+      return Err(error!(ErrorCode::InvalidExtensionAmount));
+    }
+    // floors any u64 decimals
+    let usages_to_add = payment_amount * use_invalidator.extension_usages.unwrap() / use_invalidator.extension_payment_amount.unwrap();
+    let new_total_usages = Some(use_invalidator.total_usages.unwrap() + usages_to_add);    
     if new_total_usages > use_invalidator.max_usages {
       return Err(error!(ErrorCode::MaxUsagesReached));
     }

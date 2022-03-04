@@ -75,7 +75,8 @@ describe("Create and Extend Rental", () => {
             extensionPaymentAmount: 1, // Pay 1 lamport to add 1000 seconds of expiration time
             extensionDurationSeconds: 1000,
             paymentMint: paymentMint.publicKey,
-            maxExpiration: Date.now() / 1000 + 3000,
+            maxExpiration: Date.now() / 1000 + 5000,
+            disablePartialExtension: true,
           },
         },
         mint: rentalMint.publicKey,
@@ -259,6 +260,36 @@ describe("Create and Extend Rental", () => {
 
     expect(async () => {
       await expectTXTable(txEnvelope, "extend", {
+        verbosity: "error",
+        formatLogs: true,
+      }).to.be.rejectedWith(Error);
+    });
+  });
+  it("Invalid Partial Expiration", async () => {
+    const provider = getProvider();
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    const transaction = await rentals.extendRentalExpiration(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId,
+      0.5
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    expect(async () => {
+      await expectTXTable(txEnvelope, "partial extension", {
         verbosity: "error",
         formatLogs: true,
       }).to.be.rejectedWith(Error);

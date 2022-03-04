@@ -6,6 +6,7 @@ import type { IssueParameters } from ".";
 import {
   withClaimToken,
   withExtendExpiration,
+  withExtendUsages,
   withInvalidate,
   withIssueToken,
   withUnissueToken,
@@ -65,6 +66,20 @@ export const extendExpiration = async (
   paymentAmount: number
 ): Promise<Transaction> =>
   withExtendExpiration(
+    new Transaction(),
+    connection,
+    wallet,
+    tokenManagerId,
+    paymentAmount
+  );
+
+export const extendUsages = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  paymentAmount: number
+): Promise<Transaction> =>
+  withExtendUsages(
     new Transaction(),
     connection,
     wallet,

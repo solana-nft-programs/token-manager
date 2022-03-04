@@ -66,22 +66,21 @@ export type IssueParameters = {
 
   // Optional expiration when the token manager is automatically invalidated
   expiration?: number,
-  
+
   // Optional duration after which the token manager is automatically invalidated
   durationSeconds?: number,
-  
+
   // Optional extension parameters to extend duration
   extension?: {
-  
     // The amount rate needed for extension
     extensionPaymentAmount: number,
 
     // The duration added based on amount paid
     extensionDurationSeconds: number,
-    
+
     // The mint to accept payment for extension
     paymentMint: PublicKey,
-    
+
     // The max expiration limit on how long a rental can be extended
     maxExpiration?: number,
   },
@@ -180,7 +179,7 @@ import { Connection } from "@solana/web3.js";
 // no payment specified, 1 usage and private link means only the holder of the link can claim it
 // Releases on use as a memento
 const issueTokenParameters = {
-  usages: 1, // 1 use
+  useInvalidation: { totalUsages: 1 }, // 1 use
   mint: new PublicKey("..."), // ticket mint
   issuerTokenAccountId: new PublicKey("..."),
   visibility: "private", // private so you can send this out via email

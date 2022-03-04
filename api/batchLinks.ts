@@ -181,7 +181,7 @@ export const getEditionLinks = async (
       {
         mint: editionMint.publicKey,
         issuerTokenAccountId: editionTokenAccountId,
-        usages: 1,
+        useInvalidation: { totalUsages: 1 },
         kind: TokenManagerKind.Edition,
         invalidationType: InvalidationType.Invalidate,
       }
@@ -289,7 +289,7 @@ export const getMasterEditionLinks = async (
         await claimLinks.issueToken(connection, new SignerWallet(wallet), {
           mint: masterEditionMint.publicKey,
           issuerTokenAccountId: masterEditionTokenAccountId,
-          usages: 1,
+          useInvalidation: { totalUsages: 1 },
           kind: TokenManagerKind.Edition,
           invalidationType: InvalidationType.Invalidate,
         });

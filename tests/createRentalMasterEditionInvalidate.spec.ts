@@ -124,7 +124,7 @@ describe("Master editions", () => {
           paymentAmount: RENTAL_PAYMENT_AMONT,
           paymentMint: paymentMint.publicKey,
         },
-        usages: 1,
+        useInvalidation: { totalUsages: 1 },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),

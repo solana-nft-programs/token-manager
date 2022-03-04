@@ -10,7 +10,7 @@ use {
 pub struct IncrementUsagesCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut, constraint = use_invalidator.max_usages == None || use_invalidator.usages + num_usages <= use_invalidator.max_usages.unwrap() @ ErrorCode::InsufficientUsages)]
+    #[account(mut, constraint = use_invalidator.total_usages == None || use_invalidator.usages + num_usages <= use_invalidator.total_usages.unwrap() @ ErrorCode::InsufficientUsages)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
     #[account(constraint = token_manager.recipient_token_account == recipient_token_account.key() @ ErrorCode::InvalidTokenAccount)]

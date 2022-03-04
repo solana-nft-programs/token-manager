@@ -10,12 +10,16 @@ declare_id!("useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp");
 pub mod cardinal_use_invalidator {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, max_usages: Option<u64>) -> Result<()> {
-        init::handler(ctx, max_usages)
+    pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
+        init::handler(ctx, ix)
     }
 
     pub fn increment_usages(ctx: Context<IncrementUsagesCtx>, num_usages: u64) -> Result<()> {
         increment_usages::handler(ctx, num_usages)
+    }
+    
+    pub fn extend_usages(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()> {
+        extend_usages::handler(ctx, payment_amount)
     }
 
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {

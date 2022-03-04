@@ -65,7 +65,7 @@ describe("Claim links invalidate", () => {
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
-        usages: 1,
+        useInvalidation: { totalUsages: 1 },
         kind: TokenManagerKind.Managed,
         invalidationType: InvalidationType.Invalidate,
       }

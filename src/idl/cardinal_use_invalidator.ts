@@ -1,5 +1,5 @@
 export type CardinalUseInvalidator = {
-  version: "0.1.1";
+  version: "0.2.6";
   name: "cardinal_use_invalidator";
   instructions: [
     {
@@ -16,6 +16,11 @@ export type CardinalUseInvalidator = {
           isSigner: false;
         },
         {
+          name: "user";
+          isMut: true;
+          isSigner: true;
+        },
+        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -28,9 +33,9 @@ export type CardinalUseInvalidator = {
       ];
       args: [
         {
-          name: "maxUsages";
+          name: "ix";
           type: {
-            option: "u64";
+            defined: "InitIx";
           };
         }
       ];
@@ -62,6 +67,47 @@ export type CardinalUseInvalidator = {
       args: [
         {
           name: "numUsages";
+          type: "u64";
+        }
+      ];
+    },
+    {
+      name: "extendUsages";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "useInvalidator";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "paymentTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "payerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "paymentAmount";
           type: "u64";
         }
       ];
@@ -149,14 +195,44 @@ export type CardinalUseInvalidator = {
             type: "u64";
           },
           {
+            name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "useAuthority";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "totalUsages";
+            type: {
+              option: "u64";
+            };
+          },
+          {
             name: "maxUsages";
             type: {
               option: "u64";
             };
           },
           {
-            name: "useAuthority";
-            type: "publicKey";
+            name: "extensionPaymentAmount";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "extensionPaymentMint";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "extensionUsages";
+            type: {
+              option: "u64";
+            };
           }
         ];
       };
@@ -164,33 +240,96 @@ export type CardinalUseInvalidator = {
   ];
   types: [
     {
-      name: "ErrorCode";
+      name: "InitIx";
       type: {
-        kind: "enum";
-        variants: [
+        kind: "struct";
+        fields: [
           {
-            name: "InvalidPaymentTokenAccount";
+            name: "totalUsages";
+            type: {
+              option: "u64";
+            };
           },
           {
-            name: "InvalidTokenAccount";
+            name: "maxUsages";
+            type: {
+              option: "u64";
+            };
           },
           {
-            name: "InvalidUser";
+            name: "useAuthority";
+            type: {
+              option: "publicKey";
+            };
           },
           {
-            name: "InvalidTokenManager";
+            name: "extensionPaymentAmount";
+            type: {
+              option: "u64";
+            };
           },
           {
-            name: "InsufficientUsages";
+            name: "extensionPaymentMint";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "extensionUsages";
+            type: {
+              option: "u64";
+            };
           }
         ];
       };
     }
   ];
+  errors: [
+    {
+      code: 6000;
+      name: "InvalidPaymentTokenAccount";
+      msg: "Token account not owned by the use invalidator";
+    },
+    {
+      code: 6001;
+      name: "InvalidPayerTokenAccount";
+      msg: "Token account not owned by the issuer";
+    },
+    {
+      code: 6002;
+      name: "InvalidTokenAccount";
+      msg: "Token account not owned by the issuer";
+    },
+    {
+      code: 6003;
+      name: "InvalidUser";
+      msg: "User is not permitted to use";
+    },
+    {
+      code: 6004;
+      name: "InvalidTokenManager";
+      msg: "Invalid token manager for this use invalidator";
+    },
+    {
+      code: 6005;
+      name: "InsufficientUsages";
+      msg: "Usages at the maximum";
+    },
+    {
+      code: 6006;
+      name: "InvalidUseInvalidator";
+      msg: "Invalid use invalidator";
+    },
+    {
+      code: 6007;
+      name: "MaxUsagesReached";
+      msg: "Max usages reached";
+    }
+  ];
 };
 
 export const IDL: CardinalUseInvalidator = {
-  version: "0.1.1",
+  version: "0.2.6",
   name: "cardinal_use_invalidator",
   instructions: [
     {
@@ -207,6 +346,11 @@ export const IDL: CardinalUseInvalidator = {
           isSigner: false,
         },
         {
+          name: "user",
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: "payer",
           isMut: true,
           isSigner: true,
@@ -219,9 +363,9 @@ export const IDL: CardinalUseInvalidator = {
       ],
       args: [
         {
-          name: "maxUsages",
+          name: "ix",
           type: {
-            option: "u64",
+            defined: "InitIx",
           },
         },
       ],
@@ -253,6 +397,47 @@ export const IDL: CardinalUseInvalidator = {
       args: [
         {
           name: "numUsages",
+          type: "u64",
+        },
+      ],
+    },
+    {
+      name: "extendUsages",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "useInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "payerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "paymentAmount",
           type: "u64",
         },
       ],
@@ -340,14 +525,44 @@ export const IDL: CardinalUseInvalidator = {
             type: "u64",
           },
           {
+            name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "useAuthority",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "totalUsages",
+            type: {
+              option: "u64",
+            },
+          },
+          {
             name: "maxUsages",
             type: {
               option: "u64",
             },
           },
           {
-            name: "useAuthority",
-            type: "publicKey",
+            name: "extensionPaymentAmount",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "extensionPaymentMint",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "extensionUsages",
+            type: {
+              option: "u64",
+            },
           },
         ],
       },
@@ -355,27 +570,90 @@ export const IDL: CardinalUseInvalidator = {
   ],
   types: [
     {
-      name: "ErrorCode",
+      name: "InitIx",
       type: {
-        kind: "enum",
-        variants: [
+        kind: "struct",
+        fields: [
           {
-            name: "InvalidPaymentTokenAccount",
+            name: "totalUsages",
+            type: {
+              option: "u64",
+            },
           },
           {
-            name: "InvalidTokenAccount",
+            name: "maxUsages",
+            type: {
+              option: "u64",
+            },
           },
           {
-            name: "InvalidUser",
+            name: "useAuthority",
+            type: {
+              option: "publicKey",
+            },
           },
           {
-            name: "InvalidTokenManager",
+            name: "extensionPaymentAmount",
+            type: {
+              option: "u64",
+            },
           },
           {
-            name: "InsufficientUsages",
+            name: "extensionPaymentMint",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "extensionUsages",
+            type: {
+              option: "u64",
+            },
           },
         ],
       },
+    },
+  ],
+  errors: [
+    {
+      code: 6000,
+      name: "InvalidPaymentTokenAccount",
+      msg: "Token account not owned by the use invalidator",
+    },
+    {
+      code: 6001,
+      name: "InvalidPayerTokenAccount",
+      msg: "Token account not owned by the issuer",
+    },
+    {
+      code: 6002,
+      name: "InvalidTokenAccount",
+      msg: "Token account not owned by the issuer",
+    },
+    {
+      code: 6003,
+      name: "InvalidUser",
+      msg: "User is not permitted to use",
+    },
+    {
+      code: 6004,
+      name: "InvalidTokenManager",
+      msg: "Invalid token manager for this use invalidator",
+    },
+    {
+      code: 6005,
+      name: "InsufficientUsages",
+      msg: "Usages at the maximum",
+    },
+    {
+      code: 6006,
+      name: "InvalidUseInvalidator",
+      msg: "Invalid use invalidator",
+    },
+    {
+      code: 6007,
+      name: "MaxUsagesReached",
+      msg: "Max usages reached",
     },
   ],
 };

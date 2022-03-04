@@ -176,32 +176,36 @@ export type CardinalReceiptIndex = {
       };
     }
   ];
-  types: [
+  errors: [
     {
-      name: "ErrorCode";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "SlotNumberTooLarge";
-          },
-          {
-            name: "InvalidIssuer";
-          },
-          {
-            name: "InvalidTokenManager";
-          },
-          {
-            name: "MustInvalidateReceipt";
-          },
-          {
-            name: "InvalidTokenManagerKind";
-          },
-          {
-            name: "InvalidInvalidationType";
-          }
-        ];
-      };
+      code: 6000;
+      name: "SlotNumberTooLarge";
+      msg: "Slot number is too large";
+    },
+    {
+      code: 6001;
+      name: "InvalidIssuer";
+      msg: "Invalid issuer";
+    },
+    {
+      code: 6002;
+      name: "InvalidTokenManager";
+      msg: "Invalid token manager";
+    },
+    {
+      code: 6003;
+      name: "MustInvalidateReceipt";
+      msg: "Must invalidate receipt";
+    },
+    {
+      code: 6004;
+      name: "InvalidTokenManagerKind";
+      msg: "Token manager kind is not valid";
+    },
+    {
+      code: 6005;
+      name: "InvalidInvalidationType";
+      msg: "Invalid invalidation type";
     }
   ];
 };
@@ -384,32 +388,36 @@ export const IDL: CardinalReceiptIndex = {
       },
     },
   ],
-  types: [
+  errors: [
     {
-      name: "ErrorCode",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "SlotNumberTooLarge",
-          },
-          {
-            name: "InvalidIssuer",
-          },
-          {
-            name: "InvalidTokenManager",
-          },
-          {
-            name: "MustInvalidateReceipt",
-          },
-          {
-            name: "InvalidTokenManagerKind",
-          },
-          {
-            name: "InvalidInvalidationType",
-          },
-        ],
-      },
+      code: 6000,
+      name: "SlotNumberTooLarge",
+      msg: "Slot number is too large",
+    },
+    {
+      code: 6001,
+      name: "InvalidIssuer",
+      msg: "Invalid issuer",
+    },
+    {
+      code: 6002,
+      name: "InvalidTokenManager",
+      msg: "Invalid token manager",
+    },
+    {
+      code: 6003,
+      name: "MustInvalidateReceipt",
+      msg: "Must invalidate receipt",
+    },
+    {
+      code: 6004,
+      name: "InvalidTokenManagerKind",
+      msg: "Token manager kind is not valid",
+    },
+    {
+      code: 6005,
+      name: "InvalidInvalidationType",
+      msg: "Invalid invalidation type",
     },
   ],
 };

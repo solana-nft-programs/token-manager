@@ -5,6 +5,7 @@ import { Keypair, Transaction } from "@solana/web3.js";
 
 import { withClaimToken, withIssueToken } from ".";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
+import type { UseInvalidationParams } from "./programs/useInvalidator/instruction";
 
 export const getLink = (
   tokenManagerId: PublicKey,
@@ -39,14 +40,14 @@ export const issueToken = async (
   {
     mint,
     issuerTokenAccountId,
-    usages = 1,
+    useInvalidation = { totalUsages: 1 },
     amount = new BN(1),
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
   }: {
     mint: PublicKey;
     issuerTokenAccountId: PublicKey;
-    usages?: number;
+    useInvalidation?: UseInvalidationParams;
     amount?: BN;
     kind?: TokenManagerKind;
     invalidationType?: InvalidationType;
@@ -59,7 +60,7 @@ export const issueToken = async (
     {
       mint,
       issuerTokenAccountId,
-      usages,
+      useInvalidation,
       amount,
       kind,
       invalidationType,

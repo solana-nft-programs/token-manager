@@ -5,7 +5,7 @@ pub mod errors;
 use anchor_lang::prelude::*;
 use instructions::*;
 
-// TODO: Upload this and replace id         1
+// TODO: Upload this and replace id
 declare_id!("22222222222222222222222222222222");
 
 #[program]
@@ -18,9 +18,5 @@ pub mod identity_gateway_validator{
 
     pub fn invalidate(ctx: Context<Invalidate>) -> ProgramResult{
         invalidate::invalidate(ctx)
-    }
-
-    pub fn close(ctx: Context<Close>) -> ProgramResult{
-        close::close(ctx)
     }
 }

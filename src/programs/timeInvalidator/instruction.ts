@@ -27,6 +27,7 @@ export type TimeInvalidationParams = {
     extensionDurationSeconds: number;
     paymentMint: PublicKey;
     maxExpiration?: number;
+    allowPartialExtension?: boolean;
   };
 };
 
@@ -49,6 +50,8 @@ export const init = async (
 
   return [
     timeInvalidatorProgram.instruction.init(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       {
         expiration: timeInvalidation.expiration
           ? new BN(timeInvalidation.expiration)
@@ -69,6 +72,9 @@ export const init = async (
           : null,
         maxExpiration: timeInvalidation.extension?.maxExpiration
           ? new BN(timeInvalidation.extension?.maxExpiration)
+          : null,
+        allowPartialExtension: timeInvalidation.extension?.allowPartialExtension
+          ? timeInvalidation.extension?.allowPartialExtension
           : null,
       },
       {

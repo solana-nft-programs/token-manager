@@ -23,10 +23,10 @@ export type UseInvalidationParams = {
   totalUsages?: number;
   useAuthority?: PublicKey;
   extension?: {
-    maxUsages: number;
     extensionUsages: number;
     extensionPaymentMint: PublicKey;
     extensionPaymentAmount: number;
+    maxUsages?: number;
   };
 };
 

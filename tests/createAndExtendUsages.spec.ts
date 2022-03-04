@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -81,7 +80,6 @@ describe("Create and Extend Rental", () => {
         },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
-        amount: new BN(1),
       }
     );
     const txEnvelope = new TransactionEnvelope(

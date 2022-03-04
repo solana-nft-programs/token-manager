@@ -70,34 +70,54 @@ export type IssueParameters = {
   // Optional duration after which the token manager is automatically invalidated
   durationSeconds?: number,
 
-  // Optional extension parameters to extend duration
-  extension?: {
-    // The amount rate needed for extension
-    extensionPaymentAmount: number,
+  // Optional parameters to expire this token manager based on time
+  timeInvalidation?: {
+    // Optional exact fixed expiration in UTC seconds
+    expiration?: number;
+    // Optional duration after token is claimed in seconds
+    durationSeconds?: number;
+    // Optional extension parameters to extend duration
+    extension?: {
+      // The amount rate needed for extension
+      extensionPaymentAmount: number,
+      // The duration added based on amount paid
+      extensionDurationSeconds: number,
+      // The mint to accept payment for extension
+      paymentMint: PublicKey,
+      // The max expiration limit on how long a rental can be extended
+      maxExpiration?: number,
+    }
+  }
 
-    // The duration added based on amount paid
-    extensionDurationSeconds: number,
-
-    // The mint to accept payment for extension
-    paymentMint: PublicKey,
-
-    // The max expiration limit on how long a rental can be extended
-    maxExpiration?: number,
+  // Optional parameters to expire this token manager based on usage
+  useInvalidation?: {
+    // Optional total usages allocated
+    totalUsages?: number,
+    // Optional use authority who can use this token
+    useAuthority?: PublicKey,
+    // Optional extension parameters to extend usages
+    extension?: {
+      // Number of usages to extend for this payment amount
+      extensionUsages: number,
+      // The mint to accept payment for extension
+      extensionPaymentMint: PublicKey,
+      // The amount needed to extend usages
+      extensionPaymentAmount: number,
+      // Optional limit for how many usages can be extended
+      maxUsages?: number,
+    },
   },
-
-  // Optional number of usages before invalidation
-  usages?: number,
 
   // Mint of the tokens this token manager will manager
   mint: PublicKey,
 
-  // Amoun of tokens to put into token manager
+  // Amoun of tokens to put into token manager, for NFTs this should use the default of 1
   amount?: BN,
 
   // Token account where the token is currently held
   issuerTokenAccountId: PublicKey,
 
-  // Whether anyone can claim this or only specified person
+  // Whether anyone can claim this or only the specified person with the link
   visibility?: "private" | "public",
 
   // What kind of token manager this is

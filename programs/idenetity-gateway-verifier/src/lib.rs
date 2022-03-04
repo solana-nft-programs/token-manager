@@ -17,10 +17,10 @@ pub mod identity_gateway_validator{
     }
 
     pub fn invalidate(ctx: Context<Invalidate>) -> ProgramResult{
-        todo!()
+        invalidate::invalidate(ctx)
     }
 
     pub fn close(ctx: Context<Close>) -> ProgramResult{
-        todo!()
+        close::close(ctx)
     }
 }

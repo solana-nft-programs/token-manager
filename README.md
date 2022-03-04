@@ -66,6 +66,25 @@ export type IssueParameters = {
 
   // Optional expiration when the token manager is automatically invalidated
   expiration?: number,
+  
+  // Optional duration after which the token manager is automatically invalidated
+  durationSeconds?: number,
+  
+  // Optional extension parameters to extend duration
+  extension?: {
+  
+    // The amount rate needed for extension
+    extensionPaymentAmount: number,
+
+    // The duration added based on amount paid
+    extensionDurationSeconds: number,
+    
+    // The mint to accept payment for extension
+    paymentMint: PublicKey,
+    
+    // The max expiration limit on how long a rental can be extended
+    maxExpiration?: number,
+  },
 
   // Optional number of usages before invalidation
   usages?: number,
@@ -118,11 +137,11 @@ npm i @cardinal/token-manager
 ```javascript
 import { Connection } from "@solana/web3.js";
 
-// payment amount, 10 for expiration of 86400 (24 hours)
+// payment amount 10 for duration of 86400 seconds (24 hours)
 const issueTokenParameters = {
   paymentAmount: new BN(10),
   paymentMint: new PublicKey("..."),
-  expiration: Date.now() / 1000 + 86400,
+  durationSeconds: 86400,
   mint: new PublicKey("..."), // NFT rental mint
   issuerTokenAccountId: new PublicKey("..."),
   visibility: "public", // default public means anyone can claim this rental

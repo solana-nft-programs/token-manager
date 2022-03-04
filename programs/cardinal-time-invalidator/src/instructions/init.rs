@@ -12,7 +12,7 @@ pub struct InitIx {
     pub extension_duration_seconds: Option<u64>,
     pub payment_mint: Option<Pubkey>,
     pub max_expiration: Option<i64>,
-    pub allow_partial_extension: Option<bool>
+    pub disable_partial_extension: Option<bool>
 }
 
 #[derive(Accounts)]
@@ -57,6 +57,6 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     time_invalidator.extension_duration_seconds = ix.extension_duration_seconds;
     time_invalidator.payment_mint = ix.payment_mint;
     time_invalidator.max_expiration = ix.max_expiration;
-    time_invalidator.allow_partial_extension = ix.allow_partial_extension;
+    time_invalidator.disable_partial_extension = ix.disable_partial_extension;
     return Ok(());
 }

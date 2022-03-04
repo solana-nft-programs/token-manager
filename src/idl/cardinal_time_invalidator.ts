@@ -211,7 +211,7 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "allowPartialExtension";
+            name: "disablePartialExtension";
             type: {
               option: "bool";
             };
@@ -263,7 +263,7 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "allowPartialExtension";
+            name: "disablePartialExtension";
             type: {
               option: "bool";
             };
@@ -528,7 +528,7 @@ export const IDL: CardinalTimeInvalidator = {
             },
           },
           {
-            name: "allowPartialExtension",
+            name: "disablePartialExtension",
             type: {
               option: "bool",
             },
@@ -580,7 +580,7 @@ export const IDL: CardinalTimeInvalidator = {
             },
           },
           {
-            name: "allowPartialExtension",
+            name: "disablePartialExtension",
             type: {
               option: "bool",
             },

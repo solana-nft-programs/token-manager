@@ -44,8 +44,8 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
 
   let time_to_add = payment_amount * time_invalidator.extension_duration_seconds.unwrap()
     / time_invalidator.extension_payment_amount.unwrap();
-  
-  if time_invalidator.allow_partial_extension != None && time_invalidator.allow_partial_extension.unwrap() == false {
+
+  if time_invalidator.disable_partial_extension != None && time_invalidator.disable_partial_extension.unwrap() == true {
     if time_to_add % time_invalidator.extension_duration_seconds.unwrap() != 0 {
       return Err(error!(ErrorCode::InvalidExtensionAmount));
     }

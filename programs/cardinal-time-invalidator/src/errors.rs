@@ -21,5 +21,7 @@ pub enum ErrorCode {
     #[msg("Max expiration exceeded")]
     InvalidExtendExpiration,
     #[msg("Invalid payment mint on time invalidator")]
-    InvalidPaymentMint
+    InvalidPaymentMint,
+    #[msg("Invalid extension partial duration not allowed")]
+    InvalidExtensionAmount
 }

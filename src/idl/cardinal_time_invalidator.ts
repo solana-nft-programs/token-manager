@@ -209,6 +209,12 @@ export type CardinalTimeInvalidator = {
             type: {
               option: "i64";
             };
+          },
+          {
+            name: "disablePartialExtension";
+            type: {
+              option: "bool";
+            };
           }
         ];
       };
@@ -255,6 +261,12 @@ export type CardinalTimeInvalidator = {
             type: {
               option: "i64";
             };
+          },
+          {
+            name: "disablePartialExtension";
+            type: {
+              option: "bool";
+            };
           }
         ];
       };
@@ -293,6 +305,9 @@ export type CardinalTimeInvalidator = {
           },
           {
             name: "InvalidPaymentMint";
+          },
+          {
+            name: "InvalidExtensionAmount";
           }
         ];
       };
@@ -512,6 +527,12 @@ export const IDL: CardinalTimeInvalidator = {
               option: "i64",
             },
           },
+          {
+            name: "disablePartialExtension",
+            type: {
+              option: "bool",
+            },
+          },
         ],
       },
     },
@@ -558,6 +579,12 @@ export const IDL: CardinalTimeInvalidator = {
               option: "i64",
             },
           },
+          {
+            name: "disablePartialExtension",
+            type: {
+              option: "bool",
+            },
+          },
         ],
       },
     },
@@ -595,6 +622,9 @@ export const IDL: CardinalTimeInvalidator = {
           },
           {
             name: "InvalidPaymentMint",
+          },
+          {
+            name: "InvalidExtensionAmount",
           },
         ],
       },

@@ -10,12 +10,7 @@ pub struct PayCtx<'info> {
     #[account(constraint = claim_approver.key() == token_manager.claim_approver.unwrap() @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut, constraint =
-        token_manager.payment_mint != None
-        && payment_token_account.owner == token_manager.key()
-        && payment_token_account.mint == token_manager.payment_mint.unwrap()
-        @ ErrorCode::InvalidPaymentTokenAccount,
-    )]
+    #[account(mut, constraint = payment_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
@@ -25,7 +20,7 @@ pub struct PayCtx<'info> {
     payer: Signer<'info>,
     #[account(mut, constraint =
         payer_token_account.owner == payer.key()
-        && payer_token_account.mint == token_manager.payment_mint.unwrap()
+        && payer_token_account.mint == claim_approver.payment_mint
         @ ErrorCode::InvalidPayerTokenAccount
     )]
     payer_token_account: Box<Account<'info, TokenAccount>>,
@@ -40,6 +35,16 @@ pub struct PayCtx<'info> {
 }
 
 pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
+    if ctx.accounts.token_manager.receipt_mint == None {
+        if ctx.accounts.payment_token_account.owner != ctx.accounts.token_manager.issuer { return Err(error!(ErrorCode::InvalidPaymentTokenAccount))}
+    } else {
+        let remaining_accs = &mut ctx.remaining_accounts.iter();
+        let receipt_token_account_info = next_account_info(remaining_accs)?;
+        let receipt_token_account = Account::<TokenAccount>::try_from(receipt_token_account_info)?;
+        if !(receipt_token_account.mint == ctx.accounts.token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) { return Err(error!(ErrorCode::InvalidPaymentTokenAccount))}
+        if receipt_token_account.owner != ctx.accounts.payment_token_account.owner { return Err(error!(ErrorCode::InvalidPaymentTokenAccount))}
+    }
+
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),
         to: ctx.accounts.payment_token_account.to_account_info(),

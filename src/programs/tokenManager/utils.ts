@@ -3,11 +3,7 @@ import {
   MetadataProgram,
 } from "@metaplex-foundation/mpl-token-metadata";
 import type { Wallet } from "@saberhq/solana-contrib";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  Token,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
   AccountMeta,
   Connection,
@@ -52,34 +48,58 @@ export const getRemainingAccountsForKind = async (
   }
 };
 
-export const getRemainingAccountsForPayment = async (
-  tokenManagerId: PublicKey,
-  issuerPaymentMintTokenAccountId?: PublicKey | null,
-  tokenManagerPaymentMint?: PublicKey | null
-): Promise<AccountMeta[]> => {
-  if (tokenManagerPaymentMint && issuerPaymentMintTokenAccountId) {
-    const paymentMintTokenAccountId = await Token.getAssociatedTokenAddress(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
+export const withRemainingAccountsForPayment = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  paymentMint: PublicKey,
+  issuerId: PublicKey,
+  receiptMint?: PublicKey | null
+): Promise<[PublicKey, AccountMeta[]]> => {
+  if (receiptMint) {
+    const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
+      receiptMint
+    );
+    // get holder of receipt mint
+    const receiptTokenAccountId = receiptMintLargestAccount.value[0]?.address;
+    if (!receiptTokenAccountId) throw new Error("No token accounts found");
+    const receiptMintToken = new Token(
+      connection,
+      receiptMint,
       TOKEN_PROGRAM_ID,
-      tokenManagerPaymentMint,
-      tokenManagerId,
-      true
+      Keypair.generate()
+    );
+    const receiptTokenAccount = await receiptMintToken.getAccountInfo(
+      receiptTokenAccountId
     );
 
+    // get ATA for this mint of receipt mint holder
+    const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      paymentMint,
+      receiptTokenAccount.owner,
+      wallet.publicKey
+    );
     return [
-      {
-        pubkey: paymentMintTokenAccountId,
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: issuerPaymentMintTokenAccountId,
-        isSigner: false,
-        isWritable: true,
-      },
+      returnTokenAccountId,
+      [
+        {
+          pubkey: receiptTokenAccountId,
+          isSigner: false,
+          isWritable: true,
+        },
+      ],
     ];
   } else {
-    return [];
+    const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      paymentMint,
+      issuerId,
+      wallet.publicKey
+    );
+    return [issuerTokenAccountId, []];
   }
 };
 

@@ -23,10 +23,7 @@ import {
   TokenManagerKind,
 } from "../tokenManager";
 import { findTokenManagerAddress } from "../tokenManager/pda";
-import {
-  getRemainingAccountsForKind,
-  getRemainingAccountsForPayment,
-} from "../tokenManager/utils";
+import { getRemainingAccountsForKind } from "../tokenManager/utils";
 import type { RECEIPT_INDEX_PROGRAM } from "./constants";
 import { RECEIPT_INDEX_ADDRESS, RECEIPT_INDEX_IDL } from "./constants";
 import { findReceiptMarkerAddress } from "./pda";
@@ -98,9 +95,7 @@ export const invalidate = async (
   mintId: PublicKey,
   tokenManagerId: PublicKey,
   tokenManagerKind: TokenManagerKind,
-  recipientTokenAccountId: PublicKey,
-  issuerPaymentMintTokenAccountId?: PublicKey | null,
-  tokenManagerPaymentMint?: PublicKey | null
+  recipientTokenAccountId: PublicKey
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
   const receiptIndexProgram = new Program<RECEIPT_INDEX_PROGRAM>(
@@ -123,14 +118,10 @@ export const invalidate = async (
     true
   );
 
-  const [paymentAccounts, transferAccounts] = await Promise.all([
-    getRemainingAccountsForPayment(
-      tokenManagerId,
-      issuerPaymentMintTokenAccountId,
-      tokenManagerPaymentMint
-    ),
-    getRemainingAccountsForKind(mintId, tokenManagerKind),
-  ]);
+  const transferAccounts = await getRemainingAccountsForKind(
+    mintId,
+    tokenManagerKind
+  );
 
   return receiptIndexProgram.instruction.invalidate({
     accounts: {
@@ -144,6 +135,6 @@ export const invalidate = async (
       recipientTokenAccount: recipientTokenAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,
     },
-    remainingAccounts: [...paymentAccounts, ...transferAccounts],
+    remainingAccounts: [...transferAccounts],
   });
 };

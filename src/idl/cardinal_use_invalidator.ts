@@ -324,6 +324,11 @@ export type CardinalUseInvalidator = {
       code: 6007;
       name: "MaxUsagesReached";
       msg: "Max usages reached";
+    },
+    {
+      code: 6008;
+      name: "InvalidExtensionAmount";
+      msg: "Extension must be a multiple of extension payment";
     }
   ];
 };
@@ -654,6 +659,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6007,
       name: "MaxUsagesReached",
       msg: "Max usages reached",
+    },
+    {
+      code: 6008,
+      name: "InvalidExtensionAmount",
+      msg: "Extension must be a multiple of extension payment",
     },
   ],
 };

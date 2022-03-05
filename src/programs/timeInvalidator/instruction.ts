@@ -11,10 +11,7 @@ import { SystemProgram } from "@solana/web3.js";
 
 import type { TokenManagerKind } from "../tokenManager";
 import { TOKEN_MANAGER_ADDRESS, TokenManagerState } from "../tokenManager";
-import {
-  getRemainingAccountsForKind,
-  getRemainingAccountsForPayment,
-} from "../tokenManager/utils";
+import { getRemainingAccountsForKind } from "../tokenManager/utils";
 import type { TIME_INVALIDATOR_PROGRAM } from "./constants";
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
 import { findTimeInvalidatorAddress } from "./pda";
@@ -152,9 +149,7 @@ export const invalidate = async (
   tokenManagerState: TokenManagerState,
   tokenManagerTokenAccountId: PublicKey,
   recipientTokenAccountId: PublicKey,
-  returnAccounts: AccountMeta[],
-  issuerPaymentMintTokenAccountId?: PublicKey | null,
-  tokenManagerPaymentMint?: PublicKey | null
+  returnAccounts: AccountMeta[]
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -164,16 +159,10 @@ export const invalidate = async (
     provider
   );
 
-  const [[timeInvalidatorId], paymentAccounts, transferAccounts] =
-    await Promise.all([
-      findTimeInvalidatorAddress(tokenManagerId),
-      getRemainingAccountsForPayment(
-        tokenManagerId,
-        issuerPaymentMintTokenAccountId,
-        tokenManagerPaymentMint
-      ),
-      getRemainingAccountsForKind(mintId, tokenManagerKind),
-    ]);
+  const [[timeInvalidatorId], transferAccounts] = await Promise.all([
+    findTimeInvalidatorAddress(tokenManagerId),
+    getRemainingAccountsForKind(mintId, tokenManagerKind),
+  ]);
 
   return timeInvalidatorProgram.instruction.invalidate({
     accounts: {
@@ -187,7 +176,6 @@ export const invalidate = async (
       tokenProgram: TOKEN_PROGRAM_ID,
     },
     remainingAccounts: [
-      ...paymentAccounts,
       ...(tokenManagerState === TokenManagerState.Claimed
         ? transferAccounts
         : []),

@@ -67,28 +67,6 @@ export const withInvalidate = async (
       tokenManagerData?.parsed.receiptMint
     );
 
-    let issuerPaymentMintTokenAccountId;
-    if (tokenManagerData.parsed.paymentMint) {
-      issuerPaymentMintTokenAccountId =
-        await withFindOrInitAssociatedTokenAccount(
-          transaction,
-          connection,
-          tokenManagerData.parsed.paymentMint,
-          tokenManagerData?.parsed.issuer,
-          wallet.publicKey
-        );
-
-      // create account to accept payment
-      await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        tokenManagerData.parsed.paymentMint,
-        tokenManagerData.pubkey,
-        wallet.publicKey,
-        true
-      );
-    }
-
     if (
       tokenManagerData?.parsed.recipientTokenAccount.toString() ===
       PublicKey.default.toString()
@@ -113,9 +91,7 @@ export const withInvalidate = async (
           PublicKey.default.toString()
           ? tokenManagerTokenAccountId
           : tokenManagerData?.parsed.recipientTokenAccount,
-        remainingAccountsForReturn,
-        issuerPaymentMintTokenAccountId,
-        tokenManagerData.parsed.paymentMint
+        remainingAccountsForReturn
       )
     );
 
@@ -159,102 +135,72 @@ export const withInvalidateTokenManager = async (
   wallet: Wallet,
   tokenManagerData: AccountData<TokenManagerData>
 ): Promise<Transaction> => {
-  console.log(tokenManagerData);
+  const tokenManagerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    tokenManagerData.parsed.mint,
+    tokenManagerData.pubkey,
+    wallet.publicKey,
+    true
+  );
 
-  if (tokenManagerData) {
-    const tokenManagerTokenAccountId =
-      await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        tokenManagerData.parsed.mint,
-        tokenManagerData.pubkey,
-        wallet.publicKey,
-        true
-      );
+  const remainingAccountsForReturn = await withRemainingAccountsForReturn(
+    transaction,
+    connection,
+    wallet,
+    tokenManagerData?.parsed.issuer,
+    tokenManagerData.parsed.mint,
+    tokenManagerData?.parsed.invalidationType,
+    tokenManagerData?.parsed.receiptMint
+  );
 
-    const remainingAccountsForReturn = await withRemainingAccountsForReturn(
-      transaction,
+  if (
+    tokenManagerData?.parsed.recipientTokenAccount.toString() ===
+    PublicKey.default.toString()
+  ) {
+    console.log("TM with incorrect recipient token account");
+  }
+  console.log(
+    "Invalidate TM: ",
+    tokenManagerData?.pubkey.toString(),
+    tokenManagerData?.parsed.state
+  );
+  transaction.add(
+    await tokenManager.instruction.invalidate(
       connection,
       wallet,
-      tokenManagerData?.parsed.issuer,
       tokenManagerData.parsed.mint,
-      tokenManagerData?.parsed.invalidationType,
-      tokenManagerData?.parsed.receiptMint
-    );
-
-    let issuerPaymentMintTokenAccountId;
-    if (tokenManagerData.parsed.paymentMint) {
-      issuerPaymentMintTokenAccountId =
-        await withFindOrInitAssociatedTokenAccount(
-          transaction,
-          connection,
-          tokenManagerData.parsed.paymentMint,
-          tokenManagerData?.parsed.issuer,
-          wallet.publicKey
-        );
-
-      // create account to accept payment
-      await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        tokenManagerData.parsed.paymentMint,
-        tokenManagerData.pubkey,
-        wallet.publicKey,
-        true
-      );
-    }
-
-    if (
+      tokenManagerData.pubkey,
+      tokenManagerData.parsed.kind,
+      tokenManagerData.parsed.state,
+      tokenManagerTokenAccountId,
       tokenManagerData?.parsed.recipientTokenAccount.toString() ===
-      PublicKey.default.toString()
-    ) {
-      console.log("TM with incorrect recipient token account");
-    }
-    console.log(
-      "Invalidate TM: ",
-      tokenManagerData?.pubkey.toString(),
-      tokenManagerData?.parsed.state
-    );
+        PublicKey.default.toString()
+        ? tokenManagerTokenAccountId
+        : tokenManagerData?.parsed.recipientTokenAccount,
+      remainingAccountsForReturn
+    )
+  );
+
+  const [claimApproverId] = await findClaimApproverAddress(
+    tokenManagerData.pubkey
+  );
+
+  if (
+    tokenManagerData.parsed.claimApprover &&
+    tokenManagerData.parsed.claimApprover.toString() ===
+      claimApproverId.toString()
+  ) {
+    console.log("Close PCA: ", claimApproverId);
     transaction.add(
-      await tokenManager.instruction.invalidate(
+      claimApprover.instruction.close(
         connection,
         wallet,
-        tokenManagerData.parsed.mint,
-        tokenManagerData.pubkey,
-        tokenManagerData.parsed.kind,
-        tokenManagerData.parsed.state,
-        tokenManagerTokenAccountId,
-        tokenManagerData?.parsed.recipientTokenAccount.toString() ===
-          PublicKey.default.toString()
-          ? tokenManagerTokenAccountId
-          : tokenManagerData?.parsed.recipientTokenAccount,
-        remainingAccountsForReturn,
-        issuerPaymentMintTokenAccountId,
-        tokenManagerData.parsed.paymentMint
+        claimApproverId,
+        tokenManagerData.pubkey
       )
     );
-
-    const [claimApproverId] = await findClaimApproverAddress(
-      tokenManagerData.pubkey
-    );
-
-    if (
-      tokenManagerData.parsed.claimApprover &&
-      tokenManagerData.parsed.claimApprover.toString() ===
-        claimApproverId.toString()
-    ) {
-      console.log("Close PCA: ", claimApproverId);
-      transaction.add(
-        claimApprover.instruction.close(
-          connection,
-          wallet,
-          claimApproverId,
-          tokenManagerData.pubkey
-        )
-      );
-    }
   }
-
   return transaction;
 };
 
@@ -281,6 +227,15 @@ const main = async (cluster: string) => {
       }
     }
   }
+};
+
+const tokenManagers = async (cluster: string) => {
+  const connection = connectionFor(cluster);
+  const tokenManagerDatas = await getTokenManagersByState(connection, null);
+  console.log(
+    `---------------Found ${tokenManagerDatas.length} token managers on ${cluster} ---------------`
+  );
+  console.log(tokenManagerDatas);
 };
 
 const claimApprovers = async (cluster: string) => {
@@ -364,19 +319,21 @@ const executeTx = async (transaction: Transaction, connection: Connection) => {
 export const invalidateAll = async (mainnet = true) => {
   if (mainnet) {
     try {
+      await tokenManagers("mainnet");
       // await main("mainnet");
-      await claimApprovers("mainnet");
+      // await claimApprovers("mainnet");
     } catch (e) {
       console.log("Failed to invalidate on mainnet: ", e);
     }
   }
 
   try {
-    await main("devnet");
-    await claimApprovers("devnet");
+    // await main("devnet");
+    // await claimApprovers("devnet");
   } catch (e) {
     console.log("Failed to invalidate on devnet: ", e);
   }
 };
 
 invalidateAll().catch((e) => console.log(e));
+console.log(main, claimApprovers);

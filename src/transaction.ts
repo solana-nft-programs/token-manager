@@ -19,7 +19,10 @@ import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
-import { withRemainingAccountsForReturn } from "./programs/tokenManager/utils";
+import {
+  withRemainingAccountsForPayment,
+  withRemainingAccountsForReturn,
+} from "./programs/tokenManager/utils";
 import type { UseInvalidationParams } from "./programs/useInvalidator/instruction";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 
@@ -85,18 +88,6 @@ export const withIssueToken = async (
     if (visibility === "private") {
       throw new Error("Private links do not currently support payment");
     }
-
-    // set payment mint
-    transaction.add(
-      tokenManager.instruction.setPaymentMint(
-        connection,
-        wallet,
-        tokenManagerId,
-        claimPayment.paymentMint
-      )
-    );
-
-    // init claim approver
     const [paidClaimApproverIx, paidClaimApproverId] =
       await claimApprover.instruction.init(
         connection,
@@ -274,31 +265,25 @@ export const withClaimToken = async (
     timeInvalidatorId?: PublicKey;
   }
 ): Promise<Transaction> => {
-  const tokenManagerData = await tokenManager.accounts.getTokenManager(
-    connection,
-    tokenManagerId
-  );
+  const [tokenManagerData, claimApproverData] = await Promise.all([
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId),
+    tryGetAccount(() =>
+      claimApprover.accounts.getClaimApprover(connection, tokenManagerId)
+    ),
+  ]);
 
   let claimReceiptId;
-
   // pay claim approver
   if (
+    claimApproverData &&
     tokenManagerData.parsed.claimApprover &&
-    tokenManagerData.parsed.paymentMint
+    tokenManagerData.parsed.claimApprover.toString() ===
+      claimApproverData.pubkey.toString()
   ) {
-    const paymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      tokenManagerData.parsed.paymentMint,
-      tokenManagerId,
-      wallet.publicKey,
-      true
-    );
-
     const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
-      tokenManagerData.parsed.paymentMint,
+      claimApproverData.parsed.paymentMint,
       wallet.publicKey,
       wallet.publicKey
     );
@@ -308,13 +293,22 @@ export const withClaimToken = async (
       wallet.publicKey
     );
 
+    const paymentAccounts = await withRemainingAccountsForPayment(
+      transaction,
+      connection,
+      wallet,
+      claimApproverData.parsed.paymentMint,
+      tokenManagerData.parsed.issuer,
+      tokenManagerData.parsed.receiptMint
+    );
+
     transaction.add(
       await claimApprover.instruction.pay(
         connection,
         wallet,
         tokenManagerId,
-        paymentTokenAccountId,
-        payerTokenAccountId
+        payerTokenAccountId,
+        paymentAccounts
       )
     );
   } else if (tokenManagerData.parsed.claimApprover) {
@@ -463,28 +457,6 @@ export const withInvalidate = async (
     tokenManagerData?.parsed.receiptMint
   );
 
-  let issuerPaymentMintTokenAccountId;
-  if (tokenManagerData.parsed.paymentMint) {
-    issuerPaymentMintTokenAccountId =
-      await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        tokenManagerData.parsed.paymentMint,
-        tokenManagerData?.parsed.issuer,
-        wallet.publicKey
-      );
-
-    // create account to accept payment
-    await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      tokenManagerData.parsed.paymentMint,
-      tokenManagerId,
-      wallet.publicKey,
-      true
-    );
-  }
-
   if (
     useInvalidatorData &&
     useInvalidatorData.parsed.totalUsages &&
@@ -500,9 +472,7 @@ export const withInvalidate = async (
         tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
-        remainingAccountsForReturn,
-        issuerPaymentMintTokenAccountId,
-        tokenManagerData.parsed.paymentMint
+        remainingAccountsForReturn
       )
     );
     transaction.add(
@@ -532,9 +502,7 @@ export const withInvalidate = async (
         tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
-        remainingAccountsForReturn,
-        issuerPaymentMintTokenAccountId,
-        tokenManagerData.parsed.paymentMint
+        remainingAccountsForReturn
       )
     );
     transaction.add(
@@ -623,18 +591,6 @@ export const withUse = async (
       tokenManagerData?.parsed.receiptMint
     );
 
-    let issuerPaymentMintTokenAccountId;
-    if (tokenManagerData.parsed.paymentMint) {
-      issuerPaymentMintTokenAccountId =
-        await withFindOrInitAssociatedTokenAccount(
-          transaction,
-          connection,
-          tokenManagerData.parsed.paymentMint,
-          tokenManagerData?.parsed.issuer,
-          wallet.publicKey
-        );
-    }
-
     transaction.add(
       await useInvalidator.instruction.invalidate(
         connection,
@@ -645,9 +601,7 @@ export const withUse = async (
         tokenManagerData.parsed.state,
         tokenManagerTokenAccountId,
         tokenManagerData?.parsed.recipientTokenAccount,
-        remainingAccountsForReturn,
-        issuerPaymentMintTokenAccountId,
-        tokenManagerData.parsed.paymentMint
+        remainingAccountsForReturn
       )
     );
     transaction.add(

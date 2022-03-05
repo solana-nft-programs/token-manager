@@ -2,7 +2,7 @@ use {
   crate::{errors::ErrorCode, state::*},
   anchor_lang::prelude::*,
   anchor_spl::token::{self, Token, TokenAccount, Transfer},
-  cardinal_token_manager::state::{TokenManager, TokenManagerState},
+  cardinal_token_manager::{state::{TokenManager, TokenManagerState}, utils::assert_issuer_token_account},
 };
 
 #[derive(Accounts)]
@@ -13,11 +13,7 @@ pub struct ExtendExpirationCtx<'info> {
   #[account(mut, constraint = time_invalidator.token_manager == token_manager.key() @ ErrorCode::InvalidTimeInvalidator)]
   time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
-  #[account(mut, constraint =
-      payment_token_account.owner == token_manager.key()
-      && payment_token_account.mint == time_invalidator.payment_mint.unwrap()
-      @ ErrorCode::InvalidPaymentTokenAccount,
-  )]
+  #[account(mut, constraint = payment_token_account.mint == time_invalidator.payment_mint.unwrap() @ ErrorCode::InvalidPaymentTokenAccount)]
   payment_token_account: Box<Account<'info, TokenAccount>>,
 
   #[account(mut)]
@@ -33,8 +29,19 @@ pub struct ExtendExpirationCtx<'info> {
 }
 
 pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result<()> {
-  let time_invalidator = &mut ctx.accounts.time_invalidator;
+  let remaining_accs = &mut ctx.remaining_accounts.iter();
+  assert_issuer_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
+  // if ctx.accounts.token_manager.receipt_mint == None {
+  //   if ctx.accounts.payment_token_account.owner != ctx.accounts.token_manager.issuer { return Err(error!(ErrorCode::InvalidPaymentTokenAccount))}
+  // } else {
+  //     let remaining_accs = &mut ctx.remaining_accounts.iter();
+  //     let receipt_token_account_info = next_account_info(remaining_accs)?;
+  //     let receipt_token_account = Account::<TokenAccount>::try_from(receipt_token_account_info)?;
+  //     if !(receipt_token_account.mint == ctx.accounts.token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) { return Err(error!(ErrorCode::InvalidPaymentTokenAccount))}
+  //     if receipt_token_account.owner != ctx.accounts.payment_token_account.owner { return Err(error!(ErrorCode::InvalidPaymentTokenAccount))}
+  // }
 
+  let time_invalidator = &mut ctx.accounts.time_invalidator;
   if time_invalidator.extension_payment_amount == None
     || time_invalidator.extension_duration_seconds == None
     || time_invalidator.payment_mint == None

@@ -6,11 +6,7 @@ use {
 
 #[derive(Accounts)]
 pub struct InitCtx<'info> {
-    #[account(constraint =
-        token_manager.payment_mint != None
-        && token_manager.state == TokenManagerState::Initialized as u8
-        @ ErrorCode::InvalidTokenManager
-    )]
+    #[account(constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(

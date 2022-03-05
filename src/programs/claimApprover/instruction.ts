@@ -2,6 +2,7 @@ import { BN, Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
+  AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
@@ -55,8 +56,8 @@ export const pay = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentTokenAccountId: PublicKey,
-  payerTokenAccountId: PublicKey
+  payerTokenAccountId: PublicKey,
+  paymentAccounts: [PublicKey, AccountMeta[]]
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -72,6 +73,7 @@ export const pay = async (
   );
 
   const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
+  const [paymentTokenAccountId, remainingAccounts] = paymentAccounts;
   return claimApproverProgram.instruction.pay({
     accounts: {
       tokenManager: tokenManagerId,
@@ -84,6 +86,7 @@ export const pay = async (
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     },
+    remainingAccounts,
   });
 };
 

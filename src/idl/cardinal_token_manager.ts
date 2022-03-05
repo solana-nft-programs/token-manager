@@ -95,27 +95,6 @@ export type CardinalTokenManager = {
       ];
     },
     {
-      name: "setPaymentMint";
-      accounts: [
-        {
-          name: "tokenManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "issuer";
-          isMut: true;
-          isSigner: true;
-        }
-      ];
-      args: [
-        {
-          name: "paymentMint";
-          type: "publicKey";
-        }
-      ];
-    },
-    {
       name: "setClaimApprover";
       accounts: [
         {
@@ -596,12 +575,6 @@ export type CardinalTokenManager = {
             };
           },
           {
-            name: "paymentMint";
-            type: {
-              option: "publicKey";
-            };
-          },
-          {
             name: "claimApprover";
             type: {
               option: "publicKey";
@@ -806,61 +779,56 @@ export type CardinalTokenManager = {
     },
     {
       code: 6010;
-      name: "InvalidPaymentManager";
-      msg: "Invalid payment manager";
-    },
-    {
-      code: 6011;
       name: "InvalidIssuer";
       msg: "Invalid issuer";
     },
     {
-      code: 6012;
+      code: 6011;
       name: "InvalidInvalidator";
       msg: "Invalid invalidator";
     },
     {
-      code: 6013;
+      code: 6012;
       name: "InvalidMint";
       msg: "Invalid mint";
     },
     {
-      code: 6014;
+      code: 6013;
       name: "InvalidTokenManagerState";
       msg: "Invalid token manager state";
     },
     {
-      code: 6015;
+      code: 6014;
       name: "OutstandingTokens";
       msg: "Outstanding tokens exist";
     },
     {
-      code: 6016;
+      code: 6015;
       name: "InvalidFreezeAuthority";
       msg: "Invalid freeze authority";
     },
     {
-      code: 6017;
+      code: 6016;
       name: "InvalidClaimReceipt";
       msg: "Invalid claim receipt";
     },
     {
-      code: 6018;
+      code: 6017;
       name: "PublicKeyMismatch";
       msg: "Public key mismatch";
     },
     {
-      code: 6019;
+      code: 6018;
       name: "InvalidMetadataProgramId";
       msg: "Invalid metadata program id";
     },
     {
-      code: 6020;
+      code: 6019;
       name: "InvalidReceiptMintAccount";
       msg: "Invalid receipt mint account";
     },
     {
-      code: 6021;
+      code: 6020;
       name: "InvalidReceiptMintOwner";
       msg: "Invalid receipt mint owner";
     }
@@ -959,27 +927,6 @@ export const IDL: CardinalTokenManager = {
       args: [
         {
           name: "mint",
-          type: "publicKey",
-        },
-      ],
-    },
-    {
-      name: "setPaymentMint",
-      accounts: [
-        {
-          name: "tokenManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "issuer",
-          isMut: true,
-          isSigner: true,
-        },
-      ],
-      args: [
-        {
-          name: "paymentMint",
           type: "publicKey",
         },
       ],
@@ -1465,12 +1412,6 @@ export const IDL: CardinalTokenManager = {
             },
           },
           {
-            name: "paymentMint",
-            type: {
-              option: "publicKey",
-            },
-          },
-          {
             name: "claimApprover",
             type: {
               option: "publicKey",
@@ -1675,61 +1616,56 @@ export const IDL: CardinalTokenManager = {
     },
     {
       code: 6010,
-      name: "InvalidPaymentManager",
-      msg: "Invalid payment manager",
-    },
-    {
-      code: 6011,
       name: "InvalidIssuer",
       msg: "Invalid issuer",
     },
     {
-      code: 6012,
+      code: 6011,
       name: "InvalidInvalidator",
       msg: "Invalid invalidator",
     },
     {
-      code: 6013,
+      code: 6012,
       name: "InvalidMint",
       msg: "Invalid mint",
     },
     {
-      code: 6014,
+      code: 6013,
       name: "InvalidTokenManagerState",
       msg: "Invalid token manager state",
     },
     {
-      code: 6015,
+      code: 6014,
       name: "OutstandingTokens",
       msg: "Outstanding tokens exist",
     },
     {
-      code: 6016,
+      code: 6015,
       name: "InvalidFreezeAuthority",
       msg: "Invalid freeze authority",
     },
     {
-      code: 6017,
+      code: 6016,
       name: "InvalidClaimReceipt",
       msg: "Invalid claim receipt",
     },
     {
-      code: 6018,
+      code: 6017,
       name: "PublicKeyMismatch",
       msg: "Public key mismatch",
     },
     {
-      code: 6019,
+      code: 6018,
       name: "InvalidMetadataProgramId",
       msg: "Invalid metadata program id",
     },
     {
-      code: 6020,
+      code: 6019,
       name: "InvalidReceiptMintAccount",
       msg: "Invalid receipt mint account",
     },
     {
-      code: 6021,
+      code: 6020,
       name: "InvalidReceiptMintOwner",
       msg: "Invalid receipt mint owner",
     },

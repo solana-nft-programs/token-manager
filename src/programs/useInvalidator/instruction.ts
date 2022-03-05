@@ -152,10 +152,10 @@ export const extendUsages = (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentTokenAccountId: PublicKey,
   payerTokenAccountId: PublicKey,
   useInvalidatorId: PublicKey,
-  extensionPaymentAmount: number
+  extensionPaymentAmount: number,
+  paymentAccounts: [PublicKey, AccountMeta[]]
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
 
@@ -165,6 +165,7 @@ export const extendUsages = (
     provider
   );
 
+  const [paymentTokenAccountId, remainingAccounts] = paymentAccounts;
   return useInvalidatorProgram.instruction.extendUsages(
     new BN(extensionPaymentAmount),
     {
@@ -176,6 +177,7 @@ export const extendUsages = (
         payerTokenAccount: payerTokenAccountId,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
+      remainingAccounts,
     }
   );
 };

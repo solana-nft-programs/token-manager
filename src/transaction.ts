@@ -625,20 +625,12 @@ export const withExtendExpiration = async (
 ): Promise<Transaction> => {
   const [timeInvalidatorId] =
     await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
-  const timeInvalidatorData = await tryGetAccount(() =>
-    timeInvalidator.accounts.getTimeInvalidator(connection, timeInvalidatorId)
-  );
+  const [timeInvalidatorData, tokenManagerData] = await Promise.all([
+    timeInvalidator.accounts.getTimeInvalidator(connection, timeInvalidatorId),
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId),
+  ]);
 
   if (timeInvalidatorData && timeInvalidatorData.parsed.paymentMint) {
-    const paymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      timeInvalidatorData.parsed.paymentMint,
-      tokenManagerId,
-      wallet.publicKey,
-      true
-    );
-
     const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
@@ -647,15 +639,24 @@ export const withExtendExpiration = async (
       wallet.publicKey
     );
 
+    const paymentAccounts = await withRemainingAccountsForPayment(
+      transaction,
+      connection,
+      wallet,
+      timeInvalidatorData.parsed.paymentMint,
+      tokenManagerData.parsed.issuer,
+      tokenManagerData.parsed.receiptMint
+    );
+
     transaction.add(
       timeInvalidator.instruction.extendExpiration(
         connection,
         wallet,
         tokenManagerId,
-        paymentTokenAccountId,
         payerTokenAccountId,
         timeInvalidatorId,
-        paymentAmount
+        paymentAmount,
+        paymentAccounts
       )
     );
   } else {
@@ -675,20 +676,12 @@ export const withExtendUsages = async (
   const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
     tokenManagerId
   );
-  const useInvalidatorData = await tryGetAccount(() =>
-    useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
-  );
+  const [useInvalidatorData, tokenManagerData] = await Promise.all([
+    useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId),
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId),
+  ]);
 
   if (useInvalidatorData && useInvalidatorData.parsed.extensionPaymentMint) {
-    const paymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      useInvalidatorData.parsed.extensionPaymentMint,
-      tokenManagerId,
-      wallet.publicKey,
-      true
-    );
-
     const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
@@ -697,19 +690,26 @@ export const withExtendUsages = async (
       wallet.publicKey
     );
 
+    const paymentAccounts = await withRemainingAccountsForPayment(
+      transaction,
+      connection,
+      wallet,
+      useInvalidatorData.parsed.extensionPaymentMint,
+      tokenManagerData.parsed.issuer,
+      tokenManagerData.parsed.receiptMint
+    );
+
     transaction.add(
       useInvalidator.instruction.extendUsages(
         connection,
         wallet,
         tokenManagerId,
-        paymentTokenAccountId,
         payerTokenAccountId,
         useInvalidatorId,
-        paymentAmount
+        paymentAmount,
+        paymentAccounts
       )
     );
-  } else {
-    console.log("No payment mint");
   }
 
   return transaction;

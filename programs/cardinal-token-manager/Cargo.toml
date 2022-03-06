@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-token-manager"
-version = "0.2.6"
+version = "0.2.9"
 description = "Cardinal token manager"
 edition = "2021"
 homepage = "https://cardinal.so"

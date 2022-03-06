@@ -1,5 +1,5 @@
 export type CardinalReceiptIndex = {
-  version: "0.2.6";
+  version: "0.2.9";
   name: "cardinal_receipt_index";
   instructions: [
     {
@@ -211,7 +211,7 @@ export type CardinalReceiptIndex = {
 };
 
 export const IDL: CardinalReceiptIndex = {
-  version: "0.2.6",
+  version: "0.2.9",
   name: "cardinal_receipt_index",
   instructions: [
     {

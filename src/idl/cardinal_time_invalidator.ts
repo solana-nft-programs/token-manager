@@ -199,7 +199,7 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "paymentMint";
+            name: "extensionPaymentMint";
             type: {
               option: "publicKey";
             };
@@ -251,7 +251,7 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "paymentMint";
+            name: "extensionPaymentMint";
             type: {
               option: "publicKey";
             };
@@ -532,7 +532,7 @@ export const IDL: CardinalTimeInvalidator = {
             },
           },
           {
-            name: "paymentMint",
+            name: "extensionPaymentMint",
             type: {
               option: "publicKey",
             },
@@ -584,7 +584,7 @@ export const IDL: CardinalTimeInvalidator = {
             },
           },
           {
-            name: "paymentMint",
+            name: "extensionPaymentMint",
             type: {
               option: "publicKey",
             },

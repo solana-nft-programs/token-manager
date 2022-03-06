@@ -76,7 +76,7 @@ describe("Create and Extend Rental", () => {
           extension: {
             extensionPaymentAmount: EXTENSION_PAYMENT_AMOUNT, // Pay 2 lamport to add 1000 seconds of expiration time
             extensionDurationSeconds: EXTENSION_DURATION,
-            paymentMint: paymentMint.publicKey,
+            extensionPaymentMint: paymentMint.publicKey,
             maxExpiration: Date.now() / 1000 + 5000,
           },
         },

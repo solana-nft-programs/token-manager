@@ -630,11 +630,11 @@ export const withExtendExpiration = async (
     tokenManager.accounts.getTokenManager(connection, tokenManagerId),
   ]);
 
-  if (timeInvalidatorData && timeInvalidatorData.parsed.paymentMint) {
+  if (timeInvalidatorData && timeInvalidatorData.parsed.extensionPaymentMint) {
     const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
-      timeInvalidatorData.parsed.paymentMint,
+      timeInvalidatorData.parsed.extensionPaymentMint,
       wallet.publicKey,
       wallet.publicKey
     );
@@ -643,7 +643,7 @@ export const withExtendExpiration = async (
       transaction,
       connection,
       wallet,
-      timeInvalidatorData.parsed.paymentMint,
+      timeInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
       tokenManagerData.parsed.receiptMint
     );

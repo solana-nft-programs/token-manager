@@ -211,12 +211,6 @@ export type CardinalUseInvalidator = {
             };
           },
           {
-            name: "maxUsages";
-            type: {
-              option: "u64";
-            };
-          },
-          {
             name: "extensionPaymentAmount";
             type: {
               option: "u64";
@@ -230,6 +224,12 @@ export type CardinalUseInvalidator = {
           },
           {
             name: "extensionUsages";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "maxUsages";
             type: {
               option: "u64";
             };
@@ -546,12 +546,6 @@ export const IDL: CardinalUseInvalidator = {
             },
           },
           {
-            name: "maxUsages",
-            type: {
-              option: "u64",
-            },
-          },
-          {
             name: "extensionPaymentAmount",
             type: {
               option: "u64",
@@ -565,6 +559,12 @@ export const IDL: CardinalUseInvalidator = {
           },
           {
             name: "extensionUsages",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "maxUsages",
             type: {
               option: "u64",
             },

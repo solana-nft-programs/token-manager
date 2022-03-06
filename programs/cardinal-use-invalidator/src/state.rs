@@ -9,8 +9,8 @@ pub struct UseInvalidator {
     pub token_manager: Pubkey,
     pub use_authority: Option<Pubkey>,
     pub total_usages: Option<u64>,
-    pub max_usages: Option<u64>,
     pub extension_payment_amount: Option<u64>,
     pub extension_payment_mint: Option<Pubkey>,
     pub extension_usages: Option<u64>,
+    pub max_usages: Option<u64>,
 }

@@ -43,5 +43,7 @@ pub enum ErrorCode {
     #[msg("Invalid receipt mint account")]
     InvalidReceiptMintAccount,
     #[msg("Invalid receipt mint owner")]
-    InvalidReceiptMintOwner
+    InvalidReceiptMintOwner,
+    #[msg("Invalid receipt mint")]
+    InvalidReceiptMint
 }

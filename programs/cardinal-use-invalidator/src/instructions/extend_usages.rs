@@ -2,8 +2,8 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
-    cardinal_token_manager::state::{TokenManager, TokenManagerState},
-  };
+    cardinal_token_manager::{state::{TokenManager, TokenManagerState}, utils::assert_payment_token_account},
+};
   
   #[derive(Accounts)]
   pub struct ExtendUsagesCtx<'info> {
@@ -13,11 +13,7 @@ use {
     #[account(mut, constraint = use_invalidator.token_manager == token_manager.key() @ ErrorCode::InvalidUseInvalidator)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
   
-    #[account(mut, constraint =
-        payment_token_account.owner == token_manager.key()
-        && payment_token_account.mint == use_invalidator.extension_payment_mint.unwrap()
-        @ ErrorCode::InvalidPaymentTokenAccount,
-    )]
+    #[account(mut, constraint = payment_token_account.mint == use_invalidator.extension_payment_mint.unwrap() @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
   
     #[account(mut)]
@@ -33,8 +29,10 @@ use {
   }
   
   pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()> {
+    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
+    
     let use_invalidator = &mut ctx.accounts.use_invalidator;
-  
     if use_invalidator.extension_payment_amount == None
       || use_invalidator.extension_usages == None
       || use_invalidator.extension_payment_mint == None

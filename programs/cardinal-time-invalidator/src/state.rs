@@ -10,7 +10,7 @@ pub struct TimeInvalidator {
     pub duration_seconds: Option<i64>,
     pub extension_payment_amount: Option<u64>,
     pub extension_duration_seconds: Option<u64>,
-    pub payment_mint: Option<Pubkey>,
+    pub extension_payment_mint: Option<Pubkey>,
     pub max_expiration: Option<i64>,
     pub disable_partial_extension: Option<bool>,
 }

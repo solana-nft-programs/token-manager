@@ -211,12 +211,6 @@ export type CardinalUseInvalidator = {
             };
           },
           {
-            name: "maxUsages";
-            type: {
-              option: "u64";
-            };
-          },
-          {
             name: "extensionPaymentAmount";
             type: {
               option: "u64";
@@ -230,6 +224,12 @@ export type CardinalUseInvalidator = {
           },
           {
             name: "extensionUsages";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "maxUsages";
             type: {
               option: "u64";
             };
@@ -324,6 +324,11 @@ export type CardinalUseInvalidator = {
       code: 6007;
       name: "MaxUsagesReached";
       msg: "Max usages reached";
+    },
+    {
+      code: 6008;
+      name: "InvalidExtensionAmount";
+      msg: "Extension must be a multiple of extension payment";
     }
   ];
 };
@@ -541,12 +546,6 @@ export const IDL: CardinalUseInvalidator = {
             },
           },
           {
-            name: "maxUsages",
-            type: {
-              option: "u64",
-            },
-          },
-          {
             name: "extensionPaymentAmount",
             type: {
               option: "u64",
@@ -560,6 +559,12 @@ export const IDL: CardinalUseInvalidator = {
           },
           {
             name: "extensionUsages",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "maxUsages",
             type: {
               option: "u64",
             },
@@ -654,6 +659,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6007,
       name: "MaxUsagesReached",
       msg: "Max usages reached",
+    },
+    {
+      code: 6008,
+      name: "InvalidExtensionAmount",
+      msg: "Extension must be a multiple of extension payment",
     },
   ],
 };

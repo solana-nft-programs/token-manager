@@ -18,6 +18,8 @@ import { getProvider } from "./workspace";
 
 describe("Create and Extend Rental", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
+  const EXTENSION_PAYMENT_AMOUNT = 2;
+  const EXTENSION_DURATION = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
@@ -70,13 +72,12 @@ describe("Create and Extend Rental", () => {
           paymentMint: paymentMint.publicKey,
         },
         timeInvalidation: {
-          durationSeconds: 1000,
+          durationSeconds: EXTENSION_DURATION,
           extension: {
-            extensionPaymentAmount: 1, // Pay 1 lamport to add 1000 seconds of expiration time
-            extensionDurationSeconds: 1000,
+            extensionPaymentAmount: EXTENSION_PAYMENT_AMOUNT, // Pay 2 lamport to add 1000 seconds of expiration time
+            extensionDurationSeconds: EXTENSION_DURATION,
             extensionPaymentMint: paymentMint.publicKey,
             maxExpiration: Date.now() / 1000 + 5000,
-            disablePartialExtension: true,
           },
         },
         mint: rentalMint.publicKey,
@@ -205,7 +206,7 @@ describe("Create and Extend Rental", () => {
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId,
-      1
+      EXTENSION_PAYMENT_AMOUNT / 2
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -232,7 +233,7 @@ describe("Create and Extend Rental", () => {
     );
 
     expect(timeInvalidatorData?.parsed.expiration?.toNumber()).to.eq(
-      expiration + 1000
+      expiration + EXTENSION_DURATION / 2
     );
   });
   it("Exceed Max Expiration", async () => {

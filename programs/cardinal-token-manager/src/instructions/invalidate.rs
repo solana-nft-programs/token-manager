@@ -2,7 +2,7 @@ use {
     crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
     anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, ThawAccount, CloseAccount}},
-    mpl_token_metadata::{instruction::thaw_delegated_account, utils::{assert_derivation,assert_initialized}},
+    mpl_token_metadata::{instruction::thaw_delegated_account, utils::{assert_derivation, assert_initialized}},
 };
 
 #[derive(Accounts)]
@@ -40,43 +40,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let mint = token_manager.mint;
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
-
-    if token_manager.payment_mint != None {
-        let payment_token_account_info = next_account_info(remaining_accs)?;
-        let payment_token_account = Account::<TokenAccount>::try_from(payment_token_account_info)?;
-
-        if payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
-        if payment_token_account.owner != token_manager.key() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
-        // assert_keys_eq!(payment_token_account.mint, token_manager.payment_mint.unwrap());
-        // assert_keys_eq!(payment_token_account.owner, token_manager.key());
-
-        let issuer_payment_token_account_info = next_account_info(remaining_accs)?;
-        let issuer_payment_token_account = Account::<TokenAccount>::try_from(issuer_payment_token_account_info)?;
-
-        if issuer_payment_token_account.mint != token_manager.payment_mint.unwrap() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
-        if issuer_payment_token_account.owner != token_manager.issuer { return Err(error!(ErrorCode::PublicKeyMismatch)); }
-        // assert_keys_eq!(issuer_payment_token_account.mint, token_manager.payment_mint.unwrap());
-        // assert_keys_eq!(issuer_payment_token_account.owner, token_manager.issuer);
-
-        let cpi_accounts = Transfer {
-            from: payment_token_account_info.clone(),
-            to: issuer_payment_token_account_info.clone(),
-            authority: token_manager.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-        token::transfer(cpi_context, payment_token_account.amount)?;
-    
-        // close token account
-        let cpi_accounts = CloseAccount {
-            account: payment_token_account_info.to_account_info(),
-            destination: ctx.accounts.collector.to_account_info(),
-            authority: token_manager.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-        token::close_account(cpi_context)?;
-    }
 
     if token_manager.state == TokenManagerState::Claimed as u8 {
         if token_manager.kind == TokenManagerKind::Managed as u8 {

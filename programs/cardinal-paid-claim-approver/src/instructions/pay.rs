@@ -2,7 +2,7 @@ use {
     crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{self, Token, TokenAccount, Transfer}},
-    cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager},
+    cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager, utils::assert_payment_token_account},
 };
 
 #[derive(Accounts)]
@@ -10,12 +10,7 @@ pub struct PayCtx<'info> {
     #[account(constraint = claim_approver.key() == token_manager.claim_approver.unwrap() @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut, constraint =
-        token_manager.payment_mint != None
-        && payment_token_account.owner == token_manager.key()
-        && payment_token_account.mint == token_manager.payment_mint.unwrap()
-        @ ErrorCode::InvalidPaymentTokenAccount,
-    )]
+    #[account(mut, constraint = payment_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
@@ -25,7 +20,7 @@ pub struct PayCtx<'info> {
     payer: Signer<'info>,
     #[account(mut, constraint =
         payer_token_account.owner == payer.key()
-        && payer_token_account.mint == token_manager.payment_mint.unwrap()
+        && payer_token_account.mint == claim_approver.payment_mint
         @ ErrorCode::InvalidPayerTokenAccount
     )]
     payer_token_account: Box<Account<'info, TokenAccount>>,
@@ -40,6 +35,9 @@ pub struct PayCtx<'info> {
 }
 
 pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
+    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
+
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),
         to: ctx.accounts.payment_token_account.to_account_info(),

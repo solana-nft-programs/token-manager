@@ -22,8 +22,6 @@ pub enum ErrorCode {
     InvalidClaimAuthority,
     #[msg("Invalid transfer authority")]
     InvalidTransferAuthority,
-    #[msg("Invalid payment manager")]
-    InvalidPaymentManager,
     #[msg("Invalid issuer")]
     InvalidIssuer,
     #[msg("Invalid invalidator")]
@@ -45,5 +43,7 @@ pub enum ErrorCode {
     #[msg("Invalid receipt mint account")]
     InvalidReceiptMintAccount,
     #[msg("Invalid receipt mint owner")]
-    InvalidReceiptMintOwner
+    InvalidReceiptMintOwner,
+    #[msg("Invalid receipt mint")]
+    InvalidReceiptMint
 }

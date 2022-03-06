@@ -2,7 +2,7 @@ use {
   crate::{errors::ErrorCode, state::*},
   anchor_lang::prelude::*,
   anchor_spl::token::{self, Token, TokenAccount, Transfer},
-  cardinal_token_manager::state::{TokenManager, TokenManagerState},
+  cardinal_token_manager::{state::{TokenManager, TokenManagerState}, utils::assert_payment_token_account},
 };
 
 #[derive(Accounts)]
@@ -13,18 +13,14 @@ pub struct ExtendExpirationCtx<'info> {
   #[account(mut, constraint = time_invalidator.token_manager == token_manager.key() @ ErrorCode::InvalidTimeInvalidator)]
   time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
-  #[account(mut, constraint =
-      payment_token_account.owner == token_manager.key()
-      && payment_token_account.mint == time_invalidator.payment_mint.unwrap()
-      @ ErrorCode::InvalidPaymentTokenAccount,
-  )]
+  #[account(mut, constraint = payment_token_account.mint == time_invalidator.extension_payment_mint.unwrap() @ ErrorCode::InvalidPaymentTokenAccount)]
   payment_token_account: Box<Account<'info, TokenAccount>>,
 
   #[account(mut)]
   payer: Signer<'info>,
   #[account(mut, constraint =
       payer_token_account.owner == payer.key()
-      && payer_token_account.mint == time_invalidator.payment_mint.unwrap()
+      && payer_token_account.mint == time_invalidator.extension_payment_mint.unwrap()
       @ ErrorCode::InvalidPayerTokenAccount
   )]
   payer_token_account: Box<Account<'info, TokenAccount>>,
@@ -33,11 +29,13 @@ pub struct ExtendExpirationCtx<'info> {
 }
 
 pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result<()> {
+  let remaining_accs = &mut ctx.remaining_accounts.iter();
+  assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
+  
   let time_invalidator = &mut ctx.accounts.time_invalidator;
-
   if time_invalidator.extension_payment_amount == None
     || time_invalidator.extension_duration_seconds == None
-    || time_invalidator.payment_mint == None
+    || time_invalidator.extension_payment_mint == None
   {
     return Err(error!(ErrorCode::InvalidTimeInvalidator));
   }

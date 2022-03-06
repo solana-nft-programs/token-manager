@@ -1,5 +1,6 @@
 pub mod instructions;
 pub mod state;
+pub mod utils;
 pub mod errors;
 
 use {anchor_lang::prelude::*, instructions::*};
@@ -20,10 +21,6 @@ pub mod cardinal_token_manager {
 
     pub fn init_mint_counter(ctx: Context<InitMintCounterCtx>, mint: Pubkey) -> Result<()> {
         init_mint_counter::handler(ctx, mint)
-    }
-
-    pub fn set_payment_mint(ctx: Context<SetPaymentMintCtx>, payment_mint: Pubkey) -> Result<()> {
-        set_payment_mint::handler(ctx, payment_mint)
     }
 
     pub fn set_claim_approver(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> Result<()> {

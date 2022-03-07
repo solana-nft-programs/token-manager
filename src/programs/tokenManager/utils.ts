@@ -12,8 +12,10 @@ import type {
 } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
+import type { AccountData } from "../..";
 import { withFindOrInitAssociatedTokenAccount } from "../..";
-import { InvalidationType, TokenManagerKind } from ".";
+import type { TokenManagerData } from ".";
+import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
 import { findMintManagerId } from "./pda";
 
 export const getRemainingAccountsForKind = async (
@@ -107,12 +109,14 @@ export const withRemainingAccountsForReturn = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  issuerId: PublicKey,
-  mintId: PublicKey,
-  invalidationType?: InvalidationType,
-  receiptMint?: PublicKey | null
+  tokenManagerData: AccountData<TokenManagerData>
 ): Promise<AccountMeta[]> => {
-  if (invalidationType === InvalidationType.Return) {
+  const { issuer, mint, invalidationType, receiptMint, state } =
+    tokenManagerData.parsed;
+  if (
+    invalidationType === InvalidationType.Return ||
+    state === TokenManagerState.Issued
+  ) {
     if (receiptMint) {
       const receiptMintLargestAccount =
         await connection.getTokenLargestAccounts(receiptMint);
@@ -134,7 +138,7 @@ export const withRemainingAccountsForReturn = async (
       const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
         transaction,
         connection,
-        mintId,
+        mint,
         receiptTokenAccount.owner,
         wallet.publicKey
       );
@@ -154,8 +158,8 @@ export const withRemainingAccountsForReturn = async (
       const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
         transaction,
         connection,
-        mintId,
-        issuerId,
+        mint,
+        issuer,
         wallet.publicKey
       );
       return [

@@ -61,10 +61,7 @@ export const withInvalidate = async (
       transaction,
       connection,
       wallet,
-      tokenManagerData?.parsed.issuer,
-      tokenManagerData.parsed.mint,
-      tokenManagerData?.parsed.invalidationType,
-      tokenManagerData?.parsed.receiptMint
+      tokenManagerData
     );
 
     if (
@@ -148,10 +145,7 @@ export const withInvalidateTokenManager = async (
     transaction,
     connection,
     wallet,
-    tokenManagerData?.parsed.issuer,
-    tokenManagerData.parsed.mint,
-    tokenManagerData?.parsed.invalidationType,
-    tokenManagerData?.parsed.receiptMint
+    tokenManagerData
   );
 
   if (
@@ -163,7 +157,8 @@ export const withInvalidateTokenManager = async (
   console.log(
     "Invalidate TM: ",
     tokenManagerData?.pubkey.toString(),
-    tokenManagerData?.parsed.state
+    tokenManagerData?.parsed.state,
+    remainingAccountsForReturn
   );
   transaction.add(
     await tokenManager.instruction.invalidate(
@@ -235,7 +230,28 @@ const tokenManagers = async (cluster: string) => {
   console.log(
     `---------------Found ${tokenManagerDatas.length} token managers on ${cluster} ---------------`
   );
-  console.log(tokenManagerDatas);
+  for (let i = 0; i < tokenManagerDatas.length; i++) {
+    const tokenManagerData = tokenManagerDatas[i];
+    if (tokenManagerData) {
+      try {
+        const transaction = new Transaction();
+        console.log(`Invalidating TokenManager ${i}`);
+        await withInvalidateTokenManager(
+          transaction,
+          connection,
+          new SignerWallet(wallet),
+          tokenManagerData
+        );
+        const txid = await executeTx(transaction, connection);
+        console.log(
+          `Succesfully invalidated toke manager with txid (${txid})`,
+          tokenManagerData.parsed
+        );
+      } catch (e) {
+        console.log(`Failed to invalidate: `, e);
+      }
+    }
+  }
 };
 
 const claimApprovers = async (cluster: string) => {
@@ -328,6 +344,7 @@ export const invalidateAll = async (mainnet = true) => {
   }
 
   try {
+    // await tokenManagers("devnet");
     // await main("devnet");
     // await claimApprovers("devnet");
   } catch (e) {

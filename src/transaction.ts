@@ -451,10 +451,7 @@ export const withInvalidate = async (
     transaction,
     connection,
     wallet,
-    tokenManagerData?.parsed.issuer,
-    mintId,
-    tokenManagerData?.parsed.invalidationType,
-    tokenManagerData?.parsed.receiptMint
+    tokenManagerData
   );
 
   if (
@@ -585,10 +582,7 @@ export const withUse = async (
       transaction,
       connection,
       wallet,
-      tokenManagerData?.parsed.issuer,
-      mintId,
-      tokenManagerData?.parsed.invalidationType,
-      tokenManagerData?.parsed.receiptMint
+      tokenManagerData
     );
 
     transaction.add(

@@ -1,12 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 
-import { getTokenManagersForIssuerUnsafe } from "../src/programs/receiptIndex";
+import { getTokenManagersForIssuer } from "../src/programs/tokenManager/accounts";
 import { connectionFor } from "./utils";
 
 const tokenManagersForIssuer = async () => {
   const connection = connectionFor("mainnet");
 
-  const tokenManagers = await getTokenManagersForIssuerUnsafe(
+  const tokenManagers = await getTokenManagersForIssuer(
     connection,
     new PublicKey("twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX")
   );

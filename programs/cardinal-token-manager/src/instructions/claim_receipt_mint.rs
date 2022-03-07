@@ -7,7 +7,7 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct ClaimReceiptMint<'info> {
+pub struct ClaimReceiptMintCtx<'info> {
     #[account(mut, constraint = token_manager.state == TokenManagerState::Issued as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
 
@@ -35,7 +35,7 @@ pub struct ClaimReceiptMint<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<ClaimReceiptMint>, name: String) -> Result<()> {
+pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.receipt_mint = Some(ctx.accounts.receipt_mint.key());

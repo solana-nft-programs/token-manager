@@ -43,7 +43,7 @@ pub mod cardinal_token_manager {
         create_transfer_receipt::handler(ctx, target)
     }
 
-    pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMint>, name: String) -> Result<()> {
+    pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
         claim_receipt_mint::handler(ctx, name)
     }
 

@@ -831,6 +831,11 @@ export type CardinalTokenManager = {
       code: 6020;
       name: "InvalidReceiptMintOwner";
       msg: "Invalid receipt mint owner";
+    },
+    {
+      code: 6021;
+      name: "InvalidReceiptMint";
+      msg: "Invalid receipt mint";
     }
   ];
 };
@@ -1668,6 +1673,11 @@ export const IDL: CardinalTokenManager = {
       code: 6020,
       name: "InvalidReceiptMintOwner",
       msg: "Invalid receipt mint owner",
+    },
+    {
+      code: 6021,
+      name: "InvalidReceiptMint",
+      msg: "Invalid receipt mint",
     },
   ],
 };

@@ -81,7 +81,7 @@ export type IssueParameters = {
 
   // Optional parameters to expire this token manager based on time
   timeInvalidation?: {
-    // Optional exact fixed expiration in UTC seconds
+    // Optional exact fixed expiration in UTC seconds, not to be used along with durationSeconds
     expiration?: number,
     // Optional duration after token is claimed in seconds
     durationSeconds?: number,
@@ -95,6 +95,8 @@ export type IssueParameters = {
       paymentMint: PublicKey,
       // The max expiration limit on how long a rental can be extended
       maxExpiration?: number,
+      // Whether this rental allows for partial extension or only in increments of extensionDurationSeconds
+      disablePartialExtension?: boolean,
     },
   },
 

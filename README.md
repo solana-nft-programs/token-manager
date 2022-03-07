@@ -128,7 +128,7 @@ export type IssueParameters = {
   // Release = 3,
   invalidationType?: InvalidationType,
 
-  // Whether the issuer wants to claim a receipt NFT from their rental
+  // Whether the issuer wants to claim a receipt NFT from their rental - this receipt allows the issuer to trade the underlying asset and future rental income
   receipt?: boolean,
 };
 ```

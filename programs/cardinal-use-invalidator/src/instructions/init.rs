@@ -38,6 +38,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     use_invalidator.bump = *ctx.bumps.get("use_invalidator").unwrap();
     use_invalidator.token_manager = ctx.accounts.token_manager.key();
     if ctx.accounts.token_manager.state == TokenManagerState::Initialized as u8 && ctx.accounts.user.key() == ctx.accounts.token_manager.issuer {
+        use_invalidator.usages = 0;
         use_invalidator.total_usages = ix.total_usages;
         use_invalidator.max_usages = ix.max_usages;
         use_invalidator.use_authority = ix.use_authority;

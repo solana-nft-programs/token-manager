@@ -43,6 +43,9 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     } else if ix.extension_payment_amount != None && ix.extension_payment_mint == None {
         return Err(error!(ErrorCode::InvalidInstruction));
     }
+
+    if ctx.accounts.payer.key() != ctx.accounts.token_manager.issuer { return Err(error!(ErrorCode::InvalidIssuer)) }
+
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     time_invalidator.bump = *ctx.bumps.get("time_invalidator").unwrap();
     time_invalidator.token_manager = ctx.accounts.token_manager.key();

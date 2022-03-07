@@ -88,9 +88,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         }
     }
 
-    token_manager.state = TokenManagerState::Invalidated as u8;
-    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
-    if token_manager.invalidation_type == InvalidationType::Return as u8 {
+    if token_manager.invalidation_type == InvalidationType::Return as u8 || token_manager.state == TokenManagerState::Issued as u8 {
         let return_token_account_info = next_account_info(remaining_accs)?;
         let return_token_account: spl_token::state::Account = assert_initialized(return_token_account_info)?;
         if token_manager.receipt_mint == None {
@@ -122,7 +120,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
     token::close_account(cpi_context)?;
-
+    
+    token_manager.state = TokenManagerState::Invalidated as u8;
+    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     if token_manager.invalidation_type != InvalidationType::Invalidate as u8 {
         token_manager.close(ctx.accounts.collector.to_account_info())?;
     }

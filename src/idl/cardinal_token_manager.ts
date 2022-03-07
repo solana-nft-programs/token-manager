@@ -1,5 +1,5 @@
 export type CardinalTokenManager = {
-  version: "0.2.9";
+  version: "0.2.11";
   name: "cardinal_token_manager";
   instructions: [
     {
@@ -841,7 +841,7 @@ export type CardinalTokenManager = {
 };
 
 export const IDL: CardinalTokenManager = {
-  version: "0.2.9",
+  version: "0.2.11",
   name: "cardinal_token_manager",
   instructions: [
     {

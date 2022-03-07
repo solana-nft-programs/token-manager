@@ -120,11 +120,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
     token::close_account(cpi_context)?;
-
-    if token_manager.invalidation_type == InvalidationType::Invalidate as u8 {
-        token_manager.state = TokenManagerState::Invalidated as u8;
-        token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
-    } else {
+    
+    token_manager.state = TokenManagerState::Invalidated as u8;
+    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+    if token_manager.invalidation_type != InvalidationType::Invalidate as u8 {
         token_manager.close(ctx.accounts.collector.to_account_info())?;
     }
     return Ok(())

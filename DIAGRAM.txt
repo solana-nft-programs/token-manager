@@ -1,38 +1,53 @@
 Table token_manager {
-  pubkey string [pk]
-  mint string [ref: > token_manager_token_account.mint]
-  claim_approver [string] [ref: > fixed_price_claim_approver.pubkey]
-  transfer_authority [string]
-  invalidate_authority [string] [ref: > fixed_time_invalidator.pubkey]
-  payment_manager [string] [ref: > payment_manager.pubkey]
-}
-
-Table payment_manager {
-  pubkey string [pk]
-  payment_mint string
-}
-
-Table payment_manager_token_account {
-  pubkey string [pk]
-  owner string [ref: > payment_manager.pubkey]
-  mint string [ref: > payment_manager.payment_mint]
+  pubkey pubkey [pk]
+  version int
+  bump int
+  count int 
+  num_invalidators int 
+  issuer pubkey
+  mint pubkey
   amount int
+  kind int
+  state int
+  state_changed_at int
+  invalidation_type int
+  recipient_token_account pubkey
+  receipt_mint Opt(pubkey)
+  claim_approver Opt(pubkey)
+  transfer_authority Opt(pubkey)
+  invalidators [pubkey]
 }
 
-Table token_manager_token_account {
-  pubkey string [pk]
-  owner string [ref: > token_manager.pubkey]
-  mint string
-  amount int
+Table time_invalidator {
+  pubkey string [pk, ref: > token_manager.invalidators]
+  bump int
+  expiration Opt(int)
+  token_manager pubkey [ref: > token_manager.pubkey]
+  duration_seconds Opt(int)
+  extension_payment_amount Opt(int)
+  extension_duration_seconds Opt(int)
+  extension_payment_mint Opt(pubkey)
+  max_expiration Opt(int)
+  disable_partial_extension Opt(bool)
 }
 
-Table fixed_price_claim_approver {
-  pubkey string [pk]
-  payment_mint string [ref: > payment_manager.payment_mint]
-  price int
+Table use_invalidator {
+  pubkey string [pk, ref: > token_manager.invalidators] 
+  bump int
+  usages int
+  token_manager pubkey [ref: > token_manager.pubkey]
+  use_authority Opt(pubkey)
+  total_usages Opt(int)
+  extension_payment_amount Opt(int)
+  extension_payment_mint Opt(pubkey)
+  extension_usages Opt(int)
+  max_usages Opt(int)
 }
 
-Table fixed_time_invalidator {
-  pubkey string [pk]
-  expiration int
+Table paid_claim_approver {
+  pubkey string [pk, ref: > token_manager.claim_approver]
+  bump int
+  payment_amount int
+  payment_mint pubkey
+  token_manager pubkey [ref: > token_manager.pubkey]
 }

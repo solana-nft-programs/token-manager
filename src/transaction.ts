@@ -531,8 +531,26 @@ export const withInvalidate = async (
         timeInvalidatorData.parsed.tokenManager
       )
     );
+  } else if (
+    tokenManagerData &&
+    tokenManagerData.parsed.invalidators
+      .map((invalidator) => invalidator.toString())
+      .indexOf(wallet.publicKey.toString()) !== -1
+  ) {
+    transaction.add(
+      await tokenManager.instruction.invalidate(
+        connection,
+        wallet,
+        mintId,
+        tokenManagerId,
+        tokenManagerData.parsed.kind,
+        tokenManagerData.parsed.state,
+        tokenManagerTokenAccountId,
+        tokenManagerData?.parsed.recipientTokenAccount,
+        remainingAccountsForReturn
+      )
+    );
   }
-
   return transaction;
 };
 

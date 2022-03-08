@@ -535,7 +535,7 @@ export const withInvalidate = async (
     tokenManagerData &&
     tokenManagerData.parsed.invalidators
       .map((invalidator) => invalidator.toString())
-      .indexOf(wallet.publicKey.toString()) !== -1
+      .some((inv) => inv === wallet.publicKey.toString())
   ) {
     transaction.add(
       await tokenManager.instruction.invalidate(

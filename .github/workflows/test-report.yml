@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Publish test results
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Yarn dependencies
         run: yarn install
 

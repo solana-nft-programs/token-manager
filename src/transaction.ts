@@ -39,6 +39,7 @@ export type IssueParameters = {
   receiptOptions?: {
     receiptMintKeypair: Keypair;
   };
+  customInvalidators?: PublicKey[];
 };
 
 /**
@@ -64,19 +65,23 @@ export const withIssueToken = async (
     invalidationType = InvalidationType.Return,
     visibility = "public",
     receiptOptions = undefined,
+    customInvalidators = undefined,
   }: IssueParameters
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   // init token manager
+  const num_invalidators =
+    (customInvalidators ? customInvalidators.length : 0) +
+    (useInvalidation && timeInvalidation
+      ? 2
+      : useInvalidation || timeInvalidation
+      ? 1
+      : 0);
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
     mint,
     issuerTokenAccountId,
-    useInvalidation && timeInvalidation
-      ? 2
-      : useInvalidation || timeInvalidation
-      ? 1
-      : 0
+    num_invalidators
   );
   transaction.add(tokenManagerIx);
 
@@ -187,6 +192,22 @@ export const withIssueToken = async (
           wallet,
           useInvalidatorId,
           tokenManagerId
+        )
+      );
+    }
+  }
+
+  /////////////////////////////////////////
+  //////////// custom invalidators ////////
+  /////////////////////////////////////////
+  if (customInvalidators) {
+    for (const invalidator of customInvalidators) {
+      transaction.add(
+        tokenManager.instruction.addInvalidator(
+          connection,
+          wallet,
+          tokenManagerId,
+          invalidator
         )
       );
     }

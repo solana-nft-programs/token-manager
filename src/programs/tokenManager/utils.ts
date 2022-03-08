@@ -13,7 +13,7 @@ import type {
 import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../..";
-import { withFindOrInitAssociatedTokenAccount } from "../..";
+import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
 import type { TokenManagerData } from ".";
 import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
 import { findMintManagerId } from "./pda";
@@ -76,13 +76,17 @@ export const withRemainingAccountsForPayment = async (
     );
 
     // get ATA for this mint of receipt mint holder
-    const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      paymentMint,
-      receiptTokenAccount.owner,
+    const returnTokenAccountId = receiptTokenAccount.owner.equals(
       wallet.publicKey
-    );
+    )
+      ? await findAta(paymentMint, receiptTokenAccount.owner)
+      : await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          paymentMint,
+          receiptTokenAccount.owner,
+          wallet.publicKey
+        );
     return [
       returnTokenAccountId,
       [
@@ -94,13 +98,15 @@ export const withRemainingAccountsForPayment = async (
       ],
     ];
   } else {
-    const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      paymentMint,
-      issuerId,
-      wallet.publicKey
-    );
+    const issuerTokenAccountId = issuerId.equals(wallet.publicKey)
+      ? await findAta(paymentMint, issuerId)
+      : await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          paymentMint,
+          issuerId,
+          wallet.publicKey
+        );
     return [issuerTokenAccountId, []];
   }
 };

@@ -280,11 +280,8 @@ export const withClaimToken = async (
     tokenManagerData.parsed.claimApprover.toString() ===
       claimApproverData.pubkey.toString()
   ) {
-    const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
+    const payerTokenAccountId = await findAta(
       claimApproverData.parsed.paymentMint,
-      wallet.publicKey,
       wallet.publicKey
     );
 

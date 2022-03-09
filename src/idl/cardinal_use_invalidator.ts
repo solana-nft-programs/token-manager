@@ -16,7 +16,7 @@ export type CardinalUseInvalidator = {
           isSigner: false;
         },
         {
-          name: "user";
+          name: "issuer";
           isMut: true;
           isSigner: true;
         },
@@ -351,7 +351,7 @@ export const IDL: CardinalUseInvalidator = {
           isSigner: false,
         },
         {
-          name: "user",
+          name: "issuer",
           isMut: true,
           isSigner: true,
         },

@@ -16,7 +16,7 @@ export type CardinalTimeInvalidator = {
           isSigner: false;
         },
         {
-          name: "user";
+          name: "issuer";
           isMut: true;
           isSigner: true;
         },
@@ -354,7 +354,7 @@ export const IDL: CardinalTimeInvalidator = {
           isSigner: false,
         },
         {
-          name: "user",
+          name: "issuer",
           isMut: true,
           isSigner: true,
         },

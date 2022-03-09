@@ -28,8 +28,8 @@ pub struct InitCtx<'info> {
     )]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
-    #[account(mut, constraint = payer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
-    user: Signer<'info>,
+    #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
+    issuer: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,

@@ -16,6 +16,11 @@ export type CardinalPaidClaimApprover = {
           isSigner: false;
         },
         {
+          name: "issuer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -151,6 +156,11 @@ export type CardinalPaidClaimApprover = {
       code: 6002;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
+    },
+    {
+      code: 6003;
+      name: "InvalidIssuer";
+      msg: "Invalid issuer";
     }
   ];
 };
@@ -171,6 +181,11 @@ export const IDL: CardinalPaidClaimApprover = {
           name: "claimApprover",
           isMut: true,
           isSigner: false,
+        },
+        {
+          name: "issuer",
+          isMut: true,
+          isSigner: true,
         },
         {
           name: "payer",
@@ -308,6 +323,11 @@ export const IDL: CardinalPaidClaimApprover = {
       code: 6002,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
+    },
+    {
+      code: 6003,
+      name: "InvalidIssuer",
+      msg: "Invalid issuer",
     },
   ],
 };

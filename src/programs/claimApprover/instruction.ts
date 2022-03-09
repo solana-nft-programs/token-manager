@@ -44,6 +44,7 @@ export const init = async (
       accounts: {
         tokenManager: tokenManagerId,
         claimApprover: claimApproverId,
+        issuer: wallet.publicKey,
         payer: wallet.publicKey,
         systemProgram: SystemProgram.programId,
       },

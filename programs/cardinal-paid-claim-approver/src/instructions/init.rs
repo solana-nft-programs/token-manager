@@ -17,6 +17,8 @@ pub struct InitCtx<'info> {
     )]
     claim_approver: Box<Account<'info, PaidClaimApprover>>,
 
+    #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
+    issuer: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,

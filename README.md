@@ -49,10 +49,11 @@ When instantiating a token-manager, the issuer can set a claim approver, transfe
 ## Documentation
 
 ### Token Manager ERD
+
 <img width="877" alt="DIAGRAM" src="https://user-images.githubusercontent.com/7113086/157140752-02983b0d-3501-42dd-add6-ea29fa37be80.png">
 View Online: https://dbdiagram.io/d/6226977961d06e6eadbc77be
 
-Documentation is a work in progress. For now, one should read [the tests](/tests/issueUnissue.spec.ts).
+Documentation is a work in progress. For now, one should read [the tests](https://github.com/cardinal-labs/cardinal-token-manager/blob/main/tests/issueUnissue.spec.ts).
 
 We soon plan on releasing a React library to make it easy to integrate Cardinal ui components with your frontend.
 

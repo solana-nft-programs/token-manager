@@ -8,7 +8,7 @@ use {
 #[instruction(mint: Pubkey, num_invalidators: u8)]
 pub struct InitCtx<'info> {
     #[account(
-        init,
+        init_if_needed,
         payer = payer,
         seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref()], bump,
         space = token_manager_size(num_invalidators as usize),
@@ -35,13 +35,21 @@ pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> Re
     }
 
     let token_manager = &mut ctx.accounts.token_manager;
-    
+    if token_manager.state != TokenManagerState::Initialized as u8 {
+        return Err(error!(ErrorCode::InvalidTokenManagerState));
+    }
+    if token_manager.num_invalidators != 0 && num_invalidators >= token_manager.num_invalidators {
+        return Err(error!(ErrorCode::InvalidNumInvalidators));
+    }
+
     token_manager.bump = *ctx.bumps.get("token_manager").unwrap();
     token_manager.num_invalidators = num_invalidators;
     token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.mint = mint;
     token_manager.state = TokenManagerState::Initialized as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+    token_manager.claim_approver = None;
+    token_manager.invalidators = Vec::new();
     // default to itself to avoid someone not setting it
     token_manager.transfer_authority = Some(token_manager.key());
     return Ok(())

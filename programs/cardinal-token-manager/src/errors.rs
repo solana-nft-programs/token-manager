@@ -6,6 +6,8 @@ pub enum ErrorCode {
     Uninitialized,
     #[msg("Too many invalidators have already been added")]
     TooManyInvalidators,
+    #[msg("Number of invalidators cannot be overwritten")]
+    InvalidNumInvalidators,
     #[msg("Token account not owned by token manager")]
     InvalidTokenManagerTokenAccount,
     #[msg("Token account not owned by issuer")]

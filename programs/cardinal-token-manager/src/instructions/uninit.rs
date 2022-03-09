@@ -12,8 +12,7 @@ pub struct UninitCtx<'info> {
     #[account(mut)]
     issuer: Signer<'info>,
     #[account(mut, constraint =
-        issuer_token_account.owner == issuer.key()
-        && issuer_token_account.mint == token_manager.mint
+        issuer_token_account.mint == token_manager.mint
         && issuer_token_account.amount >= 1
         @ ErrorCode::InvalidIssuerTokenAccount
     )]

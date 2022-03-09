@@ -56,7 +56,8 @@ export const withRemainingAccountsForPayment = async (
   wallet: Wallet,
   paymentMint: PublicKey,
   issuerId: PublicKey,
-  receiptMint?: PublicKey | null
+  receiptMint?: PublicKey | null,
+  allowOwnerOffCurve = true
 ): Promise<[PublicKey, AccountMeta[]]> => {
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
@@ -79,13 +80,18 @@ export const withRemainingAccountsForPayment = async (
     const returnTokenAccountId = receiptTokenAccount.owner.equals(
       wallet.publicKey
     )
-      ? await findAta(paymentMint, receiptTokenAccount.owner)
+      ? await findAta(
+          paymentMint,
+          receiptTokenAccount.owner,
+          allowOwnerOffCurve
+        )
       : await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
           receiptTokenAccount.owner,
-          wallet.publicKey
+          wallet.publicKey,
+          allowOwnerOffCurve
         );
     return [
       returnTokenAccountId,
@@ -99,13 +105,14 @@ export const withRemainingAccountsForPayment = async (
     ];
   } else {
     const issuerTokenAccountId = issuerId.equals(wallet.publicKey)
-      ? await findAta(paymentMint, issuerId)
+      ? await findAta(paymentMint, issuerId, allowOwnerOffCurve)
       : await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
           issuerId,
-          wallet.publicKey
+          wallet.publicKey,
+          allowOwnerOffCurve
         );
     return [issuerTokenAccountId, []];
   }
@@ -115,7 +122,8 @@ export const withRemainingAccountsForReturn = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  tokenManagerData: AccountData<TokenManagerData>
+  tokenManagerData: AccountData<TokenManagerData>,
+  allowOwnerOffCurve = true
 ): Promise<AccountMeta[]> => {
   const { issuer, mint, invalidationType, receiptMint, state } =
     tokenManagerData.parsed;
@@ -146,7 +154,8 @@ export const withRemainingAccountsForReturn = async (
         connection,
         mint,
         receiptTokenAccount.owner,
-        wallet.publicKey
+        wallet.publicKey,
+        allowOwnerOffCurve
       );
       return [
         {
@@ -166,7 +175,8 @@ export const withRemainingAccountsForReturn = async (
         connection,
         mint,
         issuer,
-        wallet.publicKey
+        wallet.publicKey,
+        allowOwnerOffCurve
       );
       return [
         {

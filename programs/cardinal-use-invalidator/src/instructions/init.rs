@@ -27,7 +27,7 @@ pub struct InitCtx<'info> {
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
     #[account(mut)]
-    user: Signer<'info>,
+    issuer: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
@@ -37,7 +37,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     use_invalidator.bump = *ctx.bumps.get("use_invalidator").unwrap();
     use_invalidator.token_manager = ctx.accounts.token_manager.key();
-    if ctx.accounts.token_manager.state == TokenManagerState::Initialized as u8 && ctx.accounts.user.key() == ctx.accounts.token_manager.issuer {
+    if ctx.accounts.token_manager.state == TokenManagerState::Initialized as u8 && ctx.accounts.issuer.key() == ctx.accounts.token_manager.issuer {
         use_invalidator.usages = 0;
         use_invalidator.total_usages = ix.total_usages;
         use_invalidator.max_usages = ix.max_usages;

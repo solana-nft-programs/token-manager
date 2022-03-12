@@ -2,7 +2,7 @@ use {
   crate::{errors::ErrorCode, state::*},
   anchor_lang::prelude::*,
   anchor_spl::token::{self, Token, TokenAccount, Transfer},
-  cardinal_token_manager::{state::{TokenManager, TokenManagerState}, utils::assert_payment_token_account},
+  cardinal_token_manager::{state::{TokenManager, TokenManagerState, PROVIDER_FEE, RECIPIENT_FEE, FEE_SCALE, assert_payment_manager}, utils::assert_payment_token_account},
 };
 
 #[derive(Accounts)]
@@ -15,6 +15,8 @@ pub struct ExtendExpirationCtx<'info> {
 
   #[account(mut, constraint = payment_token_account.mint == time_invalidator.extension_payment_mint.unwrap() @ ErrorCode::InvalidPaymentTokenAccount)]
   payment_token_account: Box<Account<'info, TokenAccount>>,
+  #[account(mut, constraint = payment_manager_token_account.mint == time_invalidator.extension_payment_mint.unwrap() && assert_payment_manager(&payment_manager_token_account.owner) @ ErrorCode::InvalidPaymentManagerTokenAccount)]
+  payment_manager_token_account: Box<Account<'info, TokenAccount>>,
 
   #[account(mut)]
   payer: Signer<'info>,
@@ -59,6 +61,17 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
     return Err(error!(ErrorCode::InvalidExtendExpiration));
   }
 
+  let provider_fee = time_invalidator.extension_payment_amount.unwrap() * (PROVIDER_FEE / FEE_SCALE);
+  let recipient_fee = time_invalidator.extension_payment_amount.unwrap() * (RECIPIENT_FEE / FEE_SCALE);
+  let cpi_accounts = Transfer {
+      from: ctx.accounts.payer_token_account.to_account_info(),
+      to: ctx.accounts.payment_manager_token_account.to_account_info(),
+      authority: ctx.accounts.payer.to_account_info(),
+  };
+  let cpi_program = ctx.accounts.token_program.to_account_info();
+  let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+  token::transfer(cpi_context, provider_fee + recipient_fee)?;
+
   let cpi_accounts = Transfer {
     from: ctx.accounts.payer_token_account.to_account_info(),
     to: ctx.accounts.payment_token_account.to_account_info(),
@@ -67,7 +80,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
 
   let cpi_program = ctx.accounts.token_program.to_account_info();
   let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-  token::transfer(cpi_context, payment_amount)?;
+  token::transfer(cpi_context, payment_amount - recipient_fee)?;
 
   time_invalidator.expiration = new_expiration;
   return Ok(());

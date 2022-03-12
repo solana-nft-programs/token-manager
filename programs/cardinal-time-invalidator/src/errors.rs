@@ -23,5 +23,7 @@ pub enum ErrorCode {
     #[msg("Invalid payment mint on time invalidator")]
     InvalidPaymentMint,
     #[msg("Invalid extension partial duration not allowed")]
-    InvalidExtensionAmount
+    InvalidExtensionAmount,
+    #[msg("Token account incorrect mint")]
+    InvalidPaymentManagerTokenAccount,
 }

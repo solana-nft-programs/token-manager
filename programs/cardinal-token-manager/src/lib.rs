@@ -59,6 +59,10 @@ pub mod cardinal_token_manager {
         claim::handler(ctx)
     }
 
+    pub fn transfer<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, TransferCtx<'info>>) -> Result<()> {
+        transfer::handler(ctx)
+    }
+
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
         invalidate::handler(ctx)
     }

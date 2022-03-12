@@ -12,6 +12,7 @@ pub enum ErrorCode {
     InvalidTokenManagerTokenAccount,
     #[msg("Token account not owned by issuer")]
     InvalidIssuerTokenAccount,
+    
     #[msg("Token account not owned by recipient")]
     InvalidRecipientTokenAccount,
     #[msg("Token account not owned by invalidator")]
@@ -49,5 +50,7 @@ pub enum ErrorCode {
     #[msg("Invalid receipt mint owner")]
     InvalidReceiptMintOwner,
     #[msg("Invalid receipt mint")]
-    InvalidReceiptMint
+    InvalidReceiptMint,
+    #[msg("Invalid current holder token account")]
+    InvalidCurrentTokenAccount,
 }

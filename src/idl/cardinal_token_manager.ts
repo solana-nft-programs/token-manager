@@ -411,6 +411,47 @@ export type CardinalTokenManager = {
       args: [];
     },
     {
+      name: "transfer";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManagerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "currentHolderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipient";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "recipientTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "invalidate";
       accounts: [
         {
@@ -630,6 +671,10 @@ export type CardinalTokenManager = {
             type: "u8";
           },
           {
+            name: "mint";
+            type: "publicKey";
+          },
+          {
             name: "count";
             type: "u64";
           }
@@ -644,6 +689,14 @@ export type CardinalTokenManager = {
           {
             name: "mintCount";
             type: "u64";
+          },
+          {
+            name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "target";
+            type: "publicKey";
           }
         ];
       };
@@ -656,6 +709,14 @@ export type CardinalTokenManager = {
           {
             name: "mintCount";
             type: "u64";
+          },
+          {
+            name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "target";
+            type: "publicKey";
           }
         ];
       };
@@ -857,6 +918,11 @@ export type CardinalTokenManager = {
       code: 6023;
       name: "InvalidReceiptMint";
       msg: "Invalid receipt mint";
+    },
+    {
+      code: 6024;
+      name: "InvalidCurrentTokenAccount";
+      msg: "Invalid current holder token account";
     }
   ];
 };
@@ -1274,6 +1340,47 @@ export const IDL: CardinalTokenManager = {
       args: [],
     },
     {
+      name: "transfer",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManagerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "currentHolderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipient",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
       name: "invalidate",
       accounts: [
         {
@@ -1493,6 +1600,10 @@ export const IDL: CardinalTokenManager = {
             type: "u8",
           },
           {
+            name: "mint",
+            type: "publicKey",
+          },
+          {
             name: "count",
             type: "u64",
           },
@@ -1508,6 +1619,14 @@ export const IDL: CardinalTokenManager = {
             name: "mintCount",
             type: "u64",
           },
+          {
+            name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "target",
+            type: "publicKey",
+          },
         ],
       },
     },
@@ -1519,6 +1638,14 @@ export const IDL: CardinalTokenManager = {
           {
             name: "mintCount",
             type: "u64",
+          },
+          {
+            name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "target",
+            type: "publicKey",
           },
         ],
       },
@@ -1720,6 +1847,11 @@ export const IDL: CardinalTokenManager = {
       code: 6023,
       name: "InvalidReceiptMint",
       msg: "Invalid receipt mint",
+    },
+    {
+      code: 6024,
+      name: "InvalidCurrentTokenAccount",
+      msg: "Invalid current holder token account",
     },
   ],
 };

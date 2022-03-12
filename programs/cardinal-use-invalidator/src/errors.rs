@@ -20,4 +20,6 @@ pub enum ErrorCode {
     MaxUsagesReached,
     #[msg("Extension must be a multiple of extension payment")]
     InvalidExtensionAmount,
+    #[msg("Token account incorrect mint")]
+    InvalidPaymentManagerTokenAccount,
 }

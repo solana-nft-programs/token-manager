@@ -2,7 +2,7 @@ use {
     crate::{state::*, errors::ErrorCode},
     anchor_lang::{prelude::*},
     anchor_spl::{token::{self, Token, TokenAccount, Transfer}},
-    cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager, utils::assert_payment_token_account},
+    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager, PROVIDER_FEE, RECIPIENT_FEE, FEE_SCALE, assert_payment_manager}, utils::assert_payment_token_account},
 };
 
 #[derive(Accounts)]
@@ -12,6 +12,8 @@ pub struct PayCtx<'info> {
 
     #[account(mut, constraint = payment_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = payment_manager_token_account.mint == claim_approver.payment_mint && assert_payment_manager(&payment_manager_token_account.owner) @ ErrorCode::InvalidPaymentManagerTokenAccount)]
+    payment_manager_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     claim_approver: Box<Account<'info, PaidClaimApprover>>,
@@ -38,6 +40,17 @@ pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
+    let provider_fee = ctx.accounts.claim_approver.payment_amount * (PROVIDER_FEE / FEE_SCALE);
+    let recipient_fee = ctx.accounts.claim_approver.payment_amount * (RECIPIENT_FEE / FEE_SCALE);
+    let cpi_accounts = Transfer {
+        from: ctx.accounts.payer_token_account.to_account_info(),
+        to: ctx.accounts.payment_manager_token_account.to_account_info(),
+        authority: ctx.accounts.payer.to_account_info(),
+    };
+    let cpi_program = ctx.accounts.token_program.to_account_info();
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+    token::transfer(cpi_context, provider_fee + recipient_fee)?;
+
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),
         to: ctx.accounts.payment_token_account.to_account_info(),
@@ -45,7 +58,7 @@ pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, ctx.accounts.claim_approver.payment_amount)?;
+    token::transfer(cpi_context, ctx.accounts.claim_approver.payment_amount - recipient_fee)?;
 
     let token_manager_key = ctx.accounts.token_manager.key();
     let claim_approver_seeds = &[PAID_CLAIM_APPROVER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.claim_approver.bump]];

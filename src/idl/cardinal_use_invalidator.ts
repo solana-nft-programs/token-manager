@@ -90,6 +90,11 @@ export type CardinalUseInvalidator = {
           isSigner: false;
         },
         {
+          name: "paymentManagerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -329,6 +334,11 @@ export type CardinalUseInvalidator = {
       code: 6008;
       name: "InvalidExtensionAmount";
       msg: "Extension must be a multiple of extension payment";
+    },
+    {
+      code: 6009;
+      name: "InvalidPaymentManagerTokenAccount";
+      msg: "Token account incorrect mint";
     }
   ];
 };
@@ -421,6 +431,11 @@ export const IDL: CardinalUseInvalidator = {
         },
         {
           name: "paymentTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentManagerTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -664,6 +679,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6008,
       name: "InvalidExtensionAmount",
       msg: "Extension must be a multiple of extension payment",
+    },
+    {
+      code: 6009,
+      name: "InvalidPaymentManagerTokenAccount",
+      msg: "Token account incorrect mint",
     },
   ],
 };

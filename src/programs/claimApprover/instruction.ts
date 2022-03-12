@@ -58,7 +58,7 @@ export const pay = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   payerTokenAccountId: PublicKey,
-  paymentAccounts: [PublicKey, AccountMeta[]]
+  paymentAccounts: [PublicKey, PublicKey, AccountMeta[]]
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -74,7 +74,11 @@ export const pay = async (
   );
 
   const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
-  const [paymentTokenAccountId, remainingAccounts] = paymentAccounts;
+  const [
+    paymentTokenAccountId,
+    paymentManagerTokenAccountId,
+    remainingAccounts,
+  ] = paymentAccounts;
   return claimApproverProgram.instruction.pay({
     accounts: {
       tokenManager: tokenManagerId,
@@ -82,6 +86,7 @@ export const pay = async (
       claimApprover: claimApproverId,
       payer: wallet.publicKey,
       payerTokenAccount: payerTokenAccountId,
+      paymentManagerTokenAccount: paymentManagerTokenAccountId,
       claimReceipt: claimReceiptId,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,

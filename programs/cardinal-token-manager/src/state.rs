@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
@@ -96,4 +97,14 @@ pub struct TranferReceipt {
     pub mint_count: u64,
     pub token_manager: Pubkey,
     pub target: Pubkey
+}
+
+pub const FEE_SCALE: u64 = 10000;
+pub const PROVIDER_FEE: u64 = 0;
+pub const RECIPIENT_FEE: u64 = 0;
+pub fn assert_payment_manager(key: &Pubkey) -> bool {
+    let allowed_payment_managers = [
+        Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap(),
+    ];
+    return allowed_payment_managers.contains(key)
 }

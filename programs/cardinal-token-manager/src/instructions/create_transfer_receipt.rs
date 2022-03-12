@@ -26,6 +26,8 @@ pub struct CreateTransferReceiptCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(_ctx: Context<CreateTransferReceiptCtx>, _target: Pubkey) -> Result<()> {
+pub fn handler(ctx: Context<CreateTransferReceiptCtx>, _target: Pubkey) -> Result<()> {
+    let transfer_receipt = &mut ctx.accounts.transfer_receipt;
+    transfer_receipt.mint_count = ctx.accounts.token_manager.count;
     return Ok(())
 }

@@ -27,6 +27,8 @@ pub struct CreateClaimReceiptCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(_ctx: Context<CreateClaimReceiptCtx>, _target: Pubkey) -> Result<()> {
+pub fn handler(ctx: Context<CreateClaimReceiptCtx>, _target: Pubkey) -> Result<()> {
+    let claim_receipt = &mut ctx.accounts.claim_receipt;
+    claim_receipt.mint_count = ctx.accounts.token_manager.count;
     return Ok(())
 }

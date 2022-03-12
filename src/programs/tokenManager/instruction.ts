@@ -68,14 +68,16 @@ export const init = async (
     provider
   );
 
-  const [tokenManagerId, _tokenManagerBump] = await findTokenManagerAddress(
-    mint
-  );
+  const [[tokenManagerId], [mintCounterId]] = await Promise.all([
+    findTokenManagerAddress(mint),
+    findMintCounterId(mint),
+  ]);
 
   return [
     tokenManagerProgram.instruction.init(mint, numInvalidator, {
       accounts: {
         tokenManager: tokenManagerId,
+        mintCounter: mintCounterId,
         issuer: wallet.publicKey,
         payer: wallet.publicKey,
         issuerTokenAccount: issuerTokenAccountId,

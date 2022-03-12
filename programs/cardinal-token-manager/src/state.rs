@@ -85,6 +85,8 @@ pub const CLAIM_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<ClaimReceipt>() + 
 #[account]
 pub struct ClaimReceipt {
     pub mint_count: u64,
+    pub token_manager: Pubkey,
+    pub target: Pubkey
 }
 
 pub const TRANSFER_RECEIPT_SEED: &str = "transfer-receipt";
@@ -92,4 +94,6 @@ pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TranferReceipt>
 #[account]
 pub struct TranferReceipt {
     pub mint_count: u64,
+    pub token_manager: Pubkey,
+    pub target: Pubkey
 }

@@ -11,6 +11,11 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
+          name: "mintCounter";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "issuer";
           isMut: true;
           isSigner: true;
@@ -625,10 +630,6 @@ export type CardinalTokenManager = {
             type: "u8";
           },
           {
-            name: "tokenManager";
-            type: "publicKey";
-          },
-          {
             name: "count";
             type: "u64";
           }
@@ -639,14 +640,24 @@ export type CardinalTokenManager = {
       name: "claimReceipt";
       type: {
         kind: "struct";
-        fields: [];
+        fields: [
+          {
+            name: "mintCount";
+            type: "u64";
+          }
+        ];
       };
     },
     {
       name: "tranferReceipt";
       type: {
         kind: "struct";
-        fields: [];
+        fields: [
+          {
+            name: "mintCount";
+            type: "u64";
+          }
+        ];
       };
     }
   ];
@@ -819,26 +830,31 @@ export type CardinalTokenManager = {
     },
     {
       code: 6018;
+      name: "InvalidTransferReceipt";
+      msg: "Invalid transfer receipt";
+    },
+    {
+      code: 6019;
       name: "PublicKeyMismatch";
       msg: "Public key mismatch";
     },
     {
-      code: 6019;
+      code: 6020;
       name: "InvalidMetadataProgramId";
       msg: "Invalid metadata program id";
     },
     {
-      code: 6020;
+      code: 6021;
       name: "InvalidReceiptMintAccount";
       msg: "Invalid receipt mint account";
     },
     {
-      code: 6021;
+      code: 6022;
       name: "InvalidReceiptMintOwner";
       msg: "Invalid receipt mint owner";
     },
     {
-      code: 6022;
+      code: 6023;
       name: "InvalidReceiptMint";
       msg: "Invalid receipt mint";
     }
@@ -854,6 +870,11 @@ export const IDL: CardinalTokenManager = {
       accounts: [
         {
           name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mintCounter",
           isMut: true,
           isSigner: false,
         },
@@ -1472,10 +1493,6 @@ export const IDL: CardinalTokenManager = {
             type: "u8",
           },
           {
-            name: "tokenManager",
-            type: "publicKey",
-          },
-          {
             name: "count",
             type: "u64",
           },
@@ -1486,14 +1503,24 @@ export const IDL: CardinalTokenManager = {
       name: "claimReceipt",
       type: {
         kind: "struct",
-        fields: [],
+        fields: [
+          {
+            name: "mintCount",
+            type: "u64",
+          },
+        ],
       },
     },
     {
       name: "tranferReceipt",
       type: {
         kind: "struct",
-        fields: [],
+        fields: [
+          {
+            name: "mintCount",
+            type: "u64",
+          },
+        ],
       },
     },
   ],
@@ -1666,26 +1693,31 @@ export const IDL: CardinalTokenManager = {
     },
     {
       code: 6018,
+      name: "InvalidTransferReceipt",
+      msg: "Invalid transfer receipt",
+    },
+    {
+      code: 6019,
       name: "PublicKeyMismatch",
       msg: "Public key mismatch",
     },
     {
-      code: 6019,
+      code: 6020,
       name: "InvalidMetadataProgramId",
       msg: "Invalid metadata program id",
     },
     {
-      code: 6020,
+      code: 6021,
       name: "InvalidReceiptMintAccount",
       msg: "Invalid receipt mint account",
     },
     {
-      code: 6021,
+      code: 6022,
       name: "InvalidReceiptMintOwner",
       msg: "Invalid receipt mint owner",
     },
     {
-      code: 6022,
+      code: 6023,
       name: "InvalidReceiptMint",
       msg: "Invalid receipt mint",
     },

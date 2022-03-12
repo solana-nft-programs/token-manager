@@ -120,17 +120,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     // verify claim receipt
     if token_manager.claim_approver != None {
         let claim_receipt_info = next_account_info(remaining_accs)?;
-        let token_manager_key = token_manager.key();
-        let recipient_key = ctx.accounts.recipient.key();
-        let seed = &[
-            CLAIM_RECEIPT_SEED.as_ref(),
-            token_manager_key.as_ref(),
-            recipient_key.as_ref(),
-        ];
-        let (claim_receipt_address, _bump) = Pubkey::find_program_address(seed, ctx.program_id);
-        if claim_receipt_address != claim_receipt_info.key() { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
-        // assert_keys_eq!(claim_receipt_address, claim_receipt_info.key());
         let claim_receipt = Account::<ClaimReceipt>::try_from(claim_receipt_info)?;
+        if claim_receipt.mint_count != token_manager.count { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
+        if claim_receipt.token_manager != token_manager.key() { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
+        if claim_receipt.target != ctx.accounts.recipient.key() { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
         claim_receipt.close(token_manager.to_account_info())?;
     }
     return Ok(())

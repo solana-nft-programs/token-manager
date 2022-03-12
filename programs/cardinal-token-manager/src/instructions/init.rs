@@ -15,6 +15,14 @@ pub struct InitCtx<'info> {
     )]
     token_manager: Box<Account<'info, TokenManager>>,
 
+    #[account(
+        init_if_needed,
+        payer = payer,
+        seeds = [MINT_COUNTER_SEED.as_bytes(), mint.as_ref()], bump,
+        space = MINT_COUNTER_SIZE,
+    )]
+    mint_counter: Box<Account<'info, MintCounter>>,
+
     #[account(mut)]
     issuer: Signer<'info>,
     #[account(mut)]
@@ -42,7 +50,13 @@ pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> Re
         return Err(error!(ErrorCode::InvalidNumInvalidators));
     }
 
+    let mint_counter = &mut ctx.accounts.mint_counter;
+    mint_counter.bump = *ctx.bumps.get("mint_counter").unwrap();
+    mint_counter.count += 1;
+    mint_counter.mint = mint;
+
     token_manager.bump = *ctx.bumps.get("token_manager").unwrap();
+    token_manager.count = mint_counter.count;
     token_manager.num_invalidators = num_invalidators;
     token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.mint = mint;

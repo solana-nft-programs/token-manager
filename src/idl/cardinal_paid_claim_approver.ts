@@ -1,5 +1,5 @@
 export type CardinalPaidClaimApprover = {
-  version: "0.2.17";
+  version: "0.2.18";
   name: "cardinal_paid_claim_approver";
   instructions: [
     {
@@ -166,7 +166,7 @@ export type CardinalPaidClaimApprover = {
 };
 
 export const IDL: CardinalPaidClaimApprover = {
-  version: "0.2.17",
+  version: "0.2.18",
   name: "cardinal_paid_claim_approver",
   instructions: [
     {

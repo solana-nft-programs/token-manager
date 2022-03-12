@@ -15,7 +15,12 @@ import { Keypair } from "@solana/web3.js";
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
 import type { TokenManagerData } from ".";
-import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
+import {
+  InvalidationType,
+  PAYMENT_MANAGER,
+  TokenManagerKind,
+  TokenManagerState,
+} from ".";
 import { findMintManagerId } from "./pda";
 
 export const getRemainingAccountsForKind = async (
@@ -58,7 +63,7 @@ export const withRemainingAccountsForPayment = async (
   issuerId: PublicKey,
   receiptMint?: PublicKey | null,
   allowOwnerOffCurve = true
-): Promise<[PublicKey, AccountMeta[]]> => {
+): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
       receiptMint
@@ -77,24 +82,34 @@ export const withRemainingAccountsForPayment = async (
     );
 
     // get ATA for this mint of receipt mint holder
-    const returnTokenAccountId = receiptTokenAccount.owner.equals(
-      wallet.publicKey
-    )
-      ? await findAta(
-          paymentMint,
-          receiptTokenAccount.owner,
-          allowOwnerOffCurve
-        )
-      : await withFindOrInitAssociatedTokenAccount(
+    const [returnTokenAccountId, paymentManagerTokenAccountId] =
+      await Promise.all([
+        receiptTokenAccount.owner.equals(wallet.publicKey)
+          ? await findAta(
+              paymentMint,
+              receiptTokenAccount.owner,
+              allowOwnerOffCurve
+            )
+          : await withFindOrInitAssociatedTokenAccount(
+              transaction,
+              connection,
+              paymentMint,
+              receiptTokenAccount.owner,
+              wallet.publicKey,
+              allowOwnerOffCurve
+            ),
+        await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
-          receiptTokenAccount.owner,
+          PAYMENT_MANAGER,
           wallet.publicKey,
-          allowOwnerOffCurve
-        );
+          true
+        ),
+      ]);
     return [
       returnTokenAccountId,
+      paymentManagerTokenAccountId,
       [
         {
           pubkey: receiptTokenAccountId,
@@ -104,17 +119,28 @@ export const withRemainingAccountsForPayment = async (
       ],
     ];
   } else {
-    const issuerTokenAccountId = issuerId.equals(wallet.publicKey)
-      ? await findAta(paymentMint, issuerId, allowOwnerOffCurve)
-      : await withFindOrInitAssociatedTokenAccount(
+    const [issuerTokenAccountId, paymentManagerTokenAccountId] =
+      await Promise.all([
+        issuerId.equals(wallet.publicKey)
+          ? await findAta(paymentMint, issuerId, allowOwnerOffCurve)
+          : await withFindOrInitAssociatedTokenAccount(
+              transaction,
+              connection,
+              paymentMint,
+              issuerId,
+              wallet.publicKey,
+              allowOwnerOffCurve
+            ),
+        await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
-          issuerId,
+          PAYMENT_MANAGER,
           wallet.publicKey,
-          allowOwnerOffCurve
-        );
-    return [issuerTokenAccountId, []];
+          true
+        ),
+      ]);
+    return [issuerTokenAccountId, paymentManagerTokenAccountId, []];
   }
 };
 

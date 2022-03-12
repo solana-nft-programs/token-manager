@@ -100,9 +100,9 @@ pub struct TranferReceipt {
 }
 
 pub const FEE_SCALE: u64 = 10000;
-pub const PROVIDER_FEE: u64 = 1000;
-pub const RECIPIENT_FEE: u64 = 1000;
-pub fn assert_payment_manager(key: &Pubkey) -> bool{
+pub const PROVIDER_FEE: u64 = 0;
+pub const RECIPIENT_FEE: u64 = 0;
+pub fn assert_payment_manager(key: &Pubkey) -> bool {
     let allowed_payment_managers = [
         Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap(),
     ];

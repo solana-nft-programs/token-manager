@@ -56,6 +56,11 @@ export type CardinalPaidClaimApprover = {
           isSigner: false;
         },
         {
+          name: "paymentManagerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "claimApprover";
           isMut: true;
           isSigner: false;
@@ -149,16 +154,21 @@ export type CardinalPaidClaimApprover = {
     },
     {
       code: 6001;
+      name: "InvalidPaymentManagerTokenAccount";
+      msg: "Token account incorrect mint";
+    },
+    {
+      code: 6002;
       name: "InvalidPayerTokenAccount";
       msg: "Token account not owned by the payer";
     },
     {
-      code: 6002;
+      code: 6003;
       name: "InvalidTokenManager";
       msg: "Invalid token manager for this claim approver";
     },
     {
-      code: 6003;
+      code: 6004;
       name: "InvalidIssuer";
       msg: "Invalid issuer";
     }
@@ -219,6 +229,11 @@ export const IDL: CardinalPaidClaimApprover = {
         },
         {
           name: "paymentTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentManagerTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -316,16 +331,21 @@ export const IDL: CardinalPaidClaimApprover = {
     },
     {
       code: 6001,
+      name: "InvalidPaymentManagerTokenAccount",
+      msg: "Token account incorrect mint",
+    },
+    {
+      code: 6002,
       name: "InvalidPayerTokenAccount",
       msg: "Token account not owned by the payer",
     },
     {
-      code: 6002,
+      code: 6003,
       name: "InvalidTokenManager",
       msg: "Invalid token manager for this claim approver",
     },
     {
-      code: 6003,
+      code: 6004,
       name: "InvalidIssuer",
       msg: "Invalid issuer",
     },

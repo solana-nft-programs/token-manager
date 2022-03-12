@@ -55,3 +55,7 @@ export enum TokenManagerState {
   Claimed = 2,
   Invalidated = 3,
 }
+
+export const PAYMENT_MANAGER = new PublicKey(
+  "crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U"
+);

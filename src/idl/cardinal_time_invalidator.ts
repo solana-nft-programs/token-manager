@@ -75,6 +75,11 @@ export type CardinalTimeInvalidator = {
           isSigner: false;
         },
         {
+          name: "paymentManagerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -332,6 +337,11 @@ export type CardinalTimeInvalidator = {
       code: 6010;
       name: "InvalidExtensionAmount";
       msg: "Invalid extension partial duration not allowed";
+    },
+    {
+      code: 6011;
+      name: "InvalidPaymentManagerTokenAccount";
+      msg: "Token account incorrect mint";
     }
   ];
 };
@@ -409,6 +419,11 @@ export const IDL: CardinalTimeInvalidator = {
         },
         {
           name: "paymentTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentManagerTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -670,6 +685,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6010,
       name: "InvalidExtensionAmount",
       msg: "Invalid extension partial duration not allowed",
+    },
+    {
+      code: 6011,
+      name: "InvalidPaymentManagerTokenAccount",
+      msg: "Token account incorrect mint",
     },
   ],
 };

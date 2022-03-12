@@ -116,7 +116,7 @@ export const extendExpiration = (
   payerTokenAccountId: PublicKey,
   timeInvalidatorId: PublicKey,
   extensionPaymentAmount: number,
-  paymentAccounts: [PublicKey, AccountMeta[]]
+  paymentAccounts: [PublicKey, PublicKey, AccountMeta[]]
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
 
@@ -126,7 +126,11 @@ export const extendExpiration = (
     provider
   );
 
-  const [paymentTokenAccountId, remainingAccounts] = paymentAccounts;
+  const [
+    paymentTokenAccountId,
+    paymentManagerTokenAccountId,
+    remainingAccounts,
+  ] = paymentAccounts;
   return timeInvalidatorProgram.instruction.extendExpiration(
     new BN(extensionPaymentAmount),
     {
@@ -134,6 +138,7 @@ export const extendExpiration = (
         tokenManager: tokenManagerId,
         timeInvalidator: timeInvalidatorId,
         paymentTokenAccount: paymentTokenAccountId,
+        paymentManagerTokenAccount: paymentManagerTokenAccountId,
         payer: wallet.publicKey,
         payerTokenAccount: payerTokenAccountId,
         tokenProgram: TOKEN_PROGRAM_ID,

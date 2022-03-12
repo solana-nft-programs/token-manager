@@ -19,8 +19,9 @@ pub struct InvalidateCtx<'info> {
     )]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    invalidator: Signer<'info>,
+    invalidator: AccountInfo<'info>,
 
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
     /// CHECK: This is not dangerous because we don't read or write from this account

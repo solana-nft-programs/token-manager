@@ -24,7 +24,7 @@ pub struct ClaimCtx<'info> {
     #[account(mut, constraint =
         recipient_token_account.owner == recipient.key()
         && recipient_token_account.mint == token_manager.mint
-        @ ErrorCode::InvalidIssuerTokenAccount
+        @ ErrorCode::InvalidRecipientTokenAccount
     )]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
     token_program: Program<'info, Token>,

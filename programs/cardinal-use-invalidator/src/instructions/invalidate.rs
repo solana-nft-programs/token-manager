@@ -12,8 +12,9 @@ pub struct InvalidateCtx<'info> {
     #[account(mut, constraint = use_invalidator.usages >= use_invalidator.total_usages.unwrap() @ ErrorCode::InsufficientUsages)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    invalidator: Signer<'info>,
+    invalidator: AccountInfo<'info>,
 
     // programs
     cardinal_token_manager: Program<'info, CardinalTokenManager>,

@@ -128,7 +128,7 @@ export type CardinalUseInvalidator = {
         {
           name: "invalidator";
           isMut: true;
-          isSigner: true;
+          isSigner: false;
         },
         {
           name: "cardinalTokenManager";
@@ -463,7 +463,7 @@ export const IDL: CardinalUseInvalidator = {
         {
           name: "invalidator",
           isMut: true,
-          isSigner: true,
+          isSigner: false,
         },
         {
           name: "cardinalTokenManager",

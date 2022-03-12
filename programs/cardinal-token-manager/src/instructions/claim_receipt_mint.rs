@@ -81,7 +81,7 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
             name.to_string(),
             "RCP".to_string(),
             // generative URL pointing to the original mint
-            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string(),
+            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string() + "?text=RENTED",
             None,
             0,
             true,

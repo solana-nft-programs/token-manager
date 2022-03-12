@@ -93,7 +93,8 @@ pub fn handler(ctx: Context<TransferCtx>) -> Result<()> {
         let metadata_program = next_account_info(remaining_accs)?;
 
         // edition will be validated by metadata_program
-        assert_keys_eq!(metadata_program.key, mpl_token_metadata::id());
+        // assert_keys_eq!(metadata_program.key, mpl_token_metadata::id());
+        if metadata_program.key() != mpl_token_metadata::id() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
 
         // set account delegate of recipient token account to token manager PDA
         let cpi_accounts = Approve {
@@ -134,8 +135,9 @@ pub fn handler(ctx: Context<TransferCtx>) -> Result<()> {
             recipient_key.as_ref(),
         ];
         let (transfer_receipt_address, _bump) = Pubkey::find_program_address(seed, ctx.program_id);
-        assert_keys_eq!(transfer_receipt_address, transfer_receipt_info.key());
+        if transfer_receipt_address != transfer_receipt_info.key() { return Err(error!(ErrorCode::InvalidTransferReceipt)); }
         let transfer_receipt = Account::<TranferReceipt>::try_from(transfer_receipt_info)?;
+        if transfer_receipt.mint_count != token_manager.count { return Err(error!(ErrorCode::InvalidTransferReceipt)); }
         transfer_receipt.close(ctx.accounts.recipient.to_account_info())?;
     }
     return Ok(())

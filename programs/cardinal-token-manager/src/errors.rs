@@ -38,6 +38,8 @@ pub enum ErrorCode {
     InvalidFreezeAuthority,
     #[msg("Invalid claim receipt")]
     InvalidClaimReceipt,
+    #[msg("Invalid transfer receipt")]
+    InvalidTransferReceipt,
     #[msg("Public key mismatch")]
     PublicKeyMismatch,
     #[msg("Invalid metadata program id")]

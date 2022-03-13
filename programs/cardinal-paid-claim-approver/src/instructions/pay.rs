@@ -42,14 +42,16 @@ pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
 
     let provider_fee = ctx.accounts.claim_approver.payment_amount * (PROVIDER_FEE / FEE_SCALE);
     let recipient_fee = ctx.accounts.claim_approver.payment_amount * (RECIPIENT_FEE / FEE_SCALE);
-    let cpi_accounts = Transfer {
-        from: ctx.accounts.payer_token_account.to_account_info(),
-        to: ctx.accounts.payment_manager_token_account.to_account_info(),
-        authority: ctx.accounts.payer.to_account_info(),
-    };
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, provider_fee + recipient_fee)?;
+    if provider_fee + recipient_fee > 0 {
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.payer_token_account.to_account_info(),
+            to: ctx.accounts.payment_manager_token_account.to_account_info(),
+            authority: ctx.accounts.payer.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+        token::transfer(cpi_context, provider_fee + recipient_fee)?;
+    }
 
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),

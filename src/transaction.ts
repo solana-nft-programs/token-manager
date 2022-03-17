@@ -661,11 +661,8 @@ export const withExtendExpiration = async (
   ]);
 
   if (timeInvalidatorData && timeInvalidatorData.parsed.extensionPaymentMint) {
-    const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
+    const payerTokenAccountId = await findAta(
       timeInvalidatorData.parsed.extensionPaymentMint,
-      wallet.publicKey,
       wallet.publicKey
     );
 

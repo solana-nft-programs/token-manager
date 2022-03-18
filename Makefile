@@ -1,8 +1,11 @@
-.PHONY: start test-setup test stop
+.PHONY: install start test-setup test stop
 
 TEST_KEY := $(shell solana-keygen pubkey ./tests/test-key.json)
 
-all: start build test stop
+all: install start build test stop
+
+install:
+	yarn install
 
 start:
 	solana-test-validator --url https://api.devnet.solana.com --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --reset --quiet & echo $$! > validator.PID

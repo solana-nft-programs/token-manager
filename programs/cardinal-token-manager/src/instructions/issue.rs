@@ -45,7 +45,7 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
 
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
-    token_manager.mint = token_manager.mint;
+    // token_manager.mint = token_manager.mint;
     token_manager.amount = ix.amount;
     token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.kind = ix.kind;

@@ -1,0 +1,31 @@
+[package]
+name = "cardinal-stake-pool"
+version = "0.1.0"
+description = "Cardinal stake pool"
+edition = "2021"
+homepage = "https://cardinal.so"
+repository = "https://github.com/cardinal-labs/cardinal-token-manager/tree/main/programs/cardinal-token-manager"
+authors = ["Giannis Chatziveroglou <giannis@cardinal.so>"]
+license = "AGPL-3.0"
+keywords = ["solana", "cardinal", "stake", "pool"]
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "cardinal_stake_pool"
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.22.0", features = ["init-if-needed"] }
+anchor-spl = "0.22.0"
+solana-program = "1.8.1"
+spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
+metaplex-token-metadata = { version = "0.0.1", features = [ "no-entrypoint" ] }
+cardinal-token-manager = { version = "^0.2.21", path = "../cardinal-token-manager", features = ["cpi"] }
+
+[dev-dependencies]
+proptest = { version = "1.0" }

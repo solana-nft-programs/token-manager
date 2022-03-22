@@ -30,7 +30,7 @@ jobs:
         with:
           anchor_git: ${{ env.ANCHOR_GIT }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/bin/

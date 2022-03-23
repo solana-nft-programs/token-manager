@@ -108,3 +108,5 @@ pub fn assert_payment_manager(key: &Pubkey) -> bool {
     ];
     return allowed_payment_managers.contains(key)
 }
+
+pub const RECEIPT_CREATOR_STRING: &str = "crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U";

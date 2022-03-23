@@ -3,7 +3,8 @@ use {
     solana_program::{system_instruction::create_account, program_pack::Pack},
     anchor_lang::{prelude::*, solana_program::{program::{invoke_signed, invoke}}},
     anchor_spl::{token::{self, Token}, associated_token::{self, AssociatedToken}},
-    mpl_token_metadata::{instruction::{create_metadata_accounts_v2}},
+    mpl_token_metadata::{instruction::{create_metadata_accounts_v2}, state::Creator},
+    std::str::FromStr,
 };
 
 #[derive(Accounts)]
@@ -76,13 +77,25 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
             *ctx.accounts.receipt_mint_metadata.key,
             *ctx.accounts.receipt_mint.key,
             ctx.accounts.token_manager.key(),
-            *ctx.accounts.issuer.key,
-            ctx.accounts.token_manager.key(),   
+            *ctx.accounts.payer.key,
+            Pubkey::from_str(RECEIPT_CREATOR_STRING).unwrap(),   
             name.to_string(),
             "RCP".to_string(),
             // generative URL pointing to the original mint
             "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string() + "?text=RENTED",
-            None,
+            Some(vec![Creator {
+                address: Pubkey::from_str(RECEIPT_CREATOR_STRING).unwrap(),
+                verified: true,
+                share: 50,
+            }, Creator {
+                address: ctx.accounts.issuer.key(),
+                verified: false,
+                share: 50,
+            }, Creator {
+                address: ctx.accounts.token_manager.key(),
+                verified: false,
+                share: 0,
+            }]),
             0,
             true,
             true,

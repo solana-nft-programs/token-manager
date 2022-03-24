@@ -132,6 +132,25 @@ describe("Issue claim receipt invalidate", () => {
       receiptMintKeypair.publicKey,
       provider.wallet.publicKey
     );
+
+    // const initReceiptMintManagerIx = await initReceiptMintManager(
+    //   provider.connection,
+    //   provider.wallet
+    // );
+
+    // const receiptTxEnvelope = new TransactionEnvelope(
+    //   SolanaProvider.init({
+    //     connection: provider.connection,
+    //     wallet: new SignerWallet(tokenCreator),
+    //     opts: provider.opts,
+    //   }),
+    //   [initReceiptMintManagerIx]
+    // );
+
+    // await expectTXTable(receiptTxEnvelope, "before", {
+    //   verbosity: "error",
+    //   formatLogs: true,
+    // }).to.be.fulfilled;
   });
 
   it("Create rental", async () => {

@@ -58,6 +58,18 @@ pub struct TokenManager {
     pub invalidation_type: u8,
     pub recipient_token_account: Pubkey,
     pub receipt_mint: Option<Pubkey>,
+
+    //
+    pub payment_amount: Option<u64>,
+    pub payment_mint: Option<Pubkey>,
+
+    //
+    pub duration_seconds: Option<u64>,
+    pub max_expiration: Option<u64>,
+    pub disable_partial_extension: bool,
+    pub is_extendable: bool,
+
+    //
     pub claim_approver: Option<Pubkey>,
     pub transfer_authority: Option<Pubkey>,
     pub invalidators: Vec<Pubkey>,

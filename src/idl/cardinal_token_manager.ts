@@ -230,6 +230,27 @@ export type CardinalTokenManager = {
       ];
     },
     {
+      name: "initReceiptMintManager";
+      accounts: [
+        {
+          name: "receiptMintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "claimReceiptMint";
       accounts: [
         {
@@ -264,7 +285,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "receiptMintManager";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -629,6 +650,38 @@ export type CardinalTokenManager = {
             type: {
               option: "publicKey";
             };
+          },
+          {
+            name: "paymentAmount";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "paymentMint";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "durationSeconds";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "maxExpiration";
+            type: {
+              option: "u64";
+            };
+          },
+          {
+            name: "disablePartialExtension";
+            type: "bool";
+          },
+          {
+            name: "isExtendable";
+            type: "bool";
           },
           {
             name: "claimApprover";
@@ -1181,6 +1234,27 @@ export const IDL: CardinalTokenManager = {
       ],
     },
     {
+      name: "initReceiptMintManager",
+      accounts: [
+        {
+          name: "receiptMintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
       name: "claimReceiptMint",
       accounts: [
         {
@@ -1215,7 +1289,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "receiptMintManager",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -1580,6 +1654,38 @@ export const IDL: CardinalTokenManager = {
             type: {
               option: "publicKey",
             },
+          },
+          {
+            name: "paymentAmount",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "paymentMint",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "durationSeconds",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "maxExpiration",
+            type: {
+              option: "u64",
+            },
+          },
+          {
+            name: "disablePartialExtension",
+            type: "bool",
+          },
+          {
+            name: "isExtendable",
+            type: "bool",
           },
           {
             name: "claimApprover",

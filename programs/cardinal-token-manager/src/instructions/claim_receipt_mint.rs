@@ -27,12 +27,6 @@ pub struct ClaimReceiptMintCtx<'info> {
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
-    #[account(
-        init_if_needed,
-        payer = payer,
-        seeds = [RECEIPT_MINT_MANAGER_SEED.as_bytes()], bump,
-        space = RECEIPT_MINT_MANAGER_SIZE,
-    )]
     receipt_mint_manager: Account<'info, ReceiptMintManager>,
     
     #[account(mut)]
@@ -50,11 +44,6 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.receipt_mint = Some(ctx.accounts.receipt_mint.key());
-
-    // set receipt mint manager data
-    let receipt_mint_manager = &mut ctx.accounts.receipt_mint_manager;
-    receipt_mint_manager.bump = *ctx.bumps.get("receipt_mint_manager").unwrap();
-
 
     // get PDA seeds to sign with
     let receipt_mint_manager_seeds = &[RECEIPT_MINT_MANAGER_SEED.as_bytes(), &[ctx.accounts.receipt_mint_manager.bump]];

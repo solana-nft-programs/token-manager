@@ -253,6 +253,11 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
+          name: "receiptMintEdition";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "recipientTokenAccount";
           isMut: true;
           isSigner: false;
@@ -1195,6 +1200,11 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "receiptMintMetadata",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "receiptMintEdition",
           isMut: true,
           isSigner: false,
         },

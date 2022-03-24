@@ -3,7 +3,7 @@ use {
     solana_program::{system_instruction::create_account, program_pack::Pack},
     anchor_lang::{prelude::*, solana_program::{program::{invoke_signed, invoke}}},
     anchor_spl::{token::{self, Token}, associated_token::{self, AssociatedToken}},
-    mpl_token_metadata::{instruction::{create_metadata_accounts_v2}, state::Creator},
+    mpl_token_metadata::{instruction::{create_metadata_accounts_v2, create_master_edition_v3}, state::Creator},
 };
 
 #[derive(Accounts)]
@@ -20,6 +20,9 @@ pub struct ClaimReceiptMintCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     receipt_mint_metadata: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    receipt_mint_edition: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
@@ -117,7 +120,7 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
             ctx.accounts.receipt_mint_metadata.to_account_info(), 
             ctx.accounts.receipt_mint.to_account_info(),
             ctx.accounts.receipt_mint_manager.to_account_info(),
-            ctx.accounts.issuer.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
             ctx.accounts.receipt_mint_manager.to_account_info(),
             ctx.accounts.system_program.to_account_info(),
             ctx.accounts.rent.to_account_info(),
@@ -148,5 +151,32 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(receipt_mint_manager_signer);
     token::mint_to(cpi_context, 1)?;
+
+
+    // create master edition
+    invoke_signed(
+        &create_master_edition_v3(
+            *ctx.accounts.token_metadata_program.key,
+            *ctx.accounts.receipt_mint_edition.key,
+            *ctx.accounts.receipt_mint.key,
+            ctx.accounts.receipt_mint_manager.key(),
+            ctx.accounts.receipt_mint_manager.key(),
+            *ctx.accounts.receipt_mint_metadata.key,
+            *ctx.accounts.payer.key,
+            Some(1),
+        ),
+        &[
+            ctx.accounts.receipt_mint_edition.to_account_info(),
+            ctx.accounts.receipt_mint.to_account_info(),
+            ctx.accounts.receipt_mint_manager.to_account_info(),
+            ctx.accounts.receipt_mint_manager.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.receipt_mint_metadata.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.rent.to_account_info(),
+        ],
+        receipt_mint_manager_signer,
+    )?;
     return Ok(())
 }

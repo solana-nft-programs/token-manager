@@ -17,6 +17,8 @@ export const CLAIM_RECEIPT_SEED = "claim-receipt";
 
 export const TOKEN_MANAGER_SEED = "token-manager";
 
+export const RECEIPT_MINT_MANAGER_SEED = "receipt-mint-manager";
+
 export const TOKEN_MANAGER_IDL = TOKEN_MANAGER_TYPES.IDL;
 
 export type TOKEN_MANAGER_PROGRAM = TOKEN_MANAGER_TYPES.CardinalTokenManager;

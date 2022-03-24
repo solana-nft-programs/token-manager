@@ -108,3 +108,10 @@ pub fn assert_payment_manager(key: &Pubkey) -> bool {
     ];
     return allowed_payment_managers.contains(key)
 }
+
+pub const RECEIPT_MINT_MANAGER_SEED: &str = "receipt-mint-manager";
+pub const RECEIPT_MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<ReceiptMintManager>() + 8; 
+#[account]
+pub struct ReceiptMintManager {
+    pub bump: u8,
+}

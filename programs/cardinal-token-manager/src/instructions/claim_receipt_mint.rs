@@ -3,7 +3,7 @@ use {
     solana_program::{system_instruction::create_account, program_pack::Pack},
     anchor_lang::{prelude::*, solana_program::{program::{invoke_signed, invoke}}},
     anchor_spl::{token::{self, Token}, associated_token::{self, AssociatedToken}},
-    mpl_token_metadata::{instruction::{create_metadata_accounts_v2}},
+    mpl_token_metadata::{instruction::{create_metadata_accounts_v2}, state::Creator},
 };
 
 #[derive(Accounts)]
@@ -23,7 +23,15 @@ pub struct ClaimReceiptMintCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
-
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(
+        init_if_needed,
+        payer = payer,
+        seeds = [RECEIPT_MINT_MANAGER_SEED.as_bytes()], bump,
+        space = RECEIPT_MINT_MANAGER_SIZE,
+    )]
+    receipt_mint_manager: Account<'info, ReceiptMintManager>,
+    
     #[account(mut)]
     payer: Signer<'info>,
     token_program: Program<'info, Token>,
@@ -40,10 +48,14 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.receipt_mint = Some(ctx.accounts.receipt_mint.key());
 
+    // set receipt mint manager data
+    let receipt_mint_manager = &mut ctx.accounts.receipt_mint_manager;
+    receipt_mint_manager.bump = *ctx.bumps.get("receipt_mint_manager").unwrap();
+
+
     // get PDA seeds to sign with
-    let mint = token_manager.mint;
-    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
-    let token_manager_signer = &[&token_manager_seeds[..]];
+    let receipt_mint_manager_seeds = &[RECEIPT_MINT_MANAGER_SEED.as_bytes(), &[ctx.accounts.receipt_mint_manager.bump]];
+    let receipt_mint_manager_signer = &[&receipt_mint_manager_seeds[..]];
 
     // allocate receipt mint
     invoke(
@@ -67,7 +79,7 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::initialize_mint(cpi_context, 0, &ctx.accounts.token_manager.key(), Some(&ctx.accounts.token_manager.key()))?;
+    token::initialize_mint(cpi_context, 0, &ctx.accounts.receipt_mint_manager.key(), Some(&ctx.accounts.receipt_mint_manager.key()))?;
 
     // create metadata
     invoke_signed(
@@ -75,14 +87,26 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
             *ctx.accounts.token_metadata_program.key,
             *ctx.accounts.receipt_mint_metadata.key,
             *ctx.accounts.receipt_mint.key,
-            ctx.accounts.token_manager.key(),
-            *ctx.accounts.issuer.key,
-            ctx.accounts.token_manager.key(),   
+            ctx.accounts.receipt_mint_manager.key(),
+            *ctx.accounts.payer.key,
+            ctx.accounts.receipt_mint_manager.key(),
             name.to_string(),
             "RCP".to_string(),
             // generative URL pointing to the original mint
             "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string() + "?text=RENTED",
-            None,
+            Some(vec![Creator {
+                address: ctx.accounts.receipt_mint_manager.key(),
+                verified: true,
+                share: 50,
+            }, Creator {
+                address: ctx.accounts.issuer.key(),
+                verified: false,
+                share: 50,
+            }, Creator {
+                address: ctx.accounts.token_manager.key(),
+                verified: false,
+                share: 0,
+            }]),
             0,
             true,
             true,
@@ -92,13 +116,13 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
         &[
             ctx.accounts.receipt_mint_metadata.to_account_info(), 
             ctx.accounts.receipt_mint.to_account_info(),
-            ctx.accounts.token_manager.to_account_info(),
+            ctx.accounts.receipt_mint_manager.to_account_info(),
             ctx.accounts.issuer.to_account_info(),
-            ctx.accounts.token_manager.to_account_info(),
+            ctx.accounts.receipt_mint_manager.to_account_info(),
             ctx.accounts.system_program.to_account_info(),
             ctx.accounts.rent.to_account_info(),
         ],
-        token_manager_signer,
+        receipt_mint_manager_signer,
     )?;
 
     // create associated token account for recipient
@@ -119,10 +143,10 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     let cpi_accounts = token::MintTo {
         mint: ctx.accounts.receipt_mint.to_account_info(),
         to: ctx.accounts.recipient_token_account.to_account_info(),
-        authority: ctx.accounts.token_manager.to_account_info(),
+        authority: ctx.accounts.receipt_mint_manager.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(receipt_mint_manager_signer);
     token::mint_to(cpi_context, 1)?;
     return Ok(())
 }

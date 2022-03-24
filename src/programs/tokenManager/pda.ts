@@ -2,7 +2,12 @@ import { utils } from "@project-serum/anchor";
 import type { Connection } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 
-import { MINT_COUNTER_SEED, MINT_MANAGER_SEED, TRANSFER_RECEIPT_SEED } from ".";
+import {
+  MINT_COUNTER_SEED,
+  MINT_MANAGER_SEED,
+  RECEIPT_MINT_MANAGER_SEED,
+  TRANSFER_RECEIPT_SEED,
+} from ".";
 import {
   CLAIM_RECEIPT_SEED,
   TOKEN_MANAGER_ADDRESS,
@@ -108,6 +113,19 @@ export const findMintCounterId = async (
 ): Promise<[PublicKey, number]> => {
   return PublicKey.findProgramAddress(
     [utils.bytes.utf8.encode(MINT_COUNTER_SEED), mintId.toBuffer()],
+    TOKEN_MANAGER_ADDRESS
+  );
+};
+
+/**
+ * Finds the receipt mint manager id.
+ * @returns
+ */
+export const findReceiptMintManagerId = async (): Promise<
+  [PublicKey, number]
+> => {
+  return PublicKey.findProgramAddress(
+    [utils.bytes.utf8.encode(RECEIPT_MINT_MANAGER_SEED)],
     TOKEN_MANAGER_ADDRESS
   );
 };

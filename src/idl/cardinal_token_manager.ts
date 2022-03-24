@@ -258,6 +258,11 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
+          name: "receiptMintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -717,6 +722,18 @@ export type CardinalTokenManager = {
           {
             name: "target";
             type: "publicKey";
+          }
+        ];
+      };
+    },
+    {
+      name: "receiptMintManager";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "bump";
+            type: "u8";
           }
         ];
       };
@@ -1187,6 +1204,11 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
         {
+          name: "receiptMintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "payer",
           isMut: true,
           isSigner: true,
@@ -1646,6 +1668,18 @@ export const IDL: CardinalTokenManager = {
           {
             name: "target",
             type: "publicKey",
+          },
+        ],
+      },
+    },
+    {
+      name: "receiptMintManager",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "bump",
+            type: "u8",
           },
         ],
       },

@@ -29,6 +29,7 @@ import {
   findClaimReceiptId,
   findMintCounterId,
   findMintManagerId,
+  findReceiptMintManagerId,
   findTokenManagerAddress,
 } from "./pda";
 import { getRemainingAccountsForKind } from "./utils";
@@ -359,9 +360,14 @@ export const claimReceiptMint = async (
     provider
   );
 
-  const [receiptMintMetadataId, recipientTokenAccountId] = await Promise.all([
+  const [
+    receiptMintMetadataId,
+    recipientTokenAccountId,
+    [receiptMintManagerId],
+  ] = await Promise.all([
     Metadata.getPDA(receiptMintId),
     findAta(receiptMintId, wallet.publicKey),
+    findReceiptMintManagerId(),
   ]);
 
   return tokenManagerProgram.instruction.claimReceiptMint(name, {
@@ -372,6 +378,7 @@ export const claimReceiptMint = async (
       recipientTokenAccount: recipientTokenAccountId,
       issuer: wallet.publicKey,
       payer: wallet.publicKey,
+      receiptMintManager: receiptMintManagerId,
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,

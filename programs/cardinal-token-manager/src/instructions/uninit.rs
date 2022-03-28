@@ -22,5 +22,5 @@ pub struct UninitCtx<'info> {
 }
 
 pub fn handler(_ctx: Context<UninitCtx>) -> Result<()> {
-    return Ok(())
+    Ok(())
 }

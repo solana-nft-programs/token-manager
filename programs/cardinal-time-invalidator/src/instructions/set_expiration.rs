@@ -21,5 +21,5 @@ pub fn handler(ctx: Context<SetExpirationCtx>) -> Result<()> {
                 + time_invalidator.duration_seconds.unwrap(),
         );
     }
-    return Ok(());
+    Ok(())
 }

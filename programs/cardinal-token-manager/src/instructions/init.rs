@@ -66,5 +66,5 @@ pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> Re
     token_manager.invalidators = Vec::new();
     // default to itself to avoid someone not setting it
     token_manager.transfer_authority = Some(token_manager.key());
-    return Ok(())
+    Ok(())
 }

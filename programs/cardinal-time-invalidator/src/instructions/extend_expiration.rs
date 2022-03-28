@@ -45,10 +45,8 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
   let time_to_add = payment_amount * time_invalidator.extension_duration_seconds.unwrap()
     / time_invalidator.extension_payment_amount.unwrap();
 
-  if time_invalidator.disable_partial_extension != None && time_invalidator.disable_partial_extension.unwrap() == true {
-    if time_to_add % time_invalidator.extension_duration_seconds.unwrap() != 0 {
-      return Err(error!(ErrorCode::InvalidExtensionAmount));
-    }
+  if time_invalidator.disable_partial_extension != None && time_invalidator.disable_partial_extension.unwrap() && time_to_add % time_invalidator.extension_duration_seconds.unwrap() != 0 {
+    return Err(error!(ErrorCode::InvalidExtensionAmount));
   }
 
   let mut expiration = ctx.accounts.token_manager.state_changed_at + time_invalidator.duration_seconds.unwrap();
@@ -85,5 +83,5 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
   token::transfer(cpi_context, payment_amount - recipient_fee)?;
 
   time_invalidator.expiration = new_expiration;
-  return Ok(());
+  Ok(())
 }

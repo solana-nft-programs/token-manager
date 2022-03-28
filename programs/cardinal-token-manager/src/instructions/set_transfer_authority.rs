@@ -17,5 +17,5 @@ pub fn handler(ctx: Context<SetTransferAuthorityCtx>, transfer_authority: Pubkey
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.transfer_authority = Some(transfer_authority);
-    return Ok(())
+    Ok(())
 }

@@ -107,12 +107,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 *edition_info.key,
                 ctx.accounts.mint.key(),
             ),
-            &vec![
-                token_manager.to_account_info(),
+            &[token_manager.to_account_info(),
                 ctx.accounts.recipient_token_account.to_account_info(),
                 edition_info.to_account_info(),
-                ctx.accounts.mint.to_account_info(),
-            ],
+                ctx.accounts.mint.to_account_info()],
             &[token_manager_seeds],
         )?;
     }
@@ -126,5 +124,5 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         if claim_receipt.target != ctx.accounts.recipient.key() { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
         claim_receipt.close(token_manager.to_account_info())?;
     }
-    return Ok(())
+    Ok(())
 }

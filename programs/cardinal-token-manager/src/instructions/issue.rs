@@ -62,5 +62,5 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
     token::transfer(cpi_context, token_manager.amount)?;
-    return Ok(())
+    Ok(())
 }

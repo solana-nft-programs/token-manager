@@ -38,7 +38,7 @@ pub enum InvalidationType {
 }
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {
-    return (8 + 1 + 1 + 8 + 1 + 32 + 32 + 8 + 1 + 1 + 8 + 1 + 32 + 33 + 33 + 33 + num_invalidators * 32) + 8 as usize
+    (8 + 1 + 1 + 8 + 1 + 32 + 32 + 8 + 1 + 1 + 8 + 1 + 32 + 33 + 33 + 33 + num_invalidators * 32) + 8_usize
 }
 
 pub const MAX_INVALIDATORS: u8 = 5;
@@ -106,7 +106,7 @@ pub fn assert_payment_manager(key: &Pubkey) -> bool {
     let allowed_payment_managers = [
         Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap(),
     ];
-    return allowed_payment_managers.contains(key)
+    allowed_payment_managers.contains(key)
 }
 
 pub const RECEIPT_MINT_MANAGER_SEED: &str = "receipt-mint-manager";

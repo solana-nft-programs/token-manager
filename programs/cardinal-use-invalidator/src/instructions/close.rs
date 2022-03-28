@@ -31,5 +31,5 @@ pub fn handler(ctx: Context<CloseCtx>) -> Result<()> {
             ctx.accounts.use_invalidator.close(ctx.accounts.closer.to_account_info())?;
         }
     }
-    return Ok(())
+    Ok(())
 }

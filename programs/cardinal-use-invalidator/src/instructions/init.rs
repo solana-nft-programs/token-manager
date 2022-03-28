@@ -46,5 +46,5 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
         use_invalidator.extension_payment_mint = ix.extension_payment_mint;
         use_invalidator.extension_usages = ix.extension_usages;
     }
-    return Ok(())
+    Ok(())
 }

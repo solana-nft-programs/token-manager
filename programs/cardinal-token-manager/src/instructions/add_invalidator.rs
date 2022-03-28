@@ -21,5 +21,5 @@ pub fn handler(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> Result<(
     }
 
     token_manager.invalidators.push(invalidator);
-    return Ok(())
+    Ok(())
 }

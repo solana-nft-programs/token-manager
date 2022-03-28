@@ -90,7 +90,7 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
             ctx.accounts.receipt_mint_manager.key(),
             *ctx.accounts.payer.key,
             ctx.accounts.receipt_mint_manager.key(),
-            name.to_string(),
+            name,
             "RCP".to_string(),
             // generative URL pointing to the original mint
             "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string() + "?text=RENTED",
@@ -148,5 +148,5 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(receipt_mint_manager_signer);
     token::mint_to(cpi_context, 1)?;
-    return Ok(())
+    Ok(())
 }

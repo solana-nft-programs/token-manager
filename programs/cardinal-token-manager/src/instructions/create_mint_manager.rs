@@ -41,5 +41,5 @@ pub fn handler(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
     token::set_authority(cpi_context, AuthorityType::FreezeAccount, Some(ctx.accounts.mint_manager.key()))?;
-    return Ok(())
+    Ok(())
 }

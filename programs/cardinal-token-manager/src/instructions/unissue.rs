@@ -49,5 +49,5 @@ pub fn handler(ctx: Context<UnissueCtx>) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
     token::close_account(cpi_context)?;
-    return Ok(())
+    Ok(())
 }

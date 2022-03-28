@@ -32,5 +32,5 @@ pub fn handler(ctx: Context<CreateClaimReceiptCtx>, target: Pubkey) -> Result<()
     claim_receipt.mint_count = ctx.accounts.token_manager.count;
     claim_receipt.token_manager = ctx.accounts.token_manager.key();
     claim_receipt.target = target;
-    return Ok(())
+    Ok(())
 }

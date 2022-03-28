@@ -68,5 +68,5 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(
     .with_signer(time_invalidator_signer);
     cardinal_token_manager::cpi::invalidate(cpi_ctx)?;
 
-    return Ok(());
+    Ok(())
 }

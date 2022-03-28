@@ -17,5 +17,5 @@ pub fn handler(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> Res
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     token_manager.claim_approver = Some(claim_approver);
-    return Ok(())
+    Ok(())
 }

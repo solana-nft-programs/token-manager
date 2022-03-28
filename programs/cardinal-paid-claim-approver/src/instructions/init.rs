@@ -30,5 +30,5 @@ pub fn handler(ctx: Context<InitCtx>, payment_mint: Pubkey, payment_amount: u64)
     claim_approver.payment_amount = payment_amount;
     claim_approver.payment_mint = payment_mint;
     claim_approver.token_manager = ctx.accounts.token_manager.key();
-    return Ok(())
+    Ok(())
 }

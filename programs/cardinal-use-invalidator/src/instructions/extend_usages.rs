@@ -77,6 +77,6 @@ use {
     token::transfer(cpi_context, payment_amount - recipient_fee)?;
   
     use_invalidator.total_usages = new_total_usages;
-    return Ok(());
+    Ok(())
   }
   

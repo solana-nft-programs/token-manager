@@ -31,5 +31,5 @@ pub fn handler(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> Result
     transfer_receipt.mint_count = ctx.accounts.token_manager.count;
     transfer_receipt.token_manager = ctx.accounts.token_manager.key();
     transfer_receipt.target = target;
-    return Ok(())
+    Ok(())
 }

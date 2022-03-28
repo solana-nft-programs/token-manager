@@ -55,5 +55,5 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     time_invalidator.extension_payment_mint = ix.extension_payment_mint;
     time_invalidator.max_expiration = ix.max_expiration;
     time_invalidator.disable_partial_extension = ix.disable_partial_extension;
-    return Ok(());
+    Ok(())
 }

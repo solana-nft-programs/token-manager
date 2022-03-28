@@ -53,5 +53,5 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         .with_signer(use_invalidator_signer);
     cardinal_token_manager::cpi::invalidate(cpi_ctx)?;
   
-    return Ok(())
+    Ok(())
 }

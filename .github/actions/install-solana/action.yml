@@ -30,9 +30,16 @@ runs:
     - name: Add Solana bin to Path
       run: |
         echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+        export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
       shell: bash
 
     - name: Verify Solana install
       run: |
         solana --version
+      shell: bash
+
+    - name: Install toolchain
+      run: |
+        echo Installing bpf toolchain...
+        (cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh)
       shell: bash

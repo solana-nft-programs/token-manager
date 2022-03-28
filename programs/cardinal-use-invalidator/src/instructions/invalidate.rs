@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager}}, 
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager},
 };
 
 #[derive(Accounts)]
@@ -52,6 +52,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         .with_remaining_accounts(ctx.remaining_accounts.to_vec())
         .with_signer(use_invalidator_signer);
     cardinal_token_manager::cpi::invalidate(cpi_ctx)?;
-  
+
     Ok(())
 }

@@ -1,6 +1,6 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
 };
 
 #[derive(Accounts)]
@@ -10,7 +10,7 @@ pub struct SetClaimApproverCtx<'info> {
 
     // issuer
     #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
-    issuer: Signer<'info>
+    issuer: Signer<'info>,
 }
 
 pub fn handler(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> Result<()> {

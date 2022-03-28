@@ -1,8 +1,8 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{TokenAccount}},
-    cardinal_token_manager::{state::TokenManager},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::TokenAccount,
+    cardinal_token_manager::state::TokenManager,
 };
 
 #[derive(Accounts)]

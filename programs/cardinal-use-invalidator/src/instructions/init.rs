@@ -1,7 +1,7 @@
 use {
-    crate::{state::*},
-    anchor_lang::{prelude::*},
-    cardinal_token_manager::{state::{TokenManager, TokenManagerState}},
+    crate::state::*,
+    anchor_lang::prelude::*,
+    cardinal_token_manager::state::{TokenManager, TokenManagerState},
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]

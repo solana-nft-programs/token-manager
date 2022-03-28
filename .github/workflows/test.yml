@@ -38,6 +38,22 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           args: --all-features
+  rust-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          override: true
+          components: rustfmt, clippy
+          profile: minimal
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Run fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --manifest-path ./Cargo.toml -- --check
   test:
     runs-on: ubuntu-latest
     name: Publish test results

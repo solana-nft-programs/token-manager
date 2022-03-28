@@ -1,7 +1,7 @@
 use {
-    crate::{state::*},
+    crate::state::*,
     anchor_lang::{prelude::*, AccountsClose},
-    cardinal_token_manager::{state::{TokenManager, TokenManagerState, InvalidationType}},
+    cardinal_token_manager::state::{InvalidationType, TokenManager, TokenManagerState},
 };
 
 #[derive(Accounts)]

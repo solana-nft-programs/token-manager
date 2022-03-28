@@ -1,8 +1,11 @@
 use {
-    crate::{state::*, errors::ErrorCode},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
-    anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, ThawAccount, CloseAccount}},
-    mpl_token_metadata::{instruction::thaw_delegated_account, utils::{assert_derivation, assert_initialized}},
+    anchor_spl::token::{self, CloseAccount, Mint, ThawAccount, Token, TokenAccount, Transfer},
+    mpl_token_metadata::{
+        instruction::thaw_delegated_account,
+        utils::{assert_derivation, assert_initialized},
+    },
 };
 
 #[derive(Accounts)]
@@ -46,12 +49,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let mint_manager_info = next_account_info(remaining_accs)?;
             let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
             mint_manager.token_managers -= 1;
-    
+
             let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
             let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;
             let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];
             let mint_manager_signer = &[&mint_manager_seeds[..]];
-            
+
             // thaw recipient account
             let cpi_accounts = ThawAccount {
                 account: ctx.accounts.recipient_token_account.to_account_info(),
@@ -61,14 +64,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);
             token::thaw_account(cpi_context)?;
-            
         } else if token_manager.kind == TokenManagerKind::Edition as u8 {
             let edition_info = next_account_info(remaining_accs)?;
             let metadata_program = next_account_info(remaining_accs)?;
             // edition will be validated by metadata_program
-            if metadata_program.key() != mpl_token_metadata::id() { return Err(error!(ErrorCode::InvalidMetadataProgramId)); }
+            if metadata_program.key() != mpl_token_metadata::id() {
+                return Err(error!(ErrorCode::InvalidMetadataProgramId));
+            }
             // assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
-            
+
             invoke_signed(
                 &thaw_delegated_account(
                     *metadata_program.key,
@@ -77,10 +81,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                     *edition_info.key,
                     ctx.accounts.mint.key(),
                 ),
-                &[token_manager.to_account_info(),
+                &[
+                    token_manager.to_account_info(),
                     ctx.accounts.recipient_token_account.to_account_info(),
                     edition_info.to_account_info(),
-                    ctx.accounts.mint.to_account_info()],
+                    ctx.accounts.mint.to_account_info(),
+                ],
                 &[token_manager_seeds],
             )?;
         }
@@ -90,12 +96,18 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let return_token_account_info = next_account_info(remaining_accs)?;
         let return_token_account: spl_token::state::Account = assert_initialized(return_token_account_info)?;
         if token_manager.receipt_mint == None {
-            if return_token_account.owner != token_manager.issuer { return Err(error!(ErrorCode::InvalidIssuerTokenAccount)); }
+            if return_token_account.owner != token_manager.issuer {
+                return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+            }
         } else {
             let receipt_token_account_info = next_account_info(remaining_accs)?;
             let receipt_token_account: spl_token::state::Account = assert_initialized(receipt_token_account_info)?;
-            if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) { return Err(error!(ErrorCode::InvalidReceiptMintAccount))}
-            if receipt_token_account.owner != return_token_account.owner { return Err(error!(ErrorCode::InvalidReceiptMintOwner)); }
+            if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) {
+                return Err(error!(ErrorCode::InvalidReceiptMintAccount));
+            }
+            if receipt_token_account.owner != return_token_account.owner {
+                return Err(error!(ErrorCode::InvalidReceiptMintOwner));
+            }
         }
 
         // transfer back to issuer
@@ -118,7 +130,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
     token::close_account(cpi_context)?;
-    
+
     token_manager.state = TokenManagerState::Invalidated as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     if token_manager.invalidation_type != InvalidationType::Invalidate as u8 {

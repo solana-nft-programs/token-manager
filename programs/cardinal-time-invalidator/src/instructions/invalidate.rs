@@ -39,15 +39,9 @@ pub struct InvalidateCtx<'info> {
     recipient_token_account: UncheckedAccount<'info>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(
-    ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>,
-) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     let token_manager_key = ctx.accounts.token_manager.key();
-    let time_invalidator_seeds = &[
-        TIME_INVALIDATOR_SEED.as_bytes(),
-        token_manager_key.as_ref(),
-        &[ctx.accounts.time_invalidator.bump],
-    ];
+    let time_invalidator_seeds = &[TIME_INVALIDATOR_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.time_invalidator.bump]];
     let time_invalidator_signer = &[&time_invalidator_seeds[..]];
 
     // invalidate
@@ -60,12 +54,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(
         collector: ctx.accounts.invalidator.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(
-        ctx.accounts.cardinal_token_manager.to_account_info(),
-        cpi_accounts,
-    )
-    .with_remaining_accounts(ctx.remaining_accounts.to_vec())
-    .with_signer(time_invalidator_signer);
+    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts)
+        .with_remaining_accounts(ctx.remaining_accounts.to_vec())
+        .with_signer(time_invalidator_signer);
     cardinal_token_manager::cpi::invalidate(cpi_ctx)?;
 
     Ok(())

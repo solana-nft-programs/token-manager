@@ -1,8 +1,11 @@
 use {
-    crate::{state::*, errors::ErrorCode},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
-    anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, FreezeAccount, ThawAccount, Approve}},
-    mpl_token_metadata::{instruction::{freeze_delegated_account, thaw_delegated_account}, utils::assert_derivation},
+    anchor_spl::token::{self, Approve, FreezeAccount, Mint, ThawAccount, Token, TokenAccount, Transfer},
+    mpl_token_metadata::{
+        instruction::{freeze_delegated_account, thaw_delegated_account},
+        utils::assert_derivation,
+    },
 };
 
 #[derive(Accounts)]
@@ -45,7 +48,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     token_manager.recipient_token_account = ctx.accounts.recipient_token_account.key();
 
     let remaining_accs = &mut ctx.remaining_accounts.iter();
-        
+
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
@@ -68,7 +71,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);
         token::thaw_account(cpi_context)?;
-                
+
         // transfer amount to recipient token account
         let cpi_accounts = Transfer {
             from: ctx.accounts.current_holder_token_account.to_account_info(),
@@ -88,7 +91,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
         token::approve(cpi_context, token_manager.amount)?;
-        
+
         // freeze recipient token account
         let cpi_accounts = FreezeAccount {
             account: ctx.accounts.recipient_token_account.to_account_info(),
@@ -105,7 +108,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let metadata_program = next_account_info(remaining_accs)?;
 
         // edition will be validated by metadata_program
-        if metadata_program.key() != mpl_token_metadata::id() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
+        if metadata_program.key() != mpl_token_metadata::id() {
+            return Err(error!(ErrorCode::PublicKeyMismatch));
+        }
 
         invoke_signed(
             &thaw_delegated_account(
@@ -115,10 +120,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 *current_edition_info.key,
                 ctx.accounts.mint.key(),
             ),
-            &[token_manager.to_account_info(),
+            &[
+                token_manager.to_account_info(),
                 ctx.accounts.current_holder_token_account.to_account_info(),
                 current_edition_info.to_account_info(),
-                ctx.accounts.mint.to_account_info()],
+                ctx.accounts.mint.to_account_info(),
+            ],
             &[token_manager_seeds],
         )?;
 
@@ -141,7 +148,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
         token::approve(cpi_context, token_manager.amount)?;
-        
+
         invoke_signed(
             &freeze_delegated_account(
                 *metadata_program.key,
@@ -150,10 +157,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 *edition_info.key,
                 ctx.accounts.mint.key(),
             ),
-            &[token_manager.to_account_info(),
+            &[
+                token_manager.to_account_info(),
                 ctx.accounts.recipient_token_account.to_account_info(),
                 edition_info.to_account_info(),
-                ctx.accounts.mint.to_account_info()],
+                ctx.accounts.mint.to_account_info(),
+            ],
             &[token_manager_seeds],
         )?;
     }
@@ -162,9 +171,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.transfer_authority != None {
         let transfer_receipt_info = next_account_info(remaining_accs)?;
         let transfer_receipt = Account::<TranferReceipt>::try_from(transfer_receipt_info)?;
-        if transfer_receipt.mint_count != token_manager.count { return Err(error!(ErrorCode::InvalidTransferReceipt)); }
-        if transfer_receipt.token_manager != token_manager.key() { return Err(error!(ErrorCode::InvalidTransferReceipt)); }
-        if transfer_receipt.target != ctx.accounts.recipient.key() { return Err(error!(ErrorCode::InvalidTransferReceipt)); }
+        if transfer_receipt.mint_count != token_manager.count {
+            return Err(error!(ErrorCode::InvalidTransferReceipt));
+        }
+        if transfer_receipt.token_manager != token_manager.key() {
+            return Err(error!(ErrorCode::InvalidTransferReceipt));
+        }
+        if transfer_receipt.target != ctx.accounts.recipient.key() {
+            return Err(error!(ErrorCode::InvalidTransferReceipt));
+        }
         transfer_receipt.close(ctx.accounts.recipient.to_account_info())?;
     }
     Ok(())

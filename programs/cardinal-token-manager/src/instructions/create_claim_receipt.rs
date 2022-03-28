@@ -1,6 +1,6 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
 };
 
 #[derive(Accounts)]

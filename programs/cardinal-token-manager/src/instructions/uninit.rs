@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{TokenAccount}}
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::TokenAccount,
 };
 
 #[derive(Accounts)]

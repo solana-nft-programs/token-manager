@@ -46,15 +46,19 @@ pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()>
         return Err(error!(ErrorCode::InvalidExtensionAmount));
     }
     // floors any u64 decimals
-    let usages_to_add = payment_amount * use_invalidator.extension_usages.unwrap() / use_invalidator.extension_payment_amount.unwrap();
-    let new_total_usages = Some(use_invalidator.total_usages.unwrap() + usages_to_add);
+    let usages_to_add = payment_amount
+        .checked_mul(use_invalidator.extension_usages.unwrap())
+        .unwrap()
+        .checked_div(use_invalidator.extension_payment_amount.unwrap())
+        .unwrap();
+    let new_total_usages = Some(use_invalidator.total_usages.unwrap().checked_add(usages_to_add).unwrap());
     if new_total_usages > use_invalidator.max_usages {
         return Err(error!(ErrorCode::MaxUsagesReached));
     }
 
     let provider_fee = use_invalidator.extension_payment_amount.unwrap() * (PROVIDER_FEE / FEE_SCALE);
     let recipient_fee = use_invalidator.extension_payment_amount.unwrap() * (RECIPIENT_FEE / FEE_SCALE);
-    if provider_fee + recipient_fee > 0 {
+    if provider_fee.checked_add(recipient_fee).unwrap() > 0 {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
             to: ctx.accounts.payment_manager_token_account.to_account_info(),
@@ -62,7 +66,7 @@ pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()>
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, provider_fee + recipient_fee)?;
+        token::transfer(cpi_context, provider_fee.checked_add(recipient_fee).unwrap())?;
     }
 
     let cpi_accounts = Transfer {
@@ -73,7 +77,7 @@ pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()>
 
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, payment_amount - recipient_fee)?;
+    token::transfer(cpi_context, payment_amount.checked_sub(recipient_fee).unwrap())?;
 
     use_invalidator.total_usages = new_total_usages;
     Ok(())

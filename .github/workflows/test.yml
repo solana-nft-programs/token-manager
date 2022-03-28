@@ -19,15 +19,14 @@ env:
   ANCHOR_GIT: https://github.com/project-serum/anchor
   RUST_TOOLCHAIN: nightly-2021-12-10
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+  SOTERIA_VERSION: 0.0.0
 
 jobs:
   rust-clippy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/install-linux-build-deps
-      - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           override: true
           components: rustfmt, clippy
@@ -38,12 +37,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           args: --all-features
+
   rust-fmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           override: true
           components: rustfmt, clippy
@@ -54,15 +53,41 @@ jobs:
         with:
           command: fmt
           args: --all --manifest-path ./Cargo.toml -- --check
-  test:
+
+  soteria-scan:
     runs-on: ubuntu-latest
-    name: Publish test results
     steps:
       - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          override: true
+          profile: minimal
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: ./.github/actions/install-solana
+        with:
+          solana_version: ${{ env.SOLANA_VERSION }}
+      - uses: ./.github/actions/install-soteria
+        with:
+          soteria_version: ${{ env.SOTERIA_VERSION }}
+      - name: Soteria scan programs
+        working-directory: ./programs
+        run: >-
+          for PROGRAM in ./*; do
+              if [ -d "$PROGRAM" ]; then
+                  cd "$PROGRAM"
+                  echo "Soteria scan for $PROGRAM"
+                  soteria -analyzeAll .
+                  cd ..
+              fi
+          done
+        shell: bash
 
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/install-linux-build-deps
-      - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           override: true
           profile: minimal

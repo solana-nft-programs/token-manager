@@ -48,7 +48,7 @@ jobs:
             ~/.cargo/git/db/
             ./rust/target
           key: ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{ env.RUSTC_HASH }}
-      - run: anchor build
-      - run: cd programs/cardinal-token-manager
-      - run: soteria-linux-develop/bin/soteria -analyzeAll .
-      - run: ls
+      - name: Soteria token-manager
+        working-directory: ./programs/cardinal-token-manager
+        run: soteria -analyzeAll .
+        shell: bash

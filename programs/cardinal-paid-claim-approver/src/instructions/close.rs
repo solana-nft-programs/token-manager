@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::{prelude::*, AccountsClose},
-    cardinal_token_manager::{state::{TokenManager, TokenManagerState, InvalidationType}},
+    cardinal_token_manager::state::{InvalidationType, TokenManager, TokenManagerState},
 };
 
 #[derive(Accounts)]
@@ -29,5 +29,5 @@ pub fn handler(ctx: Context<CloseCtx>) -> Result<()> {
             ctx.accounts.claim_approver.close(ctx.accounts.closer.to_account_info())?;
         }
     }
-    return Ok(())
+    Ok(())
 }

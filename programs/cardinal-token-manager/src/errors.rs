@@ -12,7 +12,7 @@ pub enum ErrorCode {
     InvalidTokenManagerTokenAccount,
     #[msg("Token account not owned by issuer")]
     InvalidIssuerTokenAccount,
-    
+
     #[msg("Token account not owned by recipient")]
     InvalidRecipientTokenAccount,
     #[msg("Token account not owned by invalidator")]

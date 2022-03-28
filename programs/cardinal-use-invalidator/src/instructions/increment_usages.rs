@@ -1,8 +1,8 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{TokenAccount}},
-    cardinal_token_manager::{state::TokenManager},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::TokenAccount,
+    cardinal_token_manager::state::TokenManager,
 };
 
 #[derive(Accounts)]
@@ -22,5 +22,5 @@ pub struct IncrementUsagesCtx<'info> {
 pub fn handler(ctx: Context<IncrementUsagesCtx>, num_usages: u64) -> Result<()> {
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     use_invalidator.usages += num_usages;
-    return Ok(())
+    Ok(())
 }

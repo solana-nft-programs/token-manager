@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{TokenAccount}}
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::TokenAccount,
 };
 
 #[derive(Accounts)]
@@ -22,5 +22,5 @@ pub struct UninitCtx<'info> {
 }
 
 pub fn handler(_ctx: Context<UninitCtx>) -> Result<()> {
-    return Ok(())
+    Ok(())
 }

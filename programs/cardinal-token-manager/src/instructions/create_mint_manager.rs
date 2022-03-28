@@ -1,10 +1,8 @@
-use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*}
-};
+use anchor_spl::token::{self, Mint, SetAuthority, Token};
 use spl_token::instruction::AuthorityType;
-use anchor_spl::{
-    token::{self, Token, Mint, SetAuthority},
+use {
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
 };
 
 #[derive(Accounts)]
@@ -16,7 +14,7 @@ pub struct CreateMintManagerCtx<'info> {
         seeds = [MINT_MANAGER_SEED.as_bytes(), mint.key().as_ref()],
         bump,
     )]
-    pub mint_manager: Account<'info, MintManager>, 
+    pub mint_manager: Account<'info, MintManager>,
     #[account(mut, constraint = mint.freeze_authority.unwrap() == freeze_authority.key() @ ErrorCode::InvalidFreezeAuthority)]
     pub mint: Account<'info, Mint>,
     pub freeze_authority: Signer<'info>,
@@ -41,5 +39,5 @@ pub fn handler(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
     token::set_authority(cpi_context, AuthorityType::FreezeAccount, Some(ctx.accounts.mint_manager.key()))?;
-    return Ok(())
+    Ok(())
 }

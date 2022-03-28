@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{TokenAccount}}
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::TokenAccount,
 };
 
 #[derive(Accounts)]
@@ -37,7 +37,7 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> Result<()> {
+pub fn handler(ctx: Context<InitCtx>, mint: Pubkey, num_invalidators: u8) -> Result<()> {
     if num_invalidators > MAX_INVALIDATORS {
         return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
     }
@@ -66,5 +66,5 @@ pub fn handler(ctx: Context<InitCtx>, mint: Pubkey,  num_invalidators: u8) -> Re
     token_manager.invalidators = Vec::new();
     // default to itself to avoid someone not setting it
     token_manager.transfer_authority = Some(token_manager.key());
-    return Ok(())
+    Ok(())
 }

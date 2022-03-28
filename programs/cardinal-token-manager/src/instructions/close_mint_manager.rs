@@ -1,17 +1,15 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*}
-};
-use spl_token::instruction::AuthorityType;
-use anchor_spl::{
-    token::{self, Token, Mint, SetAuthority},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::{self, Mint, SetAuthority, Token},
+    spl_token::instruction::AuthorityType,
 };
 
 #[derive(Accounts)]
 pub struct CloseMintManagerCtx<'info> {
     #[account(constraint = mint_manager.token_managers == 0 @ ErrorCode::OutstandingTokens)]
-    pub mint_manager: Account<'info, MintManager>, 
-    #[account(mut, 
+    pub mint_manager: Account<'info, MintManager>,
+    #[account(mut,
         constraint = mint.freeze_authority.unwrap() == mint_manager.key() @ ErrorCode::InvalidFreezeAuthority,
         close = freeze_authority,
     )]
@@ -36,5 +34,5 @@ pub fn handler(ctx: Context<CloseMintManagerCtx>) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);
     token::set_authority(cpi_context, AuthorityType::FreezeAccount, Some(ctx.accounts.freeze_authority.key()))?;
-    return Ok(())
+    Ok(())
 }

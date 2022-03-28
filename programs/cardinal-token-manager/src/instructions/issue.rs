@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{self, Token, TokenAccount, Transfer}}
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::{self, Token, TokenAccount, Transfer},
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -33,13 +33,10 @@ pub struct IssueCtx<'info> {
 }
 
 pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
-    if ix.kind != TokenManagerKind::Managed as u8
-        && ix.kind != TokenManagerKind::Unmanaged as u8
-        && ix.kind != TokenManagerKind::Edition as u8 {
+    if ix.kind != TokenManagerKind::Managed as u8 && ix.kind != TokenManagerKind::Unmanaged as u8 && ix.kind != TokenManagerKind::Edition as u8 {
         return Err(error!(ErrorCode::InvalidTokenManagerKind));
     }
-    if ix.invalidation_type != InvalidationType::Return as u8
-        && ix.invalidation_type != InvalidationType::Invalidate as u8 {
+    if ix.invalidation_type != InvalidationType::Return as u8 && ix.invalidation_type != InvalidationType::Invalidate as u8 {
         return Err(error!(ErrorCode::InvalidInvalidationType));
     }
 
@@ -62,5 +59,5 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
     token::transfer(cpi_context, token_manager.amount)?;
-    return Ok(())
+    Ok(())
 }

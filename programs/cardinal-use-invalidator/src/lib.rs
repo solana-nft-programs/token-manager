@@ -1,6 +1,6 @@
+pub mod errors;
 pub mod instructions;
 pub mod state;
-pub mod errors;
 
 use {anchor_lang::prelude::*, instructions::*};
 
@@ -17,7 +17,7 @@ pub mod cardinal_use_invalidator {
     pub fn increment_usages(ctx: Context<IncrementUsagesCtx>, num_usages: u64) -> Result<()> {
         increment_usages::handler(ctx, num_usages)
     }
-    
+
     pub fn extend_usages(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()> {
         extend_usages::handler(ctx, payment_amount)
     }

@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
-    anchor_spl::{token::{self, Token, TokenAccount, Mint, Transfer, FreezeAccount, Approve}},
+    anchor_spl::token::{self, Approve, FreezeAccount, Mint, Token, TokenAccount, Transfer},
     mpl_token_metadata::{instruction::freeze_delegated_account, utils::assert_derivation},
 };
 
@@ -62,7 +62,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
         token::approve(cpi_context, token_manager.amount)?;
-        
+
         let mint_manager_info = next_account_info(remaining_accs)?;
         let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
         mint_manager.token_managers += 1;
@@ -71,7 +71,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;
         let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];
         let mint_manager_signer = &[&mint_manager_seeds[..]];
-        
+
         // freeze recipient token account
         let cpi_accounts = FreezeAccount {
             account: ctx.accounts.recipient_token_account.to_account_info(),
@@ -87,7 +87,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
         // edition will be validated by metadata_program
         // assert_keys_eq!(metadata_program.key, mpl_token_metadata::id());
-        if metadata_program.key() != mpl_token_metadata::id() { return Err(error!(ErrorCode::PublicKeyMismatch)); }
+        if metadata_program.key() != mpl_token_metadata::id() {
+            return Err(error!(ErrorCode::PublicKeyMismatch));
+        }
 
         // set account delegate of recipient token account to token manager PDA
         let cpi_accounts = Approve {
@@ -98,7 +100,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
         token::approve(cpi_context, token_manager.amount)?;
-        
+
         invoke_signed(
             &freeze_delegated_account(
                 *metadata_program.key,
@@ -107,7 +109,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 *edition_info.key,
                 ctx.accounts.mint.key(),
             ),
-            &vec![
+            &[
                 token_manager.to_account_info(),
                 ctx.accounts.recipient_token_account.to_account_info(),
                 edition_info.to_account_info(),
@@ -121,10 +123,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.claim_approver != None {
         let claim_receipt_info = next_account_info(remaining_accs)?;
         let claim_receipt = Account::<ClaimReceipt>::try_from(claim_receipt_info)?;
-        if claim_receipt.mint_count != token_manager.count { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
-        if claim_receipt.token_manager != token_manager.key() { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
-        if claim_receipt.target != ctx.accounts.recipient.key() { return Err(error!(ErrorCode::InvalidClaimReceipt)); }
+        if claim_receipt.mint_count != token_manager.count {
+            return Err(error!(ErrorCode::InvalidClaimReceipt));
+        }
+        if claim_receipt.token_manager != token_manager.key() {
+            return Err(error!(ErrorCode::InvalidClaimReceipt));
+        }
+        if claim_receipt.target != ctx.accounts.recipient.key() {
+            return Err(error!(ErrorCode::InvalidClaimReceipt));
+        }
         claim_receipt.close(token_manager.to_account_info())?;
     }
-    return Ok(())
+    Ok(())
 }

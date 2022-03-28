@@ -14,7 +14,6 @@ pub enum TokenManagerState {
     Invalidated = 3,
 }
 
-
 #[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum TokenManagerKind {
@@ -38,7 +37,7 @@ pub enum InvalidationType {
 }
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {
-    return (8 + 1 + 1 + 8 + 1 + 32 + 32 + 8 + 1 + 1 + 8 + 1 + 32 + 33 + 33 + 33 + num_invalidators * 32) + 8 as usize
+    (8 + 1 + 1 + 8 + 1 + 32 + 32 + 8 + 1 + 1 + 8 + 1 + 32 + 33 + 33 + 33 + num_invalidators * 32) + 8_usize
 }
 
 pub const MAX_INVALIDATORS: u8 = 5;
@@ -64,7 +63,7 @@ pub struct TokenManager {
 }
 
 pub const MINT_MANAGER_SEED: &str = "mint-manager";
-pub const MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<MintManager>() + 8; 
+pub const MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<MintManager>() + 8;
 #[account]
 pub struct MintManager {
     pub bump: u8,
@@ -73,7 +72,7 @@ pub struct MintManager {
 }
 
 pub const MINT_COUNTER_SEED: &str = "mint-counter";
-pub const MINT_COUNTER_SIZE: usize = 8 + std::mem::size_of::<MintCounter>() + 8; 
+pub const MINT_COUNTER_SIZE: usize = 8 + std::mem::size_of::<MintCounter>() + 8;
 #[account]
 pub struct MintCounter {
     pub bump: u8,
@@ -82,35 +81,33 @@ pub struct MintCounter {
 }
 
 pub const CLAIM_RECEIPT_SEED: &str = "claim-receipt";
-pub const CLAIM_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<ClaimReceipt>() + 8; 
+pub const CLAIM_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<ClaimReceipt>() + 8;
 #[account]
 pub struct ClaimReceipt {
     pub mint_count: u64,
     pub token_manager: Pubkey,
-    pub target: Pubkey
+    pub target: Pubkey,
 }
 
 pub const TRANSFER_RECEIPT_SEED: &str = "transfer-receipt";
-pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TranferReceipt>() + 8; 
+pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TranferReceipt>() + 8;
 #[account]
 pub struct TranferReceipt {
     pub mint_count: u64,
     pub token_manager: Pubkey,
-    pub target: Pubkey
+    pub target: Pubkey,
 }
 
 pub const FEE_SCALE: u64 = 10000;
 pub const PROVIDER_FEE: u64 = 0;
 pub const RECIPIENT_FEE: u64 = 0;
 pub fn assert_payment_manager(key: &Pubkey) -> bool {
-    let allowed_payment_managers = [
-        Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap(),
-    ];
-    return allowed_payment_managers.contains(key)
+    let allowed_payment_managers = [Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap()];
+    allowed_payment_managers.contains(key)
 }
 
 pub const RECEIPT_MINT_MANAGER_SEED: &str = "receipt-mint-manager";
-pub const RECEIPT_MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<ReceiptMintManager>() + 8; 
+pub const RECEIPT_MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<ReceiptMintManager>() + 8;
 #[account]
 pub struct ReceiptMintManager {
     pub bump: u8,

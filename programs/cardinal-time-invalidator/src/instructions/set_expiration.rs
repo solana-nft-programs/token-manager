@@ -16,10 +16,7 @@ pub struct SetExpirationCtx<'info> {
 pub fn handler(ctx: Context<SetExpirationCtx>) -> Result<()> {
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     if time_invalidator.expiration == None {
-        time_invalidator.expiration = Some(
-            ctx.accounts.token_manager.state_changed_at
-                + time_invalidator.duration_seconds.unwrap(),
-        );
+        time_invalidator.expiration = Some(ctx.accounts.token_manager.state_changed_at + time_invalidator.duration_seconds.unwrap());
     }
-    return Ok(());
+    Ok(())
 }

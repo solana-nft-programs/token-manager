@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::{prelude::*, AccountsClose},
-    anchor_spl::{token::{self, Token, TokenAccount, Transfer, CloseAccount}}
+    anchor_spl::token::{self, CloseAccount, Token, TokenAccount, Transfer},
 };
 
 #[derive(Accounts)]
@@ -22,7 +22,7 @@ pub struct UnissueCtx<'info> {
 
 pub fn handler(ctx: Context<UnissueCtx>) -> Result<()> {
     let token_manager = &ctx.accounts.token_manager;
-        
+
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
@@ -49,5 +49,5 @@ pub fn handler(ctx: Context<UnissueCtx>) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
     token::close_account(cpi_context)?;
-    return Ok(())
+    Ok(())
 }

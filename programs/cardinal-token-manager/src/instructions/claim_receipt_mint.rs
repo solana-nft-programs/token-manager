@@ -1,9 +1,15 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    solana_program::{system_instruction::create_account, program_pack::Pack},
-    anchor_lang::{prelude::*, solana_program::{program::{invoke_signed, invoke}}},
-    anchor_spl::{token::{self, Token}, associated_token::{self, AssociatedToken}},
-    mpl_token_metadata::{instruction::{create_metadata_accounts_v2}, state::Creator},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::{
+        prelude::*,
+        solana_program::program::{invoke, invoke_signed},
+    },
+    anchor_spl::{
+        associated_token::{self, AssociatedToken},
+        token::{self, Token},
+    },
+    mpl_token_metadata::{instruction::create_metadata_accounts_v2, state::Creator},
+    solana_program::{program_pack::Pack, system_instruction::create_account},
 };
 
 #[derive(Accounts)]
@@ -31,7 +37,7 @@ pub struct ClaimReceiptMintCtx<'info> {
         space = RECEIPT_MINT_MANAGER_SIZE,
     )]
     receipt_mint_manager: Account<'info, ReceiptMintManager>,
-    
+
     #[account(mut)]
     payer: Signer<'info>,
     token_program: Program<'info, Token>,
@@ -52,7 +58,6 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     let receipt_mint_manager = &mut ctx.accounts.receipt_mint_manager;
     receipt_mint_manager.bump = *ctx.bumps.get("receipt_mint_manager").unwrap();
 
-
     // get PDA seeds to sign with
     let receipt_mint_manager_seeds = &[RECEIPT_MINT_MANAGER_SEED.as_bytes(), &[ctx.accounts.receipt_mint_manager.bump]];
     let receipt_mint_manager_signer = &[&receipt_mint_manager_seeds[..]];
@@ -66,12 +71,9 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
             spl_token::state::Mint::LEN as u64,
             &spl_token::id(),
         ),
-        &[
-            ctx.accounts.payer.to_account_info(), 
-            ctx.accounts.receipt_mint.to_account_info(),
-        ]
+        &[ctx.accounts.payer.to_account_info(), ctx.accounts.receipt_mint.to_account_info()],
     )?;
-    
+
     // initialize receipt mint
     let cpi_accounts = token::InitializeMint {
         mint: ctx.accounts.receipt_mint.to_account_info(),
@@ -90,31 +92,35 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
             ctx.accounts.receipt_mint_manager.key(),
             *ctx.accounts.payer.key,
             ctx.accounts.receipt_mint_manager.key(),
-            name.to_string(),
+            name,
             "RCP".to_string(),
             // generative URL pointing to the original mint
             "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string() + "?text=RENTED",
-            Some(vec![Creator {
-                address: ctx.accounts.receipt_mint_manager.key(),
-                verified: true,
-                share: 50,
-            }, Creator {
-                address: ctx.accounts.issuer.key(),
-                verified: false,
-                share: 50,
-            }, Creator {
-                address: ctx.accounts.token_manager.key(),
-                verified: false,
-                share: 0,
-            }]),
+            Some(vec![
+                Creator {
+                    address: ctx.accounts.receipt_mint_manager.key(),
+                    verified: true,
+                    share: 50,
+                },
+                Creator {
+                    address: ctx.accounts.issuer.key(),
+                    verified: false,
+                    share: 50,
+                },
+                Creator {
+                    address: ctx.accounts.token_manager.key(),
+                    verified: false,
+                    share: 0,
+                },
+            ]),
             0,
             true,
             true,
             None,
-            None
+            None,
         ),
         &[
-            ctx.accounts.receipt_mint_metadata.to_account_info(), 
+            ctx.accounts.receipt_mint_metadata.to_account_info(),
             ctx.accounts.receipt_mint.to_account_info(),
             ctx.accounts.receipt_mint_manager.to_account_info(),
             ctx.accounts.issuer.to_account_info(),
@@ -148,5 +154,5 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(receipt_mint_manager_signer);
     token::mint_to(cpi_context, 1)?;
-    return Ok(())
+    Ok(())
 }

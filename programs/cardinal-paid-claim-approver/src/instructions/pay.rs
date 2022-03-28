@@ -1,8 +1,12 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{self, Token, TokenAccount, Transfer}},
-    cardinal_token_manager::{program::CardinalTokenManager, state::{TokenManager, PROVIDER_FEE, RECIPIENT_FEE, FEE_SCALE, assert_payment_manager}, utils::assert_payment_token_account},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::{self, Token, TokenAccount, Transfer},
+    cardinal_token_manager::{
+        program::CardinalTokenManager,
+        state::{assert_payment_manager, TokenManager, FEE_SCALE, PROVIDER_FEE, RECIPIENT_FEE},
+        utils::assert_payment_token_account,
+    },
 };
 
 #[derive(Accounts)]
@@ -76,5 +80,5 @@ pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(claim_approver_signer);
     cardinal_token_manager::cpi::create_claim_receipt(cpi_ctx, ctx.accounts.payer.key())?;
-    return Ok(())
+    Ok(())
 }

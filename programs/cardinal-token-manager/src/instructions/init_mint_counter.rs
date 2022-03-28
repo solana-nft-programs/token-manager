@@ -1,7 +1,4 @@
-use {
-    crate::{state::*},
-    anchor_lang::{prelude::*},
-};
+use {crate::state::*, anchor_lang::prelude::*};
 
 #[derive(Accounts)]
 #[instruction(mint: Pubkey)]
@@ -23,5 +20,5 @@ pub fn handler(ctx: Context<InitMintCounterCtx>, _mint: Pubkey) -> Result<()> {
     let mint_counter = &mut ctx.accounts.mint_counter;
     mint_counter.bump = *ctx.bumps.get("mint_counter").unwrap();
     mint_counter.count = 0;
-    return Ok(())
+    Ok(())
 }

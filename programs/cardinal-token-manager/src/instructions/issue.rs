@@ -1,7 +1,10 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
-    anchor_spl::token::{self, Token, TokenAccount, Transfer},
+    anchor_spl::{
+        associated_token::AssociatedToken,
+        token::{self, Mint, Token, TokenAccount, Transfer},
+    },
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -16,8 +19,15 @@ pub struct IssueIx {
 pub struct IssueCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
-    #[account(mut, constraint = token_manager_token_account.owner == token_manager.key() @ ErrorCode::InvalidTokenManagerTokenAccount)]
+    #[account(
+        init,
+        payer = payer,
+        associated_token::mint = mint,
+        associated_token::authority = token_manager
+    )]
     token_manager_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
+    mint: Box<Account<'info, Mint>>,
 
     // issuer
     #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
@@ -29,7 +39,9 @@ pub struct IssueCtx<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     token_program: Program<'info, Token>,
+    associated_token_program: Program<'info, AssociatedToken>,
     system_program: Program<'info, System>,
+    rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {

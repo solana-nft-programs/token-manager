@@ -28,7 +28,6 @@ jobs:
         uses: cachix/cachix-action@v10
         with:
           name: cardinal-token-manager
-          extraPullNames: cardinal
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Get yarn cache directory path
@@ -67,7 +66,6 @@ jobs:
         uses: cachix/cachix-action@v10
         with:
           name: cardinal-token-manager
-          extraPullNames: cardinal
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Install Rust nightly
@@ -123,7 +121,6 @@ jobs:
         uses: cachix/cachix-action@v10
         with:
           name: cardinal-token-manager
-          extraPullNames: cardinal
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Get yarn cache directory path

@@ -162,6 +162,28 @@ export const getMintCounter = async (
   };
 };
 
+export const getReceiptMintManager = async (
+  connection: Connection,
+  receiptMintManagerId: PublicKey
+): Promise<AccountData<MintCounterData>> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const parsed = await tokenManagerProgram.account.receiptMintManager.fetch(
+    receiptMintManagerId
+  );
+  return {
+    parsed,
+    pubkey: receiptMintManagerId,
+  };
+};
+
 export const getTokenManagersForIssuer = async (
   connection: Connection,
   issuerId: PublicKey

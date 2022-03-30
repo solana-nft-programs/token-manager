@@ -100,6 +100,27 @@ export type CardinalTokenManager = {
       ];
     },
     {
+      name: "initReceiptMintManager";
+      accounts: [
+        {
+          name: "receiptMintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "setClaimApprover";
       accounts: [
         {
@@ -1044,6 +1065,27 @@ export const IDL: CardinalTokenManager = {
           type: "publicKey",
         },
       ],
+    },
+    {
+      name: "initReceiptMintManager",
+      accounts: [
+        {
+          name: "receiptMintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
     },
     {
       name: "setClaimApprover",

@@ -23,6 +23,10 @@ pub mod cardinal_token_manager {
         init_mint_counter::handler(ctx, mint)
     }
 
+    pub fn init_receipt_mint_manager(ctx: Context<InitReceiptMintManagerCtx>) -> Result<()> {
+        init_receipt_mint_manager::handler(ctx)
+    }
+
     pub fn set_claim_approver(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> Result<()> {
         set_claim_approver::handler(ctx, claim_approver)
     }

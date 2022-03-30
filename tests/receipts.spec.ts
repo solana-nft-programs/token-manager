@@ -14,7 +14,7 @@ import {
 } from "@saberhq/solana-contrib";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
@@ -29,6 +29,7 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
+import { withInitReceiptMintManager } from "../src/programs/tokenManager/transaction";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -108,13 +109,24 @@ describe("Issue claim receipt invalidate", () => {
         maxSupply: new BN(1),
       }
     );
+
+    const receiptMintManagerTx = await withInitReceiptMintManager(
+      new Transaction(),
+      provider.connection,
+      new SignerWallet(tokenCreator)
+    );
+
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
         wallet: new SignerWallet(tokenCreator),
         opts: provider.opts,
       }),
-      [...metadataTx.instructions, ...masterEditionTx.instructions]
+      [
+        ...metadataTx.instructions,
+        ...masterEditionTx.instructions,
+        ...receiptMintManagerTx.instructions,
+      ]
     );
 
     await expectTXTable(txEnvelope, "before", {

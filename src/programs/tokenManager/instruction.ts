@@ -289,6 +289,30 @@ export const createClaimReceipt = async (
   ];
 };
 
+export const initReceiptMintManager = async (
+  connection: Connection,
+  wallet: Wallet
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new Provider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [receiptMintManagerId] = await findReceiptMintManagerId();
+  return [
+    tokenManagerProgram.instruction.initReceiptMintManager({
+      accounts: {
+        receiptMintManager: receiptMintManagerId,
+        payer: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
+    receiptMintManagerId,
+  ];
+};
+
 export const creatMintManager = async (
   connection: Connection,
   wallet: Wallet,

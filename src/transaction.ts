@@ -529,10 +529,10 @@ export const withInvalidate = async (
       )
     );
   } else if (
-    tokenManagerData &&
     tokenManagerData.parsed.invalidators.some((inv) =>
       inv.equals(wallet.publicKey)
-    )
+    ) ||
+    tokenManagerData.parsed.invalidationType === InvalidationType.Return
   ) {
     transaction.add(
       await tokenManager.instruction.invalidate(

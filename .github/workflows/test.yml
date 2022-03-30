@@ -15,7 +15,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.9.0
+  SOLANA_VERSION: 1.9.13
   ANCHOR_GIT: https://github.com/project-serum/anchor
   RUST_TOOLCHAIN: nightly-2021-12-10
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

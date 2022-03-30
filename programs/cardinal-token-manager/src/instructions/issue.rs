@@ -20,7 +20,7 @@ pub struct IssueCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(
-        init,
+        init_if_needed,
         payer = payer,
         associated_token::mint = mint,
         associated_token::authority = token_manager

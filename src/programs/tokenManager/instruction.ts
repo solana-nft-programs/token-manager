@@ -159,6 +159,7 @@ export const issue = (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
+  mintId: PublicKey,
   amount: BN,
   tokenManagerTokenAccountId: PublicKey,
   issuerTokenAccountId: PublicKey,
@@ -182,11 +183,14 @@ export const issue = (
       accounts: {
         tokenManager: tokenManagerId,
         tokenManagerTokenAccount: tokenManagerTokenAccountId,
+        mint: mintId,
         issuer: wallet.publicKey,
         issuerTokenAccount: issuerTokenAccountId,
         payer: wallet.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
       },
     }
   );
@@ -380,7 +384,7 @@ export const claimReceiptMint = async (
       payer: wallet.publicKey,
       receiptMintManager: receiptMintManagerId,
       tokenProgram: TOKEN_PROGRAM_ID,
-      associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
       tokenMetadataProgram: MetadataProgram.PUBKEY,
       rent: SYSVAR_RENT_PUBKEY,

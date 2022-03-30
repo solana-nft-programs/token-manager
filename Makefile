@@ -2,7 +2,7 @@
 
 TEST_KEY := $(shell solana-keygen pubkey ./tests/test-key.json)
 
-all: install start build test stop
+all: install start build deploy test stop
 
 install:
 	yarn install
@@ -15,6 +15,9 @@ start:
 
 build:
 	anchor build
+	yarn idl:generate
+
+deploy:
 	anchor deploy --provider.cluster localnet
 
 test:

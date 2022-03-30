@@ -41,7 +41,7 @@ pub struct ClaimReceiptMintCtx<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     token_program: Program<'info, Token>,
-    associated_token: Program<'info, AssociatedToken>,
+    associated_token_program: Program<'info, AssociatedToken>,
     system_program: Program<'info, System>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(address = mpl_token_metadata::id())]

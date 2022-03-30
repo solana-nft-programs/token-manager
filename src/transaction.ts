@@ -240,6 +240,7 @@ export const withIssueToken = async (
       connection,
       wallet,
       tokenManagerId,
+      mint,
       amount,
       tokenManagerTokenAccountId,
       issuerTokenAccountId,

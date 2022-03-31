@@ -84,6 +84,14 @@ export type IssueParameters = {
   // Edition = 3,
   kind?: TokenManagerKind,
 
+  // Optional parameters to specify an up front payment that must be paid before claim
+  claimPayment?: {
+    // Mint of the tokens required for payment
+    paymentMint: PublicKey,
+    // Amount of the tokens required for payment
+    paymentAmount: number,
+  },
+
   // Optional parameters to expire this token manager based on time
   timeInvalidation?: {
     // Optional exact fixed expiration in UTC seconds, not to be used along with durationSeconds

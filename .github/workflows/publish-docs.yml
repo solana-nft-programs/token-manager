@@ -7,7 +7,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: nightly-2021-12-10
+  RUST_TOOLCHAIN: nightly
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
 jobs:

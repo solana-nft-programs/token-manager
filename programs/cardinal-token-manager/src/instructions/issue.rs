@@ -20,7 +20,7 @@ pub struct IssueCtx<'info> {
     token_manager_token_account: Box<Account<'info, TokenAccount>>,
 
     // issuer
-    #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
+    #[account(constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
     issuer: Signer<'info>,
     #[account(mut, constraint = issuer_token_account.mint == token_manager.mint && issuer_token_account.owner == issuer.key() @ ErrorCode::InvalidIssuerTokenAccount)]
     issuer_token_account: Box<Account<'info, TokenAccount>>,

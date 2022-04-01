@@ -154,11 +154,6 @@ describe("Time invalidation on claim", () => {
           await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
         )[0]
       );
-    expect(checkTimeInvalidator.parsed.expiration?.toNumber()).to.eq(
-      (checkTimeInvalidator.parsed.durationSeconds || new BN(0))
-        .add(tokenManagerData.parsed.stateChangedAt)
-        .toNumber()
-    );
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
       durationSeconds
     );

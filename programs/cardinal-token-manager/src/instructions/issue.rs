@@ -14,7 +14,7 @@ pub struct IssueIx {
 #[derive(Accounts)]
 #[instruction(ix: IssueIx)]
 pub struct IssueCtx<'info> {
-    #[account(mut)]
+    #[account(mut, constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint = token_manager_token_account.owner == token_manager.key() @ ErrorCode::InvalidTokenManagerTokenAccount)]
     token_manager_token_account: Box<Account<'info, TokenAccount>>,

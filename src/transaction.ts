@@ -379,16 +379,6 @@ export const withClaimToken = async (
     )
   );
 
-  if (additionalOptions?.timeInvalidatorId) {
-    transaction.add(
-      timeInvalidator.instruction.setExpiration(
-        connection,
-        wallet,
-        tokenManagerId,
-        additionalOptions?.timeInvalidatorId
-      )
-    );
-  }
   return transaction;
 };
 

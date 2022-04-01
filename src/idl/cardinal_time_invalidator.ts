@@ -41,22 +41,6 @@ export type CardinalTimeInvalidator = {
       ];
     },
     {
-      name: "setExpiration";
-      accounts: [
-        {
-          name: "tokenManager";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "timeInvalidator";
-          isMut: true;
-          isSigner: false;
-        }
-      ];
-      args: [];
-    },
-    {
       name: "extendExpiration";
       accounts: [
         {
@@ -387,22 +371,6 @@ export const IDL: CardinalTimeInvalidator = {
           },
         },
       ],
-    },
-    {
-      name: "setExpiration",
-      accounts: [
-        {
-          name: "tokenManager",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "timeInvalidator",
-          isMut: true,
-          isSigner: false,
-        },
-      ],
-      args: [],
     },
     {
       name: "extendExpiration",

@@ -199,8 +199,12 @@ describe("Create and Extend Rental", () => {
         )[0]
       )
     );
-    expiration = timeInvalidatorData?.parsed.expiration?.toNumber() || 0;
-    expect(expiration).to.not.eq(0);
+    const tokenManagerData = await tryGetAccount(async () =>
+      tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
+    );
+    expiration =
+      (timeInvalidatorData?.parsed.durationSeconds?.toNumber() || 0) +
+      (tokenManagerData?.parsed.stateChangedAt.toNumber() || 0);
 
     const transaction = await rentals.extendRentalExpiration(
       provider.connection,

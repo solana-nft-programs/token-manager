@@ -87,28 +87,6 @@ export const init = async (
   ];
 };
 
-export const setExpiration = (
-  connection: Connection,
-  wallet: Wallet,
-  tokenManagerId: PublicKey,
-  timeInvalidatorId: PublicKey
-): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
-
-  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
-    TIME_INVALIDATOR_IDL,
-    TIME_INVALIDATOR_ADDRESS,
-    provider
-  );
-
-  return timeInvalidatorProgram.instruction.setExpiration({
-    accounts: {
-      tokenManager: tokenManagerId,
-      timeInvalidator: timeInvalidatorId,
-    },
-  });
-};
-
 export const extendExpiration = (
   connection: Connection,
   wallet: Wallet,

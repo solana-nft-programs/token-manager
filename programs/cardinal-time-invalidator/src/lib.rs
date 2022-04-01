@@ -14,10 +14,6 @@ pub mod cardinal_time_invalidator {
         init::handler(ctx, ix)
     }
 
-    pub fn set_expiration(ctx: Context<SetExpirationCtx>) -> Result<()> {
-        set_expiration::handler(ctx)
-    }
-
     pub fn extend_expiration(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result<()> {
         extend_expiration::handler(ctx, payment_amount)
     }

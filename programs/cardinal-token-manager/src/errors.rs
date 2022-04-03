@@ -12,7 +12,8 @@ pub enum ErrorCode {
     InvalidTokenManagerTokenAccount,
     #[msg("Token account not owned by issuer")]
     InvalidIssuerTokenAccount,
-
+    #[msg("Max invalidators reached")]
+    MaximumInvalidatorsReached,
     #[msg("Token account not owned by recipient")]
     InvalidRecipientTokenAccount,
     #[msg("Token account not owned by invalidator")]

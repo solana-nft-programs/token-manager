@@ -17,7 +17,7 @@ pub fn handler(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> Result<(
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
     if token_manager.invalidators.len() as u8 >= token_manager.num_invalidators {
-        return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+        return Err(error!(ErrorCode::MaximumInvalidatorsReached));
     }
 
     token_manager.invalidators.push(invalidator);

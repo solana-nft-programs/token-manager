@@ -39,7 +39,7 @@ pub struct InitCtx<'info> {
 
 pub fn handler(ctx: Context<InitCtx>, mint: Pubkey, num_invalidators: u8) -> Result<()> {
     if num_invalidators > MAX_INVALIDATORS {
-        return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+        return Err(error!(ErrorCode::MaximumInvalidatorsReached));
     }
 
     let token_manager = &mut ctx.accounts.token_manager;

@@ -1,5 +1,5 @@
 export type CardinalUseInvalidator = {
-  version: "0.2.23";
+  version: "0.0.0";
   name: "cardinal_use_invalidator";
   instructions: [
     {
@@ -287,64 +287,50 @@ export type CardinalUseInvalidator = {
           }
         ];
       };
-    }
-  ];
-  errors: [
-    {
-      code: 6000;
-      name: "InvalidPaymentTokenAccount";
-      msg: "Token account not owned by the use invalidator";
     },
     {
-      code: 6001;
-      name: "InvalidPayerTokenAccount";
-      msg: "Token account not owned by the issuer";
-    },
-    {
-      code: 6002;
-      name: "InvalidTokenAccount";
-      msg: "Token account not owned by the issuer";
-    },
-    {
-      code: 6003;
-      name: "InvalidUser";
-      msg: "User is not permitted to use";
-    },
-    {
-      code: 6004;
-      name: "InvalidTokenManager";
-      msg: "Invalid token manager for this use invalidator";
-    },
-    {
-      code: 6005;
-      name: "InsufficientUsages";
-      msg: "Usages at the maximum";
-    },
-    {
-      code: 6006;
-      name: "InvalidUseInvalidator";
-      msg: "Invalid use invalidator";
-    },
-    {
-      code: 6007;
-      name: "MaxUsagesReached";
-      msg: "Max usages reached";
-    },
-    {
-      code: 6008;
-      name: "InvalidExtensionAmount";
-      msg: "Extension must be a multiple of extension payment";
-    },
-    {
-      code: 6009;
-      name: "InvalidPaymentManagerTokenAccount";
-      msg: "Token account incorrect mint";
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount";
+          },
+          {
+            name: "InvalidPayerTokenAccount";
+          },
+          {
+            name: "InvalidTokenAccount";
+          },
+          {
+            name: "InvalidUser";
+          },
+          {
+            name: "InvalidTokenManager";
+          },
+          {
+            name: "InsufficientUsages";
+          },
+          {
+            name: "InvalidUseInvalidator";
+          },
+          {
+            name: "MaxUsagesReached";
+          },
+          {
+            name: "InvalidExtensionAmount";
+          },
+          {
+            name: "InvalidPaymentManagerTokenAccount";
+          }
+        ];
+      };
     }
   ];
 };
 
 export const IDL: CardinalUseInvalidator = {
-  version: "0.2.23",
+  version: "0.0.0",
   name: "cardinal_use_invalidator",
   instructions: [
     {
@@ -633,57 +619,43 @@ export const IDL: CardinalUseInvalidator = {
         ],
       },
     },
-  ],
-  errors: [
     {
-      code: 6000,
-      name: "InvalidPaymentTokenAccount",
-      msg: "Token account not owned by the use invalidator",
-    },
-    {
-      code: 6001,
-      name: "InvalidPayerTokenAccount",
-      msg: "Token account not owned by the issuer",
-    },
-    {
-      code: 6002,
-      name: "InvalidTokenAccount",
-      msg: "Token account not owned by the issuer",
-    },
-    {
-      code: 6003,
-      name: "InvalidUser",
-      msg: "User is not permitted to use",
-    },
-    {
-      code: 6004,
-      name: "InvalidTokenManager",
-      msg: "Invalid token manager for this use invalidator",
-    },
-    {
-      code: 6005,
-      name: "InsufficientUsages",
-      msg: "Usages at the maximum",
-    },
-    {
-      code: 6006,
-      name: "InvalidUseInvalidator",
-      msg: "Invalid use invalidator",
-    },
-    {
-      code: 6007,
-      name: "MaxUsagesReached",
-      msg: "Max usages reached",
-    },
-    {
-      code: 6008,
-      name: "InvalidExtensionAmount",
-      msg: "Extension must be a multiple of extension payment",
-    },
-    {
-      code: 6009,
-      name: "InvalidPaymentManagerTokenAccount",
-      msg: "Token account incorrect mint",
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "InvalidPaymentTokenAccount",
+          },
+          {
+            name: "InvalidPayerTokenAccount",
+          },
+          {
+            name: "InvalidTokenAccount",
+          },
+          {
+            name: "InvalidUser",
+          },
+          {
+            name: "InvalidTokenManager",
+          },
+          {
+            name: "InsufficientUsages",
+          },
+          {
+            name: "InvalidUseInvalidator",
+          },
+          {
+            name: "MaxUsagesReached",
+          },
+          {
+            name: "InvalidExtensionAmount",
+          },
+          {
+            name: "InvalidPaymentManagerTokenAccount",
+          },
+        ],
+      },
     },
   ],
 };

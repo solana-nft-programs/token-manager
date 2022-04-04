@@ -18,6 +18,7 @@ import { findClaimApproverAddress } from "./pda";
 export type ClaimApproverParams = {
   paymentMint: PublicKey;
   paymentAmount: number;
+  collector: PublicKey;
 };
 
 export const init = async (
@@ -26,7 +27,7 @@ export const init = async (
   tokenManagerId: PublicKey,
   claimApproverParams: ClaimApproverParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const { paymentMint, paymentAmount } = claimApproverParams;
+  const { paymentMint, paymentAmount, collector } = claimApproverParams;
   const provider = new Provider(connection, wallet, {});
 
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
@@ -40,15 +41,20 @@ export const init = async (
   );
 
   return [
-    claimApproverProgram.instruction.init(paymentMint, new BN(paymentAmount), {
-      accounts: {
-        tokenManager: tokenManagerId,
-        claimApprover: claimApproverId,
-        issuer: wallet.publicKey,
-        payer: wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    }),
+    claimApproverProgram.instruction.init(
+      paymentMint,
+      new BN(paymentAmount),
+      collector,
+      {
+        accounts: {
+          tokenManager: tokenManagerId,
+          claimApprover: claimApproverId,
+          issuer: wallet.publicKey,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
     claimApproverId,
   ];
 };

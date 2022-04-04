@@ -13,7 +13,7 @@ pub struct CloseCtx<'info> {
     #[account(mut)]
     claim_approver: Box<Account<'info, PaidClaimApprover>>,
 
-    #[account(mut)]
+    #[account(mut, constraint = closer.key() == claim_approver.collector @ ErrorCode::InvalidCloser)]
     closer: Signer<'info>,
 }
 

@@ -1,5 +1,5 @@
 export type CardinalTokenManager = {
-  version: "0.2.23";
+  version: "0.0.0";
   name: "cardinal_token_manager";
   instructions: [
     {
@@ -761,6 +761,92 @@ export type CardinalTokenManager = {
       };
     },
     {
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Uninitialized";
+          },
+          {
+            name: "TooManyInvalidators";
+          },
+          {
+            name: "InvalidNumInvalidators";
+          },
+          {
+            name: "InvalidTokenManagerTokenAccount";
+          },
+          {
+            name: "InvalidIssuerTokenAccount";
+          },
+          {
+            name: "MaximumInvalidatorsReached";
+          },
+          {
+            name: "InvalidRecipientTokenAccount";
+          },
+          {
+            name: "InvalidInvalidatorTokenAccount";
+          },
+          {
+            name: "InvalidTokenManagerKind";
+          },
+          {
+            name: "InvalidInvalidationType";
+          },
+          {
+            name: "InvalidClaimAuthority";
+          },
+          {
+            name: "InvalidTransferAuthority";
+          },
+          {
+            name: "InvalidIssuer";
+          },
+          {
+            name: "InvalidInvalidator";
+          },
+          {
+            name: "InvalidMint";
+          },
+          {
+            name: "InvalidTokenManagerState";
+          },
+          {
+            name: "OutstandingTokens";
+          },
+          {
+            name: "InvalidFreezeAuthority";
+          },
+          {
+            name: "InvalidClaimReceipt";
+          },
+          {
+            name: "InvalidTransferReceipt";
+          },
+          {
+            name: "PublicKeyMismatch";
+          },
+          {
+            name: "InvalidMetadataProgramId";
+          },
+          {
+            name: "InvalidReceiptMintAccount";
+          },
+          {
+            name: "InvalidReceiptMintOwner";
+          },
+          {
+            name: "InvalidReceiptMint";
+          },
+          {
+            name: "InvalidCurrentTokenAccount";
+          }
+        ];
+      };
+    },
+    {
       name: "TokenManagerState";
       type: {
         kind: "enum";
@@ -815,137 +901,10 @@ export type CardinalTokenManager = {
       };
     }
   ];
-  errors: [
-    {
-      code: 6000;
-      name: "Uninitialized";
-      msg: "Account not initialized";
-    },
-    {
-      code: 6001;
-      name: "TooManyInvalidators";
-      msg: "Too many invalidators have already been added";
-    },
-    {
-      code: 6002;
-      name: "InvalidNumInvalidators";
-      msg: "Number of invalidators cannot be overwritten";
-    },
-    {
-      code: 6003;
-      name: "InvalidTokenManagerTokenAccount";
-      msg: "Token account not owned by token manager";
-    },
-    {
-      code: 6004;
-      name: "InvalidIssuerTokenAccount";
-      msg: "Token account not owned by issuer";
-    },
-    {
-      code: 6005;
-      name: "InvalidRecipientTokenAccount";
-      msg: "Token account not owned by recipient";
-    },
-    {
-      code: 6006;
-      name: "InvalidInvalidatorTokenAccount";
-      msg: "Token account not owned by invalidator";
-    },
-    {
-      code: 6007;
-      name: "InvalidTokenManagerKind";
-      msg: "Token manager kind is not valid";
-    },
-    {
-      code: 6008;
-      name: "InvalidInvalidationType";
-      msg: "Invalid invalidation type";
-    },
-    {
-      code: 6009;
-      name: "InvalidClaimAuthority";
-      msg: "Invalid claim authority";
-    },
-    {
-      code: 6010;
-      name: "InvalidTransferAuthority";
-      msg: "Invalid transfer authority";
-    },
-    {
-      code: 6011;
-      name: "InvalidIssuer";
-      msg: "Invalid issuer";
-    },
-    {
-      code: 6012;
-      name: "InvalidInvalidator";
-      msg: "Invalid invalidator";
-    },
-    {
-      code: 6013;
-      name: "InvalidMint";
-      msg: "Invalid mint";
-    },
-    {
-      code: 6014;
-      name: "InvalidTokenManagerState";
-      msg: "Invalid token manager state";
-    },
-    {
-      code: 6015;
-      name: "OutstandingTokens";
-      msg: "Outstanding tokens exist";
-    },
-    {
-      code: 6016;
-      name: "InvalidFreezeAuthority";
-      msg: "Invalid freeze authority";
-    },
-    {
-      code: 6017;
-      name: "InvalidClaimReceipt";
-      msg: "Invalid claim receipt";
-    },
-    {
-      code: 6018;
-      name: "InvalidTransferReceipt";
-      msg: "Invalid transfer receipt";
-    },
-    {
-      code: 6019;
-      name: "PublicKeyMismatch";
-      msg: "Public key mismatch";
-    },
-    {
-      code: 6020;
-      name: "InvalidMetadataProgramId";
-      msg: "Invalid metadata program id";
-    },
-    {
-      code: 6021;
-      name: "InvalidReceiptMintAccount";
-      msg: "Invalid receipt mint account";
-    },
-    {
-      code: 6022;
-      name: "InvalidReceiptMintOwner";
-      msg: "Invalid receipt mint owner";
-    },
-    {
-      code: 6023;
-      name: "InvalidReceiptMint";
-      msg: "Invalid receipt mint";
-    },
-    {
-      code: 6024;
-      name: "InvalidCurrentTokenAccount";
-      msg: "Invalid current holder token account";
-    }
-  ];
 };
 
 export const IDL: CardinalTokenManager = {
-  version: "0.2.23",
+  version: "0.0.0",
   name: "cardinal_token_manager",
   instructions: [
     {
@@ -1707,6 +1666,92 @@ export const IDL: CardinalTokenManager = {
       },
     },
     {
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Uninitialized",
+          },
+          {
+            name: "TooManyInvalidators",
+          },
+          {
+            name: "InvalidNumInvalidators",
+          },
+          {
+            name: "InvalidTokenManagerTokenAccount",
+          },
+          {
+            name: "InvalidIssuerTokenAccount",
+          },
+          {
+            name: "MaximumInvalidatorsReached",
+          },
+          {
+            name: "InvalidRecipientTokenAccount",
+          },
+          {
+            name: "InvalidInvalidatorTokenAccount",
+          },
+          {
+            name: "InvalidTokenManagerKind",
+          },
+          {
+            name: "InvalidInvalidationType",
+          },
+          {
+            name: "InvalidClaimAuthority",
+          },
+          {
+            name: "InvalidTransferAuthority",
+          },
+          {
+            name: "InvalidIssuer",
+          },
+          {
+            name: "InvalidInvalidator",
+          },
+          {
+            name: "InvalidMint",
+          },
+          {
+            name: "InvalidTokenManagerState",
+          },
+          {
+            name: "OutstandingTokens",
+          },
+          {
+            name: "InvalidFreezeAuthority",
+          },
+          {
+            name: "InvalidClaimReceipt",
+          },
+          {
+            name: "InvalidTransferReceipt",
+          },
+          {
+            name: "PublicKeyMismatch",
+          },
+          {
+            name: "InvalidMetadataProgramId",
+          },
+          {
+            name: "InvalidReceiptMintAccount",
+          },
+          {
+            name: "InvalidReceiptMintOwner",
+          },
+          {
+            name: "InvalidReceiptMint",
+          },
+          {
+            name: "InvalidCurrentTokenAccount",
+          },
+        ],
+      },
+    },
+    {
       name: "TokenManagerState",
       type: {
         kind: "enum",
@@ -1759,133 +1804,6 @@ export const IDL: CardinalTokenManager = {
           },
         ],
       },
-    },
-  ],
-  errors: [
-    {
-      code: 6000,
-      name: "Uninitialized",
-      msg: "Account not initialized",
-    },
-    {
-      code: 6001,
-      name: "TooManyInvalidators",
-      msg: "Too many invalidators have already been added",
-    },
-    {
-      code: 6002,
-      name: "InvalidNumInvalidators",
-      msg: "Number of invalidators cannot be overwritten",
-    },
-    {
-      code: 6003,
-      name: "InvalidTokenManagerTokenAccount",
-      msg: "Token account not owned by token manager",
-    },
-    {
-      code: 6004,
-      name: "InvalidIssuerTokenAccount",
-      msg: "Token account not owned by issuer",
-    },
-    {
-      code: 6005,
-      name: "InvalidRecipientTokenAccount",
-      msg: "Token account not owned by recipient",
-    },
-    {
-      code: 6006,
-      name: "InvalidInvalidatorTokenAccount",
-      msg: "Token account not owned by invalidator",
-    },
-    {
-      code: 6007,
-      name: "InvalidTokenManagerKind",
-      msg: "Token manager kind is not valid",
-    },
-    {
-      code: 6008,
-      name: "InvalidInvalidationType",
-      msg: "Invalid invalidation type",
-    },
-    {
-      code: 6009,
-      name: "InvalidClaimAuthority",
-      msg: "Invalid claim authority",
-    },
-    {
-      code: 6010,
-      name: "InvalidTransferAuthority",
-      msg: "Invalid transfer authority",
-    },
-    {
-      code: 6011,
-      name: "InvalidIssuer",
-      msg: "Invalid issuer",
-    },
-    {
-      code: 6012,
-      name: "InvalidInvalidator",
-      msg: "Invalid invalidator",
-    },
-    {
-      code: 6013,
-      name: "InvalidMint",
-      msg: "Invalid mint",
-    },
-    {
-      code: 6014,
-      name: "InvalidTokenManagerState",
-      msg: "Invalid token manager state",
-    },
-    {
-      code: 6015,
-      name: "OutstandingTokens",
-      msg: "Outstanding tokens exist",
-    },
-    {
-      code: 6016,
-      name: "InvalidFreezeAuthority",
-      msg: "Invalid freeze authority",
-    },
-    {
-      code: 6017,
-      name: "InvalidClaimReceipt",
-      msg: "Invalid claim receipt",
-    },
-    {
-      code: 6018,
-      name: "InvalidTransferReceipt",
-      msg: "Invalid transfer receipt",
-    },
-    {
-      code: 6019,
-      name: "PublicKeyMismatch",
-      msg: "Public key mismatch",
-    },
-    {
-      code: 6020,
-      name: "InvalidMetadataProgramId",
-      msg: "Invalid metadata program id",
-    },
-    {
-      code: 6021,
-      name: "InvalidReceiptMintAccount",
-      msg: "Invalid receipt mint account",
-    },
-    {
-      code: 6022,
-      name: "InvalidReceiptMintOwner",
-      msg: "Invalid receipt mint owner",
-    },
-    {
-      code: 6023,
-      name: "InvalidReceiptMint",
-      msg: "Invalid receipt mint",
-    },
-    {
-      code: 6024,
-      name: "InvalidCurrentTokenAccount",
-      msg: "Invalid current holder token account",
     },
   ],
 };

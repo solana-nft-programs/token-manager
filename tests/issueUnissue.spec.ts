@@ -3,11 +3,12 @@ import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { rentals, tryGetAccount, unissueToken } from "../src";
-import { tokenManager } from "../src/programs";
+import { claimApprover, tokenManager } from "../src/programs";
+import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -152,5 +153,37 @@ describe("Issue Unissue", () => {
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
       RECIPIENT_START_PAYMENT_AMOUNT
     );
+  });
+
+  it("Close claim approver", async () => {
+    const provider = getProvider();
+    const transaction = new Transaction();
+
+    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+      rentalMint.publicKey
+    );
+    const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
+
+    transaction.add(
+      claimApprover.instruction.close(
+        provider.connection,
+        provider.wallet,
+        claimApproverId,
+        tokenManagerId
+      )
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+    await expectTXTable(txEnvelope, "Close", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
   });
 });

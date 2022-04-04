@@ -18,7 +18,7 @@ import { findClaimApproverAddress } from "./pda";
 export type ClaimApproverParams = {
   paymentMint: PublicKey;
   paymentAmount: number;
-  collector: PublicKey;
+  collector?: PublicKey;
 };
 
 export const init = async (
@@ -44,7 +44,7 @@ export const init = async (
     claimApproverProgram.instruction.init(
       paymentMint,
       new BN(paymentAmount),
-      collector,
+      collector || wallet.publicKey,
       {
         accounts: {
           tokenManager: tokenManagerId,

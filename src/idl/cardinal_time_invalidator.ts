@@ -146,6 +146,11 @@ export type CardinalTimeInvalidator = {
           isSigner: false;
         },
         {
+          name: "collector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "closer";
           isMut: true;
           isSigner: true;
@@ -165,14 +170,18 @@ export type CardinalTimeInvalidator = {
             type: "u8";
           },
           {
+            name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "collector";
+            type: "publicKey";
+          },
+          {
             name: "expiration";
             type: {
               option: "i64";
             };
-          },
-          {
-            name: "tokenManager";
-            type: "publicKey";
           },
           {
             name: "durationSeconds";
@@ -220,6 +229,10 @@ export type CardinalTimeInvalidator = {
       type: {
         kind: "struct";
         fields: [
+          {
+            name: "collector";
+            type: "publicKey";
+          },
           {
             name: "durationSeconds";
             type: {
@@ -326,6 +339,11 @@ export type CardinalTimeInvalidator = {
       code: 6011;
       name: "InvalidPaymentManagerTokenAccount";
       msg: "Token account incorrect mint";
+    },
+    {
+      code: 6012;
+      name: "InvalidCollector";
+      msg: "Invalid collector";
     }
   ];
 };
@@ -478,6 +496,11 @@ export const IDL: CardinalTimeInvalidator = {
           isSigner: false,
         },
         {
+          name: "collector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "closer",
           isMut: true,
           isSigner: true,
@@ -497,14 +520,18 @@ export const IDL: CardinalTimeInvalidator = {
             type: "u8",
           },
           {
+            name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "collector",
+            type: "publicKey",
+          },
+          {
             name: "expiration",
             type: {
               option: "i64",
             },
-          },
-          {
-            name: "tokenManager",
-            type: "publicKey",
           },
           {
             name: "durationSeconds",
@@ -552,6 +579,10 @@ export const IDL: CardinalTimeInvalidator = {
       type: {
         kind: "struct",
         fields: [
+          {
+            name: "collector",
+            type: "publicKey",
+          },
           {
             name: "durationSeconds",
             type: {
@@ -658,6 +689,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6011,
       name: "InvalidPaymentManagerTokenAccount",
       msg: "Token account incorrect mint",
+    },
+    {
+      code: 6012,
+      name: "InvalidCollector",
+      msg: "Invalid collector",
     },
   ],
 };

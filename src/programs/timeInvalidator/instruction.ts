@@ -17,6 +17,7 @@ import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
 import { findTimeInvalidatorAddress } from "./pda";
 
 export type TimeInvalidationParams = {
+  collector?: PublicKey;
   expiration?: number;
   durationSeconds?: number;
   extension?: {
@@ -48,6 +49,7 @@ export const init = async (
   return [
     timeInvalidatorProgram.instruction.init(
       {
+        collector: timeInvalidation.collector || wallet.publicKey,
         expiration: timeInvalidation.expiration
           ? new BN(timeInvalidation.expiration)
           : null,
@@ -174,7 +176,8 @@ export const close = (
   connection: Connection,
   wallet: Wallet,
   timeInvalidatorId: PublicKey,
-  tokenManagerId: PublicKey
+  tokenManagerId: PublicKey,
+  collector?: PublicKey
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
 
@@ -188,6 +191,7 @@ export const close = (
     accounts: {
       tokenManager: tokenManagerId,
       timeInvalidator: timeInvalidatorId,
+      collector: collector || wallet.publicKey,
       closer: wallet.publicKey,
     },
   });

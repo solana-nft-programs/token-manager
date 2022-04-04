@@ -7,8 +7,9 @@ import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { rentals, tryGetAccount, unissueToken } from "../src";
-import { claimApprover, tokenManager } from "../src/programs";
+import { claimApprover, timeInvalidator, tokenManager } from "../src/programs";
 import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
+import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -67,7 +68,10 @@ describe("Issue Unissue", () => {
           paymentMint: paymentMint.publicKey,
           collector: collector.publicKey,
         },
-        timeInvalidation: { expiration: Date.now() / 1000 + 1 },
+        timeInvalidation: {
+          expiration: Date.now() / 1000 + 1,
+          collector: collector.publicKey,
+        },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
@@ -184,7 +188,42 @@ describe("Issue Unissue", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "Close", {
+    await expectTXTable(txEnvelope, "Close claim approver", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+  });
+
+  it("Close time invalidator", async () => {
+    const provider = getProvider();
+    const transaction = new Transaction();
+
+    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+      rentalMint.publicKey
+    );
+    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
+      tokenManagerId
+    );
+
+    transaction.add(
+      timeInvalidator.instruction.close(
+        provider.connection,
+        provider.wallet,
+        timeInvalidatorId,
+        tokenManagerId,
+        collector.publicKey
+      )
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+    await expectTXTable(txEnvelope, "Close time invalidator", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;

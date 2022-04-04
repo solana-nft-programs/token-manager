@@ -36,7 +36,11 @@ pub fn handler(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
     if ix.kind != TokenManagerKind::Managed as u8 && ix.kind != TokenManagerKind::Unmanaged as u8 && ix.kind != TokenManagerKind::Edition as u8 {
         return Err(error!(ErrorCode::InvalidTokenManagerKind));
     }
-    if ix.invalidation_type != InvalidationType::Return as u8 && ix.invalidation_type != InvalidationType::Invalidate as u8 {
+    if ix.invalidation_type != InvalidationType::Return as u8
+        && ix.invalidation_type != InvalidationType::Invalidate as u8
+        && ix.invalidation_type != InvalidationType::Release as u8
+        && ix.invalidation_type != InvalidationType::Reissue as u8
+    {
         return Err(error!(ErrorCode::InvalidInvalidationType));
     }
 

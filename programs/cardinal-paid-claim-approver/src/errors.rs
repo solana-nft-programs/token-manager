@@ -12,4 +12,6 @@ pub enum ErrorCode {
     InvalidTokenManager,
     #[msg("Invalid issuer")]
     InvalidIssuer,
+    #[msg("Invalid collector")]
+    InvalidCollector,
 }

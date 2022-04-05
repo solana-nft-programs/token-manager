@@ -7,6 +7,7 @@ use {
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitIx {
     pub collector: Pubkey,
+    pub payment_manager: Pubkey,
     pub total_usages: Option<u64>,
     pub max_usages: Option<u64>,
     pub use_authority: Option<Pubkey>,
@@ -39,6 +40,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     use_invalidator.bump = *ctx.bumps.get("use_invalidator").unwrap();
     use_invalidator.token_manager = ctx.accounts.token_manager.key();
     use_invalidator.collector = ix.collector;
+    use_invalidator.payment_manager = ix.payment_manager;
     if ctx.accounts.token_manager.state == TokenManagerState::Initialized as u8 && ctx.accounts.issuer.key() == ctx.accounts.token_manager.issuer {
         use_invalidator.usages = 0;
         use_invalidator.total_usages = ix.total_usages;

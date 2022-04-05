@@ -209,6 +209,10 @@ export type CardinalUseInvalidator = {
             type: "publicKey";
           },
           {
+            name: "paymentManager";
+            type: "publicKey";
+          },
+          {
             name: "collector";
             type: "publicKey";
           },
@@ -260,6 +264,10 @@ export type CardinalUseInvalidator = {
         fields: [
           {
             name: "collector";
+            type: "publicKey";
+          },
+          {
+            name: "paymentManager";
             type: "publicKey";
           },
           {
@@ -356,7 +364,7 @@ export type CardinalUseInvalidator = {
     {
       code: 6010;
       name: "InvalidCollector";
-      msg: "Token collector";
+      msg: "Invalid collector";
     }
   ];
 };
@@ -572,6 +580,10 @@ export const IDL: CardinalUseInvalidator = {
             type: "publicKey",
           },
           {
+            name: "paymentManager",
+            type: "publicKey",
+          },
+          {
             name: "collector",
             type: "publicKey",
           },
@@ -623,6 +635,10 @@ export const IDL: CardinalUseInvalidator = {
         fields: [
           {
             name: "collector",
+            type: "publicKey",
+          },
+          {
+            name: "paymentManager",
             type: "publicKey",
           },
           {
@@ -719,7 +735,7 @@ export const IDL: CardinalUseInvalidator = {
     {
       code: 6010,
       name: "InvalidCollector",
-      msg: "Token collector",
+      msg: "Invalid collector",
     },
   ],
 };

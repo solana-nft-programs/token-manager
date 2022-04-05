@@ -174,6 +174,10 @@ export type CardinalTimeInvalidator = {
             type: "publicKey";
           },
           {
+            name: "paymentManager";
+            type: "publicKey";
+          },
+          {
             name: "collector";
             type: "publicKey";
           },
@@ -231,6 +235,10 @@ export type CardinalTimeInvalidator = {
         fields: [
           {
             name: "collector";
+            type: "publicKey";
+          },
+          {
+            name: "paymentManager";
             type: "publicKey";
           },
           {
@@ -524,6 +532,10 @@ export const IDL: CardinalTimeInvalidator = {
             type: "publicKey",
           },
           {
+            name: "paymentManager",
+            type: "publicKey",
+          },
+          {
             name: "collector",
             type: "publicKey",
           },
@@ -581,6 +593,10 @@ export const IDL: CardinalTimeInvalidator = {
         fields: [
           {
             name: "collector",
+            type: "publicKey",
+          },
+          {
+            name: "paymentManager",
             type: "publicKey",
           },
           {

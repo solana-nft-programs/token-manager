@@ -33,16 +33,10 @@ export type CardinalPaidClaimApprover = {
       ];
       args: [
         {
-          name: "paymentMint";
-          type: "publicKey";
-        },
-        {
-          name: "paymentAmount";
-          type: "u64";
-        },
-        {
-          name: "collector";
-          type: "publicKey";
+          name: "ix";
+          type: {
+            defined: "InitIx";
+          };
         }
       ];
     },
@@ -148,7 +142,37 @@ export type CardinalPaidClaimApprover = {
             type: "publicKey";
           },
           {
+            name: "paymentManager";
+            type: "publicKey";
+          },
+          {
             name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "collector";
+            type: "publicKey";
+          }
+        ];
+      };
+    }
+  ];
+  types: [
+    {
+      name: "InitIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "paymentMint";
+            type: "publicKey";
+          },
+          {
+            name: "paymentAmount";
+            type: "u64";
+          },
+          {
+            name: "paymentManager";
             type: "publicKey";
           },
           {
@@ -228,16 +252,10 @@ export const IDL: CardinalPaidClaimApprover = {
       ],
       args: [
         {
-          name: "paymentMint",
-          type: "publicKey",
-        },
-        {
-          name: "paymentAmount",
-          type: "u64",
-        },
-        {
-          name: "collector",
-          type: "publicKey",
+          name: "ix",
+          type: {
+            defined: "InitIx",
+          },
         },
       ],
     },
@@ -343,7 +361,37 @@ export const IDL: CardinalPaidClaimApprover = {
             type: "publicKey",
           },
           {
+            name: "paymentManager",
+            type: "publicKey",
+          },
+          {
             name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "collector",
+            type: "publicKey",
+          },
+        ],
+      },
+    },
+  ],
+  types: [
+    {
+      name: "InitIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "paymentMint",
+            type: "publicKey",
+          },
+          {
+            name: "paymentAmount",
+            type: "u64",
+          },
+          {
+            name: "paymentManager",
             type: "publicKey",
           },
           {

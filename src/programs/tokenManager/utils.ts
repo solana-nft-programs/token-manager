@@ -17,7 +17,7 @@ import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
 import type { TokenManagerData } from ".";
 import {
   InvalidationType,
-  PAYMENT_MANAGER,
+  PAYMENT_MANAGER_KEY,
   TokenManagerKind,
   TokenManagerState,
 } from ".";
@@ -102,7 +102,7 @@ export const withRemainingAccountsForPayment = async (
           transaction,
           connection,
           paymentMint,
-          PAYMENT_MANAGER,
+          PAYMENT_MANAGER_KEY,
           wallet.publicKey,
           true
         ),
@@ -135,7 +135,7 @@ export const withRemainingAccountsForPayment = async (
           transaction,
           connection,
           paymentMint,
-          PAYMENT_MANAGER,
+          PAYMENT_MANAGER_KEY,
           wallet.publicKey,
           true
         ),

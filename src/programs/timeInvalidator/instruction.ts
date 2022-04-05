@@ -12,6 +12,7 @@ import { SystemProgram } from "@solana/web3.js";
 import type { TokenManagerKind } from "../tokenManager";
 import {
   CRANK_KEY,
+  PAYMENT_MANAGER_KEY,
   TOKEN_MANAGER_ADDRESS,
   TokenManagerState,
 } from "../tokenManager";
@@ -22,6 +23,7 @@ import { findTimeInvalidatorAddress } from "./pda";
 
 export type TimeInvalidationParams = {
   collector?: PublicKey;
+  paymentManager?: PublicKey;
   expiration?: number;
   durationSeconds?: number;
   extension?: {
@@ -54,6 +56,7 @@ export const init = async (
     timeInvalidatorProgram.instruction.init(
       {
         collector: timeInvalidation.collector || CRANK_KEY,
+        paymentManager: timeInvalidation.paymentManager || PAYMENT_MANAGER_KEY,
         expiration: timeInvalidation.expiration
           ? new BN(timeInvalidation.expiration)
           : null,

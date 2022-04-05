@@ -75,10 +75,11 @@ export const init = async (
   ]);
 
   return [
-    tokenManagerProgram.instruction.init(mint, numInvalidator, {
+    tokenManagerProgram.instruction.init(numInvalidator, {
       accounts: {
         tokenManager: tokenManagerId,
         mintCounter: mintCounterId,
+        mint: mint,
         issuer: wallet.publicKey,
         payer: wallet.publicKey,
         issuerTokenAccount: issuerTokenAccountId,

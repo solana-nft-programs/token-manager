@@ -16,6 +16,11 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "issuer";
           isMut: true;
           isSigner: true;
@@ -37,10 +42,6 @@ export type CardinalTokenManager = {
         }
       ];
       args: [
-        {
-          name: "mint";
-          type: "publicKey";
-        },
         {
           name: "numInvalidators";
           type: "u8";
@@ -948,6 +949,11 @@ export type CardinalTokenManager = {
       code: 6025;
       name: "InvalidCurrentTokenAccount";
       msg: "Invalid current holder token account";
+    },
+    {
+      code: 6026;
+      name: "InvalidMintSupply";
+      msg: "Invalid mint supply";
     }
   ];
 };
@@ -967,6 +973,11 @@ export const IDL: CardinalTokenManager = {
         {
           name: "mintCounter",
           isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
           isSigner: false,
         },
         {
@@ -991,10 +1002,6 @@ export const IDL: CardinalTokenManager = {
         },
       ],
       args: [
-        {
-          name: "mint",
-          type: "publicKey",
-        },
         {
           name: "numInvalidators",
           type: "u8",
@@ -1902,6 +1909,11 @@ export const IDL: CardinalTokenManager = {
       code: 6025,
       name: "InvalidCurrentTokenAccount",
       msg: "Invalid current holder token account",
+    },
+    {
+      code: 6026,
+      name: "InvalidMintSupply",
+      msg: "Invalid mint supply",
     },
   ],
 };

@@ -54,4 +54,6 @@ pub enum ErrorCode {
     InvalidReceiptMint,
     #[msg("Invalid current holder token account")]
     InvalidCurrentTokenAccount,
+    #[msg("Invalid mint supply")]
+    InvalidMintSupply,
 }

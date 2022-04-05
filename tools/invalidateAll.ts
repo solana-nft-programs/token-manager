@@ -119,7 +119,8 @@ export const withInvalidate = async (
       connection,
       wallet,
       timeInvalidatorData.pubkey,
-      timeInvalidatorData.parsed.tokenManager
+      timeInvalidatorData.parsed.tokenManager,
+      timeInvalidatorData.parsed.collector
     )
   );
 

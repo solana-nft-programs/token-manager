@@ -3,11 +3,13 @@ import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { rentals, tryGetAccount, unissueToken } from "../src";
-import { tokenManager } from "../src/programs";
+import { claimApprover, timeInvalidator, tokenManager } from "../src/programs";
+import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
+import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -17,6 +19,7 @@ describe("Issue Unissue", () => {
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
+  const collector = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
   let paymentMint: Token;
@@ -63,8 +66,12 @@ describe("Issue Unissue", () => {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
           paymentMint: paymentMint.publicKey,
+          collector: collector.publicKey,
         },
-        timeInvalidation: { expiration: Date.now() / 1000 + 1 },
+        timeInvalidation: {
+          expiration: Date.now() / 1000 + 1,
+          collector: collector.publicKey,
+        },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
@@ -152,5 +159,81 @@ describe("Issue Unissue", () => {
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
       RECIPIENT_START_PAYMENT_AMOUNT
     );
+  });
+
+  it("Close claim approver", async () => {
+    const provider = getProvider();
+    const transaction = new Transaction();
+
+    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+      rentalMint.publicKey
+    );
+    const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
+
+    transaction.add(
+      claimApprover.instruction.close(
+        provider.connection,
+        provider.wallet,
+        claimApproverId,
+        tokenManagerId,
+        collector.publicKey
+      )
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+    await expectTXTable(txEnvelope, "Close claim approver", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+  });
+
+  it("Close time invalidator", async () => {
+    const provider = getProvider();
+    const transaction = new Transaction();
+
+    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+      rentalMint.publicKey
+    );
+    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
+      tokenManagerId
+    );
+
+    transaction.add(
+      timeInvalidator.instruction.close(
+        provider.connection,
+        provider.wallet,
+        timeInvalidatorId,
+        tokenManagerId,
+        collector.publicKey
+      )
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+    await expectTXTable(txEnvelope, "Close time invalidator", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const timeInvalidatorData = await tryGetAccount(() =>
+      timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        timeInvalidatorId
+      )
+    );
+    expect(timeInvalidatorData).to.eq(null);
   });
 });

@@ -6,6 +6,7 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitIx {
+    pub collector: Pubkey,
     pub duration_seconds: Option<i64>,
     pub expiration: Option<i64>,
     pub extension_payment_amount: Option<u64>,
@@ -46,6 +47,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     let time_invalidator = &mut ctx.accounts.time_invalidator;
     time_invalidator.bump = *ctx.bumps.get("time_invalidator").unwrap();
     time_invalidator.token_manager = ctx.accounts.token_manager.key();
+    time_invalidator.collector = ix.collector;
     time_invalidator.duration_seconds = ix.duration_seconds;
     time_invalidator.expiration = ix.expiration;
     time_invalidator.extension_payment_amount = ix.extension_payment_amount;

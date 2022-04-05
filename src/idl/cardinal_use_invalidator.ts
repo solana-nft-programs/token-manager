@@ -177,6 +177,11 @@ export type CardinalUseInvalidator = {
           isSigner: false;
         },
         {
+          name: "collector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "closer";
           isMut: true;
           isSigner: true;
@@ -201,6 +206,10 @@ export type CardinalUseInvalidator = {
           },
           {
             name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "collector";
             type: "publicKey";
           },
           {
@@ -249,6 +258,10 @@ export type CardinalUseInvalidator = {
       type: {
         kind: "struct";
         fields: [
+          {
+            name: "collector";
+            type: "publicKey";
+          },
           {
             name: "totalUsages";
             type: {
@@ -339,6 +352,11 @@ export type CardinalUseInvalidator = {
       code: 6009;
       name: "InvalidPaymentManagerTokenAccount";
       msg: "Token account incorrect mint";
+    },
+    {
+      code: 6010;
+      name: "InvalidCollector";
+      msg: "Token collector";
     }
   ];
 };
@@ -522,6 +540,11 @@ export const IDL: CardinalUseInvalidator = {
           isSigner: false,
         },
         {
+          name: "collector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "closer",
           isMut: true,
           isSigner: true,
@@ -546,6 +569,10 @@ export const IDL: CardinalUseInvalidator = {
           },
           {
             name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "collector",
             type: "publicKey",
           },
           {
@@ -594,6 +621,10 @@ export const IDL: CardinalUseInvalidator = {
       type: {
         kind: "struct",
         fields: [
+          {
+            name: "collector",
+            type: "publicKey",
+          },
           {
             name: "totalUsages",
             type: {
@@ -684,6 +715,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6009,
       name: "InvalidPaymentManagerTokenAccount",
       msg: "Token account incorrect mint",
+    },
+    {
+      code: 6010,
+      name: "InvalidCollector",
+      msg: "Token collector",
     },
   ],
 };

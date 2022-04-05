@@ -8,4 +8,5 @@ pub struct PaidClaimApprover {
     pub payment_amount: u64,
     pub payment_mint: Pubkey,
     pub token_manager: Pubkey,
+    pub collector: Pubkey,
 }

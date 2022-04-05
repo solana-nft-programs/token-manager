@@ -7,6 +7,7 @@ pub struct UseInvalidator {
     pub bump: u8,
     pub usages: u64,
     pub token_manager: Pubkey,
+    pub collector: Pubkey,
     pub use_authority: Option<Pubkey>,
     pub total_usages: Option<u64>,
     pub extension_payment_amount: Option<u64>,

@@ -26,4 +26,6 @@ pub enum ErrorCode {
     InvalidExtensionAmount,
     #[msg("Token account incorrect mint")]
     InvalidPaymentManagerTokenAccount,
+    #[msg("Invalid collector")]
+    InvalidCollector,
 }

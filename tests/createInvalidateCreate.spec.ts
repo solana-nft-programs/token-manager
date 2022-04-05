@@ -25,6 +25,7 @@ describe("Invalidate rentals", () => {
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
+  const collector = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
   let paymentMint: Token;
@@ -72,7 +73,7 @@ describe("Invalidate rentals", () => {
           paymentAmount: RENTAL_PAYMENT_AMONT,
           paymentMint: paymentMint.publicKey,
         },
-        useInvalidation: { totalUsages: 1 },
+        useInvalidation: { totalUsages: 1, collector: collector.publicKey },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),

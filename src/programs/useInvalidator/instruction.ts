@@ -10,13 +10,18 @@ import type {
 import { SystemProgram } from "@solana/web3.js";
 
 import type { TokenManagerKind } from "../tokenManager";
-import { TOKEN_MANAGER_ADDRESS, TokenManagerState } from "../tokenManager";
+import {
+  CRANK_KEY,
+  TOKEN_MANAGER_ADDRESS,
+  TokenManagerState,
+} from "../tokenManager";
 import { getRemainingAccountsForKind } from "../tokenManager/utils";
 import type { USE_INVALIDATOR_PROGRAM } from "./constants";
 import { USE_INVALIDATOR_ADDRESS, USE_INVALIDATOR_IDL } from "./constants";
 import { findUseInvalidatorAddress } from "./pda";
 
 export type UseInvalidationParams = {
+  collector?: PublicKey;
   totalUsages?: number;
   useAuthority?: PublicKey;
   extension?: {
@@ -47,6 +52,7 @@ export const init = async (
   return [
     useInvalidatorProgram.instruction.init(
       {
+        collector: usageParams.collector || CRANK_KEY,
         totalUsages: usageParams.totalUsages
           ? new BN(usageParams.totalUsages)
           : null,
@@ -191,7 +197,8 @@ export const close = (
   connection: Connection,
   wallet: Wallet,
   useInvalidatorId: PublicKey,
-  tokenManagerId: PublicKey
+  tokenManagerId: PublicKey,
+  collector?: PublicKey
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
 
@@ -205,6 +212,7 @@ export const close = (
     accounts: {
       tokenManager: tokenManagerId,
       useInvalidator: useInvalidatorId,
+      collector: collector || CRANK_KEY,
       closer: wallet.publicKey,
     },
   });

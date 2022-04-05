@@ -39,6 +39,10 @@ export type CardinalPaidClaimApprover = {
         {
           name: "paymentAmount";
           type: "u64";
+        },
+        {
+          name: "collector";
+          type: "publicKey";
         }
       ];
     },
@@ -112,6 +116,11 @@ export type CardinalPaidClaimApprover = {
           isSigner: false;
         },
         {
+          name: "collector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "closer";
           isMut: true;
           isSigner: true;
@@ -140,6 +149,10 @@ export type CardinalPaidClaimApprover = {
           },
           {
             name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "collector";
             type: "publicKey";
           }
         ];
@@ -171,6 +184,11 @@ export type CardinalPaidClaimApprover = {
       code: 6004;
       name: "InvalidIssuer";
       msg: "Invalid issuer";
+    },
+    {
+      code: 6005;
+      name: "InvalidCollector";
+      msg: "Invalid collector";
     }
   ];
 };
@@ -216,6 +234,10 @@ export const IDL: CardinalPaidClaimApprover = {
         {
           name: "paymentAmount",
           type: "u64",
+        },
+        {
+          name: "collector",
+          type: "publicKey",
         },
       ],
     },
@@ -289,6 +311,11 @@ export const IDL: CardinalPaidClaimApprover = {
           isSigner: false,
         },
         {
+          name: "collector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "closer",
           isMut: true,
           isSigner: true,
@@ -317,6 +344,10 @@ export const IDL: CardinalPaidClaimApprover = {
           },
           {
             name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "collector",
             type: "publicKey",
           },
         ],
@@ -348,6 +379,11 @@ export const IDL: CardinalPaidClaimApprover = {
       code: 6004,
       name: "InvalidIssuer",
       msg: "Invalid issuer",
+    },
+    {
+      code: 6005,
+      name: "InvalidCollector",
+      msg: "Invalid collector",
     },
   ],
 };

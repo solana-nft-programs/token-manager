@@ -24,12 +24,9 @@ import {
 import { getTokenManagersByState } from "../src/programs/tokenManager/accounts";
 import { connectionFor } from "./connection";
 
-// crk3AZsrZop64dURFeUykcVSynh2z9Cgh6zneLhcdj1
+// crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr
 const wallet = Keypair.fromSecretKey(
-  utils.bytes.bs58.decode(
-    process.env.CRANK_SOLANA_KEY ||
-      "X7zEh63ccM2Jb9aAWLSVfwmE8NJVdWuwEi3BJSVizqtbW9qmo5oeszcofVaefAZ9vscjXqGEVZ4eH2CrgiNwHrs"
-  )
+  utils.bytes.bs58.decode(process.env.CRANK_SOLANA_KEY || "")
 );
 
 export const withInvalidate = async (

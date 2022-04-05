@@ -60,9 +60,9 @@ export enum TokenManagerState {
 }
 
 export const PAYMENT_MANAGER_KEY = new PublicKey(
-  "crk3AZsrZop64dURFeUykcVSynh2z9Cgh6zneLhcdj1"
+  "crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr"
 );
 
 export const CRANK_KEY = new PublicKey(
-  "crk3AZsrZop64dURFeUykcVSynh2z9Cgh6zneLhcdj1"
+  "crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr"
 );

@@ -1,16 +1,16 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
-    anchor_spl::token::TokenAccount,
+    anchor_spl::token::{Mint, TokenAccount},
 };
 
 #[derive(Accounts)]
-#[instruction(mint: Pubkey, num_invalidators: u8)]
+#[instruction(num_invalidators: u8)]
 pub struct InitCtx<'info> {
     #[account(
         init_if_needed,
         payer = payer,
-        seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref()], bump,
+        seeds = [TOKEN_MANAGER_SEED.as_bytes(), mint.key().as_ref()], bump,
         space = token_manager_size(num_invalidators as usize),
     )]
     token_manager: Box<Account<'info, TokenManager>>,
@@ -18,10 +18,11 @@ pub struct InitCtx<'info> {
     #[account(
         init_if_needed,
         payer = payer,
-        seeds = [MINT_COUNTER_SEED.as_bytes(), mint.as_ref()], bump,
+        seeds = [MINT_COUNTER_SEED.as_bytes(), mint.key().as_ref()], bump,
         space = MINT_COUNTER_SIZE,
     )]
     mint_counter: Box<Account<'info, MintCounter>>,
+    mint: Box<Account<'info, Mint>>,
 
     #[account(mut)]
     issuer: Signer<'info>,
@@ -29,7 +30,7 @@ pub struct InitCtx<'info> {
     payer: Signer<'info>,
     #[account(mut, constraint =
         issuer_token_account.owner == issuer.key()
-        && issuer_token_account.mint == mint
+        && issuer_token_account.mint == mint.key()
         && issuer_token_account.amount >= 1
         @ ErrorCode::InvalidIssuerTokenAccount
     )]
@@ -37,7 +38,7 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, mint: Pubkey, num_invalidators: u8) -> Result<()> {
+pub fn handler(ctx: Context<InitCtx>, num_invalidators: u8) -> Result<()> {
     if num_invalidators > MAX_INVALIDATORS {
         return Err(error!(ErrorCode::MaximumInvalidatorsReached));
     }
@@ -49,17 +50,20 @@ pub fn handler(ctx: Context<InitCtx>, mint: Pubkey, num_invalidators: u8) -> Res
     if token_manager.num_invalidators != 0 && num_invalidators >= token_manager.num_invalidators {
         return Err(error!(ErrorCode::InvalidNumInvalidators));
     }
+    if ctx.accounts.mint.supply > 1 {
+        return Err(error!(ErrorCode::InvalidMintSupply));
+    }
 
     let mint_counter = &mut ctx.accounts.mint_counter;
     mint_counter.bump = *ctx.bumps.get("mint_counter").unwrap();
     mint_counter.count += 1;
-    mint_counter.mint = mint;
+    mint_counter.mint = ctx.accounts.mint.key();
 
     token_manager.bump = *ctx.bumps.get("token_manager").unwrap();
     token_manager.count = mint_counter.count;
     token_manager.num_invalidators = num_invalidators;
     token_manager.issuer = ctx.accounts.issuer.key();
-    token_manager.mint = mint;
+    token_manager.mint = ctx.accounts.mint.key();
     token_manager.state = TokenManagerState::Initialized as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     token_manager.claim_approver = None;

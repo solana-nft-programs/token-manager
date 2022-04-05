@@ -85,6 +85,10 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
     token_manager.claim_approver = None;
     token_manager.invalidators = Vec::new();
+    token_manager.amount = ix.amount;
+    token_manager.kind = ix.kind;
+    token_manager.invalidation_type = ix.invalidation_type;
+
     // default to itself to avoid someone not setting it
     token_manager.transfer_authority = Some(token_manager.key());
     Ok(())

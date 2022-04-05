@@ -9,7 +9,7 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
+import { CRANK_KEY, TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import { findClaimReceiptId } from "../tokenManager/pda";
 import type { CLAIM_APPROVER_PROGRAM } from "./constants";
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
@@ -44,7 +44,7 @@ export const init = async (
     claimApproverProgram.instruction.init(
       paymentMint,
       new BN(paymentAmount),
-      collector || wallet.publicKey,
+      collector || CRANK_KEY,
       {
         accounts: {
           tokenManager: tokenManagerId,
@@ -121,7 +121,7 @@ export const close = (
     accounts: {
       tokenManager: tokenManagerId,
       claimApprover: claimApproverId,
-      collector: collector || wallet.publicKey,
+      collector: collector || CRANK_KEY,
       closer: wallet.publicKey,
     },
   });

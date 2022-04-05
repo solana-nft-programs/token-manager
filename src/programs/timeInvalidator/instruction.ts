@@ -10,7 +10,11 @@ import type {
 import { SystemProgram } from "@solana/web3.js";
 
 import type { TokenManagerKind } from "../tokenManager";
-import { TOKEN_MANAGER_ADDRESS, TokenManagerState } from "../tokenManager";
+import {
+  CRANK_KEY,
+  TOKEN_MANAGER_ADDRESS,
+  TokenManagerState,
+} from "../tokenManager";
 import { getRemainingAccountsForKind } from "../tokenManager/utils";
 import type { TIME_INVALIDATOR_PROGRAM } from "./constants";
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
@@ -49,7 +53,7 @@ export const init = async (
   return [
     timeInvalidatorProgram.instruction.init(
       {
-        collector: timeInvalidation.collector || wallet.publicKey,
+        collector: timeInvalidation.collector || CRANK_KEY,
         expiration: timeInvalidation.expiration
           ? new BN(timeInvalidation.expiration)
           : null,
@@ -191,7 +195,7 @@ export const close = (
     accounts: {
       tokenManager: tokenManagerId,
       timeInvalidator: timeInvalidatorId,
-      collector: collector || wallet.publicKey,
+      collector: collector || CRANK_KEY,
       closer: wallet.publicKey,
     },
   });

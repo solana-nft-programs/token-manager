@@ -102,7 +102,7 @@ pub const FEE_SCALE: u64 = 10000;
 pub const PROVIDER_FEE: u64 = 0;
 pub const RECIPIENT_FEE: u64 = 0;
 pub fn assert_payment_manager(key: &Pubkey) -> bool {
-    let allowed_payment_managers = [Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap()];
+    let allowed_payment_managers = [Pubkey::from_str("crk3AZsrZop64dURFeUykcVSynh2z9Cgh6zneLhcdj1").unwrap()];
     allowed_payment_managers.contains(key)
 }
 

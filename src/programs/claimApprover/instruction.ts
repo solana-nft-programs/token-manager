@@ -9,7 +9,11 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import { CRANK_KEY, TOKEN_MANAGER_ADDRESS } from "../tokenManager";
+import {
+  CRANK_KEY,
+  PAYMENT_MANAGER_KEY,
+  TOKEN_MANAGER_ADDRESS,
+} from "../tokenManager";
 import { findClaimReceiptId } from "../tokenManager/pda";
 import type { CLAIM_APPROVER_PROGRAM } from "./constants";
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
@@ -19,15 +23,15 @@ export type ClaimApproverParams = {
   paymentMint: PublicKey;
   paymentAmount: number;
   collector?: PublicKey;
+  paymentManager?: PublicKey;
 };
 
 export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  claimApproverParams: ClaimApproverParams
+  params: ClaimApproverParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const { paymentMint, paymentAmount, collector } = claimApproverParams;
   const provider = new Provider(connection, wallet, {});
 
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
@@ -42,9 +46,12 @@ export const init = async (
 
   return [
     claimApproverProgram.instruction.init(
-      paymentMint,
-      new BN(paymentAmount),
-      collector || CRANK_KEY,
+      {
+        paymentMint: params.paymentMint,
+        paymentAmount: new BN(params.paymentAmount),
+        collector: params.collector || CRANK_KEY,
+        paymentManager: params.paymentManager || PAYMENT_MANAGER_KEY,
+      },
       {
         accounts: {
           tokenManager: tokenManagerId,

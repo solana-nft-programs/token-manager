@@ -16,7 +16,12 @@ pub struct PayCtx<'info> {
 
     #[account(mut, constraint = payment_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = payment_manager_token_account.mint == claim_approver.payment_mint && assert_payment_manager(&payment_manager_token_account.owner) @ ErrorCode::InvalidPaymentManagerTokenAccount)]
+    #[account(mut, constraint =
+        payment_manager_token_account.mint == claim_approver.payment_mint
+        && payment_manager_token_account.owner == claim_approver.payment_manager
+        && assert_payment_manager(&payment_manager_token_account.owner)
+        @ ErrorCode::InvalidPaymentManagerTokenAccount
+    )]
     payment_manager_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]

@@ -6,6 +6,7 @@ pub const TIME_INVALIDATOR_SIZE: usize = 8 + std::mem::size_of::<TimeInvalidator
 pub struct TimeInvalidator {
     pub bump: u8,
     pub token_manager: Pubkey,
+    pub payment_manager: Pubkey,
     pub collector: Pubkey,
     pub expiration: Option<i64>,
     pub duration_seconds: Option<i64>,

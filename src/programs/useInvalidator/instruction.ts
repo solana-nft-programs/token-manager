@@ -12,6 +12,7 @@ import { SystemProgram } from "@solana/web3.js";
 import type { TokenManagerKind } from "../tokenManager";
 import {
   CRANK_KEY,
+  PAYMENT_MANAGER_KEY,
   TOKEN_MANAGER_ADDRESS,
   TokenManagerState,
 } from "../tokenManager";
@@ -22,6 +23,7 @@ import { findUseInvalidatorAddress } from "./pda";
 
 export type UseInvalidationParams = {
   collector?: PublicKey;
+  paymentManager?: PublicKey;
   totalUsages?: number;
   useAuthority?: PublicKey;
   extension?: {
@@ -36,7 +38,7 @@ export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  usageParams: UseInvalidationParams
+  params: UseInvalidationParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new Provider(connection, wallet, {});
 
@@ -52,21 +54,19 @@ export const init = async (
   return [
     useInvalidatorProgram.instruction.init(
       {
-        collector: usageParams.collector || CRANK_KEY,
-        totalUsages: usageParams.totalUsages
-          ? new BN(usageParams.totalUsages)
+        collector: params.collector || PAYMENT_MANAGER_KEY,
+        paymentManager: params.paymentManager || CRANK_KEY,
+        totalUsages: params.totalUsages ? new BN(params.totalUsages) : null,
+        maxUsages: params.extension?.maxUsages
+          ? new BN(params.extension?.maxUsages)
           : null,
-        maxUsages: usageParams.extension?.maxUsages
-          ? new BN(usageParams.extension?.maxUsages)
+        useAuthority: params.useAuthority || null,
+        extensionPaymentAmount: params.extension?.extensionPaymentAmount
+          ? new BN(params.extension?.extensionPaymentAmount)
           : null,
-        useAuthority: usageParams.useAuthority || null,
-        extensionPaymentAmount: usageParams.extension?.extensionPaymentAmount
-          ? new BN(usageParams.extension?.extensionPaymentAmount)
-          : null,
-        extensionPaymentMint:
-          usageParams.extension?.extensionPaymentMint || null,
-        extensionUsages: usageParams.extension?.extensionUsages
-          ? new BN(usageParams.extension?.extensionUsages)
+        extensionPaymentMint: params.extension?.extensionPaymentMint || null,
+        extensionUsages: params.extension?.extensionUsages
+          ? new BN(params.extension?.extensionUsages)
           : null,
       },
       {

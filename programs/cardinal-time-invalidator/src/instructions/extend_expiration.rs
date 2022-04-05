@@ -18,7 +18,12 @@ pub struct ExtendExpirationCtx<'info> {
 
     #[account(mut, constraint = payment_token_account.mint == time_invalidator.extension_payment_mint.unwrap() @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = payment_manager_token_account.mint == time_invalidator.extension_payment_mint.unwrap() && assert_payment_manager(&payment_manager_token_account.owner) @ ErrorCode::InvalidPaymentManagerTokenAccount)]
+    #[account(mut, constraint =
+        payment_manager_token_account.mint == time_invalidator.extension_payment_mint.unwrap()
+        && payment_manager_token_account.owner == time_invalidator.payment_manager
+        && assert_payment_manager(&payment_manager_token_account.owner)
+        @ ErrorCode::InvalidPaymentManagerTokenAccount
+    )]
     payment_manager_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]

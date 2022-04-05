@@ -227,5 +227,13 @@ describe("Issue Unissue", () => {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
+
+    const timeInvalidatorData = await tryGetAccount(() =>
+      timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        timeInvalidatorId
+      )
+    );
+    expect(timeInvalidatorData).to.eq(null);
   });
 });

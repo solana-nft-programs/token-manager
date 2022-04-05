@@ -192,7 +192,8 @@ export const withIssueToken = async (
           connection,
           wallet,
           useInvalidatorId,
-          tokenManagerId
+          tokenManagerId,
+          useInvalidatorData.parsed.collector
         )
       );
     }
@@ -486,7 +487,8 @@ export const withInvalidate = async (
         connection,
         wallet,
         useInvalidatorId,
-        tokenManagerId
+        tokenManagerId,
+        useInvalidatorData.parsed.collector
       )
     );
   } else if (
@@ -548,7 +550,8 @@ export const withUse = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  usages: number
+  usages: number,
+  collector?: PublicKey
 ): Promise<Transaction> => {
   const tokenManagerId = await tokenManagerAddressFromMint(connection, mintId);
 
@@ -571,7 +574,7 @@ export const withUse = async (
       connection,
       wallet,
       tokenManagerId,
-      {}
+      { collector: collector }
     );
     transaction.add(InitTx);
   }
@@ -631,7 +634,8 @@ export const withUse = async (
         connection,
         wallet,
         useInvalidatorId,
-        tokenManagerId
+        tokenManagerId,
+        useInvalidatorData.parsed.collector
       )
     );
   }

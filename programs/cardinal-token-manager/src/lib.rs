@@ -11,8 +11,8 @@ declare_id!("mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM");
 pub mod cardinal_token_manager {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, num_invalidators: u8) -> Result<()> {
-        init::handler(ctx, num_invalidators)
+    pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
+        init::handler(ctx, ix)
     }
 
     pub fn uninit(ctx: Context<UninitCtx>) -> Result<()> {
@@ -47,8 +47,8 @@ pub mod cardinal_token_manager {
         claim_receipt_mint::handler(ctx, name)
     }
 
-    pub fn issue(ctx: Context<IssueCtx>, ix: IssueIx) -> Result<()> {
-        issue::handler(ctx, ix)
+    pub fn issue(ctx: Context<IssueCtx>) -> Result<()> {
+        issue::handler(ctx)
     }
 
     pub fn unissue(ctx: Context<UnissueCtx>) -> Result<()> {

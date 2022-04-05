@@ -9,7 +9,7 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, invalidate, rentals } from "../src";
+import { findAta, invalidate, rentals, tryGetAccount } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import {
   InvalidationType,
@@ -22,7 +22,7 @@ describe("Create rental reissue", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   const durationSeconds = 1;
-  const maxExpiration = Math.floor(Date.now() / 1000 + 10000);
+  const maxExpiration = Math.floor(Date.now() / 1000 + 5000);
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
 
@@ -339,5 +339,39 @@ describe("Create rental reissue", () => {
     expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
       maxExpiration
     );
+  });
+  it("Invalidate last time", async () => {
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const provider = getProvider();
+    const transaction = await invalidate(
+      provider.connection,
+      new SignerWallet(recipient),
+      rentalMint.publicKey
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "use", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    const tokenManagerData = await tryGetAccount(() =>
+      tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
+    );
+    expect(tokenManagerData).to.eq(null);
   });
 });

@@ -134,13 +134,13 @@ jobs:
       #     name: Local Tests
       #     path: tests/*.json
       #     reporter: mocha-json
-      - name: Upload Test Results
+      - name: upload-integration-tests
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: Unit Test Results
           path: tests/out.xml
-      - name: Publish Unit Test Results
+      - name: publish-integration-tests
         uses: EnricoMi/publish-unit-test-result-action/composite@v1
         if: always()
         with:

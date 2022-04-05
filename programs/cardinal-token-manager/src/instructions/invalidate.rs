@@ -28,7 +28,9 @@ pub struct InvalidateCtx<'info> {
     // invalidator
     #[account(constraint =
         token_manager.invalidators.contains(&invalidator.key())
-        || (token_manager.invalidation_type == InvalidationType::Return as u8 && recipient_token_account.owner == invalidator.key())
+        || ((token_manager.invalidation_type == InvalidationType::Return as u8
+            || token_manager.invalidation_type == InvalidationType::Reissue as u8)
+        && recipient_token_account.owner == invalidator.key())
         @ ErrorCode::InvalidInvalidator
     )]
     invalidator: Signer<'info>,

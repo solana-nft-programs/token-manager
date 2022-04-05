@@ -22,7 +22,7 @@ describe("Create rental reissue", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   const durationSeconds = 1;
-  const maxExpiration = Math.floor(Date.now() / 1000 + 5000);
+  const maxExpiration = Math.floor(Date.now() / 1000 + 5);
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
 

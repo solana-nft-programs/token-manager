@@ -137,6 +137,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token::close_account(cpi_context)?;
 
             // close token_manager
+            token_manager.state = TokenManagerState::Invalidated as u8;
+            token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
             token_manager.close(ctx.accounts.collector.to_account_info())?;
         }
         t if t == InvalidationType::Invalidate as u8 => {
@@ -165,10 +167,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
             token::close_account(cpi_context)?;
 
+            // close token_manager
             token_manager.state = TokenManagerState::Invalidated as u8;
             token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
-
-            // close token_manager
             token_manager.close(ctx.accounts.collector.to_account_info())?;
         }
         t if t == InvalidationType::Reissue as u8 => {
@@ -182,8 +183,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
             token::transfer(cpi_context, token_manager.amount)?;
 
-            token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();
             token_manager.state = TokenManagerState::Issued as u8;
+            token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();
             token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
         }
         _ => return Err(error!(ErrorCode::InvalidInvalidationType)),

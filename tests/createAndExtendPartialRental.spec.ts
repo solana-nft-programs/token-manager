@@ -73,11 +73,11 @@ describe("Create and Extend Rental", () => {
         },
         timeInvalidation: {
           durationSeconds: EXTENSION_DURATION,
+          maxExpiration: Date.now() / 1000 + 5000,
           extension: {
             extensionPaymentAmount: EXTENSION_PAYMENT_AMOUNT, // Pay 2 lamport to add 1000 seconds of expiration time
             extensionDurationSeconds: EXTENSION_DURATION,
             extensionPaymentMint: paymentMint.publicKey,
-            maxExpiration: Date.now() / 1000 + 5000,
           },
         },
         mint: rentalMint.publicKey,

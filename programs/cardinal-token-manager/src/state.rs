@@ -34,6 +34,8 @@ pub enum InvalidationType {
     Invalidate = 2,
     /// Upon invalidation the token manager will be deleted and thus the tokens are released
     Release = 3,
+    /// Upon invalidation the token manager will be reset back to issued state
+    Reissue = 4,
 }
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {

@@ -810,6 +810,9 @@ export type CardinalTokenManager = {
           },
           {
             name: "Release";
+          },
+          {
+            name: "Reissue";
           }
         ];
       };
@@ -1761,6 +1764,9 @@ export const IDL: CardinalTokenManager = {
           },
           {
             name: "Release",
+          },
+          {
+            name: "Reissue",
           },
         ],
       },

@@ -96,49 +96,99 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         }
     }
 
-    if token_manager.invalidation_type == InvalidationType::Return as u8 || token_manager.state == TokenManagerState::Issued as u8 {
-        let return_token_account_info = next_account_info(remaining_accs)?;
-        let return_token_account: spl_token::state::Account = assert_initialized(return_token_account_info)?;
-        if token_manager.receipt_mint == None {
-            if return_token_account.owner != token_manager.issuer {
-                return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+    match token_manager.invalidation_type {
+        t if t == InvalidationType::Return as u8 || token_manager.state == TokenManagerState::Issued as u8 => {
+            // find receipt holder
+            let return_token_account_info = next_account_info(remaining_accs)?;
+            let return_token_account: spl_token::state::Account = assert_initialized(return_token_account_info)?;
+            if token_manager.receipt_mint == None {
+                if return_token_account.owner != token_manager.issuer {
+                    return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+                }
+            } else {
+                let receipt_token_account_info = next_account_info(remaining_accs)?;
+                let receipt_token_account: spl_token::state::Account = assert_initialized(receipt_token_account_info)?;
+                if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) {
+                    return Err(error!(ErrorCode::InvalidReceiptMintAccount));
+                }
+                if receipt_token_account.owner != return_token_account.owner {
+                    return Err(error!(ErrorCode::InvalidReceiptMintOwner));
+                }
             }
-        } else {
-            let receipt_token_account_info = next_account_info(remaining_accs)?;
-            let receipt_token_account: spl_token::state::Account = assert_initialized(receipt_token_account_info)?;
-            if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) {
-                return Err(error!(ErrorCode::InvalidReceiptMintAccount));
-            }
-            if receipt_token_account.owner != return_token_account.owner {
-                return Err(error!(ErrorCode::InvalidReceiptMintOwner));
-            }
+
+            // transfer back to issuer or receipt holder
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.recipient_token_account.to_account_info(),
+                to: return_token_account_info.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::transfer(cpi_context, token_manager.amount)?;
+
+            // close token_manager_token_account
+            let cpi_accounts = CloseAccount {
+                account: ctx.accounts.token_manager_token_account.to_account_info(),
+                destination: ctx.accounts.collector.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::close_account(cpi_context)?;
+
+            // close token_manager
+            token_manager.state = TokenManagerState::Invalidated as u8;
+            token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+            token_manager.close(ctx.accounts.collector.to_account_info())?;
         }
+        t if t == InvalidationType::Invalidate as u8 => {
+            // close token_manager_token_account
+            let cpi_accounts = CloseAccount {
+                account: ctx.accounts.token_manager_token_account.to_account_info(),
+                destination: ctx.accounts.collector.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::close_account(cpi_context)?;
 
-        // transfer back to issuer
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.recipient_token_account.to_account_info(),
-            to: return_token_account_info.to_account_info(),
-            authority: token_manager.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-        token::transfer(cpi_context, token_manager.amount)?;
+            // mark invalid
+            token_manager.state = TokenManagerState::Invalidated as u8;
+            token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+        }
+        t if t == InvalidationType::Release as u8 => {
+            // close token_manager_token_account
+            let cpi_accounts = CloseAccount {
+                account: ctx.accounts.token_manager_token_account.to_account_info(),
+                destination: ctx.accounts.collector.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::close_account(cpi_context)?;
+
+            // close token_manager
+            token_manager.state = TokenManagerState::Invalidated as u8;
+            token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+            token_manager.close(ctx.accounts.collector.to_account_info())?;
+        }
+        t if t == InvalidationType::Reissue as u8 => {
+            // transfer back to token_manager
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.recipient_token_account.to_account_info(),
+                to: ctx.accounts.token_manager_token_account.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::transfer(cpi_context, token_manager.amount)?;
+
+            token_manager.state = TokenManagerState::Issued as u8;
+            token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();
+            token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+        }
+        _ => return Err(error!(ErrorCode::InvalidInvalidationType)),
     }
 
-    // close token_manager_token_account
-    let cpi_accounts = CloseAccount {
-        account: ctx.accounts.token_manager_token_account.to_account_info(),
-        destination: ctx.accounts.collector.to_account_info(),
-        authority: token_manager.to_account_info(),
-    };
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-    token::close_account(cpi_context)?;
-
-    token_manager.state = TokenManagerState::Invalidated as u8;
-    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
-    if token_manager.invalidation_type != InvalidationType::Invalidate as u8 {
-        token_manager.close(ctx.accounts.collector.to_account_info())?;
-    }
     Ok(())
 }

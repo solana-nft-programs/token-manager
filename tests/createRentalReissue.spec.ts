@@ -18,11 +18,11 @@ import {
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Time invalidation on claim", () => {
+describe("Create rental reissue", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   const durationSeconds = 1;
-  const expiration = Date.now() / 1000 + 10000;
+  const maxExpiration = Math.floor(Date.now() / 1000 + 10000);
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
 
@@ -58,7 +58,7 @@ describe("Time invalidation on claim", () => {
       {
         timeInvalidation: {
           durationSeconds,
-          expiration,
+          maxExpiration,
         },
         invalidationType: InvalidationType.Reissue,
         mint: rentalMint.publicKey,
@@ -97,7 +97,9 @@ describe("Time invalidation on claim", () => {
           await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
         )[0]
       );
-    expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
+    expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
+      maxExpiration
+    );
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
       durationSeconds
     );
@@ -216,8 +218,8 @@ describe("Time invalidation on claim", () => {
           await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
         )[0]
       );
-    expect(checkTimeInvalidator.parsed.expiration?.toNumber()).to.eq(
-      expiration
+    expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
+      maxExpiration
     );
   });
 
@@ -334,8 +336,8 @@ describe("Time invalidation on claim", () => {
           await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
         )[0]
       );
-    expect(checkTimeInvalidator.parsed.expiration?.toNumber()).to.eq(
-      expiration
+    expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
+      maxExpiration
     );
   });
 });

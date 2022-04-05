@@ -24,11 +24,11 @@ export type TimeInvalidationParams = {
   collector?: PublicKey;
   expiration?: number;
   durationSeconds?: number;
+  maxExpiration?: number;
   extension?: {
     extensionPaymentAmount: number;
     extensionDurationSeconds: number;
     extensionPaymentMint: PublicKey;
-    maxExpiration?: number;
     disablePartialExtension?: boolean;
   };
 };
@@ -71,8 +71,8 @@ export const init = async (
         extensionPaymentMint: timeInvalidation.extension?.extensionPaymentMint
           ? timeInvalidation.extension?.extensionPaymentMint
           : null,
-        maxExpiration: timeInvalidation.extension?.maxExpiration
-          ? new BN(timeInvalidation.extension?.maxExpiration)
+        maxExpiration: timeInvalidation.maxExpiration
+          ? new BN(timeInvalidation.maxExpiration)
           : null,
         disablePartialExtension: timeInvalidation.extension
           ?.disablePartialExtension

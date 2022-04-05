@@ -356,7 +356,7 @@ export type CardinalUseInvalidator = {
     {
       code: 6010;
       name: "InvalidCollector";
-      msg: "Token collector";
+      msg: "Invalid collector";
     }
   ];
 };
@@ -719,7 +719,7 @@ export const IDL: CardinalUseInvalidator = {
     {
       code: 6010,
       name: "InvalidCollector",
-      msg: "Token collector",
+      msg: "Invalid collector",
     },
   ],
 };

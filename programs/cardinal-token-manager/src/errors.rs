@@ -36,8 +36,10 @@ pub enum ErrorCode {
     InvalidTokenManagerState,
     #[msg("Outstanding tokens exist")]
     OutstandingTokens,
-    #[msg("Invalid freeze authority")]
+    #[msg("User must be freeze authority to create mint manager")]
     InvalidFreezeAuthority,
+    #[msg("User must be initializer to close mint manager")]
+    InvalidInitializer,
     #[msg("Invalid claim receipt")]
     InvalidClaimReceipt,
     #[msg("Invalid transfer receipt")]

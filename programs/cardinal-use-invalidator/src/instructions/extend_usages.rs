@@ -61,8 +61,8 @@ pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()>
         return Err(error!(ErrorCode::MaxUsagesReached));
     }
 
-    let provider_fee = use_invalidator.extension_payment_amount.unwrap() * (PROVIDER_FEE / FEE_SCALE);
-    let recipient_fee = use_invalidator.extension_payment_amount.unwrap() * (RECIPIENT_FEE / FEE_SCALE);
+    let provider_fee = use_invalidator.extension_payment_amount.unwrap().checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).unwrap()).unwrap();
+    let recipient_fee = use_invalidator.extension_payment_amount.unwrap().checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).unwrap()).unwrap();
     if provider_fee.checked_add(recipient_fee).unwrap() > 0 {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),

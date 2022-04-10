@@ -1,5 +1,5 @@
 export type CardinalTokenManager = {
-  version: "1.0.2";
+  version: "1.0.3";
   name: "cardinal_token_manager";
   instructions: [
     {
@@ -907,7 +907,7 @@ export type CardinalTokenManager = {
     {
       code: 6017;
       name: "InvalidFreezeAuthority";
-      msg: "Invalid freeze authority";
+      msg: "User must be freeze authority to create mint manager";
     },
     {
       code: 6018;
@@ -958,7 +958,7 @@ export type CardinalTokenManager = {
 };
 
 export const IDL: CardinalTokenManager = {
-  version: "1.0.2",
+  version: "1.0.3",
   name: "cardinal_token_manager",
   instructions: [
     {
@@ -1866,7 +1866,7 @@ export const IDL: CardinalTokenManager = {
     {
       code: 6017,
       name: "InvalidFreezeAuthority",
-      msg: "Invalid freeze authority",
+      msg: "User must be freeze authority to create mint manager",
     },
     {
       code: 6018,

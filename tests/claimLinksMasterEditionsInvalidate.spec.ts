@@ -131,7 +131,7 @@ describe("Claim links master editions invalidate", () => {
         editionMarker: editionMarkerId,
         tokenOwner: tokenCreator.publicKey,
         tokenAccount: issuerTokenAccountId,
-        editionValue: new BN(0),
+        editionValue: new BN(1),
       }
     );
     const txEnvelope = new TransactionEnvelope(

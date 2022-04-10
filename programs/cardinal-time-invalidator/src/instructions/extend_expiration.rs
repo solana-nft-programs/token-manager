@@ -67,8 +67,8 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
         return Err(error!(ErrorCode::InvalidExtendExpiration));
     }
 
-    let provider_fee = time_invalidator.extension_payment_amount.unwrap() * (PROVIDER_FEE / FEE_SCALE);
-    let recipient_fee = time_invalidator.extension_payment_amount.unwrap() * (RECIPIENT_FEE / FEE_SCALE);
+    let provider_fee = time_invalidator.extension_payment_amount.unwrap().checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).unwrap()).unwrap();
+    let recipient_fee = time_invalidator.extension_payment_amount.unwrap().checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).unwrap()).unwrap();
     if provider_fee.checked_add(recipient_fee).unwrap() > 0 {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),

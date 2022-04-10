@@ -130,7 +130,7 @@ describe("Claim links master editions", () => {
         editionMarker: editionMarkerId,
         tokenOwner: tokenCreator.publicKey,
         tokenAccount: issuerTokenAccountId,
-        editionValue: new BN(0),
+        editionValue: new BN(1),
       }
     );
     const txEnvelope = new TransactionEnvelope(

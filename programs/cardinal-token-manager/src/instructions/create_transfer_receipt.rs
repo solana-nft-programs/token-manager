@@ -10,8 +10,7 @@ pub struct CreateTransferReceiptCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(mut, constraint =
-        token_manager.transfer_authority != None
-        && token_manager.transfer_authority.unwrap() == transfer_authority.key()
+        token_manager.transfer_authority.expect("No transfer authority") == transfer_authority.key()
         @ ErrorCode::InvalidTransferAuthority
     )]
     transfer_authority: Signer<'info>,

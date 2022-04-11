@@ -17,6 +17,7 @@ pub struct CreateMintManagerCtx<'info> {
     pub mint_manager: Account<'info, MintManager>,
     #[account(mut)]
     pub mint: Account<'info, Mint>,
+    #[account(mut, constraint = mint.freeze_authority.expect("No freeze authority") == freeze_authority.key() @ ErrorCode::InvalidFreezeAuthority)]
     pub freeze_authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -25,10 +26,6 @@ pub struct CreateMintManagerCtx<'info> {
 }
 
 pub fn handler(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
-    if !ctx.accounts.mint.freeze_authority.is_some() || ctx.accounts.mint.freeze_authority.unwrap() != ctx.accounts.freeze_authority.key() {
-        return Err(error!(ErrorCode::InvalidFreezeAuthority));
-    }
-
     // set mint manager data
     let mint_manager = &mut ctx.accounts.mint_manager;
     mint_manager.initializer = ctx.accounts.freeze_authority.key();

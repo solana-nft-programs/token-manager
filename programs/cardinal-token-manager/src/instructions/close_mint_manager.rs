@@ -7,9 +7,9 @@ use {
 
 #[derive(Accounts)]
 pub struct CloseMintManagerCtx<'info> {
-    #[account(constraint = mint_manager.token_managers == 0 @ ErrorCode::OutstandingTokens)]
+    #[account(mut, constraint = mint_manager.token_managers == 0 @ ErrorCode::OutstandingTokens, close = freeze_authority)]
     pub mint_manager: Account<'info, MintManager>,
-    #[account(mut, close = freeze_authority)]
+    #[account(mut, constraint = mint.freeze_authority.expect("No freeze authority") == mint_manager.key() @ ErrorCode::InvalidFreezeAuthority)]
     pub mint: Account<'info, Mint>,
     #[account(constraint = mint_manager.initializer == freeze_authority.key() @ ErrorCode::InvalidInitializer)]
     pub freeze_authority: Signer<'info>,
@@ -18,10 +18,6 @@ pub struct CloseMintManagerCtx<'info> {
 }
 
 pub fn handler(ctx: Context<CloseMintManagerCtx>) -> Result<()> {
-    if !ctx.accounts.mint.freeze_authority.is_some() || ctx.accounts.mint.freeze_authority.unwrap() != ctx.accounts.mint_manager.key() {
-        return Err(error!(ErrorCode::InvalidFreezeAuthority));
-    }
-
     // get PDA seeds to sign with
     let mint = ctx.accounts.mint.key();
     let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[ctx.accounts.mint_manager.bump]];

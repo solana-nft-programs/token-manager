@@ -12,7 +12,7 @@ pub fn assert_payment_token_account(token_account: &Account<TokenAccount>, token
     } else {
         let receipt_token_account_info = next_account_info(remaining_accounts)?;
         let receipt_token_account = Account::<TokenAccount>::try_from(receipt_token_account_info)?;
-        if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) {
+        if !(receipt_token_account.mint == token_manager.receipt_mint.expect("No receipt mint") && receipt_token_account.amount > 0) {
             return Err(error!(ErrorCode::InvalidReceiptMint));
         }
         if receipt_token_account.owner != token_account.owner {

@@ -46,21 +46,37 @@ pub const MAX_INVALIDATORS: u8 = 5;
 pub const TOKEN_MANAGER_SEED: &str = "token-manager";
 #[account]
 pub struct TokenManager {
+    // Version of this token manager
     pub version: u8,
+    // Canonical bump
     pub bump: u8,
+    // Count for number of token managers for this specific mint
     pub count: u64,
+    // Number of invalidators in this current token manager
     pub num_invalidators: u8,
+    // Issuer or initializer of this token manager
     pub issuer: Pubkey,
+    // Mint of this token manager
     pub mint: Pubkey,
+    // Amount of the given mint
     pub amount: u64,
+    // Kind indicating how this token manager manages this token
     pub kind: u8,
+    // Current state
     pub state: u8,
+    // Timestamp for last state change
     pub state_changed_at: i64,
+    // What happens upon invalidation
     pub invalidation_type: u8,
+    // Token account holding the token currently
     pub recipient_token_account: Pubkey,
+    // Mint representing the rightful owner of this token
     pub receipt_mint: Option<Pubkey>,
+    // Authority to approve claiming this token
     pub claim_approver: Option<Pubkey>,
+    // Authority to approve transfering this token
     pub transfer_authority: Option<Pubkey>,
+    // Public keys that are allowed to invalidate this token manager
     pub invalidators: Vec<Pubkey>,
 }
 
@@ -68,8 +84,11 @@ pub const MINT_MANAGER_SEED: &str = "mint-manager";
 pub const MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<MintManager>() + 8;
 #[account]
 pub struct MintManager {
+    // Canonical bump
     pub bump: u8,
+    // Initializer who can also close this mint manager
     pub initializer: Pubkey,
+    // Number of outstanding token managers currently using this mint manager
     pub token_managers: u64,
 }
 
@@ -77,8 +96,11 @@ pub const MINT_COUNTER_SEED: &str = "mint-counter";
 pub const MINT_COUNTER_SIZE: usize = 8 + std::mem::size_of::<MintCounter>() + 8;
 #[account]
 pub struct MintCounter {
+    // Cannonical bump
     pub bump: u8,
+    // Mint for this counter
     pub mint: Pubkey,
+    // Number of token managers created for this mint
     pub count: u64,
 }
 
@@ -86,8 +108,11 @@ pub const CLAIM_RECEIPT_SEED: &str = "claim-receipt";
 pub const CLAIM_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<ClaimReceipt>() + 8;
 #[account]
 pub struct ClaimReceipt {
+    // Count of this mint
     pub mint_count: u64,
+    // Token manager this claim receipt is for
     pub token_manager: Pubkey,
+    // Target who can use this claim receipt to claim the token manager
     pub target: Pubkey,
 }
 
@@ -95,8 +120,11 @@ pub const TRANSFER_RECEIPT_SEED: &str = "transfer-receipt";
 pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TranferReceipt>() + 8;
 #[account]
 pub struct TranferReceipt {
+    // Count of this mint
     pub mint_count: u64,
+    // Token manager this claim receipt is for
     pub token_manager: Pubkey,
+    // Target who can use this claim receipt to transfer the token manager
     pub target: Pubkey,
 }
 
@@ -112,5 +140,6 @@ pub const RECEIPT_MINT_MANAGER_SEED: &str = "receipt-mint-manager";
 pub const RECEIPT_MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<ReceiptMintManager>() + 8;
 #[account]
 pub struct ReceiptMintManager {
+    // Canonical bump
     pub bump: u8,
 }

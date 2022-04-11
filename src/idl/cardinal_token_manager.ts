@@ -508,7 +508,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "freezeAuthority";
-          isMut: false;
+          isMut: true;
           isSigner: true;
         },
         {
@@ -911,46 +911,51 @@ export type CardinalTokenManager = {
     },
     {
       code: 6018;
+      name: "InvalidInitializer";
+      msg: "User must be initializer to close mint manager";
+    },
+    {
+      code: 6019;
       name: "InvalidClaimReceipt";
       msg: "Invalid claim receipt";
     },
     {
-      code: 6019;
+      code: 6020;
       name: "InvalidTransferReceipt";
       msg: "Invalid transfer receipt";
     },
     {
-      code: 6020;
+      code: 6021;
       name: "PublicKeyMismatch";
       msg: "Public key mismatch";
     },
     {
-      code: 6021;
+      code: 6022;
       name: "InvalidMetadataProgramId";
       msg: "Invalid metadata program id";
     },
     {
-      code: 6022;
+      code: 6023;
       name: "InvalidReceiptMintAccount";
       msg: "Invalid receipt mint account";
     },
     {
-      code: 6023;
+      code: 6024;
       name: "InvalidReceiptMintOwner";
       msg: "Invalid receipt mint owner";
     },
     {
-      code: 6024;
+      code: 6025;
       name: "InvalidReceiptMint";
       msg: "Invalid receipt mint";
     },
     {
-      code: 6025;
+      code: 6026;
       name: "InvalidCurrentTokenAccount";
       msg: "Invalid current holder token account";
     },
     {
-      code: 6026;
+      code: 6027;
       name: "InvalidMintSupply";
       msg: "Invalid mint supply";
     }
@@ -1467,7 +1472,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "freezeAuthority",
-          isMut: false,
+          isMut: true,
           isSigner: true,
         },
         {
@@ -1870,46 +1875,51 @@ export const IDL: CardinalTokenManager = {
     },
     {
       code: 6018,
+      name: "InvalidInitializer",
+      msg: "User must be initializer to close mint manager",
+    },
+    {
+      code: 6019,
       name: "InvalidClaimReceipt",
       msg: "Invalid claim receipt",
     },
     {
-      code: 6019,
+      code: 6020,
       name: "InvalidTransferReceipt",
       msg: "Invalid transfer receipt",
     },
     {
-      code: 6020,
+      code: 6021,
       name: "PublicKeyMismatch",
       msg: "Public key mismatch",
     },
     {
-      code: 6021,
+      code: 6022,
       name: "InvalidMetadataProgramId",
       msg: "Invalid metadata program id",
     },
     {
-      code: 6022,
+      code: 6023,
       name: "InvalidReceiptMintAccount",
       msg: "Invalid receipt mint account",
     },
     {
-      code: 6023,
+      code: 6024,
       name: "InvalidReceiptMintOwner",
       msg: "Invalid receipt mint owner",
     },
     {
-      code: 6024,
+      code: 6025,
       name: "InvalidReceiptMint",
       msg: "Invalid receipt mint",
     },
     {
-      code: 6025,
+      code: 6026,
       name: "InvalidCurrentTokenAccount",
       msg: "Invalid current holder token account",
     },
     {
-      code: 6026,
+      code: 6027,
       name: "InvalidMintSupply",
       msg: "Invalid mint supply",
     },

@@ -9,8 +9,7 @@ pub struct CreateClaimReceiptCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(constraint =
-        token_manager.claim_approver != None
-        && token_manager.claim_approver.unwrap() == claim_approver.key()
+        token_manager.claim_approver.expect("No claim approver") == claim_approver.key()
         @ ErrorCode::InvalidIssuer
     )]
     claim_approver: Signer<'info>,

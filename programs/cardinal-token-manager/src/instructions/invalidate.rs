@@ -110,7 +110,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             } else {
                 let receipt_token_account_info = next_account_info(remaining_accs)?;
                 let receipt_token_account: spl_token::state::Account = assert_initialized(receipt_token_account_info)?;
-                if !(receipt_token_account.mint == token_manager.receipt_mint.unwrap() && receipt_token_account.amount > 0) {
+                if !(receipt_token_account.mint == token_manager.receipt_mint.expect("No receipt mint") && receipt_token_account.amount > 0) {
                     return Err(error!(ErrorCode::InvalidReceiptMintAccount));
                 }
                 if receipt_token_account.owner != return_token_account.owner {

@@ -54,7 +54,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         if token_manager.kind == TokenManagerKind::Managed as u8 {
             let mint_manager_info = next_account_info(remaining_accs)?;
             let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
-            mint_manager.token_managers -= 1;
+            mint_manager.token_managers = mint_manager.token_managers.checked_sub(1).expect("Sub error");
 
             let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
             let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;

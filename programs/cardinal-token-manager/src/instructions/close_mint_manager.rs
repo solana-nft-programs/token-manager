@@ -25,7 +25,7 @@ pub fn handler(ctx: Context<CloseMintManagerCtx>) -> Result<()> {
 
     // set freeze authority of mint back to original
     let cpi_accounts = SetAuthority {
-        account_or_mint: ctx.accounts.freeze_authority.to_account_info(),
+        account_or_mint: ctx.accounts.mint.to_account_info(),
         current_authority: ctx.accounts.mint_manager.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();

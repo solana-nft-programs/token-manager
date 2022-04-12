@@ -53,6 +53,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.state == TokenManagerState::Claimed as u8 {
         if token_manager.kind == TokenManagerKind::Managed as u8 {
             let mint_manager_info = next_account_info(remaining_accs)?;
+            // update mint manager
             let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
             mint_manager.token_managers = mint_manager.token_managers.checked_sub(1).expect("Sub error");
             mint_manager.exit(ctx.program_id)?;

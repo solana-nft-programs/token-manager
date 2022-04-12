@@ -64,12 +64,13 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token::approve(cpi_context, token_manager.amount)?;
 
         let mint_manager_info = next_account_info(remaining_accs)?;
-        let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
-        mint_manager.token_managers = mint_manager.token_managers.checked_add(1).expect("Addition error");
-        mint_manager.exit(ctx.program_id)?;
         let mint = ctx.accounts.mint.key();
         let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
         assert_derivation(ctx.program_id, mint_manager_info, path)?;
+        // update mint manager
+        let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
+        mint_manager.token_managers = mint_manager.token_managers.checked_add(1).expect("Addition error");
+        mint_manager.exit(ctx.program_id)?;
         let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[mint_manager.bump]];
         let mint_manager_signer = &[&mint_manager_seeds[..]];
 

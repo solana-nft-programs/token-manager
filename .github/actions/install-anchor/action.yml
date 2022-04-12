@@ -17,7 +17,6 @@ runs:
           ~/.cargo/registry/index/
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
-          ./target/
         key: cargo-${{ runner.os }}-anchor-${{ hashFiles('**/Cargo.lock') }}
     - name: Install anchor
       if: steps.cache-anchor.outputs.cache-hit != 'true'

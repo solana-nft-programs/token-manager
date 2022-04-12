@@ -49,8 +49,18 @@ pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
-    let provider_fee = ctx.accounts.claim_approver.payment_amount * (PROVIDER_FEE / FEE_SCALE);
-    let recipient_fee = ctx.accounts.claim_approver.payment_amount * (RECIPIENT_FEE / FEE_SCALE);
+    let provider_fee = ctx
+        .accounts
+        .claim_approver
+        .payment_amount
+        .checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).expect("Division error"))
+        .expect("Multiplication error");
+    let recipient_fee = ctx
+        .accounts
+        .claim_approver
+        .payment_amount
+        .checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).expect("Division error"))
+        .expect("Multiplication error");
     if provider_fee.checked_add(recipient_fee).expect("Add error") > 0 {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),

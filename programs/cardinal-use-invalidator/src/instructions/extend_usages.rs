@@ -47,7 +47,11 @@ pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()>
         return Err(error!(ErrorCode::InvalidUseInvalidator));
     }
 
-    if payment_amount % use_invalidator.extension_payment_amount.expect("No extension amount") != 0 {
+    if payment_amount
+        .checked_rem(use_invalidator.extension_payment_amount.expect("No extension amount"))
+        .expect("Remainder error")
+        != 0
+    {
         return Err(error!(ErrorCode::InvalidExtensionAmount));
     }
     // floors any u64 decimals

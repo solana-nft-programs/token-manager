@@ -53,7 +53,13 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
         .checked_div(time_invalidator.extension_payment_amount.expect("No extension amount"))
         .expect("Division error");
 
-    if time_invalidator.disable_partial_extension != None && time_invalidator.disable_partial_extension.unwrap() && time_to_add % time_invalidator.extension_duration_seconds.unwrap() != 0 {
+    if time_invalidator.disable_partial_extension != None
+        && time_invalidator.disable_partial_extension.unwrap()
+        && time_to_add
+            .checked_rem(time_invalidator.extension_duration_seconds.expect("No extension duration"))
+            .expect("Remainder error")
+            != 0
+    {
         return Err(error!(ErrorCode::InvalidExtensionAmount));
     }
 
@@ -66,7 +72,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
     if time_invalidator.expiration != None {
         expiration = time_invalidator.expiration.unwrap();
     }
-    let new_expiration = Some(expiration + time_to_add as i64);
+    let new_expiration = Some(expiration.checked_add(time_to_add as i64).expect("Addition error"));
 
     if time_invalidator.max_expiration != None && new_expiration > time_invalidator.max_expiration {
         return Err(error!(ErrorCode::InvalidExtendExpiration));

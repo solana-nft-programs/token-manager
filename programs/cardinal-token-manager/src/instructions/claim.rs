@@ -64,19 +64,21 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token::approve(cpi_context, token_manager.amount)?;
 
         let mint_manager_info = next_account_info(remaining_accs)?;
-        let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
-        mint_manager.token_managers += 1;
         let mint = ctx.accounts.mint.key();
         let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
-        let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;
-        let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];
+        assert_derivation(ctx.program_id, mint_manager_info, path)?;
+        // update mint manager
+        let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
+        mint_manager.token_managers = mint_manager.token_managers.checked_add(1).expect("Addition error");
+        mint_manager.exit(ctx.program_id)?;
+        let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[mint_manager.bump]];
         let mint_manager_signer = &[&mint_manager_seeds[..]];
 
         // freeze recipient token account
         let cpi_accounts = FreezeAccount {
             account: ctx.accounts.recipient_token_account.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
-            authority: mint_manager_info.clone(),
+            authority: mint_manager_info.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);

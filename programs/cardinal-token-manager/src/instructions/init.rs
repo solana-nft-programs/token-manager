@@ -73,7 +73,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
 
     let mint_counter = &mut ctx.accounts.mint_counter;
     mint_counter.bump = *ctx.bumps.get("mint_counter").unwrap();
-    mint_counter.count += 1;
+    mint_counter.count = mint_counter.count.checked_add(1).expect("Addition error");
     mint_counter.mint = ctx.accounts.mint.key();
 
     token_manager.bump = *ctx.bumps.get("token_manager").unwrap();

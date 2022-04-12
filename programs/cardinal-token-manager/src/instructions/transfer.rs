@@ -66,7 +66,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_accounts = ThawAccount {
             account: ctx.accounts.current_holder_token_account.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
-            authority: mint_manager_info.clone(),
+            authority: mint_manager_info.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);
@@ -96,7 +96,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_accounts = FreezeAccount {
             account: ctx.accounts.recipient_token_account.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
-            authority: mint_manager_info.clone(),
+            authority: mint_manager_info.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);

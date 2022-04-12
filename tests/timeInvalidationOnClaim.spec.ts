@@ -126,7 +126,7 @@ describe("Time invalidation on claim", () => {
     );
 
     await expectTXTable(txEnvelope, "claim", {
-      verbosity: "error",
+      verbosity: "always",
       formatLogs: true,
     }).to.be.fulfilled;
 
@@ -136,6 +136,14 @@ describe("Time invalidation on claim", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+
+    const checkMintManager = await tokenManager.accounts.getMintManager(
+      provider.connection,
+      (
+        await tokenManager.pda.findMintManagerId(rentalMint.publicKey)
+      )[0]
+    );
+    expect(checkMintManager.parsed.tokenManagers?.toNumber()).to.eq(1);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId

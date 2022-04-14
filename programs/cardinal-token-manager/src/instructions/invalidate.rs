@@ -2,10 +2,7 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
     anchor_spl::token::{self, CloseAccount, Mint, ThawAccount, Token, TokenAccount, Transfer},
-    mpl_token_metadata::{
-        instruction::thaw_delegated_account,
-        utils::{assert_derivation, assert_initialized},
-    },
+    mpl_token_metadata::{instruction::thaw_delegated_account, utils::assert_derivation},
 };
 
 #[derive(Accounts)]
@@ -37,7 +34,6 @@ pub struct InvalidateCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     collector: AccountInfo<'info>,
-
     token_program: Program<'info, Token>,
 }
 
@@ -104,14 +100,14 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         t if t == InvalidationType::Return as u8 || token_manager.state == TokenManagerState::Issued as u8 => {
             // find receipt holder
             let return_token_account_info = next_account_info(remaining_accs)?;
-            let return_token_account: spl_token::state::Account = assert_initialized(return_token_account_info)?;
+            let return_token_account = Account::<TokenAccount>::try_from(return_token_account_info)?;
             if token_manager.receipt_mint == None {
                 if return_token_account.owner != token_manager.issuer {
                     return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
                 }
             } else {
                 let receipt_token_account_info = next_account_info(remaining_accs)?;
-                let receipt_token_account: spl_token::state::Account = assert_initialized(receipt_token_account_info)?;
+                let receipt_token_account = Account::<TokenAccount>::try_from(receipt_token_account_info)?;
                 if !(receipt_token_account.mint == token_manager.receipt_mint.expect("No receipt mint") && receipt_token_account.amount > 0) {
                     return Err(error!(ErrorCode::InvalidReceiptMintAccount));
                 }
@@ -159,6 +155,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             // mark invalid
             token_manager.state = TokenManagerState::Invalidated as u8;
             token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+
+            let rent_account_info = next_account_info(remaining_accs)?;
+            let rent = &Rent::from_account_info(rent_account_info)?;
+            let required_lamports = rent.minimum_balance(token_manager.to_account_info().data_len());
+            let token_manager_lamports = token_manager.to_account_info().lamports();
+            if token_manager_lamports > required_lamports {
+                let diff = token_manager_lamports.checked_sub(required_lamports).expect("Sub error");
+                **token_manager.to_account_info().try_borrow_mut_lamports()? = required_lamports;
+                **ctx.accounts.collector.to_account_info().try_borrow_mut_lamports()? = ctx.accounts.collector.to_account_info().lamports().checked_add(diff).expect("Add error");
+            };
         }
         t if t == InvalidationType::Release as u8 => {
             // close token_manager_token_account
@@ -190,6 +196,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token_manager.state = TokenManagerState::Issued as u8;
             token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();
             token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+
+            let rent_account_info = next_account_info(remaining_accs)?;
+            let rent = &Rent::from_account_info(rent_account_info)?;
+            let required_lamports = rent.minimum_balance(token_manager.to_account_info().data_len());
+            let token_manager_lamports = token_manager.to_account_info().lamports();
+            if token_manager_lamports > required_lamports {
+                let diff = token_manager_lamports.checked_sub(required_lamports).expect("Sub error");
+                **token_manager.to_account_info().try_borrow_mut_lamports()? = required_lamports;
+                **ctx.accounts.collector.to_account_info().try_borrow_mut_lamports()? = ctx.accounts.collector.to_account_info().lamports().checked_add(diff).expect("Add error");
+            };
         }
         _ => return Err(error!(ErrorCode::InvalidInvalidationType)),
     }

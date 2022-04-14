@@ -18,7 +18,7 @@ import type {
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import { findAta } from "../..";
-import { TokenManagerState } from ".";
+import { getRemainingAccountsForClaim, TokenManagerState } from ".";
 import type {
   InvalidationType,
   TOKEN_MANAGER_PROGRAM,
@@ -224,6 +224,7 @@ export const claim = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   tokenManagerKind: TokenManagerKind,
+  invalidationType: InvalidationType,
   mintId: PublicKey,
   tokenManagerTokenAccountId: PublicKey,
   recipientTokenAccountId: PublicKey,
@@ -236,9 +237,10 @@ export const claim = async (
     provider
   );
 
-  const remainingAccounts = await getRemainingAccountsForKind(
+  const remainingAccounts = await getRemainingAccountsForClaim(
     mintId,
-    tokenManagerKind
+    tokenManagerKind,
+    invalidationType
   );
 
   return tokenManagerProgram.instruction.claim({

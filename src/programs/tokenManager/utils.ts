@@ -10,7 +10,7 @@ import type {
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
@@ -22,6 +22,27 @@ import {
   TokenManagerState,
 } from ".";
 import { findMintManagerId } from "./pda";
+
+export const getRemainingAccountsForClaim = async (
+  mintId: PublicKey,
+  tokenManagerKind: TokenManagerKind,
+  invalidationType: InvalidationType
+): Promise<AccountMeta[]> => {
+  const remainingAccountsForKind = await getRemainingAccountsForKind(
+    mintId,
+    tokenManagerKind
+  );
+  if (
+    invalidationType === InvalidationType.Invalidate ||
+    invalidationType === InvalidationType.Reissue
+  ) {
+    return [
+      ...remainingAccountsForKind,
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ];
+  }
+  return getRemainingAccountsForKind(mintId, tokenManagerKind);
+};
 
 export const getRemainingAccountsForKind = async (
   mintId: PublicKey,
@@ -212,6 +233,14 @@ export const withRemainingAccountsForReturn = async (
         },
       ];
     }
+  } else if (
+    invalidationType === InvalidationType.Reissue ||
+    invalidationType === InvalidationType.Invalidate
+  ) {
+    return [
+      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ];
   } else {
     return [];
   }

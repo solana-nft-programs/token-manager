@@ -374,6 +374,7 @@ export const withClaimToken = async (
       wallet,
       tokenManagerId,
       tokenManagerData.parsed.kind,
+      tokenManagerData.parsed.invalidationType,
       tokenManagerData.parsed.mint,
       tokenManagerTokenAccountId,
       recipientTokenAccountId,

@@ -15,7 +15,11 @@ pub struct IncrementUsagesCtx<'info> {
 
     #[account(constraint = token_manager.recipient_token_account == recipient_token_account.key() @ ErrorCode::InvalidTokenAccount)]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(constraint = user.key() == recipient_token_account.owner @ ErrorCode::InvalidUser)]
+    #[account(
+        constraint = (use_invalidator.use_authority != None && user.key() == use_invalidator.use_authority.unwrap())
+        || (use_invalidator.use_authority == None && user.key() == recipient_token_account.owner)
+        @ ErrorCode::InvalidUser
+    )]
     user: Signer<'info>,
 }
 

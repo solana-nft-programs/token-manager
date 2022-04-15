@@ -35,6 +35,7 @@ pub struct InvalidateCtx<'info> {
     #[account(mut)]
     collector: AccountInfo<'info>,
     token_program: Program<'info, Token>,
+    rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
@@ -156,9 +157,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token_manager.state = TokenManagerState::Invalidated as u8;
             token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
 
-            let rent_account_info = next_account_info(remaining_accs)?;
-            let rent = &Rent::from_account_info(rent_account_info)?;
-            let required_lamports = rent.minimum_balance(token_manager.to_account_info().data_len());
+            let required_lamports = ctx.accounts.rent.minimum_balance(token_manager.to_account_info().data_len());
             let token_manager_lamports = token_manager.to_account_info().lamports();
             if token_manager_lamports > required_lamports {
                 let diff = token_manager_lamports.checked_sub(required_lamports).expect("Sub error");
@@ -197,9 +196,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();
             token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
 
-            let rent_account_info = next_account_info(remaining_accs)?;
-            let rent = &Rent::from_account_info(rent_account_info)?;
-            let required_lamports = rent.minimum_balance(token_manager.to_account_info().data_len());
+            let required_lamports = ctx.accounts.rent.minimum_balance(token_manager.to_account_info().data_len());
             let token_manager_lamports = token_manager.to_account_info().lamports();
             if token_manager_lamports > required_lamports {
                 let diff = token_manager_lamports.checked_sub(required_lamports).expect("Sub error");

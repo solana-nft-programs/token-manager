@@ -35,6 +35,7 @@ pub struct ClaimCtx<'info> {
     )]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
     token_program: Program<'info, Token>,
+    system_program: Program<'info, System>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimCtx<'info>>) -> Result<()> {
@@ -129,13 +130,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     }
 
     if token_manager.invalidation_type == InvalidationType::Reissue as u8 || token_manager.invalidation_type == InvalidationType::Invalidate as u8 {
-        let system_program_info = next_account_info(remaining_accs)?;
-        if system_program_info.key() != System::id() {
-            return Err(error!(ErrorCode::InvalidMetadataProgramId));
-        }
         invoke(
             &transfer(&ctx.accounts.recipient.key(), &token_manager.key(), INVALIDATION_REWARD_LAMPORTS),
-            &[ctx.accounts.recipient.to_account_info(), token_manager.to_account_info(), system_program_info.to_account_info()],
+            &[ctx.accounts.recipient.to_account_info(), token_manager.to_account_info(), ctx.accounts.system_program.to_account_info()],
         )?;
     }
 

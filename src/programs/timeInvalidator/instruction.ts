@@ -7,7 +7,7 @@ import type {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { SystemProgram } from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import type { TokenManagerKind } from "../tokenManager";
 import {
@@ -169,6 +169,7 @@ export const invalidate = async (
       recipientTokenAccount: recipientTokenAccountId,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
     },
     remainingAccounts: [
       ...(tokenManagerState === TokenManagerState.Claimed

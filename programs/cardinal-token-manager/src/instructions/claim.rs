@@ -1,6 +1,13 @@
 use {
     crate::{errors::ErrorCode, state::*},
-    anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
+    anchor_lang::{
+        prelude::*,
+        solana_program::{
+            program::{invoke, invoke_signed},
+            system_instruction::transfer,
+        },
+        AccountsClose,
+    },
     anchor_spl::token::{self, Approve, FreezeAccount, Mint, Token, TokenAccount, Transfer},
     mpl_token_metadata::{instruction::freeze_delegated_account, utils::assert_derivation},
 };
@@ -28,6 +35,7 @@ pub struct ClaimCtx<'info> {
     )]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
     token_program: Program<'info, Token>,
+    system_program: Program<'info, System>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimCtx<'info>>) -> Result<()> {
@@ -118,6 +126,13 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 ctx.accounts.mint.to_account_info(),
             ],
             &[token_manager_seeds],
+        )?;
+    }
+
+    if token_manager.invalidation_type == InvalidationType::Reissue as u8 || token_manager.invalidation_type == InvalidationType::Invalidate as u8 {
+        invoke(
+            &transfer(&ctx.accounts.recipient.key(), &token_manager.key(), INVALIDATION_REWARD_LAMPORTS),
+            &[ctx.accounts.recipient.to_account_info(), token_manager.to_account_info(), ctx.accounts.system_program.to_account_info()],
         )?;
     }
 

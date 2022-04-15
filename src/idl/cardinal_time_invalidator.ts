@@ -128,6 +128,11 @@ export type CardinalTimeInvalidator = {
           name: "recipientTokenAccount";
           isMut: true;
           isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
         }
       ];
       args: [];
@@ -485,6 +490,11 @@ export const IDL: CardinalTimeInvalidator = {
         {
           name: "recipientTokenAccount",
           isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
           isSigner: false,
         },
       ],

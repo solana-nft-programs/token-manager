@@ -249,6 +249,7 @@ export const claim = async (
       recipient: wallet.publicKey,
       recipientTokenAccount: recipientTokenAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
     },
     remainingAccounts: claimReceipt
       ? [
@@ -422,6 +423,7 @@ export const invalidate = async (
       invalidator: wallet.publicKey,
       collector: wallet.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
     },
     remainingAccounts: [
       ...(tokenManagerState === TokenManagerState.Claimed

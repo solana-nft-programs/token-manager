@@ -31,6 +31,7 @@ pub struct InvalidateCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     recipient_token_account: UncheckedAccount<'info>,
+    rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
@@ -47,6 +48,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         invalidator: ctx.accounts.use_invalidator.to_account_info(),
         collector: ctx.accounts.invalidator.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
+        rent: ctx.accounts.rent.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts)
         .with_remaining_accounts(ctx.remaining_accounts.to_vec())

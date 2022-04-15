@@ -122,6 +122,10 @@ describe("Create rental reissue", () => {
       )[0]
     );
 
+    const tokenManagerAccountBefore = await provider.connection.getAccountInfo(
+      tokenManagerId
+    );
+
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
@@ -135,6 +139,14 @@ describe("Create rental reissue", () => {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
+
+    const tokenManagerAccountAfter = await provider.connection.getAccountInfo(
+      tokenManagerId
+    );
+    expect(
+      (tokenManagerAccountAfter?.lamports || 0) -
+        (tokenManagerAccountBefore?.lamports || 0)
+    ).to.eq(5000000);
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -184,15 +196,27 @@ describe("Create rental reissue", () => {
       [...transaction.instructions]
     );
 
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    const tokenManagerAccountBefore = await provider.connection.getAccountInfo(
+      tokenManagerId
+    );
+
     await expectTXTable(txEnvelope, "use", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
-      rentalMint.publicKey
+    const tokenManagerAccountAfter = await provider.connection.getAccountInfo(
+      tokenManagerId
     );
+    expect(
+      (tokenManagerAccountBefore?.lamports || 0) -
+        (tokenManagerAccountAfter?.lamports || 0)
+    ).to.eq(5000000);
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,

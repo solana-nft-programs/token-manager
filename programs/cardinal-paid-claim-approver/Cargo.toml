@@ -24,7 +24,7 @@ anchor-lang = { version = "0.22.0", features = ["init-if-needed"] }
 anchor-spl = "0.22.0"
 spl-associated-token-account = "1.0.2"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
-solana-program = "1.8.1"
+solana-program = "1.10.8"
 cardinal-token-manager = { version = "^1.1.0", path = "../cardinal-token-manager", features = ["cpi"] }
 
 [dev-dependencies]

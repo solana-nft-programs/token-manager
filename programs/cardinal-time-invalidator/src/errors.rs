@@ -28,4 +28,6 @@ pub enum ErrorCode {
     InvalidPaymentManagerTokenAccount,
     #[msg("Invalid collector")]
     InvalidCollector,
+    #[msg("Account discriminator is incorrect")]
+    AccountDiscriminatorMismatch,
 }

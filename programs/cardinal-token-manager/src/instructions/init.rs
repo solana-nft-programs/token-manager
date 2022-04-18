@@ -1,6 +1,6 @@
 use {
     crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
+    anchor_lang::{prelude::*, Discriminator},
     anchor_spl::token::{Mint, TokenAccount},
 };
 
@@ -51,6 +51,13 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
         return Err(error!(ErrorCode::MaximumInvalidatorsReached));
     }
     let token_manager = &mut ctx.accounts.token_manager;
+    // discriminator check
+    let acct = token_manager.to_account_info();
+    let data: &[u8] = &acct.try_borrow_data()?;
+    let disc_bytes = &data[..8];
+    if disc_bytes != TokenManager::discriminator() && disc_bytes.iter().any(|a| a != &0) {
+        return Err(error!(ErrorCode::AccountDiscriminatorMismatch));
+    }
     if token_manager.state != TokenManagerState::Initialized as u8 {
         return Err(error!(ErrorCode::InvalidTokenManagerState));
     }
@@ -72,6 +79,13 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     }
 
     let mint_counter = &mut ctx.accounts.mint_counter;
+    // discriminator check
+    let acct = mint_counter.to_account_info();
+    let data: &[u8] = &acct.try_borrow_data()?;
+    let disc_bytes = &data[..8];
+    if disc_bytes != MintCounter::discriminator() && disc_bytes.iter().any(|a| a != &0) {
+        return Err(error!(ErrorCode::AccountDiscriminatorMismatch));
+    }
     mint_counter.bump = *ctx.bumps.get("mint_counter").unwrap();
     mint_counter.count = mint_counter.count.checked_add(1).expect("Addition error");
     mint_counter.mint = ctx.accounts.mint.key();

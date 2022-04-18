@@ -213,6 +213,11 @@ export type CardinalPaidClaimApprover = {
       code: 6005;
       name: "InvalidCollector";
       msg: "Invalid collector";
+    },
+    {
+      code: 6006;
+      name: "AccountDiscriminatorMismatch";
+      msg: "Invalid account discriminator";
     }
   ];
 };
@@ -432,6 +437,11 @@ export const IDL: CardinalPaidClaimApprover = {
       code: 6005,
       name: "InvalidCollector",
       msg: "Invalid collector",
+    },
+    {
+      code: 6006,
+      name: "AccountDiscriminatorMismatch",
+      msg: "Invalid account discriminator",
     },
   ],
 };

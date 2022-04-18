@@ -58,4 +58,6 @@ pub enum ErrorCode {
     InvalidCurrentTokenAccount,
     #[msg("Invalid mint supply")]
     InvalidMintSupply,
+    #[msg("Invalid account discriminator")]
+    AccountDiscriminatorMismatch,
 }

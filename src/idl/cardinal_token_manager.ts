@@ -518,7 +518,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "freezeAuthority";
-          isMut: true;
+          isMut: false;
           isSigner: true;
         },
         {
@@ -1492,7 +1492,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "freezeAuthority",
-          isMut: true,
+          isMut: false,
           isSigner: true,
         },
         {

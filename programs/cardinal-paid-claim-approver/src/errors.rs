@@ -14,4 +14,6 @@ pub enum ErrorCode {
     InvalidIssuer,
     #[msg("Invalid collector")]
     InvalidCollector,
+    #[msg("Invalid account discriminator")]
+    AccountDiscriminatorMismatch,
 }

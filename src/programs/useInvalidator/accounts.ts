@@ -1,4 +1,4 @@
-import { Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
@@ -12,7 +12,7 @@ export const getUseInvalidator = async (
 ): Promise<AccountData<UseInvalidatorData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const useInvalidatorProgram = new Program<USE_INVALIDATOR_PROGRAM>(
     USE_INVALIDATOR_IDL,
     USE_INVALIDATOR_ADDRESS,
@@ -36,7 +36,7 @@ export const getUseInvalidators = async (
 ): Promise<AccountData<UseInvalidatorData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const useInvalidatorProgram = new Program<USE_INVALIDATOR_PROGRAM>(
     USE_INVALIDATOR_IDL,
     USE_INVALIDATOR_ADDRESS,

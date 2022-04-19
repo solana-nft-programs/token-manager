@@ -968,6 +968,11 @@ export type CardinalTokenManager = {
       code: 6027;
       name: "InvalidMintSupply";
       msg: "Invalid mint supply";
+    },
+    {
+      code: 6028;
+      name: "AccountDiscriminatorMismatch";
+      msg: "Invalid account discriminator";
     }
   ];
 };
@@ -1942,6 +1947,11 @@ export const IDL: CardinalTokenManager = {
       code: 6027,
       name: "InvalidMintSupply",
       msg: "Invalid mint supply",
+    },
+    {
+      code: 6028,
+      name: "AccountDiscriminatorMismatch",
+      msg: "Invalid account discriminator",
     },
   ],
 };

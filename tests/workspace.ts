@@ -1,13 +1,13 @@
 import type { Idl } from "@project-serum/anchor";
-import * as anchor from "@project-serum/anchor";
+import { AnchorProvider, setProvider } from "@project-serum/anchor";
 import { chaiSolana } from "@saberhq/chai-solana";
 import chai, { assert } from "chai";
 
 chai.use(chaiSolana);
 
-export const getProvider = (): anchor.Provider => {
-  const anchorProvider = anchor.Provider.env();
-  anchor.setProvider(anchorProvider);
+export const getProvider = (): AnchorProvider => {
+  const anchorProvider = AnchorProvider.env();
+  setProvider(anchorProvider);
   return anchorProvider;
 };
 

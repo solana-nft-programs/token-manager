@@ -10,9 +10,10 @@ on:
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: 1.9.13
-  ANCHOR_GIT: https://github.com/project-serum/anchor
   RUST_TOOLCHAIN: nightly
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+  ANCHOR_GIT: https://github.com/project-serum/anchor
+  ANCHOR_VERSION: 0.24.2
 
 jobs:
   test:
@@ -34,6 +35,7 @@ jobs:
       - uses: ./.github/actions/install-anchor
         with:
           anchor_git: ${{ env.ANCHOR_GIT }}
+          anchor_version: ${{ env.ANCHOR_VERSION }}
 
       # Restore Cache from previous build/test
       - uses: actions/cache@v2

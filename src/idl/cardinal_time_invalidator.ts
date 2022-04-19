@@ -357,6 +357,11 @@ export type CardinalTimeInvalidator = {
       code: 6012;
       name: "InvalidCollector";
       msg: "Invalid collector";
+    },
+    {
+      code: 6013;
+      name: "AccountDiscriminatorMismatch";
+      msg: "Account discriminator is incorrect";
     }
   ];
 };
@@ -720,6 +725,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6012,
       name: "InvalidCollector",
       msg: "Invalid collector",
+    },
+    {
+      code: 6013,
+      name: "AccountDiscriminatorMismatch",
+      msg: "Account discriminator is incorrect",
     },
   ],
 };

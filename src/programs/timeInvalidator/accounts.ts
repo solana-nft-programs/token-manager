@@ -1,8 +1,8 @@
 import {
+  AnchorProvider,
   BN,
   BorshAccountsCoder,
   Program,
-  Provider,
 } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
@@ -20,7 +20,7 @@ export const getTimeInvalidator = async (
 ): Promise<AccountData<TimeInvalidatorData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,
     TIME_INVALIDATOR_ADDRESS,
@@ -42,7 +42,7 @@ export const getTimeInvalidators = async (
 ): Promise<AccountData<TimeInvalidatorData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,
     TIME_INVALIDATOR_ADDRESS,

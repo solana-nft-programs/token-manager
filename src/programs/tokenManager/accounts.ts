@@ -1,8 +1,8 @@
 import {
+  AnchorProvider,
   BN,
   BorshAccountsCoder,
   Program,
-  Provider,
   utils,
 } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
@@ -23,7 +23,7 @@ export const getTokenManager = async (
 ): Promise<AccountData<TokenManagerData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -45,7 +45,7 @@ export const getTokenManagers = async (
 ): Promise<AccountData<TokenManagerData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -124,7 +124,7 @@ export const getMintManager = async (
 ): Promise<AccountData<MintManagerData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -146,7 +146,7 @@ export const getMintCounter = async (
 ): Promise<AccountData<MintCounterData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,

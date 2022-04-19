@@ -1,4 +1,4 @@
-import { BN, Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
@@ -41,7 +41,7 @@ export const init = async (
   tokenManagerId: PublicKey,
   timeInvalidation: TimeInvalidationParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
 
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,
@@ -105,7 +105,7 @@ export const extendExpiration = (
   extensionPaymentAmount: number,
   paymentAccounts: [PublicKey, PublicKey, AccountMeta[]]
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
 
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,
@@ -146,7 +146,7 @@ export const invalidate = async (
   recipientTokenAccountId: PublicKey,
   returnAccounts: AccountMeta[]
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
 
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,
@@ -187,7 +187,7 @@ export const close = (
   tokenManagerId: PublicKey,
   collector?: PublicKey
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
 
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,

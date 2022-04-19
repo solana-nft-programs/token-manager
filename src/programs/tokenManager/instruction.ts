@@ -18,7 +18,7 @@ import type {
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import { findAta } from "../..";
-import { TokenManagerState } from ".";
+import { CRANK_KEY, TokenManagerState } from ".";
 import type {
   InvalidationType,
   TOKEN_MANAGER_PROGRAM,
@@ -421,7 +421,7 @@ export const invalidate = async (
       mint: mintId,
       recipientTokenAccount: recipientTokenAccountId,
       invalidator: wallet.publicKey,
-      collector: wallet.publicKey,
+      collector: CRANK_KEY,
       tokenProgram: TOKEN_PROGRAM_ID,
       rent: SYSVAR_RENT_PUBKEY,
     },

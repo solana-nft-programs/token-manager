@@ -1,6 +1,6 @@
 use {
     crate::{errors::ErrorCode, state::*},
-    anchor_lang::{prelude::*, Discriminator},
+    anchor_lang::prelude::*,
     cardinal_token_manager::state::{TokenManager, TokenManagerState},
 };
 
@@ -34,13 +34,6 @@ pub struct InitCtx<'info> {
 
 pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     let claim_approver = &mut ctx.accounts.claim_approver;
-    // discriminator check
-    let acct = claim_approver.to_account_info();
-    let data: &[u8] = &acct.try_borrow_data()?;
-    let disc_bytes = &data[..8];
-    if disc_bytes != PaidClaimApprover::discriminator() && disc_bytes.iter().any(|a| a != &0) {
-        return Err(error!(ErrorCode::AccountDiscriminatorMismatch));
-    }
     claim_approver.bump = *ctx.bumps.get("claim_approver").unwrap();
     claim_approver.payment_amount = ix.payment_amount;
     claim_approver.payment_mint = ix.payment_mint;

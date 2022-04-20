@@ -3,7 +3,6 @@ use {
     anchor_lang::{
         prelude::*,
         solana_program::program::{invoke, invoke_signed},
-        Discriminator,
     },
     anchor_spl::{
         associated_token::{self, AssociatedToken},
@@ -58,13 +57,6 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
     // set receipt mint manager data
     let receipt_mint_manager = &mut ctx.accounts.receipt_mint_manager;
     receipt_mint_manager.bump = *ctx.bumps.get("receipt_mint_manager").unwrap();
-    // discriminator check
-    let acct = receipt_mint_manager.to_account_info();
-    let data: &[u8] = &acct.try_borrow_data()?;
-    let disc_bytes = &data[..8];
-    if disc_bytes != ReceiptMintManager::discriminator() && disc_bytes.iter().any(|a| a != &0) {
-        return Err(error!(ErrorCode::AccountDiscriminatorMismatch));
-    }
 
     // get PDA seeds to sign with
     let receipt_mint_manager_seeds = &[RECEIPT_MINT_MANAGER_SEED.as_bytes(), &[ctx.accounts.receipt_mint_manager.bump]];

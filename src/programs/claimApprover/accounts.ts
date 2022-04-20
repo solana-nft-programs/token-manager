@@ -1,4 +1,8 @@
-import { BorshAccountsCoder, Program, Provider } from "@project-serum/anchor";
+import {
+  AnchorProvider,
+  BorshAccountsCoder,
+  Program,
+} from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
@@ -16,7 +20,7 @@ export const getClaimApprover = async (
 ): Promise<AccountData<PaidClaimApproverData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
     CLAIM_APPROVER_IDL,
     CLAIM_APPROVER_ADDRESS,
@@ -42,7 +46,7 @@ export const getClaimApprovers = async (
 ): Promise<AccountData<PaidClaimApproverData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
     CLAIM_APPROVER_IDL,
     CLAIM_APPROVER_ADDRESS,

@@ -19,7 +19,7 @@ __metadata:
   resolution: "@cardinal/token-manager@workspace:."
   dependencies:
     "@metaplex-foundation/mpl-token-metadata": ^1.2.3
-    "@project-serum/anchor": ^0.22.0
+    "@project-serum/anchor": ^0.24.2
     "@rushstack/eslint-patch": ^1.1.0
     "@saberhq/anchor-contrib": ^1.12.44
     "@saberhq/chai-solana": ^1.12.44
@@ -49,6 +49,7 @@ __metadata:
     mocha: ^9.1.4
     mocha-junit-reporter: ^2.0.2
     prettier: ^2.5.1
+    superstruct: ^0.15.4
     tiny-invariant: ^1.2.0
     ts-node: ^10.5.0
     tslib: ^2.3.1
@@ -218,12 +219,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@project-serum/anchor@npm:^0.22.0":
-  version: 0.22.1
-  resolution: "@project-serum/anchor@npm:0.22.1"
+"@project-serum/anchor@npm:^0.24.2":
+  version: 0.24.2
+  resolution: "@project-serum/anchor@npm:0.24.2"
   dependencies:
     "@project-serum/borsh": ^0.2.5
-    "@solana/web3.js": ^1.17.0
+    "@solana/web3.js": ^1.36.0
     base64-js: ^1.5.1
     bn.js: ^5.1.2
     bs58: ^4.0.1
@@ -232,12 +233,11 @@ __metadata:
     cross-fetch: ^3.1.5
     crypto-hash: ^1.3.0
     eventemitter3: ^4.0.7
-    find: ^0.3.0
     js-sha256: ^0.9.0
     pako: ^2.0.3
     snake-case: ^3.0.4
     toml: ^3.0.0
-  checksum: d4af90220b94e7de68b74693066e03e6b0d917e8eb86d58fcb623c553b3864165c000ea83d69aa301e135569a745e4fa36a76c784473b7c05d032bae18230496
+  checksum: feceab2997ec742d7864c9c5d8daf605becb8465b39b77ae67d3e69940645a3c257f2d9aefd1aef3287dcc4b572594fff5923681dbc386e7d13a28fa49666054
   languageName: node
   linkType: hard
 
@@ -394,7 +394,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solana/web3.js@npm:^1.17.0, @solana/web3.js@npm:^1.21.0, @solana/web3.js@npm:^1.31.0, @solana/web3.js@npm:^1.34.0":
+"@solana/web3.js@npm:^1.21.0, @solana/web3.js@npm:^1.31.0, @solana/web3.js@npm:^1.34.0":
   version: 1.35.0
   resolution: "@solana/web3.js@npm:1.35.0"
   dependencies:
@@ -413,6 +413,28 @@ __metadata:
     superstruct: ^0.14.2
     tweetnacl: ^1.0.0
   checksum: 0be9f649816ab839375bf958ce520fd81a5ba10fa49eb4abe0dff60d13792eba5b48d96e7a2472ce28afc5dcb1fd7ce348f918bc1add9654993f5ae31dcad4e1
+  languageName: node
+  linkType: hard
+
+"@solana/web3.js@npm:^1.36.0":
+  version: 1.39.1
+  resolution: "@solana/web3.js@npm:1.39.1"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+    "@ethersproject/sha2": ^5.5.0
+    "@solana/buffer-layout": ^4.0.0
+    bn.js: ^5.0.0
+    borsh: ^0.7.0
+    bs58: ^4.0.1
+    buffer: 6.0.1
+    cross-fetch: ^3.1.4
+    jayson: ^3.4.4
+    js-sha3: ^0.8.0
+    rpc-websockets: ^7.4.2
+    secp256k1: ^4.0.2
+    superstruct: ^0.14.2
+    tweetnacl: ^1.0.0
+  checksum: 40d2f4f629eff06726324e751d0a8e9f08c9c6fcdb3b4e2a62707e23b24046ee8659545686a2ad7a29ea781d9188e77c13f32b958d82d28cf1c5e772dd1a91a4
   languageName: node
   linkType: hard
 
@@ -2032,15 +2054,6 @@ __metadata:
   dependencies:
     locate-path: ^2.0.0
   checksum: 43284fe4da09f89011f08e3c32cd38401e786b19226ea440b75386c1b12a4cb738c94969808d53a84f564ede22f732c8409e3cfc3f7fb5b5c32378ad0bbf28bd
-  languageName: node
-  linkType: hard
-
-"find@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "find@npm:0.3.0"
-  dependencies:
-    traverse-chain: ~0.1.0
-  checksum: 1cc321b24e13b11e088e2c951edef125faefdbd6ecab34d92c22a2d121af4a99b2feaee7712ad9ab38226da793702ab59a6c8a6343db63a0ab3901589241ec8c
   languageName: node
   linkType: hard
 
@@ -4046,6 +4059,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"superstruct@npm:^0.15.4":
+  version: 0.15.4
+  resolution: "superstruct@npm:0.15.4"
+  checksum: aac38eecda2c0d3aace2fe95baac042d39bfdd50dda480d3f70b8bacb87fe7ba228ede4869537dfb64f1d32a1fe3d794052e7765ed6c3f7bc156795fd761fdfd
+  languageName: node
+  linkType: hard
+
 "supports-color@npm:8.1.1":
   version: 8.1.1
   resolution: "supports-color@npm:8.1.1"
@@ -4147,13 +4167,6 @@ __metadata:
   version: 0.0.3
   resolution: "tr46@npm:0.0.3"
   checksum: 726321c5eaf41b5002e17ffbd1fb7245999a073e8979085dacd47c4b4e8068ff5777142fc6726d6ca1fd2ff16921b48788b87225cbc57c72636f6efa8efbffe3
-  languageName: node
-  linkType: hard
-
-"traverse-chain@npm:~0.1.0":
-  version: 0.1.0
-  resolution: "traverse-chain@npm:0.1.0"
-  checksum: dea79231a429a3dd80a829ff83e8914b6d0032d55dd0971f69d5273e95155869fca400dd9e22f0d91c3b0dda9668aaeeb694f525d7e5a55ca7f695cc149088a2
   languageName: node
   linkType: hard
 

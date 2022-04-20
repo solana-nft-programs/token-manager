@@ -1,6 +1,6 @@
 use {
     crate::{errors::ErrorCode, state::*},
-    anchor_lang::{prelude::*, Discriminator},
+    anchor_lang::prelude::*,
     cardinal_token_manager::state::{TokenManager, TokenManagerState},
 };
 
@@ -47,12 +47,6 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     }
     // discriminator check
     let time_invalidator = &mut ctx.accounts.time_invalidator;
-    let acct = time_invalidator.to_account_info();
-    let data: &[u8] = &acct.try_borrow_data()?;
-    let disc_bytes = &data[..8];
-    if disc_bytes != TimeInvalidator::discriminator() && disc_bytes.iter().any(|a| a != &0) {
-        return Err(error!(ErrorCode::AccountDiscriminatorMismatch));
-    }
     time_invalidator.bump = *ctx.bumps.get("time_invalidator").unwrap();
     time_invalidator.token_manager = ctx.accounts.token_manager.key();
     time_invalidator.collector = ix.collector;

@@ -1,4 +1,4 @@
-import { BN, Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
@@ -32,7 +32,7 @@ export const init = async (
   tokenManagerId: PublicKey,
   params: ClaimApproverParams
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
 
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
     CLAIM_APPROVER_IDL,
@@ -73,7 +73,7 @@ export const pay = async (
   payerTokenAccountId: PublicKey,
   paymentAccounts: [PublicKey, PublicKey, AccountMeta[]]
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
 
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
     CLAIM_APPROVER_IDL,
@@ -116,7 +116,7 @@ export const close = (
   tokenManagerId: PublicKey,
   collector?: PublicKey
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
 
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
     CLAIM_APPROVER_IDL,

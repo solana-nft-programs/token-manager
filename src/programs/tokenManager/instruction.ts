@@ -3,7 +3,7 @@ import {
   MetadataProgram,
 } from "@metaplex-foundation/mpl-token-metadata";
 import type { BN } from "@project-serum/anchor";
-import { Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -39,7 +39,7 @@ export const initMintCounter = async (
   wallet: Wallet,
   mint: PublicKey
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -65,7 +65,7 @@ export const init = async (
   invalidationType: InvalidationType,
   numInvalidators = 1
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -107,7 +107,7 @@ export const setClaimApprover = (
   tokenManagerId: PublicKey,
   claimApproverId: PublicKey
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -128,7 +128,7 @@ export const setTransferAuthority = (
   tokenManagerId: PublicKey,
   transferAuthorityId: PublicKey
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -152,7 +152,7 @@ export const addInvalidator = (
   tokenManagerId: PublicKey,
   invalidatorId: PublicKey
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -174,7 +174,7 @@ export const issue = (
   tokenManagerTokenAccountId: PublicKey,
   issuerTokenAccountId: PublicKey
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -201,7 +201,7 @@ export const unissue = (
   tokenManagerTokenAccountId: PublicKey,
   issuerTokenAccountId: PublicKey
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -229,7 +229,7 @@ export const claim = async (
   recipientTokenAccountId: PublicKey,
   claimReceipt: PublicKey | undefined
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -266,7 +266,7 @@ export const createClaimReceipt = async (
   tokenManagerId: PublicKey,
   claimApproverId: PublicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -297,7 +297,7 @@ export const creatMintManager = async (
   wallet: Wallet,
   mintId: PublicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -326,7 +326,7 @@ export const closeMintManager = async (
   wallet: Wallet,
   mintId: PublicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -356,7 +356,7 @@ export const claimReceiptMint = async (
   tokenManagerId: PublicKey,
   receiptMintId: PublicKey
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -402,7 +402,7 @@ export const invalidate = async (
   recipientTokenAccountId: PublicKey,
   returnAccounts: AccountMeta[]
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,

@@ -22,7 +22,7 @@ default = []
 [dependencies]
 anchor-lang = { version = "0.24.2", features = ["init-if-needed"] }
 anchor-spl = "0.24.2"
-spl-associated-token-account = "1.0.2"
+spl-associated-token-account = "1.0.5"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
 solana-program = "1.8.1"
 cardinal-token-manager = { version = "^1.2.0", path = "../cardinal-token-manager", features = ["cpi"] }

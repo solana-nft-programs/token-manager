@@ -57,26 +57,29 @@ export const init = async (
       {
         collector: timeInvalidation.collector || CRANK_KEY,
         paymentManager: timeInvalidation.paymentManager || PAYMENT_MANAGER_KEY,
-        expiration: timeInvalidation.expiration
-          ? new BN(timeInvalidation.expiration)
-          : null,
-        durationSeconds: timeInvalidation.durationSeconds
-          ? new BN(timeInvalidation.durationSeconds)
-          : null,
-        extensionPaymentAmount: timeInvalidation.extension
-          ?.extensionPaymentAmount
-          ? new BN(timeInvalidation.extension?.extensionPaymentAmount)
-          : null,
-        extensionDurationSeconds: timeInvalidation.extension
-          ?.extensionDurationSeconds
-          ? new BN(timeInvalidation.extension?.extensionDurationSeconds)
-          : null,
+        expiration:
+          timeInvalidation.expiration !== undefined
+            ? new BN(timeInvalidation.expiration)
+            : null,
+        durationSeconds:
+          timeInvalidation.durationSeconds !== undefined
+            ? new BN(timeInvalidation.durationSeconds)
+            : null,
+        extensionPaymentAmount:
+          timeInvalidation.extension?.extensionPaymentAmount !== undefined
+            ? new BN(timeInvalidation.extension?.extensionPaymentAmount)
+            : null,
+        extensionDurationSeconds:
+          timeInvalidation.extension?.extensionDurationSeconds !== undefined
+            ? new BN(timeInvalidation.extension?.extensionDurationSeconds)
+            : null,
         extensionPaymentMint: timeInvalidation.extension?.extensionPaymentMint
           ? timeInvalidation.extension?.extensionPaymentMint
           : null,
-        maxExpiration: timeInvalidation.maxExpiration
-          ? new BN(timeInvalidation.maxExpiration)
-          : null,
+        maxExpiration:
+          timeInvalidation.maxExpiration !== undefined
+            ? new BN(timeInvalidation.maxExpiration)
+            : null,
         disablePartialExtension: timeInvalidation.extension
           ?.disablePartialExtension
           ? timeInvalidation.extension?.disablePartialExtension

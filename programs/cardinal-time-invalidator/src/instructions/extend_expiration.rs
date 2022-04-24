@@ -38,7 +38,7 @@ pub struct ExtendExpirationCtx<'info> {
     token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result<()> {
+pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
@@ -47,15 +47,15 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
         return Err(error!(ErrorCode::InvalidTimeInvalidator));
     }
 
-    let time_to_add = payment_amount
-        .checked_mul(time_invalidator.extension_duration_seconds.expect("No extension duration"))
-        .expect("Multiplication error")
-        .checked_div(time_invalidator.extension_payment_amount.expect("No extension amount"))
-        .expect("Division error");
+    let price_to_pay = seconds_to_add
+        .checked_div(time_invalidator.extension_duration_seconds.expect("No extension duration"))
+        .expect("Division error")
+        .checked_mul(time_invalidator.extension_payment_amount.expect("No extension amount"))
+        .expect("Multiplication error");
 
     if time_invalidator.disable_partial_extension != None
         && time_invalidator.disable_partial_extension.unwrap()
-        && time_to_add
+        && seconds_to_add
             .checked_rem(time_invalidator.extension_duration_seconds.expect("No extension duration"))
             .expect("Remainder error")
             != 0
@@ -72,7 +72,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
     if time_invalidator.expiration != None {
         expiration = time_invalidator.expiration.unwrap();
     }
-    let new_expiration = Some(expiration.checked_add(time_to_add as i64).expect("Addition error"));
+    let new_expiration = Some(expiration.checked_add(seconds_to_add as i64).expect("Addition error"));
 
     if time_invalidator.max_expiration != None && new_expiration > time_invalidator.max_expiration {
         return Err(error!(ErrorCode::InvalidExtendExpiration));
@@ -107,7 +107,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, payment_amount: u64) -> Result
 
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, payment_amount.checked_sub(recipient_fee).expect("Sub error"))?;
+    token::transfer(cpi_context, price_to_pay)?;
 
     time_invalidator.expiration = new_expiration;
     Ok(())

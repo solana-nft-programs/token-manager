@@ -209,7 +209,7 @@ describe("Create and Extend Rental", () => {
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId,
-      1
+      1000
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -250,7 +250,7 @@ describe("Create and Extend Rental", () => {
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId,
-      4
+      4000
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -280,7 +280,7 @@ describe("Create and Extend Rental", () => {
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId,
-      0.5
+      500
     );
 
     const txEnvelope = new TransactionEnvelope(

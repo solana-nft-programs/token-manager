@@ -495,7 +495,8 @@ export const withInvalidate = async (
     timeInvalidatorData &&
     ((timeInvalidatorData.parsed.expiration &&
       timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
-      (timeInvalidatorData.parsed.durationSeconds &&
+      (!timeInvalidatorData.parsed.expiration &&
+        timeInvalidatorData.parsed.durationSeconds &&
         tokenManagerData.parsed.stateChangedAt
           .add(timeInvalidatorData.parsed.durationSeconds)
           .lte(new BN(Date.now() / 1000))))

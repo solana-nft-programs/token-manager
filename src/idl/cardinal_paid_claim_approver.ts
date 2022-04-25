@@ -181,35 +181,43 @@ export type CardinalPaidClaimApprover = {
           }
         ];
       };
+    }
+  ];
+  errors: [
+    {
+      code: 6000;
+      name: "InvalidPaymentTokenAccount";
+      msg: "Token account not owned by the claim approver";
     },
     {
-      name: "ErrorCode";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "InvalidPaymentTokenAccount";
-          },
-          {
-            name: "InvalidPaymentManagerTokenAccount";
-          },
-          {
-            name: "InvalidPayerTokenAccount";
-          },
-          {
-            name: "InvalidTokenManager";
-          },
-          {
-            name: "InvalidIssuer";
-          },
-          {
-            name: "InvalidCollector";
-          },
-          {
-            name: "AccountDiscriminatorMismatch";
-          }
-        ];
-      };
+      code: 6001;
+      name: "InvalidPaymentManagerTokenAccount";
+      msg: "Token account incorrect mint";
+    },
+    {
+      code: 6002;
+      name: "InvalidPayerTokenAccount";
+      msg: "Token account not owned by the payer";
+    },
+    {
+      code: 6003;
+      name: "InvalidTokenManager";
+      msg: "Invalid token manager for this claim approver";
+    },
+    {
+      code: 6004;
+      name: "InvalidIssuer";
+      msg: "Invalid issuer";
+    },
+    {
+      code: 6005;
+      name: "InvalidCollector";
+      msg: "Invalid collector";
+    },
+    {
+      code: 6006;
+      name: "AccountDiscriminatorMismatch";
+      msg: "Invalid account discriminator";
     }
   ];
 };
@@ -398,34 +406,42 @@ export const IDL: CardinalPaidClaimApprover = {
         ],
       },
     },
+  ],
+  errors: [
     {
-      name: "ErrorCode",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "InvalidPaymentTokenAccount",
-          },
-          {
-            name: "InvalidPaymentManagerTokenAccount",
-          },
-          {
-            name: "InvalidPayerTokenAccount",
-          },
-          {
-            name: "InvalidTokenManager",
-          },
-          {
-            name: "InvalidIssuer",
-          },
-          {
-            name: "InvalidCollector",
-          },
-          {
-            name: "AccountDiscriminatorMismatch",
-          },
-        ],
-      },
+      code: 6000,
+      name: "InvalidPaymentTokenAccount",
+      msg: "Token account not owned by the claim approver",
+    },
+    {
+      code: 6001,
+      name: "InvalidPaymentManagerTokenAccount",
+      msg: "Token account incorrect mint",
+    },
+    {
+      code: 6002,
+      name: "InvalidPayerTokenAccount",
+      msg: "Token account not owned by the payer",
+    },
+    {
+      code: 6003,
+      name: "InvalidTokenManager",
+      msg: "Invalid token manager for this claim approver",
+    },
+    {
+      code: 6004,
+      name: "InvalidIssuer",
+      msg: "Invalid issuer",
+    },
+    {
+      code: 6005,
+      name: "InvalidCollector",
+      msg: "Invalid collector",
+    },
+    {
+      code: 6006,
+      name: "AccountDiscriminatorMismatch",
+      msg: "Invalid account discriminator",
     },
   ],
 };

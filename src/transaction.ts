@@ -648,7 +648,7 @@ export const withExtendExpiration = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentAmount: number
+  secondsToAdd: number
 ): Promise<Transaction> => {
   const [timeInvalidatorId] =
     await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
@@ -679,7 +679,7 @@ export const withExtendExpiration = async (
         tokenManagerId,
         payerTokenAccountId,
         timeInvalidatorId,
-        paymentAmount,
+        secondsToAdd,
         paymentAccounts
       )
     );

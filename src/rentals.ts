@@ -33,12 +33,12 @@ export const extendRentalExpiration = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentAmount: number
+  secondsToAdd: number
 ): Promise<Transaction> =>
   withExtendExpiration(
     new Transaction(),
     connection,
     wallet,
     tokenManagerId,
-    paymentAmount
+    secondsToAdd
   );

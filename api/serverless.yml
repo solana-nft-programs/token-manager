@@ -8,6 +8,13 @@ provider:
   runtime: nodejs14.x
   lambdaHashingVersion: "20201221"
 
+package:
+  individually: true
+  exclude:
+    - "./node_modules"
+    - "./package-lock.json"
+    - "./yarn.lock"
+
 functions:
   time-invalidate-crank:
     timeout: 30
@@ -55,4 +62,6 @@ stepFunctions:
 
 plugins:
   - serverless-plugin-typescript
+  - serverless-plugin-include-dependencies
   - serverless-step-functions
+  - serverless-offline

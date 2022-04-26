@@ -5911,7 +5911,7 @@ __metadata:
     "@project-serum/anchor": ^0.21.0
     serverless: ^2.72.0
     serverless-plugin-include-dependencies: ^5.0.0
-    serverless-plugin-typescript: ^2.1.0
+    serverless-plugin-typescript: ^2.1.2
     serverless-step-functions: ^3.5.1
     ts-node: ^10.5.0
     typescript: ^4.5.4
@@ -6080,7 +6080,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"serverless-plugin-typescript@npm:^2.1.0":
+"serverless-plugin-typescript@npm:^2.1.2":
   version: 2.1.2
   resolution: "serverless-plugin-typescript@npm:2.1.2"
   dependencies:

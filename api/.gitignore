@@ -1,0 +1,15 @@
+node_modules
+.DS_Store
+.build
+.serverless
+
+node_modules
+.eslintcache
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

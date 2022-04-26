@@ -8,6 +8,21 @@ provider:
   runtime: nodejs14.x
   lambdaHashingVersion: "20201221"
 
+package:
+  individually: true
+  exclude:
+    - "./node_modules"
+    - "./package-lock.json"
+    - "./yarn.lock"
+
+functions:
+  time-invalidator-crank:
+    timeout: 30
+    environment:
+      SOLANA_CRANK_KEY: ${ssm:/SOLANA_CRANK_KEY~true}
+      CRANK_DISABLED: ${param:CRANK_DISABLED,false}
+    handler: time-invalidator-crank/handler.invalidate
+
 stepFunctions:
   stateMachines:
     everyminute:
@@ -15,8 +30,8 @@ stepFunctions:
       events:
         - schedule:
             rate: rate(1 minute)
-      id: loop-${opt:stage}
-      name: loop-${opt:stage}
+      id: time-invalidator-crank-${opt:stage}
+      name: time-invalidator-crank-${opt:stage}
       definition:
         StartAt: Create Loop Items
         States:
@@ -24,27 +39,29 @@ stepFunctions:
             Type: Pass
             Next: Loop
             Result:
-              items: [1, 2, 3, 4, 5, 6]
+              items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
           Loop:
             Type: Map
             ItemsPath: "$.items"
             MaxConcurrency: 1
             Iterator:
-              StartAt: Wait 10 Seconds
+              StartAt: Wait 5 Seconds
               States:
-                Wait 10 Seconds:
+                Wait 5 Seconds:
                   Type: Wait
-                  Seconds: 10
+                  Seconds: 5
                   Next: TimeInvalidatorCrank
                 TimeInvalidatorCrank:
                   Type: Task
                   Resource: arn:aws:states:::lambda:invoke
                   Parameters:
-                    FunctionName: !GetAtt time-invalidate-crank.Arn
+                    FunctionName: !GetAtt time-invalidator-crank.Arn
                     InvocationType: Event
                   End: true
             End: true
 
 plugins:
   - serverless-plugin-typescript
+  - serverless-plugin-include-dependencies
   - serverless-step-functions
+  - serverless-offline

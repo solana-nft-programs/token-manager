@@ -8,6 +8,14 @@ provider:
   runtime: nodejs14.x
   lambdaHashingVersion: "20201221"
 
+functions:
+  time-invalidate-crank:
+    timeout: 30
+    environment:
+      SOLANA_CRANK_KEY: ${ssm:/SOLANA_CRANK_KEY~true}
+      CRANK_DISABLED: ${param:CRANK_DISABLED,false}
+    handler: time-invalidate-crank/handler.invalidate
+
 stepFunctions:
   stateMachines:
     everyminute:
@@ -30,11 +38,11 @@ stepFunctions:
             ItemsPath: "$.items"
             MaxConcurrency: 1
             Iterator:
-              StartAt: Wait 10 Seconds
+              StartAt: Wait 5 Seconds
               States:
-                Wait 10 Seconds:
+                Wait 5 Seconds:
                   Type: Wait
-                  Seconds: 10
+                  Seconds: 5
                   Next: TimeInvalidatorCrank
                 TimeInvalidatorCrank:
                   Type: Task

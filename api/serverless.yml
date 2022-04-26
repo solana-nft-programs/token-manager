@@ -16,12 +16,12 @@ package:
     - "./yarn.lock"
 
 functions:
-  time-invalidate-crank:
+  time-invalidator-crank:
     timeout: 30
     environment:
       SOLANA_CRANK_KEY: ${ssm:/SOLANA_CRANK_KEY~true}
       CRANK_DISABLED: ${param:CRANK_DISABLED,false}
-    handler: time-invalidate-crank/handler.invalidate
+    handler: time-invalidator-crank/handler.invalidate
 
 stepFunctions:
   stateMachines:
@@ -30,8 +30,8 @@ stepFunctions:
       events:
         - schedule:
             rate: rate(1 minute)
-      id: loop-${opt:stage}
-      name: loop-${opt:stage}
+      id: time-invalidator-crank-${opt:stage}
+      name: time-invalidator-crank-${opt:stage}
       definition:
         StartAt: Create Loop Items
         States:
@@ -55,7 +55,7 @@ stepFunctions:
                   Type: Task
                   Resource: arn:aws:states:::lambda:invoke
                   Parameters:
-                    FunctionName: !GetAtt time-invalidate-crank.Arn
+                    FunctionName: !GetAtt time-invalidator-crank.Arn
                     InvocationType: Event
                   End: true
             End: true

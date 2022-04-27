@@ -42,8 +42,10 @@ jobs:
 
       - name: Install Yarn dependencies
         run: yarn install
-      # - name: Parse IDLs
-      #   run: nix shell .#ci --command yarn idl:generate
+      - name: Install api dependencies
+        working-directory: ./api
+        run: npm install
+
       - run: yarn docs:generate
       - run: cp -R images/ site/
 

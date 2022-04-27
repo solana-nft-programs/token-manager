@@ -136,7 +136,7 @@ export const withRemainingAccountsForPayment = async (
           transaction,
           connection,
           paymentMint,
-          PAYMENT_MANAGER_KEY,
+          paymentManager,
           wallet.publicKey,
           true
         ),

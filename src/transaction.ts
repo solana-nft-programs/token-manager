@@ -319,7 +319,8 @@ export const withClaimToken = async (
       wallet,
       claimApproverData.parsed.paymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint
+      tokenManagerData.parsed.receiptMint,
+      claimApproverData.parsed.paymentManager
     );
 
     transaction.add(
@@ -670,7 +671,8 @@ export const withExtendExpiration = async (
       wallet,
       timeInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint
+      tokenManagerData.parsed.receiptMint,
+      timeInvalidatorData.parsed.paymentManager
     );
 
     transaction.add(
@@ -721,7 +723,8 @@ export const withExtendUsages = async (
       wallet,
       useInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint
+      tokenManagerData.parsed.receiptMint,
+      useInvalidatorData.parsed.paymentManager
     );
 
     transaction.add(

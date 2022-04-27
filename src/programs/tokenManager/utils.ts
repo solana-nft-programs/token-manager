@@ -62,6 +62,7 @@ export const withRemainingAccountsForPayment = async (
   paymentMint: PublicKey,
   issuerId: PublicKey,
   receiptMint?: PublicKey | null,
+  paymentManager = PAYMENT_MANAGER_KEY,
   allowOwnerOffCurve = true
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
   if (receiptMint) {
@@ -102,7 +103,7 @@ export const withRemainingAccountsForPayment = async (
           transaction,
           connection,
           paymentMint,
-          PAYMENT_MANAGER_KEY,
+          paymentManager,
           wallet.publicKey,
           true
         ),

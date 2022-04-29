@@ -133,15 +133,10 @@ describe("Create and Extend Rental", () => {
       rentalMint.publicKey
     );
 
-    const timeInvalidatorId = (
-      await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-    )[0];
-
     const transaction = await rentals.claimRental(
       provider.connection,
       new SignerWallet(recipient),
-      tokenManagerId,
-      timeInvalidatorId
+      tokenManagerId
     );
 
     const txEnvelope = new TransactionEnvelope(

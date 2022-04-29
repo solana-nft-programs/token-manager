@@ -285,7 +285,7 @@ export const withClaimToken = async (
   tokenManagerId: PublicKey,
   additionalOptions?: {
     otpKeypair?: Keypair | null;
-    timeInvalidatorId?: PublicKey;
+    payer?: PublicKey;
   }
 ): Promise<Transaction> => {
   const [tokenManagerData, claimApproverData] = await Promise.all([
@@ -320,7 +320,8 @@ export const withClaimToken = async (
       claimApproverData.parsed.paymentMint,
       tokenManagerData.parsed.issuer,
       tokenManagerData.parsed.receiptMint,
-      claimApproverData.parsed.paymentManager
+      claimApproverData.parsed.paymentManager,
+      additionalOptions?.payer ?? wallet.publicKey
     );
 
     transaction.add(
@@ -343,10 +344,10 @@ export const withClaimToken = async (
     // approve claim request
     const [createClaimReceiptIx, claimReceipt] =
       await tokenManager.instruction.createClaimReceipt(
-        connection,
-        wallet,
+        wallet.publicKey,
         tokenManagerId,
-        additionalOptions?.otpKeypair.publicKey
+        additionalOptions?.otpKeypair.publicKey,
+        additionalOptions?.payer
       );
     transaction.add(createClaimReceiptIx);
     claimReceiptId = claimReceipt;
@@ -365,7 +366,7 @@ export const withClaimToken = async (
     connection,
     tokenManagerData.parsed.mint,
     wallet.publicKey,
-    wallet.publicKey
+    additionalOptions?.payer ?? wallet.publicKey
   );
 
   // claim

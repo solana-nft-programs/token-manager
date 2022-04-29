@@ -116,10 +116,7 @@ describe("Create rental reissue", () => {
     const transaction = await rentals.claimRental(
       provider.connection,
       new SignerWallet(recipient),
-      tokenManagerId,
-      (
-        await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-      )[0]
+      tokenManagerId
     );
 
     const tokenManagerAccountBefore = await provider.connection.getAccountInfo(
@@ -258,10 +255,7 @@ describe("Create rental reissue", () => {
     const transaction = await rentals.claimRental(
       provider.connection,
       new SignerWallet(recipient),
-      tokenManagerId,
-      (
-        await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-      )[0]
+      tokenManagerId
     );
 
     const txEnvelope = new TransactionEnvelope(

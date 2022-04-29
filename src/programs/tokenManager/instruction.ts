@@ -261,30 +261,28 @@ export const claim = async (
 };
 
 export const createClaimReceipt = async (
-  connection: Connection,
-  wallet: Wallet,
+  target: PublicKey,
   tokenManagerId: PublicKey,
-  claimApproverId: PublicKey
+  claimApproverId: PublicKey,
+  payer = target
 ): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
-    TOKEN_MANAGER_ADDRESS,
-    provider
+    TOKEN_MANAGER_ADDRESS
   );
 
   const [claimReceiptId, _claimReceiptBump] = await findClaimReceiptId(
     tokenManagerId,
-    wallet.publicKey
+    target
   );
 
   return [
-    tokenManagerProgram.instruction.createClaimReceipt(wallet.publicKey, {
+    tokenManagerProgram.instruction.createClaimReceipt(target, {
       accounts: {
         tokenManager: tokenManagerId,
         claimApprover: claimApproverId,
         claimReceipt: claimReceiptId,
-        payer: wallet.publicKey,
+        payer,
         systemProgram: SystemProgram.programId,
       },
     }),

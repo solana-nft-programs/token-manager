@@ -110,10 +110,11 @@ describe("Issue payer invalidate", () => {
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
     // assert not lamports
-    const recipientAccountInfo = await provider.connection.getAccountInfo(
-      recipient.publicKey
-    );
-    expect(recipientAccountInfo?.lamports).to.eq(0);
+    expect(async () => {
+      await expect(() =>
+        provider.connection.getAccountInfo(recipient.publicKey)
+      ).to.be.rejectedWith(Error);
+    });
 
     const transaction = await withClaimToken(
       new Transaction(),
@@ -129,11 +130,11 @@ describe("Issue payer invalidate", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: new SignerWallet(recipient),
+        wallet: new SignerWallet(payer),
         opts: provider.opts,
       }),
       [...transaction.instructions],
-      [otpKeypair, payer]
+      [otpKeypair, recipient]
     );
     await expectTXTable(txEnvelope, "test", {
       verbosity: "error",

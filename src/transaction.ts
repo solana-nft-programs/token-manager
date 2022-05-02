@@ -344,7 +344,8 @@ export const withClaimToken = async (
     // approve claim request
     const [createClaimReceiptIx, claimReceipt] =
       await tokenManager.instruction.createClaimReceipt(
-        wallet.publicKey,
+        connection,
+        wallet,
         tokenManagerId,
         additionalOptions?.otpKeypair.publicKey,
         additionalOptions?.payer

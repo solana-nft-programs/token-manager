@@ -64,7 +64,12 @@ const main = async (cluster: string) => {
           new BN(Date.now() / 1000).gte(
             timeInvalidatorData.parsed.expiration
           )) ||
-          (timeInvalidatorData.parsed.durationSeconds &&
+          (timeInvalidatorData.parsed.maxExpiration &&
+            new BN(Date.now() / 1000).gte(
+              timeInvalidatorData.parsed.maxExpiration
+            )) ||
+          (!timeInvalidatorData.parsed.expiration &&
+            timeInvalidatorData.parsed.durationSeconds &&
             tokenManagerData.parsed.state === TokenManagerState.Claimed &&
             new BN(Date.now() / 1000).gte(
               tokenManagerData.parsed.stateChangedAt.add(

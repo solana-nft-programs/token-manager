@@ -79,21 +79,30 @@ export const getTokenManagersByState = async (
   const programAccounts = await connection.getProgramAccounts(
     TOKEN_MANAGER_ADDRESS,
     {
-      filters: state
-        ? [
-            {
-              memcmp: {
-                offset: 92,
-                bytes: utils.bytes.bs58.encode(
-                  new BN(state).toArrayLike(Buffer, "le", 1)
-                ),
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("tokenManager")
+            ),
+          },
+        },
+        ...(state
+          ? [
+              {
+                memcmp: {
+                  offset: 92,
+                  bytes: utils.bytes.bs58.encode(
+                    new BN(state).toArrayLike(Buffer, "le", 1)
+                  ),
+                },
               },
-            },
-          ]
-        : [],
+            ]
+          : []),
+      ],
     }
   );
-
   const tokenManagerDatas: AccountData<TokenManagerData>[] = [];
   const coder = new BorshAccountsCoder(TOKEN_MANAGER_IDL);
   programAccounts.forEach((account) => {
@@ -169,7 +178,17 @@ export const getTokenManagersForIssuer = async (
   const programAccounts = await connection.getProgramAccounts(
     TOKEN_MANAGER_ADDRESS,
     {
-      filters: [{ memcmp: { offset: 19, bytes: issuerId.toBase58() } }],
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("tokenManager")
+            ),
+          },
+        },
+        { memcmp: { offset: 19, bytes: issuerId.toBase58() } },
+      ],
     }
   );
 

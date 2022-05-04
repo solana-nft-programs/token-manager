@@ -72,6 +72,9 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
     if time_invalidator.expiration != None {
         expiration = time_invalidator.expiration.unwrap();
     }
+    if ctx.accounts.token_manager.state == TokenManagerState::Issued as u8 {
+        expiration = Clock::get().unwrap().unix_timestamp;
+    }
     let new_expiration = Some(expiration.checked_add(seconds_to_add as i64).expect("Addition error"));
 
     if time_invalidator.max_expiration != None && new_expiration > time_invalidator.max_expiration {

@@ -253,12 +253,6 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "expiration";
-            type: {
-              option: "i64";
-            };
-          },
-          {
             name: "extensionPaymentAmount";
             type: {
               option: "u64";
@@ -616,12 +610,6 @@ export const IDL: CardinalTimeInvalidator = {
           },
           {
             name: "durationSeconds",
-            type: {
-              option: "i64",
-            },
-          },
-          {
-            name: "expiration",
             type: {
               option: "i64",
             },

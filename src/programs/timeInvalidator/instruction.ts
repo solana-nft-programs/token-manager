@@ -24,7 +24,6 @@ import { findTimeInvalidatorAddress } from "./pda";
 export type TimeInvalidationParams = {
   collector?: PublicKey;
   paymentManager?: PublicKey;
-  expiration?: number;
   durationSeconds?: number;
   maxExpiration?: number;
   extension?: {
@@ -57,10 +56,6 @@ export const init = async (
       {
         collector: timeInvalidation.collector || CRANK_KEY,
         paymentManager: timeInvalidation.paymentManager || PAYMENT_MANAGER_KEY,
-        expiration:
-          timeInvalidation.expiration !== undefined
-            ? new BN(timeInvalidation.expiration)
-            : null,
         durationSeconds:
           timeInvalidation.durationSeconds !== undefined
             ? new BN(timeInvalidation.durationSeconds)

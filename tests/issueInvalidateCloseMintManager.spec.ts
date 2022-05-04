@@ -53,7 +53,7 @@ describe("Issue Claim Close Mint Manager", () => {
       provider.connection,
       provider.wallet,
       {
-        timeInvalidation: { expiration: Date.now() / 1000 },
+        timeInvalidation: { maxExpiration: Date.now() / 1000 },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),

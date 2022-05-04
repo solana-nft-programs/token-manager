@@ -69,7 +69,7 @@ describe("Issue Unissue", () => {
           collector: collector.publicKey,
         },
         timeInvalidation: {
-          expiration: Date.now() / 1000 + 1,
+          maxExpiration: Date.now() / 1000 + 1,
           collector: collector.publicKey,
         },
         mint: rentalMint.publicKey,

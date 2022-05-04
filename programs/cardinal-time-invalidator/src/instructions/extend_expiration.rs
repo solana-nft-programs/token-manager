@@ -72,22 +72,17 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
     if time_invalidator.expiration != None {
         expiration = time_invalidator.expiration.unwrap();
     }
+    if ctx.accounts.token_manager.state == TokenManagerState::Issued as u8 {
+        expiration = Clock::get().unwrap().unix_timestamp;
+    }
     let new_expiration = Some(expiration.checked_add(seconds_to_add as i64).expect("Addition error"));
 
     if time_invalidator.max_expiration != None && new_expiration > time_invalidator.max_expiration {
         return Err(error!(ErrorCode::InvalidExtendExpiration));
     }
 
-    let provider_fee = time_invalidator
-        .extension_payment_amount
-        .expect("No extension amount")
-        .checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
-    let recipient_fee = time_invalidator
-        .extension_payment_amount
-        .expect("No extension amount")
-        .checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
+    let provider_fee = price_to_pay.checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).expect("Division error")).expect("Multiplication error");
+    let recipient_fee = price_to_pay.checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).expect("Division error")).expect("Multiplication error");
     if provider_fee.checked_add(recipient_fee).expect("Add error") > 0 {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
@@ -107,7 +102,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
 
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, price_to_pay)?;
+    token::transfer(cpi_context, price_to_pay.checked_sub(recipient_fee).expect("Sub error"))?;
 
     time_invalidator.expiration = new_expiration;
     Ok(())

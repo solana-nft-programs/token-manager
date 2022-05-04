@@ -496,8 +496,12 @@ export const withInvalidate = async (
     );
   } else if (
     timeInvalidatorData &&
-    ((timeInvalidatorData.parsed.expiration &&
-      timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
+    ((timeInvalidatorData.parsed.maxExpiration &&
+      timeInvalidatorData.parsed.maxExpiration.lte(
+        new BN(Date.now() / 1000)
+      )) ||
+      (timeInvalidatorData.parsed.expiration &&
+        timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
       (!timeInvalidatorData.parsed.expiration &&
         timeInvalidatorData.parsed.durationSeconds &&
         tokenManagerData.parsed.stateChangedAt

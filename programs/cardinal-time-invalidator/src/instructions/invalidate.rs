@@ -13,8 +13,8 @@ pub struct InvalidateCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(mut,
-        constraint = time_invalidator.expiration != None && Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration.unwrap()
-        || time_invalidator.max_expiration != None && Clock::get().unwrap().unix_timestamp >= time_invalidator.max_expiration.unwrap()
+        constraint = time_invalidator.max_expiration != None && Clock::get().unwrap().unix_timestamp >= time_invalidator.max_expiration.unwrap()
+        || time_invalidator.expiration != None && token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration.unwrap()
         || time_invalidator.expiration == None && token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= token_manager.state_changed_at.checked_add(time_invalidator.duration_seconds.expect("No extension duration")).expect("Addition error")
         @ ErrorCode::InvalidTimeInvalidator
     )]

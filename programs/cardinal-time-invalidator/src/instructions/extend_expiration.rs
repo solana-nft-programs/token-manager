@@ -6,6 +6,7 @@ use {
         state::{assert_payment_manager, TokenManager, TokenManagerState, FEE_SCALE, PROVIDER_FEE, RECIPIENT_FEE},
         utils::assert_payment_token_account,
     },
+    std::cmp::max,
 };
 
 #[derive(Accounts)]
@@ -32,7 +33,7 @@ pub struct ExtendExpirationCtx<'info> {
       payer_token_account.owner == payer.key()
       && payer_token_account.mint == time_invalidator.extension_payment_mint.expect("No extension mint")
       @ ErrorCode::InvalidPayerTokenAccount
-  )]
+    )]
     payer_token_account: Box<Account<'info, TokenAccount>>,
 
     token_program: Program<'info, Token>,
@@ -53,6 +54,11 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
         .checked_div(time_invalidator.extension_duration_seconds.expect("No extension duration"))
         .expect("Division error");
 
+    if price_to_pay == 0 && time_invalidator.extension_payment_amount.unwrap() > 0 {
+        return Err(error!(ErrorCode::InvalidExtensionAmount));
+    }
+    msg!("Extending by {:?} seconds by paying {:?}", seconds_to_add, price_to_pay);
+
     if time_invalidator.disable_partial_extension != None
         && time_invalidator.disable_partial_extension.unwrap()
         && seconds_to_add
@@ -70,10 +76,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
         .checked_add(time_invalidator.duration_seconds.expect("No duration set"))
         .expect("Add error");
     if time_invalidator.expiration != None {
-        expiration = time_invalidator.expiration.unwrap();
-    }
-    if ctx.accounts.token_manager.state == TokenManagerState::Issued as u8 {
-        expiration = Clock::get().unwrap().unix_timestamp;
+        expiration = max(expiration, time_invalidator.expiration.unwrap());
     }
     let new_expiration = Some(expiration.checked_add(seconds_to_add as i64).expect("Addition error"));
 

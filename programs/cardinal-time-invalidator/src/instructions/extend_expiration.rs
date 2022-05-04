@@ -48,10 +48,10 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
     }
 
     let price_to_pay = seconds_to_add
-        .checked_div(time_invalidator.extension_duration_seconds.expect("No extension duration"))
-        .expect("Division error")
         .checked_mul(time_invalidator.extension_payment_amount.expect("No extension amount"))
-        .expect("Multiplication error");
+        .expect("Multiplication error")
+        .checked_div(time_invalidator.extension_duration_seconds.expect("No extension duration"))
+        .expect("Division error");
 
     if time_invalidator.disable_partial_extension != None
         && time_invalidator.disable_partial_extension.unwrap()

@@ -9,7 +9,7 @@ pub struct ResetExpirationCtx<'info> {
     #[account(constraint = token_manager.state == TokenManagerState::Issued as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut)]
+    #[account(mut, constraint = token_manager.key() == time_invalidator.token_manager @ ErrorCode::InvalidTimeInvalidator)]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
 }
 

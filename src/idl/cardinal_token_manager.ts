@@ -1721,7 +1721,10 @@ export const IDL: CardinalTokenManager = {
             type: "u8",
           },
         ],
-  "types": [
+      },
+    },
+  ],
+  types: [
     {
       name: "InitIx",
       type: {

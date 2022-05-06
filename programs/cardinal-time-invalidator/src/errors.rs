@@ -30,4 +30,6 @@ pub enum ErrorCode {
     InvalidCollector,
     #[msg("Account discriminator is incorrect")]
     AccountDiscriminatorMismatch,
+    #[msg("Invalid token manager state for resetting expiration")]
+    InvalidTokenManagerState
 }

@@ -17,7 +17,11 @@ import {
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
-import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
+import {
+  InvalidationType,
+  TokenManagerKind,
+  TokenManagerState,
+} from "./programs/tokenManager";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
 import {
   withRemainingAccountsForPayment,
@@ -744,6 +748,34 @@ export const withExtendUsages = async (
         paymentAccounts
       )
     );
+  }
+
+  return transaction;
+};
+
+export const withResetExpiration = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey
+): Promise<Transaction> => {
+  const [timeInvalidatorId] =
+    await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
+  const [tokenManagerData] = await Promise.all([
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId),
+  ]);
+
+  if (tokenManagerData.parsed.state === TokenManagerState.Issued) {
+    transaction.add(
+      timeInvalidator.instruction.resetExpiration(
+        connection,
+        wallet,
+        tokenManagerId,
+        timeInvalidatorId
+      )
+    );
+  } else {
+    console.log("Token Manager not in state issued to reset expiration");
   }
 
   return transaction;

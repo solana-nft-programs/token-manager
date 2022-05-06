@@ -133,6 +133,28 @@ export const extendExpiration = (
   );
 };
 
+export const resetExpiration = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  timeInvalidatorId: PublicKey
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.resetExpiration({
+    accounts: {
+      tokenManager: tokenManagerId,
+      timeInvalidator: timeInvalidatorId,
+    },
+  });
+};
+
 export const invalidate = async (
   connection: Connection,
   wallet: Wallet,

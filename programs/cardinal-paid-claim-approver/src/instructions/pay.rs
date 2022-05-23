@@ -79,7 +79,7 @@ pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, ctx.accounts.claim_approver.payment_amount.checked_sub(recipient_fee).expect("Add error"))?;
+    token::transfer(cpi_context, ctx.accounts.claim_approver.payment_amount.checked_sub(recipient_fee).expect("Sub error"))?;
 
     let token_manager_key = ctx.accounts.token_manager.key();
     let claim_approver_seeds = &[PAID_CLAIM_APPROVER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.claim_approver.bump]];

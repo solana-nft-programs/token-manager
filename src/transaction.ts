@@ -17,7 +17,11 @@ import {
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
-import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
+import {
+  InvalidationType,
+  TokenManagerKind,
+  TokenManagerState,
+} from "./programs/tokenManager";
 import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
 import {
   withRemainingAccountsForPayment,
@@ -285,7 +289,7 @@ export const withClaimToken = async (
   tokenManagerId: PublicKey,
   additionalOptions?: {
     otpKeypair?: Keypair | null;
-    timeInvalidatorId?: PublicKey;
+    payer?: PublicKey;
   }
 ): Promise<Transaction> => {
   const [tokenManagerData, claimApproverData] = await Promise.all([
@@ -320,7 +324,8 @@ export const withClaimToken = async (
       claimApproverData.parsed.paymentMint,
       tokenManagerData.parsed.issuer,
       tokenManagerData.parsed.receiptMint,
-      claimApproverData.parsed.paymentManager
+      claimApproverData.parsed.paymentManager,
+      additionalOptions?.payer ?? wallet.publicKey
     );
 
     transaction.add(
@@ -346,7 +351,8 @@ export const withClaimToken = async (
         connection,
         wallet,
         tokenManagerId,
-        additionalOptions?.otpKeypair.publicKey
+        additionalOptions?.otpKeypair.publicKey,
+        additionalOptions?.payer
       );
     transaction.add(createClaimReceiptIx);
     claimReceiptId = claimReceipt;
@@ -365,7 +371,7 @@ export const withClaimToken = async (
     connection,
     tokenManagerData.parsed.mint,
     wallet.publicKey,
-    wallet.publicKey
+    additionalOptions?.payer ?? wallet.publicKey
   );
 
   // claim
@@ -494,8 +500,12 @@ export const withInvalidate = async (
     );
   } else if (
     timeInvalidatorData &&
-    ((timeInvalidatorData.parsed.expiration &&
-      timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
+    ((timeInvalidatorData.parsed.maxExpiration &&
+      timeInvalidatorData.parsed.maxExpiration.lte(
+        new BN(Date.now() / 1000)
+      )) ||
+      (timeInvalidatorData.parsed.expiration &&
+        timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
       (!timeInvalidatorData.parsed.expiration &&
         timeInvalidatorData.parsed.durationSeconds &&
         tokenManagerData.parsed.stateChangedAt
@@ -738,6 +748,34 @@ export const withExtendUsages = async (
         paymentAccounts
       )
     );
+  }
+
+  return transaction;
+};
+
+export const withResetExpiration = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey
+): Promise<Transaction> => {
+  const [timeInvalidatorId] =
+    await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
+  const [tokenManagerData] = await Promise.all([
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId),
+  ]);
+
+  if (tokenManagerData.parsed.state === TokenManagerState.Issued) {
+    transaction.add(
+      timeInvalidator.instruction.resetExpiration(
+        connection,
+        wallet,
+        tokenManagerId,
+        timeInvalidatorId
+      )
+    );
+  } else {
+    console.log("Token Manager not in state issued to reset expiration");
   }
 
   return transaction;

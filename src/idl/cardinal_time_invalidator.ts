@@ -1,5 +1,5 @@
 export type CardinalTimeInvalidator = {
-  version: "1.2.1";
+  version: "1.3.10";
   name: "cardinal_time_invalidator";
   instructions: [
     {
@@ -81,10 +81,26 @@ export type CardinalTimeInvalidator = {
       ];
       args: [
         {
-          name: "paymentAmount";
+          name: "secondsToAdd";
           type: "u64";
         }
       ];
+    },
+    {
+      name: "resetExpiration";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
     },
     {
       name: "invalidate";
@@ -253,12 +269,6 @@ export type CardinalTimeInvalidator = {
             };
           },
           {
-            name: "expiration";
-            type: {
-              option: "i64";
-            };
-          },
-          {
             name: "extensionPaymentAmount";
             type: {
               option: "u64";
@@ -362,12 +372,17 @@ export type CardinalTimeInvalidator = {
       code: 6013;
       name: "AccountDiscriminatorMismatch";
       msg: "Account discriminator is incorrect";
+    },
+    {
+      code: 6014;
+      name: "InvalidTokenManagerState";
+      msg: "Invalid token manager state for resetting expiration";
     }
   ];
 };
 
 export const IDL: CardinalTimeInvalidator = {
-  version: "1.2.1",
+  version: "1.3.10",
   name: "cardinal_time_invalidator",
   instructions: [
     {
@@ -449,10 +464,26 @@ export const IDL: CardinalTimeInvalidator = {
       ],
       args: [
         {
-          name: "paymentAmount",
+          name: "secondsToAdd",
           type: "u64",
         },
       ],
+    },
+    {
+      name: "resetExpiration",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
     },
     {
       name: "invalidate",
@@ -621,12 +652,6 @@ export const IDL: CardinalTimeInvalidator = {
             },
           },
           {
-            name: "expiration",
-            type: {
-              option: "i64",
-            },
-          },
-          {
             name: "extensionPaymentAmount",
             type: {
               option: "u64",
@@ -730,6 +755,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6013,
       name: "AccountDiscriminatorMismatch",
       msg: "Account discriminator is incorrect",
+    },
+    {
+      code: 6014,
+      name: "InvalidTokenManagerState",
+      msg: "Invalid token manager state for resetting expiration",
     },
   ],
 };

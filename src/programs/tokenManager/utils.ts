@@ -63,7 +63,7 @@ export const withRemainingAccountsForPayment = async (
   issuerId: PublicKey,
   receiptMint?: PublicKey | null,
   paymentManager = PAYMENT_MANAGER_KEY,
-  allowOwnerOffCurve = true
+  payer = wallet.publicKey
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
@@ -86,25 +86,21 @@ export const withRemainingAccountsForPayment = async (
     const [returnTokenAccountId, paymentManagerTokenAccountId] =
       await Promise.all([
         receiptTokenAccount.owner.equals(wallet.publicKey)
-          ? await findAta(
-              paymentMint,
-              receiptTokenAccount.owner,
-              allowOwnerOffCurve
-            )
+          ? await findAta(paymentMint, receiptTokenAccount.owner, true)
           : await withFindOrInitAssociatedTokenAccount(
               transaction,
               connection,
               paymentMint,
               receiptTokenAccount.owner,
-              wallet.publicKey,
-              allowOwnerOffCurve
+              payer,
+              true
             ),
         await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
           paymentManager,
-          wallet.publicKey,
+          payer,
           true
         ),
       ]);
@@ -123,21 +119,21 @@ export const withRemainingAccountsForPayment = async (
     const [issuerTokenAccountId, paymentManagerTokenAccountId] =
       await Promise.all([
         issuerId.equals(wallet.publicKey)
-          ? await findAta(paymentMint, issuerId, allowOwnerOffCurve)
+          ? await findAta(paymentMint, issuerId, true)
           : await withFindOrInitAssociatedTokenAccount(
               transaction,
               connection,
               paymentMint,
               issuerId,
-              wallet.publicKey,
-              allowOwnerOffCurve
+              payer,
+              true
             ),
         await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
           paymentManager,
-          wallet.publicKey,
+          payer,
           true
         ),
       ]);

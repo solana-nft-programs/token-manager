@@ -110,10 +110,7 @@ describe("Time invalidation on claim", () => {
     const transaction = await rentals.claimRental(
       provider.connection,
       new SignerWallet(recipient),
-      tokenManagerId,
-      (
-        await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-      )[0]
+      tokenManagerId
     );
 
     const txEnvelope = new TransactionEnvelope(

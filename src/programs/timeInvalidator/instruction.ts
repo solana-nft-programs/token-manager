@@ -24,7 +24,6 @@ import { findTimeInvalidatorAddress } from "./pda";
 export type TimeInvalidationParams = {
   collector?: PublicKey;
   paymentManager?: PublicKey;
-  expiration?: number;
   durationSeconds?: number;
   maxExpiration?: number;
   extension?: {
@@ -57,10 +56,6 @@ export const init = async (
       {
         collector: timeInvalidation.collector || CRANK_KEY,
         paymentManager: timeInvalidation.paymentManager || PAYMENT_MANAGER_KEY,
-        expiration:
-          timeInvalidation.expiration !== undefined
-            ? new BN(timeInvalidation.expiration)
-            : null,
         durationSeconds:
           timeInvalidation.durationSeconds !== undefined
             ? new BN(timeInvalidation.durationSeconds)
@@ -136,6 +131,28 @@ export const extendExpiration = (
       remainingAccounts,
     }
   );
+};
+
+export const resetExpiration = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  timeInvalidatorId: PublicKey
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.resetExpiration({
+    accounts: {
+      tokenManager: tokenManagerId,
+      timeInvalidator: timeInvalidatorId,
+    },
+  });
 };
 
 export const invalidate = async (

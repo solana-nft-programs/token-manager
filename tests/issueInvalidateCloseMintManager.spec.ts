@@ -1,28 +1,26 @@
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
-import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
+import {
+  SignerWallet,
+  SolanaProvider,
+  TransactionEnvelope,
+} from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { rentals, tryGetAccount, unissueToken } from "../src";
-import { claimApprover, timeInvalidator, tokenManager } from "../src/programs";
-import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
-import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
+import { invalidate, issueToken, tryGetAccount } from "../src";
+import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
+import { closeMintManager } from "../src/programs/tokenManager/instruction";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Issue Unissue", () => {
-  const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
-  const RENTAL_PAYMENT_AMONT = 10;
+describe("Issue Claim Close Mint Manager", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
-  const collector = Keypair.generate();
-  let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  let paymentMint: Token;
   let rentalMint: Token;
 
   before(async () => {
@@ -39,14 +37,6 @@ describe("Issue Unissue", () => {
     );
     await provider.connection.confirmTransaction(airdropRecipient);
 
-    // create payment mint
-    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
-      provider.connection,
-      tokenCreator,
-      recipient.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT
-    );
-
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
@@ -57,21 +47,13 @@ describe("Issue Unissue", () => {
     );
   });
 
-  it("Create rental", async () => {
+  it("Issue token", async () => {
     const provider = getProvider();
-    const [transaction, tokenManagerId] = await rentals.createRental(
+    const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       provider.wallet,
       {
-        claimPayment: {
-          paymentAmount: RENTAL_PAYMENT_AMONT,
-          paymentMint: paymentMint.publicKey,
-          collector: collector.publicKey,
-        },
-        timeInvalidation: {
-          maxExpiration: Date.now() / 1000 + 1,
-          collector: collector.publicKey,
-        },
+        timeInvalidation: { maxExpiration: Date.now() / 1000 },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
@@ -85,7 +67,7 @@ describe("Issue Unissue", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "create", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -117,29 +99,57 @@ describe("Issue Unissue", () => {
     );
   });
 
-  it("Unissue rental", async () => {
+  it("Cannot close mint manager", async () => {
     const provider = getProvider();
-
-    const transaction = await unissueToken(
-      provider.connection,
-      provider.wallet,
-      rentalMint.publicKey
-    );
-
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
         wallet: provider.wallet,
         opts: provider.opts,
       }),
+      [
+        (
+          await closeMintManager(
+            provider.connection,
+            provider.wallet,
+            rentalMint.publicKey
+          )
+        )[0],
+      ]
+    );
+    expect(async () => {
+      await expectTXTable(txEnvelope, "Fail to close", {
+        verbosity: "error",
+      }).to.be.rejectedWith(Error);
+    });
+  });
+
+  it("Invalidate", async () => {
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const provider = getProvider();
+    const transaction = await invalidate(
+      provider.connection,
+      new SignerWallet(tokenCreator),
+      rentalMint.publicKey
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(tokenCreator),
+        opts: provider.opts,
+      }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+
+    await expectTXTable(txEnvelope, "invalidate", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
       rentalMint.publicKey
     );
 
@@ -148,92 +158,52 @@ describe("Issue Unissue", () => {
     );
     expect(tokenManagerData).to.eq(null);
 
+    const timeInvalidatorData = await tryGetAccount(async () =>
+      timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        (
+          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+        )[0]
+      )
+    );
+    expect(timeInvalidatorData).to.eq(null);
+
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(1);
-
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
-      recipientPaymentTokenAccountId
-    );
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT
-    );
   });
 
-  it("Close claim approver", async () => {
+  it("Close mint manager", async () => {
     const provider = getProvider();
-    const transaction = new Transaction();
-
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
-      rentalMint.publicKey
-    );
-    const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
-
-    transaction.add(
-      claimApprover.instruction.close(
-        provider.connection,
-        provider.wallet,
-        claimApproverId,
-        tokenManagerId,
-        collector.publicKey
-      )
-    );
-
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
         wallet: provider.wallet,
         opts: provider.opts,
       }),
-      [...transaction.instructions]
+      [
+        (
+          await closeMintManager(
+            provider.connection,
+            provider.wallet,
+            rentalMint.publicKey
+          )
+        )[0],
+      ]
     );
-    await expectTXTable(txEnvelope, "Close claim approver", {
+    await expectTXTable(txEnvelope, "invalidate", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
-  });
-
-  it("Close time invalidator", async () => {
-    const provider = getProvider();
-    const transaction = new Transaction();
-
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
-      rentalMint.publicKey
-    );
-    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
-      tokenManagerId
-    );
-
-    transaction.add(
-      timeInvalidator.instruction.close(
+    const checkMintManager = await tryGetAccount(async () =>
+      tokenManager.accounts.getMintManager(
         provider.connection,
-        provider.wallet,
-        timeInvalidatorId,
-        tokenManagerId,
-        collector.publicKey
+        (
+          await tokenManager.pda.findMintManagerId(rentalMint.publicKey)
+        )[0]
       )
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-    await expectTXTable(txEnvelope, "Close time invalidator", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const timeInvalidatorData = await tryGetAccount(() =>
-      timeInvalidator.accounts.getTimeInvalidator(
-        provider.connection,
-        timeInvalidatorId
-      )
-    );
-    expect(timeInvalidatorData).to.eq(null);
+    expect(checkMintManager).to.eq(null);
   });
 });

@@ -6,6 +6,7 @@ use {
         state::{assert_payment_manager, TokenManager, TokenManagerState, FEE_SCALE, PROVIDER_FEE, RECIPIENT_FEE},
         utils::assert_payment_token_account,
     },
+    std::cmp::max,
 };
 
 #[derive(Accounts)]
@@ -32,7 +33,7 @@ pub struct ExtendExpirationCtx<'info> {
       payer_token_account.owner == payer.key()
       && payer_token_account.mint == time_invalidator.extension_payment_mint.expect("No extension mint")
       @ ErrorCode::InvalidPayerTokenAccount
-  )]
+    )]
     payer_token_account: Box<Account<'info, TokenAccount>>,
 
     token_program: Program<'info, Token>,
@@ -48,10 +49,15 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
     }
 
     let price_to_pay = seconds_to_add
-        .checked_div(time_invalidator.extension_duration_seconds.expect("No extension duration"))
-        .expect("Division error")
         .checked_mul(time_invalidator.extension_payment_amount.expect("No extension amount"))
-        .expect("Multiplication error");
+        .expect("Multiplication error")
+        .checked_div(time_invalidator.extension_duration_seconds.expect("No extension duration"))
+        .expect("Division error");
+
+    if price_to_pay == 0 && time_invalidator.extension_payment_amount.unwrap() > 0 {
+        return Err(error!(ErrorCode::InvalidExtensionAmount));
+    }
+    msg!("Extending by {:?} seconds by paying {:?}", seconds_to_add, price_to_pay);
 
     if time_invalidator.disable_partial_extension != None
         && time_invalidator.disable_partial_extension.unwrap()
@@ -70,7 +76,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
         .checked_add(time_invalidator.duration_seconds.expect("No duration set"))
         .expect("Add error");
     if time_invalidator.expiration != None {
-        expiration = time_invalidator.expiration.unwrap();
+        expiration = max(expiration, time_invalidator.expiration.unwrap());
     }
     let new_expiration = Some(expiration.checked_add(seconds_to_add as i64).expect("Addition error"));
 
@@ -78,16 +84,8 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
         return Err(error!(ErrorCode::InvalidExtendExpiration));
     }
 
-    let provider_fee = time_invalidator
-        .extension_payment_amount
-        .expect("No extension amount")
-        .checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
-    let recipient_fee = time_invalidator
-        .extension_payment_amount
-        .expect("No extension amount")
-        .checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
+    let provider_fee = price_to_pay.checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).expect("Division error")).expect("Multiplication error");
+    let recipient_fee = price_to_pay.checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).expect("Division error")).expect("Multiplication error");
     if provider_fee.checked_add(recipient_fee).expect("Add error") > 0 {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
@@ -107,7 +105,7 @@ pub fn handler(ctx: Context<ExtendExpirationCtx>, seconds_to_add: u64) -> Result
 
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, price_to_pay)?;
+    token::transfer(cpi_context, price_to_pay.checked_sub(recipient_fee).expect("Sub error"))?;
 
     time_invalidator.expiration = new_expiration;
     Ok(())

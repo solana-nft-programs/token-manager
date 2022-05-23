@@ -9,7 +9,6 @@ pub struct InitIx {
     pub collector: Pubkey,
     pub payment_manager: Pubkey,
     pub duration_seconds: Option<i64>,
-    pub expiration: Option<i64>,
     pub extension_payment_amount: Option<u64>,
     pub extension_duration_seconds: Option<u64>,
     pub extension_payment_mint: Option<Pubkey>,
@@ -38,7 +37,7 @@ pub struct InitCtx<'info> {
 }
 
 pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
-    if ix.duration_seconds == None && ix.expiration == None {
+    if ix.duration_seconds == None && ix.max_expiration == None {
         return Err(error!(ErrorCode::InvalidInstruction));
     } else if (ix.extension_payment_amount == None && ix.extension_duration_seconds != None) || (ix.extension_payment_amount != None && ix.extension_duration_seconds == None) {
         return Err(error!(ErrorCode::InvalidInstruction));
@@ -52,7 +51,6 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     time_invalidator.collector = ix.collector;
     time_invalidator.payment_manager = ix.payment_manager;
     time_invalidator.duration_seconds = ix.duration_seconds;
-    time_invalidator.expiration = ix.expiration;
     time_invalidator.extension_payment_amount = ix.extension_payment_amount;
     time_invalidator.extension_duration_seconds = ix.extension_duration_seconds;
     time_invalidator.extension_payment_mint = ix.extension_payment_mint;

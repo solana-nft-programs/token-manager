@@ -10,13 +10,19 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals, useTransaction } from "../src";
-import { tokenManager, useInvalidator } from "../src/programs";
-import { TokenManagerState } from "../src/programs/tokenManager";
+import { findAta, rentals, tryGetAccount } from "../src";
+import { timeInvalidator, tokenManager } from "../src/programs";
+import { resetExpiration } from "../src/programs/timeInvalidator/instruction";
+import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
+import {
+  InvalidationType,
+  TokenManagerState,
+} from "../src/programs/tokenManager";
+import { invalidate } from "./../src/api";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Use without use invalidator", () => {
+describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend Again", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
@@ -64,14 +70,19 @@ describe("Use without use invalidator", () => {
       provider.connection,
       provider.wallet,
       {
-        claimPayment: {
-          paymentAmount: RENTAL_PAYMENT_AMONT,
-          paymentMint: paymentMint.publicKey,
+        timeInvalidation: {
+          durationSeconds: 0,
+          maxExpiration: Date.now() / 1000 + 10000,
+          extension: {
+            extensionPaymentAmount: RENTAL_PAYMENT_AMONT, // Pay 10 lamport to add 1000 seconds of expiration time
+            extensionDurationSeconds: 1000,
+            extensionPaymentMint: paymentMint.publicKey,
+          },
         },
-        timeInvalidation: { maxExpiration: Date.now() / 1000 + 1 },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
+        invalidationType: InvalidationType.Reissue,
       }
     );
     const txEnvelope = new TransactionEnvelope(
@@ -82,7 +93,7 @@ describe("Use without use invalidator", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "create", {
+    await expectTXTable(txEnvelope, "test", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -103,9 +114,18 @@ describe("Use without use invalidator", () => {
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+
+    // check receipt-index
+    const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
+      provider.connection,
+      provider.wallet.publicKey
+    );
+    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+      tokenManagerId.toString()
+    );
   });
 
-  it("Claim rental", async () => {
+  it("Claim and extend rental", async () => {
     const provider = getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
@@ -119,16 +139,24 @@ describe("Use without use invalidator", () => {
       tokenManagerId
     );
 
+    // After claim, extend rate rental by 1000 seconds
+    const transaction2 = await rentals.extendRentalExpiration(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId,
+      1000
+    );
+
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
         wallet: new SignerWallet(recipient),
         opts: provider.opts,
       }),
-      [...transaction.instructions]
+      [...transaction.instructions, ...transaction2.instructions]
     );
 
-    await expectTXTable(txEnvelope, "claim", {
+    await expectTXTable(txEnvelope, "test", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -149,6 +177,7 @@ describe("Use without use invalidator", () => {
       await findAta(rentalMint.publicKey, recipient.publicKey)
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
     const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
       recipientPaymentTokenAccountId
@@ -158,13 +187,14 @@ describe("Use without use invalidator", () => {
     );
   });
 
-  it("Use", async () => {
+  it("Return Rental", async () => {
+    await new Promise((r) => setTimeout(r, 2000));
+
     const provider = getProvider();
-    const transaction = await useTransaction(
+    const transaction = await invalidate(
       provider.connection,
       new SignerWallet(recipient),
-      rentalMint.publicKey,
-      1
+      rentalMint.publicKey
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -176,7 +206,7 @@ describe("Use without use invalidator", () => {
       [...transaction.instructions]
     );
 
-    await expectTXTable(txEnvelope, "use", {
+    await expectTXTable(txEnvelope, "invalidate", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -185,12 +215,108 @@ describe("Use without use invalidator", () => {
       provider.connection,
       rentalMint.publicKey
     );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
-    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
-      provider.connection,
-      useInvalidatorId
+
+    const tokenManagerData = await tryGetAccount(() =>
+      tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
     );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+    expect(tokenManagerData?.parsed.state).to.eq(TokenManagerState.Issued);
+  });
+  it("Reset Expiration", async () => {
+    const provider = getProvider();
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
+      tokenManagerId
+    );
+
+    const transaction = resetExpiration(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId,
+      timeInvalidatorId
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [transaction]
+    );
+
+    await expectTXTable(txEnvelope, "reset expiration", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const timeInvalidatorData = await tryGetAccount(async () =>
+      timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        timeInvalidatorId
+      )
+    );
+
+    expect(timeInvalidatorData?.parsed.expiration).to.eq(null);
+  });
+  it("Claim rental again", async () => {
+    const provider = getProvider();
+
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
+      tokenManagerId
+    );
+
+    const transaction = await rentals.claimRental(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId
+    );
+
+    // After claim, extend rate rental by 1000 seconds
+    const transaction2 = await rentals.extendRentalExpiration(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId,
+      1000
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions, ...transaction2.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "test", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const tokenManagerData = await tokenManager.accounts.getTokenManager(
+      provider.connection,
+      tokenManagerId
+    );
+    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+
+    const timeInvalidatorData = await tryGetAccount(async () =>
+      timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        timeInvalidatorId
+      )
+    );
+
+    // Expiration on time invalidator should be less than or equal to 1000 seconds
+    expect(timeInvalidatorData?.parsed.expiration?.toNumber()).to.be.lte(
+      Date.now() / 1000 + 1000
+    );
   });
 });

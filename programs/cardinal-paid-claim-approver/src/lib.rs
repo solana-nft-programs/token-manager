@@ -14,7 +14,7 @@ pub mod cardinal_paid_claim_approver {
         init::handler(ctx, ix)
     }
 
-    pub fn pay(ctx: Context<PayCtx>) -> Result<()> {
+    pub fn pay<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, PayCtx<'info>>) -> Result<()> {
         pay::handler(ctx)
     }
 

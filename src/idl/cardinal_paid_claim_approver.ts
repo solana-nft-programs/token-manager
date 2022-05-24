@@ -218,6 +218,11 @@ export type CardinalPaidClaimApprover = {
       code: 6006;
       name: "AccountDiscriminatorMismatch";
       msg: "Invalid account discriminator";
+    },
+    {
+      code: 6007;
+      name: "InvalidPaymentManagerProgram";
+      msg: "Invalid payment manager program";
     }
   ];
 };
@@ -442,6 +447,11 @@ export const IDL: CardinalPaidClaimApprover = {
       code: 6006,
       name: "AccountDiscriminatorMismatch",
       msg: "Invalid account discriminator",
+    },
+    {
+      code: 6007,
+      name: "InvalidPaymentManagerProgram",
+      msg: "Invalid payment manager program",
     },
   ],
 };

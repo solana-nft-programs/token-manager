@@ -16,4 +16,6 @@ pub enum ErrorCode {
     InvalidCollector,
     #[msg("Invalid account discriminator")]
     AccountDiscriminatorMismatch,
+    #[msg("Invalid payment manager program")]
+    InvalidPaymentManagerProgram,
 }

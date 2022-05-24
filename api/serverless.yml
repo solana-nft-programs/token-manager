@@ -16,6 +16,14 @@ package:
     - "./yarn.lock"
 
 functions:
+  relister:
+    timeout: 30
+    handler: relister/handler.relist
+    environment:
+      EMPIRE_DAO_KEY: ${ssm:/EMPIRE_DAO_KEY~true}
+      RELISTING_DISABLED: ${param:RELISTING_DISABLED,false}
+    events:
+      - schedule: rate(1 hour)
   time-invalidator-crank:
     timeout: 30
     environment:

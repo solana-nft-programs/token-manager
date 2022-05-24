@@ -37,7 +37,7 @@ export const getEditionLinks = async (
   metadataUrl: string,
   numLinks: number,
   cluster = "devnet",
-  baseUrl = "https://main.cardinal.so"
+  baseUrl = "https://rent.cardinal.so"
 ) => {
   const allLinks = [];
   const connection = connectionFor(cluster);
@@ -220,7 +220,7 @@ export const getMasterEditionLinks = async (
   metadataUrl: string,
   numLinks: number,
   cluster = "devnet",
-  baseUrl = "https://main.cardinal.so"
+  baseUrl = "https://rent.cardinal.so"
 ) => {
   const allLinks = [];
   const connection = connectionFor(cluster);

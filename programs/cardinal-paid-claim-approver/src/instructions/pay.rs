@@ -57,7 +57,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             payer_token_account: ctx.accounts.payer_token_account.to_account_info(),
             collector_token_account: ctx.accounts.payment_manager_token_account.to_account_info(),
             payer: ctx.accounts.payer.to_account_info(),
-            token_program: ctx.accounts.cardinal_token_manager.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(cardinal_payment_manager_info.to_account_info(), cpi_accounts);
         cardinal_payment_manager::cpi::manage_payment(cpi_ctx, ctx.accounts.claim_approver.payment_amount)?;

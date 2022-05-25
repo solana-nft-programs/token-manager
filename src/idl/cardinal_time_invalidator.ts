@@ -377,6 +377,11 @@ export type CardinalTimeInvalidator = {
       code: 6014;
       name: "InvalidTokenManagerState";
       msg: "Invalid token manager state for resetting expiration";
+    },
+    {
+      code: 6015;
+      name: "InvalidPaymentManagerProgram";
+      msg: "Invalid payment manager program";
     }
   ];
 };
@@ -760,6 +765,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6014,
       name: "InvalidTokenManagerState",
       msg: "Invalid token manager state for resetting expiration",
+    },
+    {
+      code: 6015,
+      name: "InvalidPaymentManagerProgram",
+      msg: "Invalid payment manager program",
     },
   ],
 };

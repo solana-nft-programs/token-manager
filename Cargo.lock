@@ -443,6 +443,7 @@ version = "1.3.11"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "cardinal-payment-manager",
  "cardinal-token-manager",
  "proptest",
  "solana-program",
@@ -470,6 +471,7 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "arrayref",
+ "cardinal-payment-manager",
  "cardinal-token-manager",
  "proptest",
  "solana-program",

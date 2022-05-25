@@ -70,6 +70,27 @@ export type CardinalPaymentManager = {
           type: "u64";
         }
       ];
+    },
+    {
+      name: "close";
+      accounts: [
+        {
+          name: "paymentManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "collector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "closer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -141,6 +162,11 @@ export type CardinalPaymentManager = {
       code: 6000;
       name: "InvalidCollector";
       msg: "Invalid collector";
+    },
+    {
+      code: 6001;
+      name: "InvalidAuthority";
+      msg: "Invalid authority";
     }
   ];
 };
@@ -218,6 +244,27 @@ export const IDL: CardinalPaymentManager = {
         },
       ],
     },
+    {
+      name: "close",
+      accounts: [
+        {
+          name: "paymentManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "collector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "closer",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [],
+    },
   ],
   accounts: [
     {
@@ -288,6 +335,11 @@ export const IDL: CardinalPaymentManager = {
       code: 6000,
       name: "InvalidCollector",
       msg: "Invalid collector",
+    },
+    {
+      code: 6001,
+      name: "InvalidAuthority",
+      msg: "Invalid authority",
     },
   ],
 };

@@ -370,6 +370,11 @@ export type CardinalUseInvalidator = {
       code: 6010;
       name: "InvalidCollector";
       msg: "Invalid collector";
+    },
+    {
+      code: 6011;
+      name: "InvalidPaymentManagerProgram";
+      msg: "Invalid payment manager program";
     }
   ];
 };
@@ -746,6 +751,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6010,
       name: "InvalidCollector",
       msg: "Invalid collector",
+    },
+    {
+      code: 6011,
+      name: "InvalidPaymentManagerProgram",
+      msg: "Invalid payment manager program",
     },
   ],
 };

@@ -4,4 +4,6 @@ use anchor_lang::prelude::*;
 pub enum ErrorCode {
     #[msg("Invalid collector")]
     InvalidCollector,
+    #[msg("Invalid authority")]
+    InvalidAuthority,
 }

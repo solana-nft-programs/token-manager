@@ -84,13 +84,13 @@ export const getAllClaimApprovers = async (
   const coder = new BorshAccountsCoder(CLAIM_APPROVER_IDL);
   programAccounts.forEach((account) => {
     try {
-      const timeInvalidatorData: PaidClaimApproverData = coder.decode(
+      const claimApproverData: PaidClaimApproverData = coder.decode(
         "paidClaimApprover",
         account.account.data
       );
       claimApprovers.push({
         ...account,
-        parsed: timeInvalidatorData,
+        parsed: claimApproverData,
       });
     } catch (e) {
       console.log(`Failed to decode claim approver data`);

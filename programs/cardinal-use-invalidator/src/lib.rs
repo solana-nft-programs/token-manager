@@ -18,7 +18,7 @@ pub mod cardinal_use_invalidator {
         increment_usages::handler(ctx, num_usages)
     }
 
-    pub fn extend_usages(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()> {
+    pub fn extend_usages<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ExtendUsagesCtx<'info>>, payment_amount: u64) -> Result<()> {
         extend_usages::handler(ctx, payment_amount)
     }
 

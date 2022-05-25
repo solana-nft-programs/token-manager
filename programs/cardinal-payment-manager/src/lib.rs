@@ -17,4 +17,8 @@ pub mod cardinal_payment_manager {
     pub fn manage_payment(ctx: Context<ManagePaymentCtx>, payment_amount: u64) -> Result<()> {
         manage_payment::handler(ctx, payment_amount)
     }
+
+    pub fn close(ctx: Context<CloseCtx>) -> Result<()> {
+        close::handler(ctx)
+    }
 }

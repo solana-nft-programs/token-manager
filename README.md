@@ -13,9 +13,7 @@
 
 ## Background
 
-Cardinal is a composable protocol for issuing conditional NFTs that are managed by the protocol. Using the invalidators and approvers in various ways allows for building rentals, expiring in-game items, subscriptions, permits, tickets, passes and more.
-
-Carinal protocol provides a token-manager implementation as well as basic plugins for paid claim, permissioned transfer, and time invalidation. These plugins can be extended to support various use cases or similar ones built with entirely new logic for token handling the token invalidation.
+The Token Manager program is a wrapper protocol that achieves conditional ownership of Solana NFTs. It allows one to issue an NFT to another party with embedded mechanisms for programmatic management of the token while it sits in their wallet. Among others, things like time-based expiration, usage-based expiration, selective transferability, and non-transferability are possible with the Token Manager. Its modular design uses “plugin” invalidators, approval authorities, and transfer authorities modeled as separate smart contracts to allow for theoretically any custom invalidation, claiming, and transfer logic tied to on-chain data. We currently offer two out-of-the-box invalidator plugins to support basic time and usage-based expiration as well as a basic payment-based claim approver.
 
 ## Packages
 
@@ -46,7 +44,40 @@ Cardinal token-manager is made to be composable. It allows for plugins for
 
 When instantiating a token-manager, the issuer can set a claim approver, transfer authority and invalidators that can control the claim, transfer and invalidate mechanisms. These are all plugins that can be pointed to any program-derived account or user owned account. Out of the box, there are basic plugins to power use and time rentals and subscriptions.
 
+All of these are modeled are separate programs so users can choose to implement custom logic in a separate program for claim, transfer and invalidation.
+
 ## Documentation
+
+### Invalidation Types
+
+The program generalizes the concept of invalidation into a list of invalidators so any of those public keys can trigger the invalidation of the token. The invalidation type field is used to specify "what happens" when invalidation is triggered.
+
+```
+#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
+#[repr(u8)]
+pub enum InvalidationType {
+    /// Upon invalidation it will be returned to the issuer
+    Return = 1,
+    /// Upon invalidation it will remain marked as invalid
+    Invalidate = 2,
+    /// Upon invalidation the token manager will be deleted and thus the tokens are released
+    Release = 3,
+    /// Upon invalidation the token manager will be reset back to issued state
+    Reissue = 4,
+}
+```
+
+### Claim Authority
+
+The concept of claim_authority allows for the issuer to specify specific public key that can approve claiming of the tokens. This can be used in a few contexts.
+
+1. using Keypair.generate() to create a new private key and embed that into a URL as a one-time password. This allows only the recipient of this URL to claim the token. This provides an easy way to distribute tokens via off-chain systems like email.
+2. Paid claim approver, a program that is provided out of the box to enforce payment of a specified mint before claiming
+3. Checking ownership of a given NFT or token to only allow holders, members in DAOs etc to claim the token.
+
+### Receipts
+
+The concept of receipts allows the issuer of token(s) into a token-manager to mint a receipt NFT representing this token-manager. Coupled with InvalidationType::Return above, the receipt can be freely traded and represent the public key that the token(s) will be returned to when they are invalidated. This essentially represents the underlying asset during outstanding rentals.
 
 ### Token Manager ERD
 
@@ -59,7 +90,7 @@ We soon plan on releasing a React library to make it easy to integrate Cardinal 
 
 ## Example usage
 
-#### All rental parameters
+#### All token issue parameters
 
 ```js
 export type IssueParameters = {

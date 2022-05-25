@@ -45,8 +45,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     if ctx.accounts.payment_manager_token_account.owner.key() == CardinalPaymentManager::id() {
         // call payment manager
-        let payment_manager_info = next_account_info(remaining_accs)?;
-        let payment_manager = Account::<PaymentManager>::try_from(payment_manager_info)?;
+        let payment_manager = &ctx.accounts.payment_manager_token_account;
         let cardinal_payment_manager_info = next_account_info(remaining_accs)?;
         if cardinal_payment_manager_info.key() != CardinalPaymentManager::id() {
             return Err(error!(ErrorCode::InvalidPaymentManagerProgram));

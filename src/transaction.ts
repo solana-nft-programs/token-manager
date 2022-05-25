@@ -290,7 +290,8 @@ export const withClaimToken = async (
   additionalOptions?: {
     otpKeypair?: Keypair | null;
     payer?: PublicKey;
-  }
+  },
+  paymentManagerName?: string
 ): Promise<Transaction> => {
   const [tokenManagerData, claimApproverData] = await Promise.all([
     tokenManager.accounts.getTokenManager(connection, tokenManagerId),
@@ -325,7 +326,8 @@ export const withClaimToken = async (
       tokenManagerData.parsed.issuer,
       tokenManagerData.parsed.receiptMint,
       claimApproverData.parsed.paymentManager,
-      additionalOptions?.payer ?? wallet.publicKey
+      additionalOptions?.payer ?? wallet.publicKey,
+      paymentManagerName
     );
 
     transaction.add(

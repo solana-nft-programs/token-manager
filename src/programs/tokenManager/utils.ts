@@ -14,6 +14,8 @@ import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
+import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager/constants";
+import { findPaymentManagerAddress } from "../paymentManager/pda";
 import type { TokenManagerData } from ".";
 import {
   InvalidationType,
@@ -63,8 +65,14 @@ export const withRemainingAccountsForPayment = async (
   issuerId: PublicKey,
   receiptMint?: PublicKey | null,
   paymentManager = PAYMENT_MANAGER_KEY,
-  payer = wallet.publicKey
+  payer = wallet.publicKey,
+  paymentManagerName?: string
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
+  let paymentManagerId: PublicKey | null = null;
+  if (paymentManagerName) {
+    [paymentManagerId] = await findPaymentManagerAddress(paymentManagerName);
+  }
+
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
       receiptMint
@@ -106,10 +114,15 @@ export const withRemainingAccountsForPayment = async (
       ]);
     return [
       returnTokenAccountId,
-      paymentManagerTokenAccountId,
+      paymentManagerId ? paymentManagerId : paymentManagerTokenAccountId,
       [
         {
           pubkey: receiptTokenAccountId,
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: PAYMENT_MANAGER_ADDRESS,
           isSigner: false,
           isWritable: true,
         },
@@ -137,7 +150,17 @@ export const withRemainingAccountsForPayment = async (
           true
         ),
       ]);
-    return [issuerTokenAccountId, paymentManagerTokenAccountId, []];
+    return [
+      issuerTokenAccountId,
+      paymentManagerId ? paymentManagerId : paymentManagerTokenAccountId,
+      [
+        {
+          pubkey: PAYMENT_MANAGER_ADDRESS,
+          isSigner: false,
+          isWritable: true,
+        },
+      ],
+    ];
   }
 };
 

@@ -46,9 +46,9 @@ When instantiating a token-manager, the issuer can set a claim approver, transfe
 
 All of these are modeled are separate programs so users can choose to implement custom logic in a separate program for claim, transfer and invalidation.
 
-## Documentation
+# Documentation
 
-### Invalidation Types
+## Invalidation Types
 
 The program generalizes the concept of invalidation into a list of invalidators so any of those public keys can trigger the invalidation of the token. The invalidation type field is used to specify "what happens" when invalidation is triggered.
 
@@ -67,7 +67,7 @@ pub enum InvalidationType {
 }
 ```
 
-### Claim Authority
+## Claim Authority
 
 The concept of claim_authority allows for the issuer to specify specific public key that can approve claiming of the tokens. This can be used in a few contexts.
 
@@ -78,7 +78,7 @@ The concept of claim_authority allows for the issuer to specify specific public 
 
 If not set, this token can be claimed by anyone.
 
-### Transfer Authority
+## Transfer Authority
 
 Similar to claim_authority, but a specified publickey that can approve transfer of this token. Because the tokens by default are frozen, normal transfer does not work. Instead a transfer_authority can be used to allow transfers to specified wallet. By default, transfer_authority is set to the token_manager itself, rendering it non-transferable. If unset, the token can be freely transferred. The transfer is modeled by receiving a transfer_receipt that can be used to claim the token. Use cases of transfer_authority can include
 
@@ -91,11 +91,15 @@ Similar to claim_authority, but a specified publickey that can approve transfer 
 
 NOTE: Once approved for transfer, the approved party can claim the token from the current holder. This is due to the fact that as a recipient (new holder) you must sign the transaction to "accept" the tokens, because part of this process involved delegating the tokens back to the token-manager. This means that approved parties can effectively "take" the token from the current holder.
 
-### Receipts
+## Receipts
 
 The concept of receipts allows the issuer of token(s) into a token-manager to mint a receipt NFT representing this token-manager. Coupled with InvalidationType::Return above, the receipt can be freely traded and represent the public key that the token(s) will be returned to when they are invalidated. This essentially represents the underlying asset during outstanding rentals.
 
-### Token Manager ERD
+- Receipts are dynamically minted using the image-generator in https://github.com/cardinal-labs/cardinal-generator. This allows it to be completely on-chain NFT
+- Receipts are freely tradeable and represent the underlying asset for outstanding rentals.
+- Receipts will become expired after the rental is over, This means the user must manual follow the links in the description to burn the expired receipt.
+
+## Token Manager ERD
 
 <img width="877" alt="DIAGRAM" src="https://user-images.githubusercontent.com/7113086/157140752-02983b0d-3501-42dd-add6-ea29fa37be80.png">
 View Online: https://dbdiagram.io/d/6226977961d06e6eadbc77be

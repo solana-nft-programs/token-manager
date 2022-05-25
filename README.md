@@ -74,6 +74,22 @@ The concept of claim_authority allows for the issuer to specify specific public 
 1. using Keypair.generate() to create a new private key and embed that into a URL as a one-time password. This allows only the recipient of this URL to claim the token. This provides an easy way to distribute tokens via off-chain systems like email.
 2. Paid claim approver, a program that is provided out of the box to enforce payment of a specified mint before claiming
 3. Checking ownership of a given NFT or token to only allow holders, members in DAOs etc to claim the token.
+4. Many, many more!
+
+If not set, this token can be claimed by anyone.
+
+### Transfer Authority
+
+Similar to claim_authority, but a specified publickey that can approve transfer of this token. Because the tokens by default are frozen, normal transfer does not work. Instead a transfer_authority can be used to allow transfers to specified wallet. By default, transfer_authority is set to the token_manager itself, rendering it non-transferable. If unset, the token can be freely transferred. The transfer is modeled by receiving a transfer_receipt that can be used to claim the token. Use cases of transfer_authority can include
+
+1. A system that groups wallets together allowing transfer between "known" wallets all owned by the same user
+2. Encoding a transfer schedule in a program on-chain to approve a rotation of the token, similar to a time-share.
+3. A paid transfer that allows someone to pay some amount to the current holder in order to get approved for transfer
+4. KYC approval required before transfer
+5. Transfer between members of a DAO / multi-sig
+6. ...
+
+NOTE: Once approved for transfer, the approved party can claim the token from the current holder. This is due to the fact that as a recipient (new holder) you must sign the transaction to "accept" the tokens, because part of this process involved delegating the tokens back to the token-manager. This means that approved parties can effectively "take" the token from the current holder.
 
 ### Receipts
 

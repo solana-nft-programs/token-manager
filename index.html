@@ -86,18 +86,18 @@
 <p>All of these are modeled are separate programs so users can choose to implement custom logic in a separate program for claim, transfer and invalidation.</p>
 
 <a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
-  <h2>Documentation</h2>
+  <h1>Documentation</h1>
 </a>
 
 <a href="#invalidation-types" id="invalidation-types" style="color: inherit; text-decoration: none;">
-  <h3>Invalidation Types</h3>
+  <h2>Invalidation Types</h2>
 </a>
 <p>The program generalizes the concept of invalidation into a list of invalidators so any of those public keys can trigger the invalidation of the token. The invalidation type field is used to specify &quot;what happens&quot; when invalidation is triggered.</p>
 <pre><code><span class="hl-0">#[</span><span class="hl-1">derive</span><span class="hl-0">(</span><span class="hl-2">Clone</span><span class="hl-0">, </span><span class="hl-2">Debug</span><span class="hl-0">, </span><span class="hl-2">PartialEq</span><span class="hl-0">, </span><span class="hl-2">AnchorSerialize</span><span class="hl-0">, </span><span class="hl-2">AnchorDeserialize</span><span class="hl-0">)]</span><br/><span class="hl-0">#[</span><span class="hl-1">repr</span><span class="hl-0">(</span><span class="hl-2">u8</span><span class="hl-0">)]</span><br/><span class="hl-2">pub</span><span class="hl-0"> </span><span class="hl-3">enum</span><span class="hl-0"> </span><span class="hl-4">InvalidationType</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">/// Upon invalidation it will be returned to the issuer</span><br/><span class="hl-0">    </span><span class="hl-6">Return</span><span class="hl-0"> = </span><span class="hl-7">1</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">/// Upon invalidation it will remain marked as invalid</span><br/><span class="hl-0">    </span><span class="hl-6">Invalidate</span><span class="hl-0"> = </span><span class="hl-7">2</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">/// Upon invalidation the token manager will be deleted and thus the tokens are released</span><br/><span class="hl-0">    </span><span class="hl-6">Release</span><span class="hl-0"> = </span><span class="hl-7">3</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">/// Upon invalidation the token manager will be reset back to issued state</span><br/><span class="hl-0">    </span><span class="hl-6">Reissue</span><span class="hl-0"> = </span><span class="hl-7">4</span><span class="hl-0">,</span><br/><span class="hl-0">}</span>
 </code></pre>
 
 <a href="#claim-authority" id="claim-authority" style="color: inherit; text-decoration: none;">
-  <h3>Claim Authority</h3>
+  <h2>Claim Authority</h2>
 </a>
 <p>The concept of claim_authority allows for the issuer to specify specific public key that can approve claiming of the tokens. This can be used in a few contexts.</p>
 <ol>
@@ -109,7 +109,7 @@
 <p>If not set, this token can be claimed by anyone.</p>
 
 <a href="#transfer-authority" id="transfer-authority" style="color: inherit; text-decoration: none;">
-  <h3>Transfer Authority</h3>
+  <h2>Transfer Authority</h2>
 </a>
 <p>Similar to claim_authority, but a specified publickey that can approve transfer of this token. Because the tokens by default are frozen, normal transfer does not work. Instead a transfer_authority can be used to allow transfers to specified wallet. By default, transfer_authority is set to the token_manager itself, rendering it non-transferable. If unset, the token can be freely transferred. The transfer is modeled by receiving a transfer_receipt that can be used to claim the token. Use cases of transfer_authority can include</p>
 <ol>
@@ -123,12 +123,17 @@
 <p>NOTE: Once approved for transfer, the approved party can claim the token from the current holder. This is due to the fact that as a recipient (new holder) you must sign the transaction to &quot;accept&quot; the tokens, because part of this process involved delegating the tokens back to the token-manager. This means that approved parties can effectively &quot;take&quot; the token from the current holder.</p>
 
 <a href="#receipts" id="receipts" style="color: inherit; text-decoration: none;">
-  <h3>Receipts</h3>
+  <h2>Receipts</h2>
 </a>
 <p>The concept of receipts allows the issuer of token(s) into a token-manager to mint a receipt NFT representing this token-manager. Coupled with InvalidationType::Return above, the receipt can be freely traded and represent the public key that the token(s) will be returned to when they are invalidated. This essentially represents the underlying asset during outstanding rentals.</p>
+<ul>
+<li>Receipts are dynamically minted using the image-generator in <a href="https://github.com/cardinal-labs/cardinal-generator">https://github.com/cardinal-labs/cardinal-generator</a>. This allows it to be completely on-chain NFT</li>
+<li>Receipts are freely tradeable and represent the underlying asset for outstanding rentals.</li>
+<li>Receipts will become expired after the rental is over, This means the user must manual follow the links in the description to burn the expired receipt.</li>
+</ul>
 
 <a href="#token-manager-erd" id="token-manager-erd" style="color: inherit; text-decoration: none;">
-  <h3>Token Manager ERD</h3>
+  <h2>Token Manager ERD</h2>
 </a>
 <img width="877" alt="DIAGRAM" src="https://user-images.githubusercontent.com/7113086/157140752-02983b0d-3501-42dd-add6-ea29fa37be80.png">
 View Online: https://dbdiagram.io/d/6226977961d06e6eadbc77be

@@ -1,4 +1,5 @@
-import { AnchorProvider, BN, Program } from "@project-serum/anchor";
+import type { BN } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
@@ -18,10 +19,11 @@ export const init = async (
   wallet: Wallet,
   name: string,
   params: {
+    feeCollector: PublicKey;
+    authority?: PublicKey;
     makerFee: BN;
     takerFee: BN;
-    feeScale: BN;
-    authority?: PublicKey;
+    feeDecimals: number;
   }
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -38,9 +40,10 @@ export const init = async (
     paymentManagerProgram.instruction.init(
       {
         name: name,
-        makerFee: new BN(params.makerFee),
-        takerFee: new BN(params.takerFee),
-        feeScale: new BN(params.feeScale),
+        feeCollector: params.feeCollector,
+        makerFee: params.makerFee,
+        takerFee: params.takerFee,
+        feeDecimals: params.feeDecimals,
       },
       {
         accounts: {
@@ -62,7 +65,8 @@ export const managePayment = async (
   params: {
     paymentAmount: BN;
     payerTokenAccount: PublicKey;
-    collectorTokenAccount: PublicKey;
+    feeCollectorTokenAccount: PublicKey;
+    payment_token_account: PublicKey;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -78,7 +82,8 @@ export const managePayment = async (
     accounts: {
       paymentManager: paymentManagerId,
       payerTokenAccount: params.payerTokenAccount,
-      collectorTokenAccount: params.collectorTokenAccount,
+      feeCollectorTokenAccount: params.feeCollectorTokenAccount,
+      paymentTokenAccount: params.payment_token_account,
       payer: wallet.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
     },

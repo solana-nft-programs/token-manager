@@ -2,7 +2,7 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
-    cardinal_payment_manager::{program::CardinalPaymentManager, state::PaymentManager},
+    cardinal_payment_manager::program::CardinalPaymentManager,
     cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager, utils::assert_payment_token_account},
 };
 
@@ -14,9 +14,12 @@ pub struct PayCtx<'info> {
     #[account(mut, constraint = payment_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
 
+    #[account(mut, constraint = fee_collector_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentMint)]
+    fee_collector_token_account: Box<Account<'info, TokenAccount>>,
+
     /// CHECK: This is not dangerous because we don't read or write from this account
-    #[account(mut)]
-    payment_manager_token_account: UncheckedAccount<'info>,
+    #[account(mut, constraint = payment_manager.key() == claim_approver.payment_manager @ ErrorCode::InvalidPaymentManager)]
+    payment_manager: UncheckedAccount<'info>,
 
     #[account(mut)]
     claim_approver: Box<Account<'info, PaidClaimApprover>>,
@@ -33,7 +36,9 @@ pub struct PayCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     claim_receipt: UncheckedAccount<'info>,
+
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
+    cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
 
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
@@ -43,22 +48,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
-    if ctx.accounts.payment_manager_token_account.owner.key() == CardinalPaymentManager::id() {
-        // call payment manager
-        let payment_manager = &ctx.accounts.payment_manager_token_account;
-        let cardinal_payment_manager_info = next_account_info(remaining_accs)?;
-        if cardinal_payment_manager_info.key() != CardinalPaymentManager::id() {
-            return Err(error!(ErrorCode::InvalidPaymentManagerProgram));
-        }
-
-        let cpi_accounts = cardinal_payment_manager::cpi::accounts::ManagePaymentCtx {
-            payment_manager: payment_manager.to_account_info(),
+    if ctx.accounts.payment_manager.owner.key() == ctx.accounts.cardinal_payment_manager.key() {
+        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentCtx {
+            payment_manager: ctx.accounts.payment_manager.to_account_info(),
             payer_token_account: ctx.accounts.payer_token_account.to_account_info(),
-            collector_token_account: ctx.accounts.payment_manager_token_account.to_account_info(),
+            fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
+            payment_token_account: ctx.accounts.payment_token_account.to_account_info(),
             payer: ctx.accounts.payer.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new(cardinal_payment_manager_info.to_account_info(), cpi_accounts);
+        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
         cardinal_payment_manager::cpi::manage_payment(cpi_ctx, ctx.accounts.claim_approver.payment_amount)?;
     } else {
         // backwards compatibility no feeds transfer

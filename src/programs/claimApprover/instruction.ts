@@ -9,6 +9,7 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
+import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import {
   CRANK_KEY,
   PAYMENT_MANAGER_KEY,
@@ -71,6 +72,7 @@ export const pay = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   payerTokenAccountId: PublicKey,
+  paymentManager: PublicKey,
   paymentAccounts: [PublicKey, PublicKey, AccountMeta[]]
 ): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -87,21 +89,20 @@ export const pay = async (
   );
 
   const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
-  const [
-    paymentTokenAccountId,
-    paymentManagerTokenAccountId,
-    remainingAccounts,
-  ] = paymentAccounts;
+  const [paymentTokenAccountId, feeCollectorTokenAccount, remainingAccounts] =
+    paymentAccounts;
   return claimApproverProgram.instruction.pay({
     accounts: {
       tokenManager: tokenManagerId,
       paymentTokenAccount: paymentTokenAccountId,
+      feeCollectorTokenAccount: feeCollectorTokenAccount,
+      paymentManager: paymentManager,
       claimApprover: claimApproverId,
       payer: wallet.publicKey,
       payerTokenAccount: payerTokenAccountId,
-      paymentManagerTokenAccount: paymentManagerTokenAccountId,
       claimReceipt: claimReceiptId,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     },

@@ -6,33 +6,45 @@ use {
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
-pub struct ManagePaymentCtx<'info> {
+pub struct HandlePaymentCtx<'info> {
     #[account(mut)]
     payment_manager: Box<Account<'info, PaymentManager>>,
 
     #[account(mut)]
     payer_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = collector_token_account.owner.key() == payment_manager.collector @ ErrorCode::InvalidCollector)]
-    collector_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = fee_collector_token_account.owner.key() == payment_manager.fee_collector @ ErrorCode::InvalidCollector)]
+    fee_collector_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
+    payment_token_account: Box<Account<'info, TokenAccount>>,
 
     payer: Signer<'info>,
     token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<ManagePaymentCtx>, payment_amount: u64) -> Result<()> {
+pub fn handler(ctx: Context<HandlePaymentCtx>, payment_amount: u64) -> Result<()> {
     let payment_manager = &mut ctx.accounts.payment_manager;
 
     let maker_fee = payment_amount
-        .checked_mul(payment_manager.maker_fee.checked_div(payment_manager.fee_scale).expect("Division error"))
+        .checked_mul(
+            payment_manager
+                .maker_fee
+                .checked_div((10_u64).checked_pow(payment_manager.fee_decimals).unwrap())
+                .expect("Division error"),
+        )
         .expect("Multiplication error");
     let taker_fee = payment_amount
-        .checked_mul(payment_manager.taker_fee.checked_div(payment_manager.fee_scale).expect("Division error"))
+        .checked_mul(
+            payment_manager
+                .taker_fee
+                .checked_div((10_u64).checked_pow(payment_manager.fee_decimals).unwrap())
+                .expect("Division error"),
+        )
         .expect("Multiplication error");
 
     if maker_fee.checked_add(taker_fee).expect("Add error") > 0 {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
-            to: ctx.accounts.collector_token_account.to_account_info(),
+            to: ctx.accounts.fee_collector_token_account.to_account_info(),
             authority: ctx.accounts.payer.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -42,12 +54,12 @@ pub fn handler(ctx: Context<ManagePaymentCtx>, payment_amount: u64) -> Result<()
 
     let cpi_accounts = Transfer {
         from: ctx.accounts.payer_token_account.to_account_info(),
-        to: ctx.accounts.collector_token_account.to_account_info(),
+        to: ctx.accounts.payment_token_account.to_account_info(),
         authority: ctx.accounts.payer.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, payment_amount.checked_sub(taker_fee).expect("Sub error"))?;
+    token::transfer(cpi_context, payment_amount.checked_sub(maker_fee).expect("Sub error"))?;
 
     Ok(())
 }

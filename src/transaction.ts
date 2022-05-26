@@ -290,8 +290,7 @@ export const withClaimToken = async (
   additionalOptions?: {
     otpKeypair?: Keypair | null;
     payer?: PublicKey;
-  },
-  paymentManagerName?: string
+  }
 ): Promise<Transaction> => {
   const [tokenManagerData, claimApproverData] = await Promise.all([
     tokenManager.accounts.getTokenManager(connection, tokenManagerId),
@@ -324,10 +323,9 @@ export const withClaimToken = async (
       wallet,
       claimApproverData.parsed.paymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint,
       claimApproverData.parsed.paymentManager,
-      additionalOptions?.payer ?? wallet.publicKey,
-      paymentManagerName
+      tokenManagerData.parsed.receiptMint,
+      additionalOptions?.payer ?? wallet.publicKey
     );
 
     transaction.add(
@@ -336,6 +334,7 @@ export const withClaimToken = async (
         wallet,
         tokenManagerId,
         payerTokenAccountId,
+        claimApproverData.parsed.paymentManager,
         paymentAccounts
       )
     );
@@ -683,8 +682,8 @@ export const withExtendExpiration = async (
       wallet,
       timeInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint,
-      timeInvalidatorData.parsed.paymentManager
+      timeInvalidatorData.parsed.paymentManager,
+      tokenManagerData.parsed.receiptMint
     );
 
     transaction.add(
@@ -692,6 +691,7 @@ export const withExtendExpiration = async (
         connection,
         wallet,
         tokenManagerId,
+        timeInvalidatorData.parsed.paymentManager,
         payerTokenAccountId,
         timeInvalidatorId,
         secondsToAdd,
@@ -735,8 +735,8 @@ export const withExtendUsages = async (
       wallet,
       useInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint,
-      useInvalidatorData.parsed.paymentManager
+      useInvalidatorData.parsed.paymentManager,
+      tokenManagerData.parsed.receiptMint
     );
 
     transaction.add(
@@ -744,6 +744,7 @@ export const withExtendUsages = async (
         connection,
         wallet,
         tokenManagerId,
+        useInvalidatorData.parsed.paymentManager,
         payerTokenAccountId,
         useInvalidatorId,
         paymentAmount,

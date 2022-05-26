@@ -9,12 +9,10 @@ import type { AccountData } from "../../utils";
 import type { PaidClaimApproverData } from "../claimApprover";
 import type { PAYMENT_MANAGER_PROGRAM, PaymentManagerData } from ".";
 import { PAYMENT_MANAGER_ADDRESS, PAYMENT_MANAGER_IDL } from ".";
-import { findPaymentManagerAddress } from "./pda";
 
-// TODO fix types
 export const getPaymentManager = async (
   connection: Connection,
-  name: string
+  paymentManagerId: PublicKey
 ): Promise<AccountData<PaymentManagerData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -25,14 +23,10 @@ export const getPaymentManager = async (
     provider
   );
 
-  const [paymentManagerId] = await findPaymentManagerAddress(name);
-
   const parsed = await paymentManagerProgram.account.paymentManager.fetch(
     paymentManagerId
   );
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     parsed,
     pubkey: paymentManagerId,
   };
@@ -51,24 +45,21 @@ export const getPaymentManagers = async (
     provider
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  let paymentManagers = [];
+  let paymentManagers: (PaymentManagerData | null)[] = [];
   try {
     paymentManagers =
-      await paymentManagerProgram.account.paymentManager.fetchMultiple(
+      (await paymentManagerProgram.account.paymentManager.fetchMultiple(
         paymentManagerIds
-      );
+      )) as (PaymentManagerData | null)[];
   } catch (e) {
     console.log(e);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return paymentManagers.map((tm, i) => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    parsed: tm,
-    pubkey: paymentManagerIds[i],
-  }));
+
+  return paymentManagers.reduce(
+    (acc, tm, i) =>
+      tm ? [...acc, { parsed: tm, pubkey: paymentManagerIds[i]! }] : acc,
+    [] as AccountData<PaymentManagerData>[]
+  );
 };
 
 export const getAllPaymentManagers = async (

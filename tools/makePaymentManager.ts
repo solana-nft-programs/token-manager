@@ -12,10 +12,11 @@ const wallet = web3Js.Keypair.fromSecretKey(
 ); // your wallet's secret key
 
 export type PaymentManagerParams = {
+  feeCollector: PublicKey;
+  authority?: PublicKey;
   makerFee: BN;
   takerFee: BN;
-  feeScale: BN;
-  authority?: PublicKey;
+  feeDecimals: number;
 };
 
 const main = async (
@@ -34,10 +35,11 @@ const main = async (
 
 const paymentManagerName = "NAME";
 const params: PaymentManagerParams = {
+  feeCollector: new PublicKey("FEE_COLLECTOR"),
+  authority: new PublicKey("AUTHORITY_KEY"),
   makerFee: new BN(0),
   takerFee: new BN(0),
-  feeScale: new BN(0),
-  authority: new PublicKey("AUTHORITY_KEY"),
+  feeDecimals: 2,
 };
 
 main(paymentManagerName, params).catch((e) => console.log(e));

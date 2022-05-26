@@ -49,7 +49,12 @@ export type CardinalPaymentManager = {
           isSigner: false;
         },
         {
-          name: "collectorTokenAccount";
+          name: "feeCollectorTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "paymentTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -104,7 +109,7 @@ export type CardinalPaymentManager = {
             type: "u8";
           },
           {
-            name: "collector";
+            name: "feeCollector";
             type: "publicKey";
           },
           {
@@ -120,8 +125,8 @@ export type CardinalPaymentManager = {
             type: "u64";
           },
           {
-            name: "feeScale";
-            type: "u64";
+            name: "feeDecimals";
+            type: "u32";
           },
           {
             name: "name";
@@ -142,6 +147,10 @@ export type CardinalPaymentManager = {
             type: "string";
           },
           {
+            name: "feeCollector";
+            type: "publicKey";
+          },
+          {
             name: "makerFee";
             type: "u64";
           },
@@ -150,8 +159,8 @@ export type CardinalPaymentManager = {
             type: "u64";
           },
           {
-            name: "feeScale";
-            type: "u64";
+            name: "feeDecimals";
+            type: "u32";
           }
         ];
       };
@@ -222,7 +231,12 @@ export const IDL: CardinalPaymentManager = {
           isSigner: false,
         },
         {
-          name: "collectorTokenAccount",
+          name: "feeCollectorTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -277,7 +291,7 @@ export const IDL: CardinalPaymentManager = {
             type: "u8",
           },
           {
-            name: "collector",
+            name: "feeCollector",
             type: "publicKey",
           },
           {
@@ -293,8 +307,8 @@ export const IDL: CardinalPaymentManager = {
             type: "u64",
           },
           {
-            name: "feeScale",
-            type: "u64",
+            name: "feeDecimals",
+            type: "u32",
           },
           {
             name: "name",
@@ -315,6 +329,10 @@ export const IDL: CardinalPaymentManager = {
             type: "string",
           },
           {
+            name: "feeCollector",
+            type: "publicKey",
+          },
+          {
             name: "makerFee",
             type: "u64",
           },
@@ -323,8 +341,8 @@ export const IDL: CardinalPaymentManager = {
             type: "u64",
           },
           {
-            name: "feeScale",
-            type: "u64",
+            name: "feeDecimals",
+            type: "u32",
           },
         ],
       },

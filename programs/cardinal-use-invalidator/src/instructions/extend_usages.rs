@@ -2,9 +2,9 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
-    cardinal_payment_manager::{program::CardinalPaymentManager, state::PaymentManager},
+    cardinal_payment_manager::program::CardinalPaymentManager,
     cardinal_token_manager::{
-        state::{assert_payment_manager, TokenManager, TokenManagerState},
+        state::{TokenManager, TokenManagerState},
         utils::assert_payment_token_account,
     },
 };
@@ -17,15 +17,14 @@ pub struct ExtendUsagesCtx<'info> {
     #[account(mut, constraint = use_invalidator.token_manager == token_manager.key() @ ErrorCode::InvalidUseInvalidator)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut, constraint = payment_manager.key() == use_invalidator.payment_manager @ ErrorCode::InvalidPaymentManager)]
+    payment_manager: UncheckedAccount<'info>,
+
     #[account(mut, constraint = payment_token_account.mint == use_invalidator.extension_payment_mint.expect("No extension mint") @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint =
-        payment_manager_token_account.mint == use_invalidator.extension_payment_mint.expect("No extension mint")
-        && payment_manager_token_account.owner == use_invalidator.payment_manager
-        && assert_payment_manager(&payment_manager_token_account.owner)
-        @ ErrorCode::InvalidPaymentManagerTokenAccount
-    )]
-    payment_manager_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = fee_collector_token_account.mint == use_invalidator.extension_payment_mint.unwrap() @ ErrorCode::InvalidPaymentMint)]
+    fee_collector_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     payer: Signer<'info>,
@@ -37,6 +36,7 @@ pub struct ExtendUsagesCtx<'info> {
     payer_token_account: Box<Account<'info, TokenAccount>>,
 
     token_program: Program<'info, Token>,
+    cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ExtendUsagesCtx<'info>>, payment_amount: u64) -> Result<()> {
@@ -66,24 +66,17 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         return Err(error!(ErrorCode::MaxUsagesReached));
     }
 
-    if ctx.accounts.payment_manager_token_account.owner.key() == CardinalPaymentManager::id() {
-        // call payment manager
-        let payment_manager_info = next_account_info(remaining_accs)?;
-        let payment_manager = Account::<PaymentManager>::try_from(payment_manager_info)?;
-        let cardinal_payment_manager_info = next_account_info(remaining_accs)?;
-        if cardinal_payment_manager_info.key() != CardinalPaymentManager::id() {
-            return Err(error!(ErrorCode::InvalidPaymentManagerProgram));
-        }
-
-        let cpi_accounts = cardinal_payment_manager::cpi::accounts::ManagePaymentCtx {
-            payment_manager: payment_manager.to_account_info(),
+    if ctx.accounts.payment_manager.owner.key() == ctx.accounts.cardinal_payment_manager.key() {
+        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentCtx {
+            payment_manager: ctx.accounts.payment_manager.to_account_info(),
             payer_token_account: ctx.accounts.payer_token_account.to_account_info(),
-            collector_token_account: ctx.accounts.payment_manager_token_account.to_account_info(),
+            fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
+            payment_token_account: ctx.accounts.payment_token_account.to_account_info(),
             payer: ctx.accounts.payer.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new(cardinal_payment_manager_info.to_account_info(), cpi_accounts);
-        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, payment_amount)?;
+        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
+        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, use_invalidator.extension_payment_amount.unwrap())?;
     } else {
         // backwards compatibility no feeds transfer
         let cpi_accounts = Transfer {
@@ -93,7 +86,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, payment_amount)?;
+        token::transfer(cpi_context, use_invalidator.extension_payment_amount.unwrap())?;
     }
 
     use_invalidator.total_usages = new_total_usages;

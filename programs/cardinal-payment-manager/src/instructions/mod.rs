@@ -1,7 +1,7 @@
 pub mod close;
+pub mod handle_payment;
 pub mod init;
-pub mod manage_payment;
 
 pub use close::*;
+pub use handle_payment::*;
 pub use init::*;
-pub use manage_payment::*;

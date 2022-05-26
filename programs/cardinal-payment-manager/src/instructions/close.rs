@@ -8,7 +8,7 @@ pub struct CloseCtx<'info> {
     #[account(mut, close = collector)]
     payment_manager: Box<Account<'info, PaymentManager>>,
 
-    #[account(mut, constraint = collector.key() == payment_manager.collector @ ErrorCode::InvalidCollector)]
+    #[account(mut)]
     /// CHECK: This is not dangerous because this is just the pubkey that collects the closing account lamports
     collector: UncheckedAccount<'info>,
 
@@ -16,6 +16,6 @@ pub struct CloseCtx<'info> {
     closer: Signer<'info>,
 }
 
-pub fn handler(ctx: Context<CloseCtx>) -> Result<()> {
+pub fn handler(_ctx: Context<CloseCtx>) -> Result<()> {
     Ok(())
 }

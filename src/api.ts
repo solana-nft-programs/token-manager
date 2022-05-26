@@ -50,16 +50,14 @@ export const claimToken = async (
   additionalOptions?: {
     otpKeypair?: Keypair | null;
     timeInvalidatorId?: PublicKey;
-  },
-  paymentManagerName?: string
+  }
 ): Promise<Transaction> =>
   withClaimToken(
     new Transaction(),
     connection,
     wallet,
     tokenManagerId,
-    additionalOptions,
-    paymentManagerName
+    additionalOptions
   );
 
 export const extendExpiration = async (

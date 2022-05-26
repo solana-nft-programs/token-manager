@@ -3,16 +3,17 @@ use {crate::state::*, anchor_lang::prelude::*};
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitIx {
     pub name: String,
+    pub fee_collector: Pubkey,
     pub maker_fee: u64,
     pub taker_fee: u64,
-    pub fee_scale: u64,
+    pub fee_decimals: u32,
 }
 
 #[derive(Accounts)]
 #[instruction(ix: InitIx)]
 pub struct InitCtx<'info> {
     #[account(
-        init_if_needed,
+        init,
         payer = authority,
         space = PAYMENT_MANAGER_SIZE,
         seeds = [PAYMENT_MANAGER_SEED.as_bytes(), ix.name.as_bytes()], bump,
@@ -29,10 +30,11 @@ pub struct InitCtx<'info> {
 pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     let payment_manager = &mut ctx.accounts.payment_manager;
     payment_manager.bump = *ctx.bumps.get("payment_manager").unwrap();
-    payment_manager.taker_fee = ix.taker_fee;
-    payment_manager.authority = ctx.accounts.authority.key();
-    payment_manager.maker_fee = ix.maker_fee;
-    payment_manager.fee_scale = ix.fee_scale;
     payment_manager.name = ix.name;
+    payment_manager.fee_collector = ix.fee_collector;
+    payment_manager.maker_fee = ix.maker_fee;
+    payment_manager.taker_fee = ix.taker_fee;
+    payment_manager.fee_decimals = ix.fee_decimals;
+    payment_manager.authority = ctx.accounts.authority.key();
     Ok(())
 }

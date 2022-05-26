@@ -34,4 +34,6 @@ pub enum ErrorCode {
     InvalidTokenManagerState,
     #[msg("Invalid payment manager program")]
     InvalidPaymentManagerProgram,
+    #[msg("Invalid payment manager")]
+    InvalidPaymentManager,
 }

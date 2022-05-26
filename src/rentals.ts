@@ -23,19 +23,11 @@ export const claimRental = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  payer?: PublicKey,
-  paymentManagerName?: string
+  payer?: PublicKey
 ): Promise<Transaction> =>
-  withClaimToken(
-    new Transaction(),
-    connection,
-    wallet,
-    tokenManagerId,
-    {
-      payer,
-    },
-    paymentManagerName
-  );
+  withClaimToken(new Transaction(), connection, wallet, tokenManagerId, {
+    payer,
+  });
 
 export const extendRentalExpiration = async (
   connection: Connection,

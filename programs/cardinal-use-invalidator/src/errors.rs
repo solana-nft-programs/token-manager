@@ -26,4 +26,8 @@ pub enum ErrorCode {
     InvalidCollector,
     #[msg("Invalid payment manager program")]
     InvalidPaymentManagerProgram,
+    #[msg("Invalid payment manager")]
+    InvalidPaymentManager,
+    #[msg("Invalid payment mint")]
+    InvalidPaymentMint,
 }

@@ -19,7 +19,7 @@ pub struct InvalidateCtx<'info> {
     mint: Box<Account<'info, Mint>>,
 
     // recipient
-    #[account(mut)]
+    #[account(mut, constraint = recipient_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidRecipientTokenAccount)]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
 
     // invalidator

@@ -12,7 +12,7 @@ pub struct HandlePaymentCtx<'info> {
 
     #[account(mut)]
     payer_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = fee_collector_token_account.owner.key() == payment_manager.fee_collector @ ErrorCode::InvalidCollector)]
+    #[account(mut, constraint = fee_collector_token_account.owner == payment_manager.fee_collector @ ErrorCode::InvalidFeeCollectorTokenAccount)]
     fee_collector_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     payment_token_account: Box<Account<'info, TokenAccount>>,

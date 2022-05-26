@@ -14,6 +14,8 @@ import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
+import { tryGetAccount } from "../../utils";
+import { getPaymentManager } from "../paymentManager/accounts";
 import type { TokenManagerData } from ".";
 import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
 import { findMintManagerId } from "./pda";
@@ -56,11 +58,10 @@ export const withRemainingAccountsForPayment = async (
   wallet: Wallet,
   paymentMint: PublicKey,
   issuerId: PublicKey,
-  paymentManager: PublicKey,
+  paymentManagerId: PublicKey,
   receiptMint?: PublicKey | null,
   payer = wallet.publicKey
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
-  console.log("heyyy", paymentManager.toString());
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
       receiptMint
@@ -79,27 +80,31 @@ export const withRemainingAccountsForPayment = async (
     );
 
     // get ATA for this mint of receipt mint holder
-    const [returnTokenAccountId, feeCollectorTokenAccountId] =
-      await Promise.all([
-        receiptTokenAccount.owner.equals(wallet.publicKey)
-          ? await findAta(paymentMint, receiptTokenAccount.owner, true)
-          : await withFindOrInitAssociatedTokenAccount(
-              transaction,
-              connection,
-              paymentMint,
-              receiptTokenAccount.owner,
-              payer,
-              true
-            ),
-        await withFindOrInitAssociatedTokenAccount(
+    const returnTokenAccountId = receiptTokenAccount.owner.equals(
+      wallet.publicKey
+    )
+      ? await findAta(paymentMint, receiptTokenAccount.owner, true)
+      : await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
-          paymentManager,
+          receiptTokenAccount.owner,
           payer,
           true
-        ),
-      ]);
+        );
+
+    const paymentManager = await tryGetAccount(() =>
+      getPaymentManager(connection, paymentManagerId)
+    );
+    const feeCollectorTokenAccountId =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        paymentMint,
+        paymentManager ? paymentManager.parsed.feeCollector : paymentManager,
+        payer,
+        true
+      );
     return [
       returnTokenAccountId,
       feeCollectorTokenAccountId,
@@ -112,27 +117,28 @@ export const withRemainingAccountsForPayment = async (
       ],
     ];
   } else {
-    const [issuerTokenAccountId, feeCollectorTokenAccountId] =
-      await Promise.all([
-        issuerId.equals(wallet.publicKey)
-          ? await findAta(paymentMint, issuerId, true)
-          : await withFindOrInitAssociatedTokenAccount(
-              transaction,
-              connection,
-              paymentMint,
-              issuerId,
-              payer,
-              true
-            ),
-        await withFindOrInitAssociatedTokenAccount(
+    const issuerTokenAccountId = issuerId.equals(wallet.publicKey)
+      ? await findAta(paymentMint, issuerId, true)
+      : await withFindOrInitAssociatedTokenAccount(
           transaction,
           connection,
           paymentMint,
-          paymentManager,
+          issuerId,
           payer,
           true
-        ),
-      ]);
+        );
+    const paymentManager = await tryGetAccount(() =>
+      getPaymentManager(connection, paymentManagerId)
+    );
+    const feeCollectorTokenAccountId =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        paymentMint,
+        paymentManager ? paymentManager.parsed.feeCollector : paymentManager,
+        payer,
+        true
+      );
     return [issuerTokenAccountId, feeCollectorTokenAccountId, []];
   }
 };

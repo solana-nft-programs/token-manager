@@ -8,6 +8,7 @@ install:
 	yarn install
 
 test-keys:
+	mkdir -p target/deploy
 	cp -r tests/test-keypairs/* target/deploy
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM/$$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/$$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)/g" {} +
@@ -20,7 +21,7 @@ build:
 	yarn idl:generate
 
 start:
-	solana-test-validator --url https://api.devnet.solana.com \
+	solana-test-validator --url https://api.mainnet-beta.solana.com \
 		--clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT \
 		--bpf-program ./target/deploy/cardinal_token_manager-keypair.json ./target/deploy/cardinal_token_manager.so \
 		--bpf-program ./target/deploy/cardinal_paid_claim_approver-keypair.json ./target/deploy/cardinal_paid_claim_approver.so \

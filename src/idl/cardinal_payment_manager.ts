@@ -169,8 +169,8 @@ export type CardinalPaymentManager = {
   errors: [
     {
       code: 6000;
-      name: "InvalidCollector";
-      msg: "Invalid collector";
+      name: "InvalidFeeCollector";
+      msg: "Invalid fee collector token account";
     },
     {
       code: 6001;
@@ -351,8 +351,8 @@ export const IDL: CardinalPaymentManager = {
   errors: [
     {
       code: 6000,
-      name: "InvalidCollector",
-      msg: "Invalid collector",
+      name: "InvalidFeeCollector",
+      msg: "Invalid fee collector token account",
     },
     {
       code: 6001,

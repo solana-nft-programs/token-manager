@@ -66,7 +66,7 @@ export const managePayment = async (
     paymentAmount: BN;
     payerTokenAccount: PublicKey;
     feeCollectorTokenAccount: PublicKey;
-    payment_token_account: PublicKey;
+    paymentTokenAccount: PublicKey;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -83,7 +83,7 @@ export const managePayment = async (
       paymentManager: paymentManagerId,
       payerTokenAccount: params.payerTokenAccount,
       feeCollectorTokenAccount: params.feeCollectorTokenAccount,
-      paymentTokenAccount: params.payment_token_account,
+      paymentTokenAccount: params.paymentTokenAccount,
       payer: wallet.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
     },

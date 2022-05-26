@@ -60,6 +60,7 @@ export const withRemainingAccountsForPayment = async (
   receiptMint?: PublicKey | null,
   payer = wallet.publicKey
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
+  console.log("heyyy", paymentManager.toString());
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
       receiptMint

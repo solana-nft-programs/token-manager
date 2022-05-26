@@ -10,11 +10,8 @@ import type {
 import { SystemProgram } from "@solana/web3.js";
 
 import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
-import {
-  CRANK_KEY,
-  PAYMENT_MANAGER_KEY,
-  TOKEN_MANAGER_ADDRESS,
-} from "../tokenManager";
+import { findPaymentManagerAddress } from "../paymentManager/pda";
+import { CRANK_KEY, TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import { findClaimReceiptId } from "../tokenManager/pda";
 import type { CLAIM_APPROVER_PROGRAM } from "./constants";
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
@@ -45,13 +42,15 @@ export const init = async (
     tokenManagerId
   );
 
+  const [defaultPaymentManagerId] = await findPaymentManagerAddress("cardinal");
+
   return [
     claimApproverProgram.instruction.init(
       {
         paymentMint: params.paymentMint,
         paymentAmount: new BN(params.paymentAmount),
         collector: params.collector || CRANK_KEY,
-        paymentManager: params.paymentManager || PAYMENT_MANAGER_KEY,
+        paymentManager: params.paymentManager || defaultPaymentManagerId,
       },
       {
         accounts: {

@@ -1,5 +1,5 @@
 export type CardinalPaymentManager = {
-  version: "1.3.10";
+  version: "1.3.11";
   name: "cardinal_payment_manager";
   instructions: [
     {
@@ -169,7 +169,7 @@ export type CardinalPaymentManager = {
   errors: [
     {
       code: 6000;
-      name: "InvalidFeeCollector";
+      name: "InvalidFeeCollectorTokenAccount";
       msg: "Invalid fee collector token account";
     },
     {
@@ -181,7 +181,7 @@ export type CardinalPaymentManager = {
 };
 
 export const IDL: CardinalPaymentManager = {
-  version: "1.3.10",
+  version: "1.3.11",
   name: "cardinal_payment_manager",
   instructions: [
     {
@@ -351,7 +351,7 @@ export const IDL: CardinalPaymentManager = {
   errors: [
     {
       code: 6000,
-      name: "InvalidFeeCollector",
+      name: "InvalidFeeCollectorTokenAccount",
       msg: "Invalid fee collector token account",
     },
     {

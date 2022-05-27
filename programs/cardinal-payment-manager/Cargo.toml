@@ -25,7 +25,6 @@ anchor-spl = "0.24.2"
 spl-associated-token-account = "1.0.5"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
 solana-program = "1.8.1"
-cardinal-token-manager = { version = "^1.3.11", path = "../cardinal-token-manager", features = ["cpi"] }
 
 [dev-dependencies]
 proptest = { version = "1.0" }

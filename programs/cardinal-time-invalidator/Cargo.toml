@@ -25,12 +25,8 @@ anchor-spl = "0.24.2"
 spl-associated-token-account = "1.0.5"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
 solana-program = "1.8.1"
-<<<<<<< HEAD
 cardinal-token-manager = { version = "^1.3.11", path = "../cardinal-token-manager", features = ["cpi"] }
-=======
-cardinal-token-manager = { version = "^1.3.10", path = "../cardinal-token-manager", features = ["cpi"] }
-cardinal-payment-manager = { version = "^1.3.10", path = "../cardinal-payment-manager", features = ["cpi"] }
->>>>>>> bc826ce (ts files + contract cleanup)
+cardinal-payment-manager = { version = "^1.3.11", path = "../cardinal-payment-manager", features = ["cpi"] }
 
 [dev-dependencies]
 proptest = { version = "1.0" }

@@ -101,7 +101,7 @@ export const withRemainingAccountsForPayment = async (
         transaction,
         connection,
         paymentMint,
-        paymentManager ? paymentManager.parsed.feeCollector : paymentManager,
+        paymentManager ? paymentManager.parsed.feeCollector : paymentManagerId,
         payer,
         true
       );
@@ -135,7 +135,7 @@ export const withRemainingAccountsForPayment = async (
         transaction,
         connection,
         paymentMint,
-        paymentManager ? paymentManager.parsed.feeCollector : paymentManager,
+        paymentManager ? paymentManager.parsed.feeCollector : paymentManagerId,
         payer,
         true
       );

@@ -25,6 +25,9 @@ import { getProvider } from "./workspace";
 describe("Create and Extend Rental", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 100000;
   const RENTAL_PAYMENT_AMONT = 10000;
+  const MAKER_FEE = new BN(5);
+  const TAKER_FEE = new BN(3);
+  const FEE_DECIMALS = 2;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
@@ -91,9 +94,9 @@ describe("Create and Extend Rental", () => {
       paymentManagerName,
       {
         feeCollector: feeCollector.publicKey,
-        makerFee: new BN(5),
-        takerFee: new BN(3),
-        feeDecimals: 2,
+        makerFee: MAKER_FEE,
+        takerFee: TAKER_FEE,
+        feeDecimals: FEE_DECIMALS,
       }
     );
     paymentManagerId = outPaymentManagerId;
@@ -181,7 +184,6 @@ describe("Create and Extend Rental", () => {
     expect(claimApproverData.parsed.paymentManager.toString()).to.eq(
       paymentManagerId.toString()
     );
-    console.log("paymentManagerId", paymentManagerId.toString());
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
@@ -221,11 +223,6 @@ describe("Create and Extend Rental", () => {
       [...transaction.instructions]
     );
 
-    const feeCollectorBefore = await provider.connection.getAccountInfo(
-      feeCollector.publicKey
-    );
-    console.log("Claim Rental: before", feeCollectorBefore?.lamports);
-
     await expectTXTable(txEnvelope, "Claim Rental", {
       verbosity: "error",
       formatLogs: true,
@@ -253,13 +250,25 @@ describe("Create and Extend Rental", () => {
       recipientPaymentTokenAccountId
     );
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT
+      RECIPIENT_START_PAYMENT_AMOUNT -
+        RENTAL_PAYMENT_AMONT -
+        Math.floor(
+          RENTAL_PAYMENT_AMONT * (TAKER_FEE.toNumber() / 10 ** FEE_DECIMALS)
+        )
     );
 
-    const feeCollectorAfter = await provider.connection.getAccountInfo(
-      feeCollector.publicKey
+    const feeCollectorTokenAccountAfter = await paymentMint.getAccountInfo(
+      await findAta(paymentMint.publicKey, feeCollector.publicKey)
     );
-    console.log("Claim Rental: after", feeCollectorAfter?.lamports);
+
+    expect(feeCollectorTokenAccountAfter.amount.toNumber()).to.eq(
+      Math.floor(
+        new BN(RENTAL_PAYMENT_AMONT)
+          .mul(MAKER_FEE.add(TAKER_FEE))
+          .div(new BN(10 ** FEE_DECIMALS))
+          .toNumber()
+      )
+    );
   });
 
   it("Extend Rental", async () => {

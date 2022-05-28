@@ -1,4 +1,4 @@
-import { relistNFTs } from "./empireDAO";
+import { relistAll } from "./empireDAO";
 
 module.exports.relist = async (event: any) => {
   if (process.env.RELISTING_DISABLED === "true") {
@@ -9,7 +9,7 @@ module.exports.relist = async (event: any) => {
     `--------------- Relisting empireDAO NFTs on ${new Date().toLocaleString()}  ---------------`
   );
   console.log(process.env, process.env.RELISTING_DISABLED);
-  await relistNFTs();
+  await relistAll();
   console.log(
     `--------------- Finished Relisting empireDAO NFTs on ${new Date().toLocaleString()}  ---------------`
   );

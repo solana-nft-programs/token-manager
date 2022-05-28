@@ -259,6 +259,18 @@ export const relistNFTs = async (cluster = "devnet") => {
   return;
 };
 
-relistNFTs("mainnet").catch((e) => {
-  console.log(e);
-});
+export const relistAll = async (mainnet = true) => {
+  if (mainnet) {
+    try {
+      await relistNFTs("mainnet");
+    } catch (e) {
+      console.log("Failed to invalidate on mainnet: ", e);
+    }
+  }
+
+  try {
+    await relistNFTs("devnet");
+  } catch (e) {
+    console.log("Failed to invalidate on devnet: ", e);
+  }
+};

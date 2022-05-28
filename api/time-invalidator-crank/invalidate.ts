@@ -1,6 +1,15 @@
-import { programs, withInvalidate } from "@cardinal/token-manager";
+import {
+  AccountData,
+  programs,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/token-manager";
 import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
-import { TokenManagerState } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import { TimeInvalidatorData } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator";
+import {
+  TokenManagerData,
+  TokenManagerState,
+  withRemainingAccountsForReturn,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import { BN, utils } from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import {
@@ -15,6 +24,32 @@ import { connectionFor, secondaryConnectionFor } from "../common/connection";
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.SOLANA_CRANK_KEY || "")
 );
+
+export const shouldTimeInvalidate = (
+  tokenManagerData: AccountData<TokenManagerData>,
+  timeInvalidatorData: AccountData<TimeInvalidatorData>
+): boolean => {
+  return Boolean(
+    tokenManagerData?.parsed.state !== TokenManagerState.Invalidated &&
+      ((timeInvalidatorData.parsed.maxExpiration &&
+        new BN(Date.now() / 1000).gte(
+          timeInvalidatorData.parsed.maxExpiration
+        )) ||
+        (timeInvalidatorData.parsed.expiration &&
+          tokenManagerData.parsed.state === TokenManagerState.Claimed &&
+          new BN(Date.now() / 1000).gte(
+            timeInvalidatorData.parsed.expiration
+          )) ||
+        (!timeInvalidatorData.parsed.expiration &&
+          tokenManagerData.parsed.state === TokenManagerState.Claimed &&
+          timeInvalidatorData.parsed.durationSeconds &&
+          new BN(Date.now() / 1000).gte(
+            tokenManagerData.parsed.stateChangedAt.add(
+              timeInvalidatorData.parsed.durationSeconds
+            )
+          )))
+  );
+};
 
 const main = async (cluster: string) => {
   const connection = connectionFor(cluster);
@@ -63,32 +98,45 @@ const main = async (cluster: string) => {
             timeInvalidatorData.parsed.tokenManager
           )
         );
-      } else if (
-        tokenManagerData?.parsed.state !== TokenManagerState.Invalidated &&
-        ((timeInvalidatorData.parsed.expiration &&
-          new BN(Date.now() / 1000).gte(
-            timeInvalidatorData.parsed.expiration
-          )) ||
-          (timeInvalidatorData.parsed.maxExpiration &&
-            new BN(Date.now() / 1000).gte(
-              timeInvalidatorData.parsed.maxExpiration
-            )) ||
-          (!timeInvalidatorData.parsed.expiration &&
-            timeInvalidatorData.parsed.durationSeconds &&
-            tokenManagerData.parsed.state === TokenManagerState.Claimed &&
-            new BN(Date.now() / 1000).gte(
-              tokenManagerData.parsed.stateChangedAt.add(
-                timeInvalidatorData.parsed.durationSeconds
-              )
-            )))
-      ) {
-        await withInvalidate(
+      } else if (shouldTimeInvalidate(tokenManagerData, timeInvalidatorData)) {
+        const tokenManagerTokenAccountId =
+          await withFindOrInitAssociatedTokenAccount(
+            transaction,
+            connection,
+            tokenManagerData.parsed.mint,
+            tokenManagerData.pubkey,
+            wallet.publicKey,
+            true
+          );
+        const remainingAccountsForReturn = await withRemainingAccountsForReturn(
           transaction,
           tokenManagerData?.parsed.receiptMint
             ? secondaryConnectionFor(cluster)
             : connection,
           new SignerWallet(wallet),
-          tokenManagerData.parsed.mint
+          tokenManagerData
+        );
+        transaction.add(
+          await timeInvalidator.instruction.invalidate(
+            connection,
+            new SignerWallet(wallet),
+            tokenManagerData.parsed.mint,
+            tokenManagerData.pubkey,
+            tokenManagerData.parsed.kind,
+            tokenManagerData.parsed.state,
+            tokenManagerTokenAccountId,
+            tokenManagerData?.parsed.recipientTokenAccount,
+            remainingAccountsForReturn
+          )
+        );
+        transaction.add(
+          timeInvalidator.instruction.close(
+            connection,
+            new SignerWallet(wallet),
+            timeInvalidatorData.pubkey,
+            timeInvalidatorData.parsed.tokenManager,
+            timeInvalidatorData.parsed.collector
+          )
         );
       } else {
         console.log(

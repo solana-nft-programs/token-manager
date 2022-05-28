@@ -17,6 +17,7 @@ import {
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
+import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
 import {
   InvalidationType,
   TokenManagerKind,
@@ -500,17 +501,7 @@ export const withInvalidate = async (
     );
   } else if (
     timeInvalidatorData &&
-    ((timeInvalidatorData.parsed.maxExpiration &&
-      timeInvalidatorData.parsed.maxExpiration.lte(
-        new BN(Date.now() / 1000)
-      )) ||
-      (timeInvalidatorData.parsed.expiration &&
-        timeInvalidatorData.parsed.expiration.lte(new BN(Date.now() / 1000))) ||
-      (!timeInvalidatorData.parsed.expiration &&
-        timeInvalidatorData.parsed.durationSeconds &&
-        tokenManagerData.parsed.stateChangedAt
-          .add(timeInvalidatorData.parsed.durationSeconds)
-          .lte(new BN(Date.now() / 1000))))
+    shouldTimeInvalidate(tokenManagerData, timeInvalidatorData)
   ) {
     transaction.add(
       await timeInvalidator.instruction.invalidate(

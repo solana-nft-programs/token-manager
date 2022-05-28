@@ -4,6 +4,9 @@
 # VSCode history
 .history
 
+#vscode config
+.vscode
+
 # Ignore makefile output
 validator.PID
 tests/out.xml

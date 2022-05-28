@@ -2,9 +2,9 @@ import { Connection } from "@solana/web3.js";
 
 const networkURLs: { [key: string]: string } = {
   ["mainnet-beta"]:
-    "https://solana-api.syndica.io/access-token/V8plLDeUb6CirggrG585VAwEMT03zJuOnJUQInf6txxozYLFYqcl0EZVyU0CnQHL/",
+    "https://solana-api.syndica.io/access-token/bpK4wglyeHHxd7hdEzeXCVdq8MnWQwHsqlmsCXzVYPq7jct19ouUy7ZEQzl5ZrmC/",
   mainnet:
-    "https://solana-api.syndica.io/access-token/V8plLDeUb6CirggrG585VAwEMT03zJuOnJUQInf6txxozYLFYqcl0EZVyU0CnQHL/",
+    "https://solana-api.syndica.io/access-token/bpK4wglyeHHxd7hdEzeXCVdq8MnWQwHsqlmsCXzVYPq7jct19ouUy7ZEQzl5ZrmC/",
   devnet: "https://api.devnet.solana.com/",
   testnet: "https://api.testnet.solana.com/",
   localnet: "http://localhost:8899/",

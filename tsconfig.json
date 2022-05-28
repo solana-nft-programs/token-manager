@@ -5,5 +5,5 @@
     "noEmit": true,
     "types": ["mocha"]
   },
-  "include": ["src/", "tests/", "tools/"]
+  "include": ["src/", "tests/", "tools/", "api/"]
 }

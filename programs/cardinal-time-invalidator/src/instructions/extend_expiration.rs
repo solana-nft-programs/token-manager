@@ -97,7 +97,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
         cardinal_payment_manager::cpi::manage_payment(cpi_ctx, time_invalidator.extension_payment_amount.unwrap())?;
     } else {
-        // backwards compatibility no fee transfer
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
             to: ctx.accounts.payment_token_account.to_account_info(),

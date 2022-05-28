@@ -7,7 +7,6 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
-import * as splToken from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
@@ -22,7 +21,7 @@ import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Create and Extend Rental", () => {
+describe("Create rental with payment manager and extend", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 100000;
   const RENTAL_PAYMENT_AMONT = 10000;
   const MAKER_FEE = new BN(5);
@@ -74,19 +73,6 @@ describe("Create and Extend Rental", () => {
   it("Create payment manager", async () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
-
-    const mintBalanceNeeded =
-      await splToken.Token.getMinBalanceRentForExemptMint(provider.connection);
-    transaction.add(
-      web3.SystemProgram.createAccount({
-        fromPubkey: provider.wallet.publicKey,
-        newAccountPubkey: feeCollector.publicKey,
-        lamports: mintBalanceNeeded,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        space: splToken.MintLayout.span,
-        programId: splToken.TOKEN_PROGRAM_ID,
-      })
-    );
 
     const [ix, outPaymentManagerId] = await init(
       provider.connection,
@@ -253,7 +239,7 @@ describe("Create and Extend Rental", () => {
       RECIPIENT_START_PAYMENT_AMOUNT -
         RENTAL_PAYMENT_AMONT -
         Math.floor(
-          RENTAL_PAYMENT_AMONT * (TAKER_FEE.toNumber() / 10 ** FEE_DECIMALS)
+          (RENTAL_PAYMENT_AMONT * TAKER_FEE.toNumber()) / 10 ** FEE_DECIMALS
         )
     );
 
@@ -278,6 +264,14 @@ describe("Create and Extend Rental", () => {
       rentalMint.publicKey
     );
 
+    const recipientPaymentTokenAccountBefore = await paymentMint.getAccountInfo(
+      recipientPaymentTokenAccountId
+    );
+
+    const feeCollectorTokenAccountBefore = await paymentMint.getAccountInfo(
+      await findAta(paymentMint.publicKey, feeCollector.publicKey)
+    );
+
     let timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
@@ -297,7 +291,7 @@ describe("Create and Extend Rental", () => {
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId,
-      1000
+      1000 * 10 // 10 lamports extension
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -325,6 +319,32 @@ describe("Create and Extend Rental", () => {
 
     expect(timeInvalidatorData?.parsed.expiration?.toNumber()).to.eq(
       expiration + 1000
+    );
+
+    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
+      await findAta(rentalMint.publicKey, recipient.publicKey)
+    );
+    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+
+    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
+      recipientPaymentTokenAccountId
+    );
+    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
+      recipientPaymentTokenAccountBefore.amount
+        .sub(new BN(10))
+        .sub(new BN(10).mul(TAKER_FEE).div(new BN(10 ** FEE_DECIMALS)))
+        .toNumber()
+    );
+
+    const feeCollectorTokenAccountAfter = await paymentMint.getAccountInfo(
+      await findAta(paymentMint.publicKey, feeCollector.publicKey)
+    );
+
+    expect(feeCollectorTokenAccountAfter.amount.toNumber()).to.eq(
+      feeCollectorTokenAccountBefore.amount.add(
+        new BN(10).mul(TAKER_FEE.add(MAKER_FEE)).div(new BN(10 ** FEE_DECIMALS))
+      )
     );
   });
 });

@@ -2,7 +2,7 @@ require("@rushstack/eslint-patch/modern-module-resolution");
 
 module.exports = {
   root: true,
-  ignorePatterns: ["dist/", "*.js"],
+  ignorePatterns: ["dist/", "*.js", "api/"],
   parserOptions: {
     tsconfigRootDir: __dirname,
     project: "tsconfig.json",

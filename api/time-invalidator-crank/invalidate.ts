@@ -1,8 +1,4 @@
-import {
-  programs,
-  tryGetAccount,
-  withInvalidate,
-} from "@cardinal/token-manager";
+import { programs, withInvalidate } from "@cardinal/token-manager";
 import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
 import { TokenManagerState } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import { BN, utils } from "@project-serum/anchor";
@@ -23,29 +19,38 @@ const wallet = Keypair.fromSecretKey(
 const main = async (cluster: string) => {
   const connection = connectionFor(cluster);
 
-  const invalidTimeInvalidators =
+  const allTimeInvalidators =
     await programs.timeInvalidator.accounts.getAllTimeInvalidators(connection);
+
+  const tokenManagerIds = allTimeInvalidators.map(
+    (timeInvalidator) => timeInvalidator.parsed.tokenManager
+  );
+
+  const tokenManagers = await programs.tokenManager.accounts.getTokenManagers(
+    connection,
+    tokenManagerIds
+  );
 
   console.log(
     `--------------- ${wallet.publicKey.toString()} found ${
-      invalidTimeInvalidators.length
+      allTimeInvalidators.length
     } expired invalidators found on ${cluster} ---------------`
   );
 
-  for (let i = 0; i < invalidTimeInvalidators.length; i++) {
-    const timeInvalidatorData = invalidTimeInvalidators[i]!;
+  for (let i = 0; i < allTimeInvalidators.length; i++) {
+    const timeInvalidatorData = allTimeInvalidators[i]!;
     try {
       console.log(
-        `\n\n\n\n\n--------------- ${i}/${invalidTimeInvalidators.length}`,
+        `\n\n\n\n\n--------------- ${i}/${allTimeInvalidators.length}`,
         timeInvalidatorData.pubkey.toString(),
         timeInvalidatorData.parsed.tokenManager.toString(),
         "---------------"
       );
-      const tokenManagerData = await tryGetAccount(() =>
-        programs.tokenManager.accounts.getTokenManager(
-          connection,
-          timeInvalidatorData.parsed.tokenManager
-        )
+
+      const tokenManagerData = tokenManagers.find(
+        (tokenManager) =>
+          tokenManager.pubkey.toString() ===
+          timeInvalidatorData.parsed.tokenManager.toString()
       );
 
       const transaction = new Transaction();

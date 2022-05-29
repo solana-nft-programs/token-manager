@@ -21,9 +21,8 @@ export const init = async (
   params: {
     feeCollector: PublicKey;
     authority?: PublicKey;
-    makerFee: BN;
-    takerFee: BN;
-    feeDecimals: number;
+    makerFeeBasisPoints: number;
+    takerFeeBasisPoints: number;
   }
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -41,9 +40,8 @@ export const init = async (
       {
         name: name,
         feeCollector: params.feeCollector,
-        makerFee: params.makerFee,
-        takerFee: params.takerFee,
-        feeDecimals: params.feeDecimals,
+        makerFeeBasisPoints: params.makerFeeBasisPoints,
+        takerFeeBasisPoints: params.takerFeeBasisPoints,
       },
       {
         accounts: {

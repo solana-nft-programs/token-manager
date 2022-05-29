@@ -1,4 +1,4 @@
-import { BN, web3 } from "@project-serum/anchor";
+import { web3 } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import { Keypair } from "@solana/web3.js";
@@ -11,9 +11,8 @@ import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
 import { getProvider } from "./workspace";
 
 describe("Init again and close payment manager", () => {
-  const MAKER_FEE = new BN(5);
-  const TAKER_FEE = new BN(3);
-  const FEE_DECIMALS = 2;
+  const MAKER_FEE = 500;
+  const TAKER_FEE = 300;
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
   const feeCollector = Keypair.generate();
 
@@ -27,9 +26,8 @@ describe("Init again and close payment manager", () => {
       paymentManagerName,
       {
         feeCollector: feeCollector.publicKey,
-        makerFee: MAKER_FEE,
-        takerFee: TAKER_FEE,
-        feeDecimals: FEE_DECIMALS,
+        makerFeeBasisPoints: MAKER_FEE,
+        takerFeeBasisPoints: TAKER_FEE,
       }
     );
 
@@ -55,12 +53,8 @@ describe("Init again and close payment manager", () => {
       checkPaymentManagerId
     );
     expect(paymentManagerData.parsed.name).to.eq(paymentManagerName);
-    expect(paymentManagerData.parsed.makerFee.toNumber()).to.eq(
-      MAKER_FEE.toNumber()
-    );
-    expect(paymentManagerData.parsed.takerFee.toNumber()).to.eq(
-      TAKER_FEE.toNumber()
-    );
+    expect(paymentManagerData.parsed.makerFeeBasisPoints).to.eq(MAKER_FEE);
+    expect(paymentManagerData.parsed.takerFeeBasisPoints).to.eq(TAKER_FEE);
   });
 
   it("Init again fails", () => {
@@ -75,9 +69,8 @@ describe("Init again and close payment manager", () => {
               paymentManagerName,
               {
                 feeCollector: feeCollector.publicKey,
-                makerFee: MAKER_FEE,
-                takerFee: TAKER_FEE,
-                feeDecimals: FEE_DECIMALS,
+                makerFeeBasisPoints: MAKER_FEE,
+                takerFeeBasisPoints: TAKER_FEE,
               }
             )
           )[0],

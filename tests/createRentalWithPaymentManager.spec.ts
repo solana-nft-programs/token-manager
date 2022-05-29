@@ -23,9 +23,9 @@ import { getProvider } from "./workspace";
 describe("Create rental with payment manager and extend", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 100000;
   const RENTAL_PAYMENT_AMONT = 10000;
-  const MAKER_FEE = new BN(5);
-  const TAKER_FEE = new BN(3);
-  const FEE_DECIMALS = 2;
+  const MAKER_FEE = 500;
+  const TAKER_FEE = 300;
+  const BASIS_POINTS_DIVISOR = 10000;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
@@ -79,9 +79,8 @@ describe("Create rental with payment manager and extend", () => {
       paymentManagerName,
       {
         feeCollector: feeCollector.publicKey,
-        makerFee: MAKER_FEE,
-        takerFee: TAKER_FEE,
-        feeDecimals: FEE_DECIMALS,
+        makerFeeBasisPoints: MAKER_FEE,
+        takerFeeBasisPoints: TAKER_FEE,
       }
     );
     paymentManagerId = outPaymentManagerId;
@@ -236,9 +235,7 @@ describe("Create rental with payment manager and extend", () => {
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
       RECIPIENT_START_PAYMENT_AMOUNT -
         RENTAL_PAYMENT_AMONT -
-        Math.floor(
-          (RENTAL_PAYMENT_AMONT * TAKER_FEE.toNumber()) / 10 ** FEE_DECIMALS
-        )
+        Math.floor((RENTAL_PAYMENT_AMONT * TAKER_FEE) / BASIS_POINTS_DIVISOR)
     );
 
     const feeCollectorTokenAccountAfter = await paymentMint.getAccountInfo(
@@ -248,8 +245,8 @@ describe("Create rental with payment manager and extend", () => {
     expect(feeCollectorTokenAccountAfter.amount.toNumber()).to.eq(
       Math.floor(
         new BN(RENTAL_PAYMENT_AMONT)
-          .mul(MAKER_FEE.add(TAKER_FEE))
-          .div(new BN(10 ** FEE_DECIMALS))
+          .mul(new BN(MAKER_FEE).add(new BN(TAKER_FEE)))
+          .div(new BN(BASIS_POINTS_DIVISOR))
           .toNumber()
       )
     );
@@ -332,7 +329,9 @@ describe("Create rental with payment manager and extend", () => {
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
       recipientPaymentTokenAccountBefore.amount
         .sub(new BN(10))
-        .sub(new BN(10).mul(TAKER_FEE).div(new BN(10 ** FEE_DECIMALS)))
+        .sub(
+          new BN(10).mul(new BN(TAKER_FEE)).div(new BN(BASIS_POINTS_DIVISOR))
+        )
         .toNumber()
     );
 
@@ -344,8 +343,8 @@ describe("Create rental with payment manager and extend", () => {
       feeCollectorTokenAccountBefore.amount
         .add(
           new BN(10)
-            .mul(TAKER_FEE.add(MAKER_FEE))
-            .div(new BN(10 ** FEE_DECIMALS))
+            .mul(new BN(TAKER_FEE).add(new BN(MAKER_FEE)))
+            .div(new BN(BASIS_POINTS_DIVISOR))
         )
         .toNumber()
     );

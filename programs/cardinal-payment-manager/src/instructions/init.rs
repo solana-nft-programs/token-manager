@@ -4,9 +4,8 @@ use {crate::state::*, anchor_lang::prelude::*};
 pub struct InitIx {
     pub name: String,
     pub fee_collector: Pubkey,
-    pub maker_fee: u64,
-    pub taker_fee: u64,
-    pub fee_decimals: u32,
+    pub maker_fee_basis_points: u16,
+    pub taker_fee_basis_points: u16,
 }
 
 #[derive(Accounts)]
@@ -32,9 +31,8 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     payment_manager.bump = *ctx.bumps.get("payment_manager").unwrap();
     payment_manager.name = ix.name;
     payment_manager.fee_collector = ix.fee_collector;
-    payment_manager.maker_fee = ix.maker_fee;
-    payment_manager.taker_fee = ix.taker_fee;
-    payment_manager.fee_decimals = ix.fee_decimals;
+    payment_manager.maker_fee_basis_points = ix.maker_fee_basis_points;
+    payment_manager.taker_fee_basis_points = ix.taker_fee_basis_points;
     payment_manager.authority = ctx.accounts.authority.key();
     Ok(())
 }

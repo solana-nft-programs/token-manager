@@ -25,14 +25,14 @@ pub fn handler(ctx: Context<HandlePaymentCtx>, payment_amount: u64) -> Result<()
     let payment_manager = &mut ctx.accounts.payment_manager;
 
     let maker_fee = payment_amount
-        .checked_mul(payment_manager.maker_fee)
-        .unwrap()
-        .checked_div((10_u64).checked_pow(payment_manager.fee_decimals).unwrap())
+        .checked_mul(payment_manager.maker_fee_basis_points.into())
+        .expect("Multiplication error")
+        .checked_div(BASIS_POINTS_DIVISOR.into())
         .expect("Division error");
     let taker_fee = payment_amount
-        .checked_mul(payment_manager.taker_fee)
-        .unwrap()
-        .checked_div((10_u64).checked_pow(payment_manager.fee_decimals).unwrap())
+        .checked_mul(payment_manager.taker_fee_basis_points.into())
+        .expect("Multiplication error")
+        .checked_div(BASIS_POINTS_DIVISOR.into())
         .expect("Division error");
 
     if maker_fee.checked_add(taker_fee).expect("Add error") > 0 {

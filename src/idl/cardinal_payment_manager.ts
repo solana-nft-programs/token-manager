@@ -117,16 +117,12 @@ export type CardinalPaymentManager = {
             type: "publicKey";
           },
           {
-            name: "makerFee";
-            type: "u64";
+            name: "makerFeeBasisPoints";
+            type: "u16";
           },
           {
-            name: "takerFee";
-            type: "u64";
-          },
-          {
-            name: "feeDecimals";
-            type: "u32";
+            name: "takerFeeBasisPoints";
+            type: "u16";
           },
           {
             name: "name";
@@ -151,16 +147,12 @@ export type CardinalPaymentManager = {
             type: "publicKey";
           },
           {
-            name: "makerFee";
-            type: "u64";
+            name: "makerFeeBasisPoints";
+            type: "u16";
           },
           {
-            name: "takerFee";
-            type: "u64";
-          },
-          {
-            name: "feeDecimals";
-            type: "u32";
+            name: "takerFeeBasisPoints";
+            type: "u16";
           }
         ];
       };
@@ -299,16 +291,12 @@ export const IDL: CardinalPaymentManager = {
             type: "publicKey",
           },
           {
-            name: "makerFee",
-            type: "u64",
+            name: "makerFeeBasisPoints",
+            type: "u16",
           },
           {
-            name: "takerFee",
-            type: "u64",
-          },
-          {
-            name: "feeDecimals",
-            type: "u32",
+            name: "takerFeeBasisPoints",
+            type: "u16",
           },
           {
             name: "name",
@@ -333,16 +321,12 @@ export const IDL: CardinalPaymentManager = {
             type: "publicKey",
           },
           {
-            name: "makerFee",
-            type: "u64",
+            name: "makerFeeBasisPoints",
+            type: "u16",
           },
           {
-            name: "takerFee",
-            type: "u64",
-          },
-          {
-            name: "feeDecimals",
-            type: "u32",
+            name: "takerFeeBasisPoints",
+            type: "u16",
           },
         ],
       },

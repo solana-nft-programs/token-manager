@@ -76,7 +76,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token_program: ctx.accounts.token_program.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
-        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, use_invalidator.extension_payment_amount.unwrap())?;
+        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, payment_amount)?;
     } else {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
@@ -85,7 +85,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, use_invalidator.extension_payment_amount.unwrap())?;
+        token::transfer(cpi_context, payment_amount)?;
     }
 
     use_invalidator.total_usages = new_total_usages;

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BN, web3 } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
@@ -94,8 +93,7 @@ describe("Create rental with payment manager and extend", () => {
         wallet: provider.wallet,
         opts: provider.opts,
       }),
-      [...transaction.instructions],
-      [feeCollector]
+      [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "Create Payment Manager", {
       verbosity: "error",
@@ -125,9 +123,9 @@ describe("Create rental with payment manager and extend", () => {
         },
         timeInvalidation: {
           durationSeconds: 1000,
-          maxExpiration: Date.now() / 1000 + 5000,
+          maxExpiration: Date.now() / 1000 + 20000,
           extension: {
-            extensionPaymentAmount: 1, // Pay 1 lamport to add 1000 seconds of expiration time
+            extensionPaymentAmount: 1, // Pay 1 amount to add 1000 seconds of expiration time
             extensionDurationSeconds: 1000,
             extensionPaymentMint: paymentMint.publicKey,
             disablePartialExtension: true,
@@ -291,7 +289,7 @@ describe("Create rental with payment manager and extend", () => {
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId,
-      1000 * 10 // 10 lamports extension
+      1000 * 10 // 10 amount extension
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -318,7 +316,7 @@ describe("Create rental with payment manager and extend", () => {
     );
 
     expect(timeInvalidatorData?.parsed.expiration?.toNumber()).to.eq(
-      expiration + 1000
+      expiration + 10000
     );
 
     const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
@@ -330,6 +328,7 @@ describe("Create rental with payment manager and extend", () => {
     const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
       recipientPaymentTokenAccountId
     );
+
     expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
       recipientPaymentTokenAccountBefore.amount
         .sub(new BN(10))
@@ -342,9 +341,13 @@ describe("Create rental with payment manager and extend", () => {
     );
 
     expect(feeCollectorTokenAccountAfter.amount.toNumber()).to.eq(
-      feeCollectorTokenAccountBefore.amount.add(
-        new BN(10).mul(TAKER_FEE.add(MAKER_FEE)).div(new BN(10 ** FEE_DECIMALS))
-      )
+      feeCollectorTokenAccountBefore.amount
+        .add(
+          new BN(10)
+            .mul(TAKER_FEE.add(MAKER_FEE))
+            .div(new BN(10 ** FEE_DECIMALS))
+        )
+        .toNumber()
     );
   });
 });

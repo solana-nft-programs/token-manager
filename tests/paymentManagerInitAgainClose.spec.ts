@@ -1,11 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BN, web3 } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
+import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import { Keypair } from "@solana/web3.js";
 import { expect } from "chai";
 
@@ -19,7 +14,6 @@ describe("Init again and close payment manager", () => {
   const MAKER_FEE = new BN(5);
   const TAKER_FEE = new BN(3);
   const FEE_DECIMALS = 2;
-  const recipient = Keypair.generate();
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
   const feeCollector = Keypair.generate();
 
@@ -46,8 +40,7 @@ describe("Init again and close payment manager", () => {
         wallet: provider.wallet,
         opts: provider.opts,
       }),
-      [...transaction.instructions],
-      [feeCollector]
+      [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "Create Payment Manager", {
       verbosity: "error",
@@ -101,21 +94,14 @@ describe("Init again and close payment manager", () => {
       provider.wallet.publicKey
     );
     await expectTXTable(
-      new TransactionEnvelope(
-        SolanaProvider.init({
-          connection: provider.connection,
-          wallet: new SignerWallet(recipient),
-          opts: provider.opts,
-        }),
-        [
-          await close(
-            provider.connection,
-            provider.wallet,
-            paymentManagerName,
-            provider.wallet.publicKey
-          ),
-        ]
-      ),
+      new TransactionEnvelope(SolanaProvider.init(provider), [
+        await close(
+          provider.connection,
+          provider.wallet,
+          paymentManagerName,
+          provider.wallet.publicKey
+        ),
+      ]),
       "Close payment manager",
       {
         verbosity: "error",

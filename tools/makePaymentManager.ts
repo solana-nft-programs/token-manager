@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import * as anchor from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { PublicKey } from "@solana/web3.js";
@@ -14,9 +13,8 @@ const wallet = web3Js.Keypair.fromSecretKey(
 export type PaymentManagerParams = {
   feeCollector: PublicKey;
   authority?: PublicKey;
-  makerFee: BN;
-  takerFee: BN;
-  feeDecimals: number;
+  makerFeeBasisPoints: number;
+  takerFeeBasisPoints: number;
 };
 
 const main = async (
@@ -37,9 +35,8 @@ const paymentManagerName = "NAME";
 const params: PaymentManagerParams = {
   feeCollector: new PublicKey("FEE_COLLECTOR"),
   authority: new PublicKey("AUTHORITY_KEY"),
-  makerFee: new BN(0),
-  takerFee: new BN(0),
-  feeDecimals: 2,
+  makerFeeBasisPoints: 0,
+  takerFeeBasisPoints: 0,
 };
 
 main(paymentManagerName, params).catch((e) => console.log(e));

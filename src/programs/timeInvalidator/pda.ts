@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_SEED } from "./constants";
 
 /**
- * Finds the token manager address.
+ * Finds the time invalidator for this token manager.
  * @returns
  */
 export const findTimeInvalidatorAddress = async (

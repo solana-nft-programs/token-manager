@@ -324,8 +324,8 @@ export const withClaimToken = async (
       wallet,
       claimApproverData.parsed.paymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint,
       claimApproverData.parsed.paymentManager,
+      tokenManagerData.parsed.receiptMint,
       additionalOptions?.payer ?? wallet.publicKey
     );
 
@@ -335,6 +335,7 @@ export const withClaimToken = async (
         wallet,
         tokenManagerId,
         payerTokenAccountId,
+        claimApproverData.parsed.paymentManager,
         paymentAccounts
       )
     );
@@ -672,8 +673,8 @@ export const withExtendExpiration = async (
       wallet,
       timeInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint,
-      timeInvalidatorData.parsed.paymentManager
+      timeInvalidatorData.parsed.paymentManager,
+      tokenManagerData.parsed.receiptMint
     );
 
     transaction.add(
@@ -681,6 +682,7 @@ export const withExtendExpiration = async (
         connection,
         wallet,
         tokenManagerId,
+        timeInvalidatorData.parsed.paymentManager,
         payerTokenAccountId,
         timeInvalidatorId,
         secondsToAdd,
@@ -699,7 +701,7 @@ export const withExtendUsages = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentAmount: number
+  usagesToAdd: number
 ): Promise<Transaction> => {
   const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
     tokenManagerId
@@ -724,8 +726,8 @@ export const withExtendUsages = async (
       wallet,
       useInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
-      tokenManagerData.parsed.receiptMint,
-      useInvalidatorData.parsed.paymentManager
+      useInvalidatorData.parsed.paymentManager,
+      tokenManagerData.parsed.receiptMint
     );
 
     transaction.add(
@@ -733,9 +735,10 @@ export const withExtendUsages = async (
         connection,
         wallet,
         tokenManagerId,
+        useInvalidatorData.parsed.paymentManager,
         payerTokenAccountId,
         useInvalidatorId,
-        paymentAmount,
+        usagesToAdd,
         paymentAccounts
       )
     );

@@ -2,8 +2,9 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
+    cardinal_payment_manager::program::CardinalPaymentManager,
     cardinal_token_manager::{
-        state::{assert_payment_manager, TokenManager, TokenManagerState, FEE_SCALE, PROVIDER_FEE, RECIPIENT_FEE},
+        state::{TokenManager, TokenManagerState},
         utils::assert_payment_token_account,
     },
 };
@@ -16,15 +17,14 @@ pub struct ExtendUsagesCtx<'info> {
     #[account(mut, constraint = use_invalidator.token_manager == token_manager.key() @ ErrorCode::InvalidUseInvalidator)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut, constraint = payment_manager.key() == use_invalidator.payment_manager @ ErrorCode::InvalidPaymentManager)]
+    payment_manager: UncheckedAccount<'info>,
+
     #[account(mut, constraint = payment_token_account.mint == use_invalidator.extension_payment_mint.expect("No extension mint") @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint =
-        payment_manager_token_account.mint == use_invalidator.extension_payment_mint.expect("No extension mint")
-        && payment_manager_token_account.owner == use_invalidator.payment_manager
-        && assert_payment_manager(&payment_manager_token_account.owner)
-        @ ErrorCode::InvalidPaymentManagerTokenAccount
-    )]
-    payment_manager_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = fee_collector_token_account.mint == use_invalidator.extension_payment_mint.unwrap() @ ErrorCode::InvalidPaymentMint)]
+    fee_collector_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     payer: Signer<'info>,
@@ -36,9 +36,10 @@ pub struct ExtendUsagesCtx<'info> {
     payer_token_account: Box<Account<'info, TokenAccount>>,
 
     token_program: Program<'info, Token>,
+    cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
 }
 
-pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ExtendUsagesCtx<'info>>, usages_to_add: u64) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
@@ -47,54 +48,38 @@ pub fn handler(ctx: Context<ExtendUsagesCtx>, payment_amount: u64) -> Result<()>
         return Err(error!(ErrorCode::InvalidUseInvalidator));
     }
 
-    if payment_amount
-        .checked_rem(use_invalidator.extension_payment_amount.expect("No extension amount"))
-        .expect("Remainder error")
-        != 0
-    {
-        return Err(error!(ErrorCode::InvalidExtensionAmount));
-    }
-    // floors any u64 decimals
-    let usages_to_add = payment_amount
-        .checked_mul(use_invalidator.extension_usages.expect("No extension mint"))
+    let price_to_pay = usages_to_add
+        .checked_mul(use_invalidator.extension_payment_amount.expect("No extension amount"))
         .expect("Multiplication error")
-        .checked_div(use_invalidator.extension_payment_amount.expect("No extension amount"))
+        .checked_div(use_invalidator.extension_usages.expect("No extension duration"))
         .expect("Division error");
+
     let new_total_usages = Some(use_invalidator.total_usages.unwrap().checked_add(usages_to_add).expect("Add error"));
     if new_total_usages > use_invalidator.max_usages {
         return Err(error!(ErrorCode::MaxUsagesReached));
     }
 
-    let provider_fee = use_invalidator
-        .extension_payment_amount
-        .expect("No extension amount")
-        .checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
-    let recipient_fee = use_invalidator
-        .extension_payment_amount
-        .expect("No extension amount")
-        .checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
-    if provider_fee.checked_add(recipient_fee).expect("Add error") > 0 {
+    if ctx.accounts.payment_manager.owner.key() == ctx.accounts.cardinal_payment_manager.key() {
+        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentCtx {
+            payment_manager: ctx.accounts.payment_manager.to_account_info(),
+            payer_token_account: ctx.accounts.payer_token_account.to_account_info(),
+            fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
+            payment_token_account: ctx.accounts.payment_token_account.to_account_info(),
+            payer: ctx.accounts.payer.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
+        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, price_to_pay)?;
+    } else {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
-            to: ctx.accounts.payment_manager_token_account.to_account_info(),
+            to: ctx.accounts.payment_token_account.to_account_info(),
             authority: ctx.accounts.payer.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, provider_fee.checked_add(recipient_fee).expect("Add error"))?;
+        token::transfer(cpi_context, price_to_pay)?;
     }
-
-    let cpi_accounts = Transfer {
-        from: ctx.accounts.payer_token_account.to_account_info(),
-        to: ctx.accounts.payment_token_account.to_account_info(),
-        authority: ctx.accounts.payer.to_account_info(),
-    };
-
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, payment_amount.checked_sub(recipient_fee).expect("Sub error"))?;
 
     use_invalidator.total_usages = new_total_usages;
     Ok(())

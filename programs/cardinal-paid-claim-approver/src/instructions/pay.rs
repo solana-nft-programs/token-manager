@@ -2,11 +2,8 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
-    cardinal_token_manager::{
-        program::CardinalTokenManager,
-        state::{assert_payment_manager, TokenManager, FEE_SCALE, PROVIDER_FEE, RECIPIENT_FEE},
-        utils::assert_payment_token_account,
-    },
+    cardinal_payment_manager::program::CardinalPaymentManager,
+    cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager, utils::assert_payment_token_account},
 };
 
 #[derive(Accounts)]
@@ -16,13 +13,13 @@ pub struct PayCtx<'info> {
 
     #[account(mut, constraint = payment_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentTokenAccount)]
     payment_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint =
-        payment_manager_token_account.mint == claim_approver.payment_mint
-        && payment_manager_token_account.owner == claim_approver.payment_manager
-        && assert_payment_manager(&payment_manager_token_account.owner)
-        @ ErrorCode::InvalidPaymentManagerTokenAccount
-    )]
-    payment_manager_token_account: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut, constraint = fee_collector_token_account.mint == claim_approver.payment_mint @ ErrorCode::InvalidPaymentMint)]
+    fee_collector_token_account: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut, constraint = payment_manager.key() == claim_approver.payment_manager @ ErrorCode::InvalidPaymentManager)]
+    payment_manager: UncheckedAccount<'info>,
 
     #[account(mut)]
     claim_approver: Box<Account<'info, PaidClaimApprover>>,
@@ -39,47 +36,39 @@ pub struct PayCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     claim_receipt: UncheckedAccount<'info>,
+
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
+    cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
 
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<PayCtx>) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, PayCtx<'info>>) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
-    let provider_fee = ctx
-        .accounts
-        .claim_approver
-        .payment_amount
-        .checked_mul(PROVIDER_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
-    let recipient_fee = ctx
-        .accounts
-        .claim_approver
-        .payment_amount
-        .checked_mul(RECIPIENT_FEE.checked_div(FEE_SCALE).expect("Division error"))
-        .expect("Multiplication error");
-    if provider_fee.checked_add(recipient_fee).expect("Add error") > 0 {
+    if ctx.accounts.payment_manager.owner.key() == ctx.accounts.cardinal_payment_manager.key() {
+        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentCtx {
+            payment_manager: ctx.accounts.payment_manager.to_account_info(),
+            payer_token_account: ctx.accounts.payer_token_account.to_account_info(),
+            fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
+            payment_token_account: ctx.accounts.payment_token_account.to_account_info(),
+            payer: ctx.accounts.payer.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
+        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, ctx.accounts.claim_approver.payment_amount)?;
+    } else {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
-            to: ctx.accounts.payment_manager_token_account.to_account_info(),
+            to: ctx.accounts.payment_token_account.to_account_info(),
             authority: ctx.accounts.payer.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, provider_fee.checked_add(recipient_fee).expect("Add error"))?;
+        token::transfer(cpi_context, ctx.accounts.claim_approver.payment_amount)?;
     }
-
-    let cpi_accounts = Transfer {
-        from: ctx.accounts.payer_token_account.to_account_info(),
-        to: ctx.accounts.payment_token_account.to_account_info(),
-        authority: ctx.accounts.payer.to_account_info(),
-    };
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, ctx.accounts.claim_approver.payment_amount.checked_sub(recipient_fee).expect("Sub error"))?;
 
     let token_manager_key = ctx.accounts.token_manager.key();
     let claim_approver_seeds = &[PAID_CLAIM_APPROVER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.claim_approver.bump]];

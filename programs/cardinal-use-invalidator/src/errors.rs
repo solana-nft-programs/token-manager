@@ -24,4 +24,10 @@ pub enum ErrorCode {
     InvalidPaymentManagerTokenAccount,
     #[msg("Invalid collector")]
     InvalidCollector,
+    #[msg("Invalid payment manager program")]
+    InvalidPaymentManagerProgram,
+    #[msg("Invalid payment manager")]
+    InvalidPaymentManager,
+    #[msg("Invalid payment mint")]
+    InvalidPaymentMint,
 }

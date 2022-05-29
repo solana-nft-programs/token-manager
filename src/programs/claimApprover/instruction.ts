@@ -9,11 +9,9 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import {
-  CRANK_KEY,
-  PAYMENT_MANAGER_KEY,
-  TOKEN_MANAGER_ADDRESS,
-} from "../tokenManager";
+import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
+import { findPaymentManagerAddress } from "../paymentManager/pda";
+import { CRANK_KEY, TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import { findClaimReceiptId } from "../tokenManager/pda";
 import type { CLAIM_APPROVER_PROGRAM } from "./constants";
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
@@ -44,13 +42,15 @@ export const init = async (
     tokenManagerId
   );
 
+  const [defaultPaymentManagerId] = await findPaymentManagerAddress("cardinal");
+
   return [
     claimApproverProgram.instruction.init(
       {
         paymentMint: params.paymentMint,
         paymentAmount: new BN(params.paymentAmount),
         collector: params.collector || CRANK_KEY,
-        paymentManager: params.paymentManager || PAYMENT_MANAGER_KEY,
+        paymentManager: params.paymentManager || defaultPaymentManagerId,
       },
       {
         accounts: {
@@ -71,6 +71,7 @@ export const pay = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   payerTokenAccountId: PublicKey,
+  paymentManager: PublicKey,
   paymentAccounts: [PublicKey, PublicKey, AccountMeta[]]
 ): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -87,21 +88,20 @@ export const pay = async (
   );
 
   const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
-  const [
-    paymentTokenAccountId,
-    paymentManagerTokenAccountId,
-    remainingAccounts,
-  ] = paymentAccounts;
+  const [paymentTokenAccountId, feeCollectorTokenAccount, remainingAccounts] =
+    paymentAccounts;
   return claimApproverProgram.instruction.pay({
     accounts: {
       tokenManager: tokenManagerId,
       paymentTokenAccount: paymentTokenAccountId,
+      feeCollectorTokenAccount: feeCollectorTokenAccount,
+      paymentManager: paymentManager,
       claimApprover: claimApproverId,
       payer: wallet.publicKey,
       payerTokenAccount: payerTokenAccountId,
-      paymentManagerTokenAccount: paymentManagerTokenAccountId,
       claimReceipt: claimReceiptId,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     },

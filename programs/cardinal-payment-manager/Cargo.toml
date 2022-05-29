@@ -1,17 +1,17 @@
 [package]
-name = "cardinal-use-invalidator"
+name = "cardinal-payment-manager"
 version = "1.3.11"
-description = "Cardinal usage invalidator and counter"
+description = "Cardinal payment manager"
 edition = "2021"
 homepage = "https://cardinal.so"
-repository = "https://github.com/cardinal-labs/cardinal-token-manager/tree/main/programs/cardinal-time-invalidator"
-authors = ["Jeremy Bogle <jeremy@cardinal.so>"]
+repository = "https://github.com/cardinal-labs/cardinal-token-manager/tree/main/programs/cardinal-payment-manager"
+authors = ["Giannis Chatziveroglou <giannis@cardinal.so>"]
 license = "AGPL-3.0"
 keywords = ["solana", "cardinal"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "cardinal_use_invalidator"
+name = "cardinal_payment_manager"
 
 [features]
 no-entrypoint = []
@@ -25,9 +25,6 @@ anchor-spl = "0.24.2"
 spl-associated-token-account = "1.0.5"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
 solana-program = "1.8.1"
-cardinal-token-manager = { version = "^1.3.11", path = "../cardinal-token-manager", features = ["cpi"] }
-cardinal-payment-manager = { version = "^1.3.11", path = "../cardinal-payment-manager", features = ["cpi"] }
-arrayref = "0.3.6"
 
 [dev-dependencies]
 proptest = { version = "1.0" }

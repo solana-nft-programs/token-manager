@@ -26,7 +26,7 @@ __metadata:
     "@saberhq/eslint-config": ^1.12.44
     "@saberhq/solana-contrib": ^1.12.44
     "@saberhq/token-utils": ^1.12.44
-    "@saberhq/tsconfig": ^1.12.44
+    "@saberhq/tsconfig": ^1.13.17
     "@solana/buffer-layout": ^4.0.0
     "@solana/spl-token": ^0.1.8
     "@solana/web3.js": ^1.34.0
@@ -355,10 +355,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@saberhq/tsconfig@npm:^1.12.44":
-  version: 1.12.45
-  resolution: "@saberhq/tsconfig@npm:1.12.45"
-  checksum: 0c05ecce855113c83d4a2eff4d6fd4dc898c907a28741019a5b0704f038d557f2459424313ac9c8911ac6af5cc9a4caa04584981015f8e812f311f6af48e0b27
+"@saberhq/tsconfig@npm:^1.13.17":
+  version: 1.13.17
+  resolution: "@saberhq/tsconfig@npm:1.13.17"
+  checksum: bd2dd2ec5d905c4fa4566c7ee4e1972ff58426c3408ea4ce6484a045447373539aff3833a6b0525f1f3a3f83a9e7881ef6834d9300426abe06b817a1f39a24aa
   languageName: node
   linkType: hard
 

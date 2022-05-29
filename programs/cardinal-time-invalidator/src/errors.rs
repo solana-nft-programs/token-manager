@@ -32,4 +32,8 @@ pub enum ErrorCode {
     AccountDiscriminatorMismatch,
     #[msg("Invalid token manager state for resetting expiration")]
     InvalidTokenManagerState,
+    #[msg("Invalid payment manager program")]
+    InvalidPaymentManagerProgram,
+    #[msg("Invalid payment manager")]
+    InvalidPaymentManager,
 }

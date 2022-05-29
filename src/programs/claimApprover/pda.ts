@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_SEED } from "./constants";
 
 /**
- * Finds the address of the Pool.
+ * Finds the address of the paid claim approver.
  * @returns
  */
 export const findClaimApproverAddress = async (

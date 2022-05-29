@@ -8,23 +8,26 @@ install:
 	yarn install
 
 test-keys:
+	mkdir -p target/deploy
 	cp -r tests/test-keypairs/* target/deploy
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM/$$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/$$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/$$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/$$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)/g" {} +
+	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/pmBbdddvcssmfNgNfu8vgULnhTAcnrn841K5QVhh5VV/$$(solana-keygen pubkey tests/test-keypairs/cardinal_payment_manager-keypair.json)/g" {} +
 
 build:
 	anchor build
 	yarn idl:generate
 
 start:
-	solana-test-validator --url https://api.devnet.solana.com \
+	solana-test-validator --url https://api.mainnet-beta.solana.com \
 		--clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT \
 		--bpf-program ./target/deploy/cardinal_token_manager-keypair.json ./target/deploy/cardinal_token_manager.so \
 		--bpf-program ./target/deploy/cardinal_paid_claim_approver-keypair.json ./target/deploy/cardinal_paid_claim_approver.so \
 		--bpf-program ./target/deploy/cardinal_time_invalidator-keypair.json ./target/deploy/cardinal_time_invalidator.so \
 		--bpf-program ./target/deploy/cardinal_use_invalidator-keypair.json ./target/deploy/cardinal_use_invalidator.so \
+		--bpf-program ./target/deploy/cardinal_payment_manager-keypair.json ./target/deploy/cardinal_payment_manager.so \
 		--reset --quiet & echo $$! > validator.PID
 	sleep 5
 	solana-keygen pubkey ./tests/test-key.json
@@ -38,6 +41,7 @@ clean-test-keys:
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/g" {} +
+	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_payment_manager-keypair.json)/pmBbdddvcssmfNgNfu8vgULnhTAcnrn841K5QVhh5VV/g" {} +
 
 stop:
 	pkill solana-test-validator

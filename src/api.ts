@@ -78,12 +78,12 @@ export const extendUsages = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentAmount: number
+  usagesToAdd: number
 ): Promise<Transaction> =>
   withExtendUsages(
     new Transaction(),
     connection,
     wallet,
     tokenManagerId,
-    paymentAmount
+    usagesToAdd
   );

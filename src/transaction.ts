@@ -710,7 +710,7 @@ export const withExtendUsages = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  paymentAmount: number
+  usagesToAdd: number
 ): Promise<Transaction> => {
   const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
     tokenManagerId
@@ -747,7 +747,7 @@ export const withExtendUsages = async (
         useInvalidatorData.parsed.paymentManager,
         payerTokenAccountId,
         useInvalidatorId,
-        paymentAmount,
+        usagesToAdd,
         paymentAccounts
       )
     );

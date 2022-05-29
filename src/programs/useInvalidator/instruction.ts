@@ -163,7 +163,7 @@ export const extendUsages = (
   paymentManager: PublicKey,
   payerTokenAccountId: PublicKey,
   useInvalidatorId: PublicKey,
-  extensionPaymentAmount: number,
+  usagesToAdd: number,
   paymentAccounts: [PublicKey, PublicKey, AccountMeta[]]
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -176,23 +176,20 @@ export const extendUsages = (
 
   const [paymentTokenAccountId, feeCollectorTokenAccount, remainingAccounts] =
     paymentAccounts;
-  return useInvalidatorProgram.instruction.extendUsages(
-    new BN(extensionPaymentAmount),
-    {
-      accounts: {
-        tokenManager: tokenManagerId,
-        useInvalidator: useInvalidatorId,
-        paymentManager: paymentManager,
-        paymentTokenAccount: paymentTokenAccountId,
-        feeCollectorTokenAccount: feeCollectorTokenAccount,
-        payer: wallet.publicKey,
-        payerTokenAccount: payerTokenAccountId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
-      },
-      remainingAccounts,
-    }
-  );
+  return useInvalidatorProgram.instruction.extendUsages(new BN(usagesToAdd), {
+    accounts: {
+      tokenManager: tokenManagerId,
+      useInvalidator: useInvalidatorId,
+      paymentManager: paymentManager,
+      paymentTokenAccount: paymentTokenAccountId,
+      feeCollectorTokenAccount: feeCollectorTokenAccount,
+      payer: wallet.publicKey,
+      payerTokenAccount: payerTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
+    },
+    remainingAccounts,
+  });
 };
 
 export const close = (

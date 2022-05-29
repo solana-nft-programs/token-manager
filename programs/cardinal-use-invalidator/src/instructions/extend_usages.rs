@@ -39,7 +39,7 @@ pub struct ExtendUsagesCtx<'info> {
     cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ExtendUsagesCtx<'info>>, payment_amount: u64) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ExtendUsagesCtx<'info>>, usages_to_add: u64) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
@@ -48,19 +48,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         return Err(error!(ErrorCode::InvalidUseInvalidator));
     }
 
-    if payment_amount
-        .checked_rem(use_invalidator.extension_payment_amount.expect("No extension amount"))
-        .expect("Remainder error")
-        != 0
-    {
-        return Err(error!(ErrorCode::InvalidExtensionAmount));
-    }
-    // floors any u64 decimals
-    let usages_to_add = payment_amount
-        .checked_mul(use_invalidator.extension_usages.expect("No extension mint"))
+    let price_to_pay = usages_to_add
+        .checked_mul(use_invalidator.extension_payment_amount.expect("No extension amount"))
         .expect("Multiplication error")
-        .checked_div(use_invalidator.extension_payment_amount.expect("No extension amount"))
+        .checked_div(use_invalidator.extension_usages.expect("No extension duration"))
         .expect("Division error");
+
     let new_total_usages = Some(use_invalidator.total_usages.unwrap().checked_add(usages_to_add).expect("Add error"));
     if new_total_usages > use_invalidator.max_usages {
         return Err(error!(ErrorCode::MaxUsagesReached));
@@ -76,7 +69,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token_program: ctx.accounts.token_program.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
-        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, payment_amount)?;
+        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, price_to_pay)?;
     } else {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),
@@ -85,7 +78,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, payment_amount)?;
+        token::transfer(cpi_context, price_to_pay)?;
     }
 
     use_invalidator.total_usages = new_total_usages;

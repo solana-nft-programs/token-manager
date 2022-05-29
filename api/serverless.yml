@@ -23,7 +23,7 @@ functions:
       EMPIRE_DAO_KEY: ${ssm:/EMPIRE_DAO_KEY~true}
       RELISTING_DISABLED: ${param:RELISTING_DISABLED,false}
     events:
-      - schedule: rate(1 minute)
+      - schedule: rate(10 minutes)
   time-invalidator-crank:
     timeout: 30
     environment:

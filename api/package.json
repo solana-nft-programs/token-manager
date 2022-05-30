@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@cardinal/common": "^1.0.10",
-    "@cardinal/token-manager": "^1.4.0",
+    "@cardinal/token-manager": "^1.4.1",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.4",
     "@project-serum/anchor": "^0.24.2",
     "@saberhq/anchor-contrib": "^1.12.48",

@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import * as PAYMENT_MANAGER_TYPES from "../../idl/cardinal_payment_manager";
 
 export const PAYMENT_MANAGER_ADDRESS = new PublicKey(
-  "pmBbdddvcssmfNgNfu8vgULnhTAcnrn841K5QVhh5VV"
+  "pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn"
 );
 
 export const PAYMENT_MANAGER_SEED = "payment-manager";

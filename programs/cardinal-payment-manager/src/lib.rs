@@ -4,7 +4,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("pmBbdddvcssmfNgNfu8vgULnhTAcnrn841K5QVhh5VV");
+declare_id!("pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn");
 
 #[program]
 pub mod cardinal_payment_manager {

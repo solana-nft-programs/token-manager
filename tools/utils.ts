@@ -108,3 +108,45 @@ export const createMintTransaction = async (
   }
   return [walletAta, transaction];
 };
+
+export const executeTransaction = async (
+  connection: Connection,
+  wallet: Wallet,
+  transaction: web3.Transaction,
+  config: {
+    silent?: boolean;
+    signers?: web3.Signer[];
+    confirmOptions?: web3.ConfirmOptions;
+    callback?: (success: boolean) => void;
+  }
+): Promise<string> => {
+  let txid = "";
+  try {
+    transaction.feePayer = wallet.publicKey;
+    transaction.recentBlockhash = (
+      await connection.getRecentBlockhash("max")
+    ).blockhash;
+    await wallet.signTransaction(transaction);
+    if (config.signers && config.signers.length > 0) {
+      transaction.partialSign(...config.signers);
+    }
+    txid = await web3.sendAndConfirmRawTransaction(
+      connection,
+      transaction.serialize(),
+      config.confirmOptions
+    );
+    config.callback && config.callback(true);
+    console.log("Successful tx", txid);
+  } catch (e: unknown) {
+    console.log(
+      "Failed transaction: ",
+      (e as web3.SendTransactionError).logs,
+      e
+    );
+    config.callback && config.callback(false);
+    if (!config.silent) {
+      throw e;
+    }
+  }
+  return txid;
+};

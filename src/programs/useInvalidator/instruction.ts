@@ -9,11 +9,14 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
-import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
+import {
+  DEFAULT_PAYMENT_MANAGER_NAME,
+  PAYMENT_MANAGER_ADDRESS,
+} from "../paymentManager";
+import { findPaymentManagerAddress } from "../paymentManager/pda";
 import type { TokenManagerKind } from "../tokenManager";
 import {
   CRANK_KEY,
-  PAYMENT_MANAGER_KEY,
   TOKEN_MANAGER_ADDRESS,
   TokenManagerState,
 } from "../tokenManager";
@@ -52,11 +55,15 @@ export const init = async (
   const [useInvalidatorId, _useInvalidatorBump] =
     await findUseInvalidatorAddress(tokenManagerId);
 
+  const [defaultPaymentManagerId] = await findPaymentManagerAddress(
+    DEFAULT_PAYMENT_MANAGER_NAME
+  );
+
   return [
     useInvalidatorProgram.instruction.init(
       {
-        collector: params.collector || PAYMENT_MANAGER_KEY,
-        paymentManager: params.paymentManager || CRANK_KEY,
+        collector: params.collector || CRANK_KEY,
+        paymentManager: params.paymentManager || defaultPaymentManagerId,
         totalUsages: params.totalUsages ? new BN(params.totalUsages) : null,
         maxUsages: params.extension?.maxUsages
           ? new BN(params.extension?.maxUsages)

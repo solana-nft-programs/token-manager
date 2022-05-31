@@ -9,7 +9,10 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
+import {
+  DEFAULT_PAYMENT_MANAGER_NAME,
+  PAYMENT_MANAGER_ADDRESS,
+} from "../paymentManager";
 import { findPaymentManagerAddress } from "../paymentManager/pda";
 import { CRANK_KEY, TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import { findClaimReceiptId } from "../tokenManager/pda";
@@ -42,7 +45,9 @@ export const init = async (
     tokenManagerId
   );
 
-  const [defaultPaymentManagerId] = await findPaymentManagerAddress("cardinal");
+  const [defaultPaymentManagerId] = await findPaymentManagerAddress(
+    DEFAULT_PAYMENT_MANAGER_NAME
+  );
 
   return [
     claimApproverProgram.instruction.init(

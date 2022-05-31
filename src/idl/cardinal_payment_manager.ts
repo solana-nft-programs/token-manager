@@ -13,7 +13,7 @@ export type CardinalPaymentManager = {
         {
           name: "authority";
           isMut: true;
-          isSigner: true;
+          isSigner: false;
         },
         {
           name: "payer";
@@ -187,7 +187,7 @@ export const IDL: CardinalPaymentManager = {
         {
           name: "authority",
           isMut: true,
-          isSigner: true,
+          isSigner: false,
         },
         {
           name: "payer",

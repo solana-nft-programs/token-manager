@@ -13,14 +13,15 @@ pub struct InitIx {
 pub struct InitCtx<'info> {
     #[account(
         init,
-        payer = authority,
+        payer = payer,
         space = PAYMENT_MANAGER_SIZE,
         seeds = [PAYMENT_MANAGER_SEED.as_bytes(), ix.name.as_bytes()], bump,
     )]
     payment_manager: Box<Account<'info, PaymentManager>>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    authority: Signer<'info>,
+    authority: UncheckedAccount<'info>,
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,

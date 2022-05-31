@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use std::str::FromStr;
 
-#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum TokenManagerState {
     /// Token manager is initialized
@@ -14,7 +14,7 @@ pub enum TokenManagerState {
     Invalidated = 3,
 }
 
-#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum TokenManagerKind {
     /// Token a managed rental and will use freeze authority to manage the token
@@ -25,7 +25,7 @@ pub enum TokenManagerKind {
     Edition = 3,
 }
 
-#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum InvalidationType {
     /// Upon invalidation it will be returned to the issuer

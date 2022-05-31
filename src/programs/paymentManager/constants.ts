@@ -8,6 +8,7 @@ export const PAYMENT_MANAGER_ADDRESS = new PublicKey(
 );
 
 export const PAYMENT_MANAGER_SEED = "payment-manager";
+export const DEFAULT_PAYMENT_MANAGER_NAME = "cardinal";
 
 export const PAYMENT_MANAGER_IDL = PAYMENT_MANAGER_TYPES.IDL;
 

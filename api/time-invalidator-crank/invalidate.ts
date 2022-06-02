@@ -4,15 +4,12 @@ import {
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/token-manager";
 import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
-import { TimeInvalidatorData } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator";
-import {
-  TokenManagerData,
-  TokenManagerState,
-  withRemainingAccountsForReturn,
-} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
+import { withRemainingAccountsForReturn } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import { BN, utils } from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import {
+  Connection,
   Keypair,
   sendAndConfirmRawTransaction,
   Transaction,
@@ -25,34 +22,26 @@ const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.SOLANA_CRANK_KEY || "")
 );
 
-export const shouldTimeInvalidate = (
-  tokenManagerData: AccountData<TokenManagerData>,
-  timeInvalidatorData: AccountData<TimeInvalidatorData>
-): boolean => {
-  return Boolean(
-    tokenManagerData?.parsed.state !== TokenManagerState.Invalidated &&
-      ((timeInvalidatorData.parsed.maxExpiration &&
-        new BN(Date.now() / 1000).gte(
-          timeInvalidatorData.parsed.maxExpiration
-        )) ||
-        (timeInvalidatorData.parsed.expiration &&
-          tokenManagerData.parsed.state === TokenManagerState.Claimed &&
-          new BN(Date.now() / 1000).gte(
-            timeInvalidatorData.parsed.expiration
-          )) ||
-        (!timeInvalidatorData.parsed.expiration &&
-          tokenManagerData.parsed.state === TokenManagerState.Claimed &&
-          timeInvalidatorData.parsed.durationSeconds &&
-          new BN(Date.now() / 1000).gte(
-            tokenManagerData.parsed.stateChangedAt.add(
-              timeInvalidatorData.parsed.durationSeconds
-            )
-          )))
+const getSolanaClock = async (
+  connection: Connection
+): Promise<number | null> => {
+  const epochInfo = await connection.getEpochInfo();
+  const blockTimeInEpoch = await connection.getBlockTime(
+    epochInfo.absoluteSlot
   );
+  return blockTimeInEpoch;
 };
 
 const main = async (cluster: string) => {
   const connection = connectionFor(cluster);
+  const startTime = Date.now() / 1000;
+  let solanaClock = await getSolanaClock(connection);
+  if (!solanaClock) {
+    console.log(
+      `[Error] Failed to get solana clock falling back to local time (${startTime})`
+    );
+    solanaClock = startTime;
+  }
 
   const allTimeInvalidators =
     await programs.timeInvalidator.accounts.getAllTimeInvalidators(connection);
@@ -98,7 +87,13 @@ const main = async (cluster: string) => {
             timeInvalidatorData.parsed.tokenManager
           )
         );
-      } else if (shouldTimeInvalidate(tokenManagerData, timeInvalidatorData)) {
+      } else if (
+        shouldTimeInvalidate(
+          tokenManagerData,
+          timeInvalidatorData,
+          solanaClock + (Date.now() / 1000 - startTime)
+        )
+      ) {
         const tokenManagerTokenAccountId =
           await withFindOrInitAssociatedTokenAccount(
             transaction,

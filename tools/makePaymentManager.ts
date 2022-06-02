@@ -11,7 +11,7 @@ import { tryGetAccount } from "../src";
 
 const wallet = web3Js.Keypair.fromSecretKey(
   anchor.utils.bytes.bs58.decode(
-    "SECRET_KEY"
+    ""
   )
 ); // your wallet's secret key
 
@@ -62,11 +62,11 @@ const main = async (
   }
 };
 
-const paymentManagerName = "NAME";
+const paymentManagerName = "mainnet-cardinal-mini-royale";
 const params: PaymentManagerParams = {
-  feeCollector: new PublicKey("crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr"),
-  authority: new PublicKey("crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr"),
-  makerFeeBasisPoints: 0,
+  feeCollector: new PublicKey("rG8DYcfoNCqJaQRZE5c9m8ynXycuJxZaF65VZVorB8L"),
+  authority: new PublicKey("7KJ322BQnje7oPN315dRNK7Arioom7d8mAPhAJFME2MA"),
+  makerFeeBasisPoints: 600,
   takerFeeBasisPoints: 0,
 };
 

@@ -7,23 +7,20 @@ import type { TimeInvalidatorData } from ".";
 
 export const shouldTimeInvalidate = (
   tokenManagerData: AccountData<TokenManagerData>,
-  timeInvalidatorData: AccountData<TimeInvalidatorData>
+  timeInvalidatorData: AccountData<TimeInvalidatorData>,
+  UTCNow: number = Date.now() / 1000
 ): boolean => {
   return Boolean(
     tokenManagerData?.parsed.state !== TokenManagerState.Invalidated &&
       ((timeInvalidatorData.parsed.maxExpiration &&
-        new BN(Date.now() / 1000).gte(
-          timeInvalidatorData.parsed.maxExpiration
-        )) ||
+        new BN(UTCNow).gte(timeInvalidatorData.parsed.maxExpiration)) ||
         (timeInvalidatorData.parsed.expiration &&
           tokenManagerData.parsed.state === TokenManagerState.Claimed &&
-          new BN(Date.now() / 1000).gte(
-            timeInvalidatorData.parsed.expiration
-          )) ||
+          new BN(UTCNow).gte(timeInvalidatorData.parsed.expiration)) ||
         (!timeInvalidatorData.parsed.expiration &&
           tokenManagerData.parsed.state === TokenManagerState.Claimed &&
           timeInvalidatorData.parsed.durationSeconds &&
-          new BN(Date.now() / 1000).gte(
+          new BN(UTCNow).gte(
             tokenManagerData.parsed.stateChangedAt.add(
               timeInvalidatorData.parsed.durationSeconds
             )

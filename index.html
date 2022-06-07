@@ -55,6 +55,12 @@
 <td align="left"><a href="https://docs.rs/cardinal-use-invalidator"><img src="https://docs.rs/cardinal-use-invalidator/badge.svg" alt="Docs.rs"></a></td>
 </tr>
 <tr>
+<td align="left"><code>cardinal-payment-manager</code></td>
+<td align="left">Program to handle payment splits revenue sharing</td>
+<td align="left"><a href="https://crates.io/crates/cardinal-payment-manager"><img src="https://img.shields.io/crates/v/cardinal-payment-manager" alt="Crates.io"></a></td>
+<td align="left"><a href="https://docs.rs/cardinal-payment-manager"><img src="https://docs.rs/cardinal-payment-manager/badge.svg" alt="Docs.rs"></a></td>
+</tr>
+<tr>
 <td align="left"><code>@cardinal/token-manager</code></td>
 <td align="left">TypeScript SDK for token-manager</td>
 <td align="left"><a href="https://www.npmjs.com/package/@cardinal/token-manager"><img src="https://img.shields.io/npm/v/@cardinal/token-manager.svg" alt="npm"></a></td>
@@ -71,6 +77,7 @@
 <li>PaidClaimApprover: <a href="https://explorer.solana.com/address/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR"><code>pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR</code></a></li>
 <li>TimeInvalidator: <a href="https://explorer.solana.com/address/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE"><code>tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE</code></a></li>
 <li>UseInvalidator: <a href="https://explorer.solana.com/address/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp"><code>useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp</code></a></li>
+<li>PaymentManager: <a href="https://explorer.solana.com/address/pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn"><code>pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn</code></a></li>
 </ul>
 
 <a href="#plugins" id="plugins" style="color: inherit; text-decoration: none;">
@@ -81,6 +88,7 @@
 <li>Claim approvers</li>
 <li>Transfer authorities</li>
 <li>Invalidators</li>
+<li>Payment manager</li>
 </ol>
 <p>When instantiating a token-manager, the issuer can set a claim approver, transfer authority and invalidators that can control the claim, transfer and invalidate mechanisms. These are all plugins that can be pointed to any program-derived account or user owned account. Out of the box, there are basic plugins to power use and time rentals and subscriptions.</p>
 <p>All of these are modeled are separate programs so users can choose to implement custom logic in a separate program for claim, transfer and invalidation.</p>

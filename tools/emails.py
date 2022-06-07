@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 port = 465
 smtp_server = "smtp.gmail.com"
 sender_email = "noreply@cardinal.so"
-password = "yzv7aqv0njy.ABV!zxe"
+password = ""
 
 context = ssl.create_default_context()
 data = pd.read_csv('./data/hacker-house-seattle.csv')

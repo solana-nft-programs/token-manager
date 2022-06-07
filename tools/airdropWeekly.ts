@@ -21,11 +21,24 @@ const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
 );
 
+const DAY_MAPPING: { [day: string]: string } = {
+  SUN: "Sunday",
+  MON: "Monday",
+  TUES: "Tuesday",
+  WEDS: "Wednesday",
+  THURS: "Thursday",
+  FRI: "Friday",
+  SAT: "Saturday",
+};
+
 export const airdropMasterEdition = async (
   metadataUrl: string,
   num: number,
+  daySymbol: string,
   cluster = "devnet"
 ) => {
+  const dayName = DAY_MAPPING[daySymbol]!;
+  if (!dayName) throw new Error("Day not found");
   const allMintIds: PublicKey[] = [];
   const connection = connectionFor(cluster);
 
@@ -55,9 +68,9 @@ export const airdropMasterEdition = async (
         {
           metadata: masterEditionMetadataId,
           metadataData: new DataV2({
-            name: "MonkeDAO NFT NYC Pass",
-            symbol: 'SMBNYC',
-            uri: metadataUrl,
+            name: "EmpireDAO Daily Pass",
+            symbol: daySymbol,
+            uri: `https://nft.cardinal.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}&text=header:${dayName}%201%20day%20pass&attrs=Day:${dayName}:day`,
             sellerFeeBasisPoints: 10,
             creators: [
               new Creator({
@@ -121,8 +134,9 @@ export const airdropMasterEdition = async (
 };
 
 airdropMasterEdition(
-  "https://monke.cardinal.so/metadata/monkedao.json",
+  "https://rent.cardinal.so/metadata/empiredao.json",
   1,
+  "SUN",
   "mainnet"
 )
   .then((allMintIds) => {

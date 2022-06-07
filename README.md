@@ -23,6 +23,7 @@ The Token Manager program is a wrapper protocol that achieves conditional owners
 | `cardinal-paid-claim-approver` | Approves users to claim tokens from a token-manager | [![Crates.io](https://img.shields.io/crates/v/cardinal-paid-claim-approver)](https://crates.io/crates/cardinal-paid-claim-approver) | [![Docs.rs](https://docs.rs/cardinal-paid-claim-approver/badge.svg)](https://docs.rs/cardinal-paid-claim-approver) |
 | `cardinal-time-invalidator`    | Invalidator for time-based token-managers           | [![Crates.io](https://img.shields.io/crates/v/cardinal-time-invalidator)](https://crates.io/crates/cardinal-time-invalidator)       | [![Docs.rs](https://docs.rs/cardinal-time-invalidator/badge.svg)](https://docs.rs/cardinal-time-invalidator)       |
 | `cardinal-use-invalidator`     | Invalidator for use-based token-managers            | [![Crates.io](https://img.shields.io/crates/v/cardinal-use-invalidator)](https://crates.io/crates/cardinal-use-invalidator)         | [![Docs.rs](https://docs.rs/cardinal-use-invalidator/badge.svg)](https://docs.rs/cardinal-use-invalidator)         |
+| `cardinal-payment-manager`     | Handles payment splits and revenue sharing          | [![Crates.io](https://img.shields.io/crates/v/cardinal-payment-manager)](https://crates.io/crates/cardinal-payment-manager)         | [![Docs.rs](https://docs.rs/cardinal-payment-manager/badge.svg)](https://docs.rs/cardinal-payment-manager)         |
 | `@cardinal/token-manager`      | TypeScript SDK for token-manager                    | [![npm](https://img.shields.io/npm/v/@cardinal/token-manager.svg)](https://www.npmjs.com/package/@cardinal/token-manager)           | [![Docs](https://img.shields.io/badge/docs-typedoc-blue)](https://cardinal-labs.github.io/cardinal-token-manager/) |
 
 ## Addresses
@@ -33,6 +34,7 @@ Program addresses are the same on devnet, testnet, and mainnet-beta.
 - PaidClaimApprover: [`pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR`](https://explorer.solana.com/address/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR)
 - TimeInvalidator: [`tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE`](https://explorer.solana.com/address/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE)
 - UseInvalidator: [`useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp`](https://explorer.solana.com/address/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp)
+- PaymentManager: [`pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn`](https://explorer.solana.com/address/pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn)
 
 ## Plugins
 
@@ -41,6 +43,7 @@ Cardinal token-manager is made to be composable. It allows for plugins for
 1. Claim approvers
 2. Transfer authorities
 3. Invalidators
+4. Payment manager
 
 When instantiating a token-manager, the issuer can set a claim approver, transfer authority and invalidators that can control the claim, transfer and invalidate mechanisms. These are all plugins that can be pointed to any program-derived account or user owned account. Out of the box, there are basic plugins to power use and time rentals and subscriptions.
 

@@ -17,7 +17,6 @@ env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: 1.9.13
   RUST_TOOLCHAIN: nightly
-  NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
   SOTERIA_VERSION: 0.0.0
   ANCHOR_GIT: https://github.com/project-serum/anchor
   ANCHOR_VERSION: 0.24.2
@@ -101,7 +100,7 @@ jobs:
           anchor_git: ${{ env.ANCHOR_GIT }}
           anchor_version: ${{ env.ANCHOR_VERSION }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/bin/
@@ -139,7 +138,7 @@ jobs:
       #     reporter: mocha-json
       - name: upload-integration-tests
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Unit Test Results
           path: tests/out.xml

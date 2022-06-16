@@ -39,7 +39,8 @@ export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  timeInvalidation: TimeInvalidationParams
+  timeInvalidation: TimeInvalidationParams,
+  payer?: PublicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
 
@@ -91,7 +92,7 @@ export const init = async (
           tokenManager: tokenManagerId,
           timeInvalidator: timeInvalidatorId,
           issuer: wallet.publicKey,
-          payer: wallet.publicKey,
+          payer: payer || wallet.publicKey,
           systemProgram: SystemProgram.programId,
         },
       }

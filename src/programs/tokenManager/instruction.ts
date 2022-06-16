@@ -63,7 +63,8 @@ export const init = async (
   amount: BN,
   kind: TokenManagerKind,
   invalidationType: InvalidationType,
-  numInvalidators = 1
+  numInvalidators = 1,
+  payer?: PublicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -91,7 +92,7 @@ export const init = async (
           mintCounter: mintCounterId,
           mint: mint,
           issuer: wallet.publicKey,
-          payer: wallet.publicKey,
+          payer: payer || wallet.publicKey,
           issuerTokenAccount: issuerTokenAccountId,
           systemProgram: SystemProgram.programId,
         },

@@ -30,7 +30,7 @@ const EMPIRE_DAO_CREATORS = ["edaoJQRZZ3hfNottaxe9z5o2owJDJgL1bUChiPk15KN"];
 const PAYMENT_MINT = new PublicKey(
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 );
-const DAY_PASS_PAYMENT_AMOUNT = 0;
+const DAY_PASS_PAYMENT_AMOUNT = 1_000_000;
 const BATCH_SIZE = 1;
 const MAX_RETRIES = 3;
 
@@ -220,40 +220,44 @@ export const relistNFTs = async (cluster = "devnet") => {
       }
     }
 
-    transaction.feePayer = wallet.publicKey;
-    transaction.recentBlockhash = (
-      await connection.getRecentBlockhash("max")
-    ).blockhash;
-    transaction.sign(wallet);
+    if (transaction.instructions.length > 0) {
+      transaction.feePayer = wallet.publicKey;
+      transaction.recentBlockhash = (
+        await connection.getRecentBlockhash("max")
+      ).blockhash;
+      transaction.sign(wallet);
 
-    let attempts = 0;
-    let txid;
-    while (attempts <= MAX_RETRIES && !txid) {
-      try {
-        txid = await sendAndConfirmRawTransaction(
-          connection,
-          transaction.serialize(),
-          {
-            commitment: "confirmed",
-          }
-        );
-      } catch (e) {
-        console.log(e);
+      let attempts = 0;
+      let txid;
+      while (attempts <= MAX_RETRIES && !txid) {
+        try {
+          txid = await sendAndConfirmRawTransaction(
+            connection,
+            transaction.serialize(),
+            {
+              commitment: "confirmed",
+            }
+          );
+        } catch (e) {
+          console.log(e);
+        }
+        attempts += 1;
       }
-      attempts += 1;
-    }
-    if (txid) {
-      console.log(
-        `Succesfully relist entries [${accountsInTx
-          .map((e) => e.tokenAccount?.pubkey.toString())
-          .join()}] with transaction ${txid} (https://explorer.solana.com/tx/${txid}?cluster=${cluster})`
-      );
+      if (txid) {
+        console.log(
+          `Succesfully relist entries [${accountsInTx
+            .map((e) => e.tokenAccount?.pubkey.toString())
+            .join()}] with transaction ${txid} (https://explorer.solana.com/tx/${txid}?cluster=${cluster})`
+        );
+      } else {
+        console.log(
+          `Failed to relist entries [${accountsInTx
+            .map((e) => e.tokenAccount?.pubkey.toString())
+            .join()}] -- Skipping for now`
+        );
+      }
     } else {
-      console.log(
-        `Failed to relist entries [${accountsInTx
-          .map((e) => e.tokenAccount?.pubkey.toString())
-          .join()}] -- Skipping for now`
-      );
+      console.log("No instructions found to relist");
     }
   }
   return;

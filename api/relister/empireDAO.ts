@@ -102,7 +102,7 @@ export const getPriceForSymbolAndName = (
 ): number => {
   return symbol === "SUN"
     ? SUNDAY_PASS_PAYMENT_AMOUNT
-    : name.includes("Floor 5")
+    : name.includes("#5")
     ? DAY_PASS_FLOOR_5_PAYMENT_AMOUNT
     : DAY_PASS_FLOOR_3_PAYMENT_AMOUNT;
 };

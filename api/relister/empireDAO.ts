@@ -30,7 +30,9 @@ const EMPIRE_DAO_CREATORS = ["edaoJQRZZ3hfNottaxe9z5o2owJDJgL1bUChiPk15KN"];
 const PAYMENT_MINT = new PublicKey(
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 );
-const DAY_PASS_PAYMENT_AMOUNT = 1_000_000;
+const SUNDAY_PASS_PAYMENT_AMOUNT = 1_000_000;
+const DAY_PASS_FLOOR_3_PAYMENT_AMOUNT = 55_000_000;
+const DAY_PASS_FLOOR_5_PAYMENT_AMOUNT = 60_000_000;
 const BATCH_SIZE = 1;
 const MAX_RETRIES = 3;
 
@@ -86,6 +88,23 @@ export const getExpirationForSymbol = (symbol: string): number => {
     0
   );
   return expirationDate.getTime() / 1000;
+};
+
+/**
+ * Given a symbol string from the DAY_MAPPING compute midnight EST in UTC timestamp
+ * Error if symbol is not in DAY_MAPPINGs
+ * @param symbol
+ * @returns
+ */
+export const getPriceForSymbolAndName = (
+  symbol: string,
+  name: string
+): number => {
+  return symbol === "SUN"
+    ? SUNDAY_PASS_PAYMENT_AMOUNT
+    : name.includes("Floor 5")
+    ? DAY_PASS_FLOOR_5_PAYMENT_AMOUNT
+    : DAY_PASS_FLOOR_3_PAYMENT_AMOUNT;
 };
 
 export type TokenData = {
@@ -205,7 +224,10 @@ export const relistNFTs = async (cluster = "devnet") => {
             kind: TokenManagerKind.Edition,
             issuerTokenAccountId: tokenData.tokenAccount!.pubkey,
             claimPayment: {
-              paymentAmount: DAY_PASS_PAYMENT_AMOUNT,
+              paymentAmount: getPriceForSymbolAndName(
+                tokenData.metaplexData!.data.data.symbol,
+                tokenData.metaplexData!.data.data.name
+              ),
               paymentMint: PAYMENT_MINT,
             },
             timeInvalidation: {

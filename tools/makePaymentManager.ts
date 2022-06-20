@@ -4,16 +4,13 @@ import { PublicKey } from "@solana/web3.js";
 import * as web3Js from "@solana/web3.js";
 
 import { paymentManager } from "../src/programs";
-import { connectionFor, executeTransaction } from "./utils";
+import { executeTransaction } from "./utils";
 import { getPaymentManager } from "../src/programs/paymentManager/accounts";
 import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
 import { tryGetAccount } from "../src";
+import { connectionFor } from "./connection";
 
-const wallet = web3Js.Keypair.fromSecretKey(
-  anchor.utils.bytes.bs58.decode(
-    ""
-  )
-); // your wallet's secret key
+const wallet = web3Js.Keypair.fromSecretKey(anchor.utils.bytes.bs58.decode("")); // your wallet's secret key
 
 export type PaymentManagerParams = {
   feeCollector: PublicKey;

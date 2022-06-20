@@ -26,7 +26,8 @@ import {
   InvalidationType,
   TokenManagerKind,
 } from "../src/programs/tokenManager";
-import { connectionFor, createMintTransaction } from "./utils";
+import { connectionFor } from "./connection";
+import { createMintTransaction } from "./utils";
 
 // twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX
 const wallet = Keypair.fromSecretKey(

@@ -10,9 +10,12 @@ const networkURLs: { [key: string]: string } = {
   localnet: "http://localhost:8899/",
 };
 
-export const connectionFor = (cluster: string, defaultCluster = "mainnet") => {
+export const connectionFor = (
+  cluster: string | null,
+  defaultCluster = "mainnet"
+) => {
   return new Connection(
-    process.env.RPC_URL || networkURLs[cluster || defaultCluster] || "",
+    process.env.RPC_URL || (networkURLs[cluster || defaultCluster] as string),
     "recent"
   );
 };

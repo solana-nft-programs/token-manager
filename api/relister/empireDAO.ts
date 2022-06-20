@@ -175,6 +175,7 @@ const getTokenAccountsWithData = async (
 };
 
 export const relistNFTs = async (cluster = "devnet") => {
+  console.log(`Relisting on ${cluster}`);
   const connection = connectionFor(cluster);
 
   // Get token accounts and metaplex data
@@ -195,8 +196,7 @@ export const relistNFTs = async (cluster = "devnet") => {
   const transactionsData: {
     transaction: Transaction;
     accountsInTx: TokenData[];
-  }[] = [];api/relister/empireDAO.ts
-  
+  }[] = [];
   // Batch into chunks
   const chunkedTokenDatas = chunkArray<TokenData>(tokenDatas, BATCH_SIZE);
   for (let i = 0; i < chunkedTokenDatas.length; i++) {

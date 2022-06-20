@@ -2,7 +2,7 @@ import { getBatchedMultipleAccounts } from "@cardinal/common";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
 import { utils } from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
   AccountInfo,
   Connection,
@@ -192,6 +192,11 @@ export const relistNFTs = async (cluster = "devnet") => {
       )
   );
 
+  const transactionsData: {
+    transaction: Transaction;
+    accountsInTx: TokenData[];
+  }[] = [];api/relister/empireDAO.ts
+  
   // Batch into chunks
   const chunkedTokenDatas = chunkArray<TokenData>(tokenDatas, BATCH_SIZE);
   for (let i = 0; i < chunkedTokenDatas.length; i++) {
@@ -243,6 +248,12 @@ export const relistNFTs = async (cluster = "devnet") => {
     }
 
     if (transaction.instructions.length > 0) {
+      transactionsData.push({ transaction, accountsInTx });
+    }
+  }
+
+  await Promise.all(
+    transactionsData.map(async ({ transaction, accountsInTx }) => {
       transaction.feePayer = wallet.publicKey;
       transaction.recentBlockhash = (
         await connection.getRecentBlockhash("max")
@@ -278,10 +289,8 @@ export const relistNFTs = async (cluster = "devnet") => {
             .join()}] -- Skipping for now`
         );
       }
-    } else {
-      console.log("No instructions found to relist");
-    }
-  }
+    })
+  );
   return;
 };
 

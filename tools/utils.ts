@@ -6,23 +6,10 @@ import * as web3 from "@solana/web3.js";
 
 import { withFindOrInitAssociatedTokenAccount } from "../src";
 
-const networkURLs: { [s: string]: string } = {
-  ["mainnet-beta"]: "https://ssc-dao.genesysgo.net/",
-  mainnet: "https://ssc-dao.genesysgo.net/",
-  devnet: "https://psytrbhymqlkfrhudd.dev.genesysgo.net:8899/",
-  testnet: "https://api.testnet.solana.com/",
-  localnet: "http://localhost:8899/",
-};
-
-export const connectionFor = (
-  cluster: string | null,
-  defaultCluster = "mainnet"
-) => {
-  return new Connection(
-    process.env.RPC_URL || (networkURLs[cluster || defaultCluster] as string),
-    "recent"
-  );
-};
+export const chunkArray = (arr: any[], size: number): any[][] =>
+  arr.length > size
+    ? [arr.slice(0, size), ...chunkArray(arr.slice(size), size)]
+    : [arr];
 
 /**
  * Pay and create mint and token account

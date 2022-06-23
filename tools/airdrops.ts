@@ -14,8 +14,9 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import { connectionFor } from "./connection";
 
-import { connectionFor, createMintTransaction } from "./utils";
+import { createMintTransaction } from "./utils";
 
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
@@ -24,7 +25,8 @@ const wallet = Keypair.fromSecretKey(
 export const airdropMasterEdition = async (
   metadataUrl: string,
   num: number,
-  cluster = "devnet"
+  cluster = "devnet",
+  startNum = 0
 ) => {
   const allMintIds: PublicKey[] = [];
   const connection = connectionFor(cluster);
@@ -32,6 +34,7 @@ export const airdropMasterEdition = async (
   ////////////////////////////////////////////
   ///////////// Master Edition ///////////////
   ////////////////////////////////////////////
+  let counter = startNum;
   for (let i = 0; i < num; i++) {
     console.log(`----------(${i}/${num})--------------`);
 
@@ -55,10 +58,10 @@ export const airdropMasterEdition = async (
         {
           metadata: masterEditionMetadataId,
           metadataData: new DataV2({
-            name: "MonkeDAO NFT NYC Pass",
-            symbol: 'SMBNYC',
+            name: `DeGod Event Ticket #${counter}`,
+            symbol: "DGOD",
             uri: metadataUrl,
-            sellerFeeBasisPoints: 10,
+            sellerFeeBasisPoints: 0,
             creators: [
               new Creator({
                 address: wallet.publicKey.toString(),
@@ -112,6 +115,7 @@ export const airdropMasterEdition = async (
         `Master edition data created mintId=(${masterEditionMint.publicKey.toString()}) masterEditionId=(${masterEditionId.toString()}) metadataId=(${masterEditionMetadataId.toString()}) tokenAccount=(${masterEditionTokenAccountId.toString()})`
       );
       allMintIds.push(masterEditionMint.publicKey);
+      counter += 1;
     } catch (e) {
       console.log("Failed", e);
     }
@@ -121,9 +125,10 @@ export const airdropMasterEdition = async (
 };
 
 airdropMasterEdition(
-  "https://monke.cardinal.so/metadata/monkedao.json",
-  1,
-  "mainnet"
+  "https://nft.cardinal.so/metadata/?event=degods-solympus",
+  2,
+  "mainnet",
+  10
 )
   .then((allMintIds) => {
     console.log(allMintIds.map((pk) => pk.toString()));

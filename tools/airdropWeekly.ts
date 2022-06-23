@@ -14,8 +14,9 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import { connectionFor } from "./connection";
 
-import { connectionFor, createMintTransaction } from "./utils";
+import { createMintTransaction } from "./utils";
 
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
@@ -32,15 +33,18 @@ const DAY_MAPPING: { [day: string]: string } = {
 };
 
 export const airdropMasterEdition = async (
-  metadataUrl: string,
   num: number,
+  metadataUrl: string,
   daySymbol: string,
-  cluster = "devnet"
+  cluster: string,
+  startNum = 0,
+  floor = 3
 ) => {
   const dayName = DAY_MAPPING[daySymbol]!;
   if (!dayName) throw new Error("Day not found");
   const allMintIds: PublicKey[] = [];
   const connection = connectionFor(cluster);
+  const counter = startNum;
 
   ////////////////////////////////////////////
   ///////////// Master Edition ///////////////
@@ -68,9 +72,9 @@ export const airdropMasterEdition = async (
         {
           metadata: masterEditionMetadataId,
           metadataData: new DataV2({
-            name: "EmpireDAO Daily Pass",
+            name: `EmpireDAO #${floor}.${counter} (${daySymbol})`,
             symbol: daySymbol,
-            uri: `https://nft.cardinal.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}&text=header:${dayName}%201%20day%20pass&attrs=Day:${dayName}:day`,
+            uri: `https://nft.cardinal.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}&text=header:${dayName}%20day%20pass&attrs=Day:${dayName};Floor:${floor};Seat:${counter}`,
             sellerFeeBasisPoints: 10,
             creators: [
               new Creator({
@@ -134,10 +138,12 @@ export const airdropMasterEdition = async (
 };
 
 airdropMasterEdition(
+  38,
   "https://rent.cardinal.so/metadata/empiredao.json",
-  1,
-  "SUN",
-  "mainnet"
+  "SAT",
+  "mainnet",
+  0,
+  5
 )
   .then((allMintIds) => {
     console.log(allMintIds.map((pk) => pk.toString()));

@@ -50,7 +50,8 @@ export const createMintTransaction = async (
   recipient: web3.PublicKey,
   mintId: web3.PublicKey,
   amount = 1,
-  freezeAuthority: web3.PublicKey = recipient
+  freezeAuthority: web3.PublicKey = recipient,
+  receiver = wallet.publicKey
 ): Promise<[web3.PublicKey, web3.Transaction]> => {
   const mintBalanceNeeded = await splToken.Token.getMinBalanceRentForExemptMint(
     connection
@@ -74,26 +75,27 @@ export const createMintTransaction = async (
       freezeAuthority
     )
   );
-  const walletAta = await withFindOrInitAssociatedTokenAccount(
+  const receiverAta = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
     mintId,
+    receiver,
     wallet.publicKey,
-    wallet.publicKey
+    true
   );
   if (amount > 0) {
     transaction.add(
       splToken.Token.createMintToInstruction(
         splToken.TOKEN_PROGRAM_ID,
         mintId,
-        walletAta,
+        receiverAta,
         wallet.publicKey,
         [],
         amount
       )
     );
   }
-  return [walletAta, transaction];
+  return [receiverAta, transaction];
 };
 
 export const executeTransaction = async (

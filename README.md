@@ -148,10 +148,12 @@ export type IssueParameters = {
 
   // Optional parameters to expire this token manager based on time
   timeInvalidation?: {
-    // Optional exact fixed expiration in UTC seconds, not to be used along with durationSeconds
-    expiration?: number,
+    // Optional payment manager to handle payment splits if multiple parties involved - should be a PDA initialized by payment manager program
+    paymentManager?: PublicKey,
     // Optional duration after token is claimed in seconds
     durationSeconds?: number,
+    // Optional exact fixed expiration in UTC seconds, not to be used along with durationSeconds
+    maxExpiration?: number,
     // Optional extension parameters to extend duration
     extension?: {
       // The amount rate needed for extension
@@ -160,8 +162,6 @@ export type IssueParameters = {
       extensionDurationSeconds: number,
       // The mint to accept payment for extension
       paymentMint: PublicKey,
-      // The max expiration limit on how long a rental can be extended
-      maxExpiration?: number,
       // Whether this rental allows for partial extension or only in increments of extensionDurationSeconds
       disablePartialExtension?: boolean,
     },
@@ -169,6 +169,8 @@ export type IssueParameters = {
 
   // Optional parameters to expire this token manager based on usage
   useInvalidation?: {
+    // Optional payment manager to handle payment splits if multiple parties involved - should be a PDA initialized by payment manager program
+    paymentManager?: PublicKey,
     // Optional total usages allocated
     totalUsages?: number,
     // Optional use authority who can use this token

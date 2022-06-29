@@ -34,6 +34,7 @@ const SUNDAY_PASS_PAYMENT_AMOUNT = 1_000_000;
 const DAY_PASS_FLOOR_3_PAYMENT_AMOUNT = 55_000_000;
 const DAY_PASS_FLOOR_5_PAYMENT_AMOUNT = 60_000_000;
 const BATCH_SIZE = 1;
+const MAX_SIZE = 100;
 const MAX_RETRIES = 3;
 
 /**
@@ -182,16 +183,18 @@ export const relistNFTs = async (cluster = "devnet") => {
   let tokenDatas = await getTokenAccountsWithData(connection, wallet.publicKey);
 
   // Filter by creators and symbol
-  tokenDatas = tokenDatas.filter(
-    ({ metaplexData }) =>
-      metaplexData &&
-      metaplexData.data?.data?.creators?.some(
-        (creator) =>
-          EMPIRE_DAO_CREATORS.includes(creator.address.toString()) &&
-          creator.verified &&
-          metaplexData.data?.data.symbol in DAY_MAPPING
-      )
-  );
+  tokenDatas = tokenDatas
+    .filter(
+      ({ metaplexData }) =>
+        metaplexData &&
+        metaplexData.data?.data?.creators?.some(
+          (creator) =>
+            EMPIRE_DAO_CREATORS.includes(creator.address.toString()) &&
+            creator.verified &&
+            metaplexData.data?.data.symbol in DAY_MAPPING
+        )
+    )
+    .slice(0, MAX_SIZE);
 
   const transactionsData: {
     transaction: Transaction;
@@ -309,3 +312,5 @@ export const relistAll = async (mainnet = true) => {
     console.log("Failed to invalidate on devnet: ", e);
   }
 };
+
+relistAll();

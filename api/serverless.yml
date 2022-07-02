@@ -29,6 +29,7 @@ functions:
     environment:
       SOLANA_CRANK_KEY: ${ssm:/SOLANA_CRANK_KEY~true}
       CRANK_DISABLED: ${param:CRANK_DISABLED,false}
+      CRANK_PARALLEL_DISABLED: ${param:CRANK_PARALLEL_DISABLED,false}
     handler: time-invalidator-crank/handler.invalidate
 
 stepFunctions:

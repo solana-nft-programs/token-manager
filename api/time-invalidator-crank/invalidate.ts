@@ -1,12 +1,11 @@
 import {
-  AccountData,
   programs,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/token-manager";
 import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
 import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
 import { withRemainingAccountsForReturn } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
-import { BN, utils } from "@project-serum/anchor";
+import { utils } from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import {
   Connection,

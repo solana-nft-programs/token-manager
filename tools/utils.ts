@@ -6,10 +6,11 @@ import * as web3 from "@solana/web3.js";
 
 import { withFindOrInitAssociatedTokenAccount } from "../src";
 
-export const chunkArray = (arr: any[], size: number): any[][] =>
-  arr.length > size
+export function chunkArray<T>(arr: T[], size: number): T[][] {
+  return arr.length > size
     ? [arr.slice(0, size), ...chunkArray(arr.slice(size), size)]
     : [arr];
+}
 
 /**
  * Pay and create mint and token account

@@ -69,14 +69,14 @@ const main = async (cluster: string) => {
   );
 
   console.log(
-    `--------------- ${wallet.publicKey.toString()} found ${
+    `\n\n--------------- ${wallet.publicKey.toString()} found ${
       allTimeInvalidators.length
     } expired invalidators found on ${cluster} ---------------`
   );
 
   const chunks = chunkArray(allTimeInvalidators, BATCH_SIZE);
   await Promise.all(
-    chunks.map(async (chunk) => {
+    chunks.map(async (chunk, chunkNum) => {
       const transaction = new Transaction();
       const transactionsData: {
         timeInvalidatorId: PublicKey;
@@ -85,18 +85,18 @@ const main = async (cluster: string) => {
       for (let i = 0; i < chunk.length; i++) {
         const timeInvalidatorData = chunk[i]!;
         try {
-          console.log(
-            `>> ${i}/${chunk.length}`,
-            timeInvalidatorData.pubkey.toString(),
-            timeInvalidatorData.parsed.tokenManager.toString()
-          );
+          // console.log(
+          //   `\n>> [${chunkNum}/${chunks.length}][${i / chunk.length}]`,
+          //   timeInvalidatorData.pubkey.toString(),
+          //   timeInvalidatorData.parsed.tokenManager.toString()
+          // );
           const tokenManagerData = tokenManagers.find(
             (tokenManager) =>
               tokenManager.pubkey.toString() ===
               timeInvalidatorData.parsed.tokenManager.toString()
           );
 
-          if (!tokenManagerData) {
+          if (!tokenManagerData?.parsed) {
             transaction.add(
               timeInvalidator.instruction.close(
                 connection,
@@ -105,6 +105,15 @@ const main = async (cluster: string) => {
                 timeInvalidatorData.parsed.tokenManager
               )
             );
+            console.log(
+              `[${chunkNum}/${chunks.length}][${
+                i / chunk.length
+              }] + (${timeInvalidatorData.pubkey.toBase58()}) no token manager`
+            );
+            transactionsData.push({
+              timeInvalidatorId: timeInvalidatorData.pubkey,
+              tokenManagerId: tokenManagerData?.pubkey,
+            });
           } else if (
             shouldTimeInvalidate(
               tokenManagerData,
@@ -152,59 +161,66 @@ const main = async (cluster: string) => {
                 timeInvalidatorData.parsed.collector
               )
             );
-          } else {
             console.log(
-              `Skip mint (${tokenManagerData.parsed.mint.toString()})`
+              `[${chunkNum}/${chunks.length}][${
+                i / chunk.length
+              }] + (${timeInvalidatorData.pubkey.toBase58()}) token manager id (${
+                tokenManagerData?.pubkey.toBase58() || ""
+              }) mint (${tokenManagerData?.parsed.mint.toBase58() || ""})`
             );
-          }
-
-          if (transaction && transaction.instructions.length > 0) {
             transactionsData.push({
               timeInvalidatorId: timeInvalidatorData.pubkey,
               tokenManagerId: tokenManagerData?.pubkey,
             });
-            console.log(
-              `+ (${timeInvalidatorData.pubkey.toBase58()}) token manager id (${
-                tokenManagerData?.pubkey.toBase58() || ""
-              }) mint (${tokenManagerData?.parsed.mint.toBase58() || ""})`
-            );
           } else {
-            console.log(
-              `- (${timeInvalidatorData.pubkey.toBase58()}) token manager id (${
-                tokenManagerData?.pubkey.toBase58() || ""
-              }) mint (${tokenManagerData?.parsed.mint.toBase58() || ""})`
-            );
+            // console.log(
+            //   `- (${timeInvalidatorData.pubkey.toBase58()}) token manager id (${
+            //     tokenManagerData?.pubkey.toBase58() || ""
+            //   }) mint (${tokenManagerData?.parsed.mint.toBase58() || ""})`
+            // );
           }
         } catch (e) {
-          console.log(`e (${timeInvalidatorData.pubkey.toBase58()})`, e);
+          console.log(
+            `[${chunkNum}/${chunks.length}][${
+              i / chunk.length
+            }] e (${timeInvalidatorData.pubkey.toBase58()})`,
+            e
+          );
         }
       }
       try {
-        transaction.feePayer = wallet.publicKey;
-        transaction.recentBlockhash = (
-          await connection.getRecentBlockhash("max")
-        ).blockhash;
-        transaction.sign(wallet);
-        const txid = await sendAndConfirmRawTransaction(
-          connection,
-          transaction.serialize()
-        );
-        console.log(
-          `Succesfully invalidated (${transactionsData
-            .map(
-              ({ timeInvalidatorId, tokenManagerId }) =>
-                `[${timeInvalidatorId.toString()}, ${tokenManagerId?.toString()}]`
-            )
-            .join(",")}) with txid (${txid})`
-        );
+        if (transaction && transaction.instructions.length > 0) {
+          transaction.feePayer = wallet.publicKey;
+          transaction.recentBlockhash = (
+            await connection.getRecentBlockhash("max")
+          ).blockhash;
+          transaction.sign(wallet);
+          const txid = await sendAndConfirmRawTransaction(
+            connection,
+            transaction.serialize()
+          );
+          console.log(
+            `[${chunkNum}/${chunks.length}] Success (${transactionsData
+              .map(
+                ({ timeInvalidatorId, tokenManagerId }) =>
+                  `[${timeInvalidatorId.toString()}, ${tokenManagerId?.toString()}]`
+              )
+              .join(",")}) with txid (https://explorer.solana.com/tx/${txid})`
+          );
+        } else {
+          // console.log(`[${chunkNum}/${chunks.length}] No instructions found`);
+        }
       } catch (e) {
         console.log(
-          `Failed to invalidate (${transactionsData
+          `[${chunkNum}/${
+            chunks.length
+          }] Failed to invalidate (${transactionsData
             .map(
               ({ timeInvalidatorId, tokenManagerId }) =>
-                `[${timeInvalidatorId.toString()}, ${tokenManagerId?.toString()}]`
+                `[${timeInvalidatorId.toString()},${tokenManagerId?.toString()}]`
             )
-            .join(",")})`
+            .join(",")}): `,
+          e
         );
       }
     })

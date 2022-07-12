@@ -166,6 +166,36 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             };
         }
         t if t == InvalidationType::Release as u8 => {
+            // https://github.com/solana-labs/solana-program-library/pull/2872
+            // remove delegate
+            // let cpi_accounts = Revoke {
+            //     source: ctx.accounts.recipient_token_account.to_account_info(),
+            //     authority: token_manager.to_account_info(),
+            // };
+            // let cpi_program = ctx.accounts.token_program.to_account_info();
+            // let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            // token::revoke(cpi_context)?;
+
+            // transfer to token_manager
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.recipient_token_account.to_account_info(),
+                to: ctx.accounts.token_manager_token_account.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::transfer(cpi_context, token_manager.amount)?;
+
+            // transfer back to receipient unlocked
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.token_manager_token_account.to_account_info(),
+                to: ctx.accounts.recipient_token_account.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::transfer(cpi_context, token_manager.amount)?;
+
             // close token_manager_token_account
             let cpi_accounts = CloseAccount {
                 account: ctx.accounts.token_manager_token_account.to_account_info(),

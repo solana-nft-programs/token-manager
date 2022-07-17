@@ -19,6 +19,7 @@ import {
 import { connectionFor, secondaryConnectionFor } from "../common/connection";
 
 const BATCH_SIZE = 1;
+const DEFAULT_MAX_CHUNKS = 250;
 
 // crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr
 const wallet = Keypair.fromSecretKey(
@@ -71,10 +72,15 @@ const main = async (cluster: string) => {
   console.log(
     `\n\n--------------- ${wallet.publicKey.toString()} found ${
       allTimeInvalidators.length
-    } expired invalidators found on ${cluster} ---------------`
+    } time invalidators found on ${cluster} ---------------`
   );
 
-  const chunks = chunkArray(allTimeInvalidators, BATCH_SIZE);
+  const chunks = chunkArray(allTimeInvalidators, BATCH_SIZE).slice(
+    0,
+    process.env.CRANK_PARALLEL_MAX_CHUNKS
+      ? Number(process.env.CRANK_PARALLEL_MAX_CHUNKS)
+      : DEFAULT_MAX_CHUNKS
+  );
   await Promise.all(
     chunks.map(async (chunk, chunkNum) => {
       const transaction = new Transaction();

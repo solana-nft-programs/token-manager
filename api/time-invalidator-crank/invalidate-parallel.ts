@@ -77,8 +77,9 @@ const main = async (cluster: string) => {
 
   const chunks = chunkArray(allTimeInvalidators, BATCH_SIZE).slice(
     0,
-    process.env.CRANK_PARALLEL_MAX_CHUNKS
-      ? Number(process.env.CRANK_PARALLEL_MAX_CHUNKS)
+    process.env.CRANK_PARALLEL_MAX_CHUNKS &&
+      parseInt(process.env.CRANK_PARALLEL_MAX_CHUNKS)
+      ? parseInt(process.env.CRANK_PARALLEL_MAX_CHUNKS)
       : DEFAULT_MAX_CHUNKS
   );
   await Promise.all(

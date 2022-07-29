@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 pub const PAYMENT_MANAGER_SEED: &str = "payment-manager";
 pub const PAYMENT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<PaymentManager>() + 16;
 pub const BASIS_POINTS_DIVISOR: u16 = 10000;
+pub const FEE_SPLIT: u64 = 50;
 
 #[account]
 pub struct PaymentManager {

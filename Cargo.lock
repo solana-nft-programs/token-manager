@@ -430,6 +430,7 @@ version = "1.4.9"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "mpl-token-metadata",
  "proptest",
  "solana-program",
  "spl-associated-token-account",

@@ -3,6 +3,7 @@ import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
+  AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
@@ -86,6 +87,46 @@ export const managePayment = async (
       tokenProgram: TOKEN_PROGRAM_ID,
     },
   });
+};
+
+export const handlePaymentWithRoyalties = async (
+  connection: Connection,
+  wallet: Wallet,
+  name: string,
+  params: {
+    paymentAmount: BN;
+    payerTokenAccount: PublicKey;
+    feeCollectorTokenAccount: PublicKey;
+    paymentTokenAccount: PublicKey;
+    paymentWithRoyaltiesAccounts: AccountMeta[];
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const paymentManagerProgram = new Program<PAYMENT_MANAGER_PROGRAM>(
+    PAYMENT_MANAGER_IDL,
+    PAYMENT_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [paymentManagerId] = await findPaymentManagerAddress(name);
+  return paymentManagerProgram.instruction.handlePaymentWithRoyalties(
+    params.paymentAmount,
+    {
+      accounts: {
+        paymentManager: paymentManagerId,
+        payerTokenAccount: params.payerTokenAccount,
+        feeCollectorTokenAccount: params.feeCollectorTokenAccount,
+        paymentTokenAccount: params.paymentTokenAccount,
+        paymentMint: wallet.publicKey,
+        mint: wallet.publicKey,
+        mintMetadata: wallet.publicKey,
+        payer: wallet.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      remainingAccounts: params.paymentWithRoyaltiesAccounts,
+    }
+  );
 };
 
 export const close = async (

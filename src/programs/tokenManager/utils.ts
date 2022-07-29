@@ -1,16 +1,18 @@
 import {
   Edition,
+  Metadata,
+  MetadataData,
   MetadataProgram,
 } from "@metaplex-foundation/mpl-token-metadata";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import type {
-  AccountMeta,
-  Connection,
+import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
   PublicKey,
-  Transaction,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
-import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
@@ -214,4 +216,52 @@ export const withRemainingAccountsForReturn = async (
   } else {
     return [];
   }
+};
+
+export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mint: PublicKey
+): Promise<AccountMeta[]> => {
+  const creatorsRemainingAccounts: AccountMeta[] = [];
+  const mintMetadataId = await Metadata.getPDA(mint);
+  const accountInfo = await connection.getAccountInfo(mintMetadataId);
+  const metaplexMintData = MetadataData.deserialize(
+    accountInfo?.data as Buffer
+  ) as MetadataData;
+  for (const creator of metaplexMintData.data.creators || []) {
+    const creatorAddress = new PublicKey(creator.address);
+    const creatorMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      mint,
+      creatorAddress,
+      wallet.publicKey,
+      true
+    );
+    creatorsRemainingAccounts.push({
+      pubkey: creatorAddress,
+      isSigner: false,
+      isWritable: true,
+    });
+    creatorsRemainingAccounts.push({
+      pubkey: creatorMintTokenAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+  }
+
+  return [
+    {
+      pubkey: SystemProgram.programId,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SYSVAR_RENT_PUBKEY,
+      isSigner: false,
+      isWritable: true,
+    },
+  ];
 };

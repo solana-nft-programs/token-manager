@@ -59,12 +59,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
         let creators = mint_metadata.data.creators.unwrap();
         for creator in creators {
-            let creator_token_account_info = next_account_info(remaining_accs)?;
-            let creator_token_account = Account::<TokenAccount>::try_from(creator_token_account_info);
             let creator_address_info = next_account_info(remaining_accs)?;
             if creator_address_info.key() != creator.address {
                 return Err(error!(ErrorCode::InvalidCreatorAddress));
             }
+            let creator_token_account_info = next_account_info(remaining_accs)?;
+            let creator_token_account = Account::<TokenAccount>::try_from(creator_token_account_info);
             if creator_token_account.is_err() {
                 // create associated token account for creator
                 let cpi_accounts = associated_token::Create {

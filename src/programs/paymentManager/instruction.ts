@@ -98,7 +98,10 @@ export const handlePaymentWithRoyalties = async (
     payerTokenAccount: PublicKey;
     feeCollectorTokenAccount: PublicKey;
     paymentTokenAccount: PublicKey;
-    paymentWithRoyaltiesAccounts: AccountMeta[];
+    paymentMint: PublicKey;
+    mint: PublicKey;
+    mintMetadata: PublicKey;
+    royaltiesRemainingAccounts: AccountMeta[];
   }
 ): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -118,13 +121,13 @@ export const handlePaymentWithRoyalties = async (
         payerTokenAccount: params.payerTokenAccount,
         feeCollectorTokenAccount: params.feeCollectorTokenAccount,
         paymentTokenAccount: params.paymentTokenAccount,
-        paymentMint: wallet.publicKey,
-        mint: wallet.publicKey,
-        mintMetadata: wallet.publicKey,
+        paymentMint: params.paymentMint,
+        mint: params.mint,
+        mintMetadata: params.mintMetadata,
         payer: wallet.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       },
-      remainingAccounts: params.paymentWithRoyaltiesAccounts,
+      remainingAccounts: [...params.royaltiesRemainingAccounts],
     }
   );
 };

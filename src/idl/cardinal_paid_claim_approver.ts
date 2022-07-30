@@ -39,7 +39,6 @@ export type CardinalPaidClaimApprover = {
           };
         }
       ];
-      returns: null;
     },
     {
       name: "pay";
@@ -106,7 +105,6 @@ export type CardinalPaidClaimApprover = {
         }
       ];
       args: [];
-      returns: null;
     },
     {
       name: "close";
@@ -133,7 +131,6 @@ export type CardinalPaidClaimApprover = {
         }
       ];
       args: [];
-      returns: null;
     }
   ];
   accounts: [
@@ -291,7 +288,6 @@ export const IDL: CardinalPaidClaimApprover = {
           },
         },
       ],
-      returns: null,
     },
     {
       name: "pay",
@@ -358,7 +354,6 @@ export const IDL: CardinalPaidClaimApprover = {
         },
       ],
       args: [],
-      returns: null,
     },
     {
       name: "close",
@@ -385,7 +380,6 @@ export const IDL: CardinalPaidClaimApprover = {
         },
       ],
       args: [],
-      returns: null,
     },
   ],
   accounts: [

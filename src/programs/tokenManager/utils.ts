@@ -222,7 +222,8 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  mint: PublicKey
+  mint: PublicKey,
+  paymentMint: PublicKey
 ): Promise<AccountMeta[]> => {
   const creatorsRemainingAccounts: AccountMeta[] = [];
   const mintMetadataId = await Metadata.getPDA(mint);
@@ -230,26 +231,29 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
   const metaplexMintData = MetadataData.deserialize(
     accountInfo?.data as Buffer
   ) as MetadataData;
-  for (const creator of metaplexMintData.data.creators || []) {
-    const creatorAddress = new PublicKey(creator.address);
-    const creatorMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      mint,
-      creatorAddress,
-      wallet.publicKey,
-      true
-    );
-    creatorsRemainingAccounts.push({
-      pubkey: creatorAddress,
-      isSigner: false,
-      isWritable: true,
-    });
-    creatorsRemainingAccounts.push({
-      pubkey: creatorMintTokenAccount,
-      isSigner: false,
-      isWritable: true,
-    });
+  if (metaplexMintData.data.creators) {
+    for (const creator of metaplexMintData.data.creators) {
+      const creatorAddress = new PublicKey(creator.address);
+      const creatorMintTokenAccount =
+        await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          paymentMint,
+          creatorAddress,
+          wallet.publicKey,
+          true
+        );
+      creatorsRemainingAccounts.push({
+        pubkey: creatorAddress,
+        isSigner: false,
+        isWritable: true,
+      });
+      creatorsRemainingAccounts.push({
+        pubkey: creatorMintTokenAccount,
+        isSigner: false,
+        isWritable: true,
+      });
+    }
   }
 
   return [
@@ -263,5 +267,6 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
       isSigner: false,
       isWritable: true,
     },
+    ...creatorsRemainingAccounts,
   ];
 };

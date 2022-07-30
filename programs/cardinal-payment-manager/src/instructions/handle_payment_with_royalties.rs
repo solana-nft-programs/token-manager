@@ -57,50 +57,52 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let system_program = next_account_info(remaining_accs)?;
         let rent = next_account_info(remaining_accs)?;
 
-        let creators = mint_metadata.data.creators.unwrap();
-        for creator in creators {
-            let creator_address_info = next_account_info(remaining_accs)?;
-            if creator_address_info.key() != creator.address {
-                return Err(error!(ErrorCode::InvalidCreatorAddress));
-            }
-            let creator_token_account_info = next_account_info(remaining_accs)?;
-            let creator_token_account = Account::<TokenAccount>::try_from(creator_token_account_info);
-            if creator_token_account.is_err() {
-                // create associated token account for creator
-                let cpi_accounts = associated_token::Create {
-                    payer: ctx.accounts.payer.to_account_info(),
-                    associated_token: creator_token_account_info.to_account_info(),
-                    authority: creator_address_info.to_account_info(),
-                    mint: ctx.accounts.payment_mint.to_account_info(),
-                    system_program: system_program.to_account_info(),
-                    token_program: ctx.accounts.token_program.to_account_info(),
-                    rent: rent.to_account_info(),
+        let creators = mint_metadata.data.creators;
+        if let Some(creators) = creators {
+            for creator in creators {
+                let creator_address_info = next_account_info(remaining_accs)?;
+                if creator_address_info.key() != creator.address {
+                    return Err(error!(ErrorCode::InvalidCreatorAddress));
+                }
+                let creator_token_account_info = next_account_info(remaining_accs)?;
+                let creator_token_account = Account::<TokenAccount>::try_from(creator_token_account_info);
+                if creator_token_account.is_err() {
+                    // create associated token account for creator
+                    let cpi_accounts = associated_token::Create {
+                        payer: ctx.accounts.payer.to_account_info(),
+                        associated_token: creator_token_account_info.to_account_info(),
+                        authority: creator_address_info.to_account_info(),
+                        mint: ctx.accounts.payment_mint.to_account_info(),
+                        system_program: system_program.to_account_info(),
+                        token_program: ctx.accounts.token_program.to_account_info(),
+                        rent: rent.to_account_info(),
+                    };
+                    let cpi_program = ctx.accounts.token_program.to_account_info();
+                    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+                    associated_token::create(cpi_context)?;
+                }
+                let share = u64::try_from(creator.share).expect("Could not cast u8 to u64");
+                let creator_funds = split_fees.checked_mul(share).unwrap().checked_div(100).expect("Div error");
+
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.payer_token_account.to_account_info(),
+                    to: creator_token_account_info.to_account_info(),
+                    authority: ctx.accounts.payer.to_account_info(),
                 };
                 let cpi_program = ctx.accounts.token_program.to_account_info();
                 let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-                associated_token::create(cpi_context)?;
+                token::transfer(cpi_context, creator_funds)?;
             }
-            let share = u64::try_from(creator.share).expect("Could not cast u8 to u64");
-            let creator_funds = split_fees.checked_mul(share).unwrap().checked_div(100).expect("Div error");
 
             let cpi_accounts = Transfer {
                 from: ctx.accounts.payer_token_account.to_account_info(),
-                to: creator_token_account_info.to_account_info(),
+                to: ctx.accounts.fee_collector_token_account.to_account_info(),
                 authority: ctx.accounts.payer.to_account_info(),
             };
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-            token::transfer(cpi_context, creator_funds)?;
+            token::transfer(cpi_context, split_fees)?;
         }
-
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.payer_token_account.to_account_info(),
-            to: ctx.accounts.fee_collector_token_account.to_account_info(),
-            authority: ctx.accounts.payer.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, split_fees)?;
     }
 
     let cpi_accounts = Transfer {

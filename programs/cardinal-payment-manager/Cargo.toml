@@ -23,6 +23,7 @@ default = []
 anchor-lang = { version = "0.24.2", features = ["init-if-needed"] }
 anchor-spl = "0.24.2"
 spl-associated-token-account = "1.0.3"
+mpl-token-metadata = { version = "1.2.5", features = ["no-entrypoint"] }
 spl-token = { version = "3.2.0", features = ["no-entrypoint"] }
 solana-program = "1.9.28"
 

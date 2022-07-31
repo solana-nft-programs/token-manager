@@ -77,6 +77,72 @@ export type CardinalPaymentManager = {
       ];
     },
     {
+      name: "handlePaymentWithRoyalties";
+      accounts: [
+        {
+          name: "paymentManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "feeCollectorTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "paymentTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "paymentMint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mintMetadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "paymentAmount";
+          type: "u64";
+        }
+      ];
+    },
+    {
       name: "close";
       accounts: [
         {
@@ -168,6 +234,21 @@ export type CardinalPaymentManager = {
       code: 6001;
       name: "InvalidAuthority";
       msg: "Invalid authority";
+    },
+    {
+      code: 6002;
+      name: "InvalidMintMetadata";
+      msg: "Invalid mint metadata";
+    },
+    {
+      code: 6003;
+      name: "InvalidCreatorAddress";
+      msg: "Invalid creator address";
+    },
+    {
+      code: 6004;
+      name: "InvalidTokenAccount";
+      msg: "Invalid token account";
     }
   ];
 };
@@ -239,6 +320,72 @@ export const IDL: CardinalPaymentManager = {
         },
         {
           name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "paymentAmount",
+          type: "u64",
+        },
+      ],
+    },
+    {
+      name: "handlePaymentWithRoyalties",
+      accounts: [
+        {
+          name: "paymentManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "feeCollectorTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "paymentMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mintMetadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
           isMut: false,
           isSigner: false,
         },
@@ -342,6 +489,21 @@ export const IDL: CardinalPaymentManager = {
       code: 6001,
       name: "InvalidAuthority",
       msg: "Invalid authority",
+    },
+    {
+      code: 6002,
+      name: "InvalidMintMetadata",
+      msg: "Invalid mint metadata",
+    },
+    {
+      code: 6003,
+      name: "InvalidCreatorAddress",
+      msg: "Invalid creator address",
+    },
+    {
+      code: 6004,
+      name: "InvalidTokenAccount",
+      msg: "Invalid token account",
     },
   ],
 };

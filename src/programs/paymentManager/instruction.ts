@@ -3,11 +3,12 @@ import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
+  AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { SystemProgram } from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import { CRANK_KEY } from "../tokenManager";
 import type { PAYMENT_MANAGER_PROGRAM } from ".";
@@ -86,6 +87,51 @@ export const managePayment = async (
       tokenProgram: TOKEN_PROGRAM_ID,
     },
   });
+};
+
+export const handlePaymentWithRoyalties = async (
+  connection: Connection,
+  wallet: Wallet,
+  name: string,
+  params: {
+    paymentAmount: BN;
+    payerTokenAccount: PublicKey;
+    feeCollectorTokenAccount: PublicKey;
+    paymentTokenAccount: PublicKey;
+    paymentMint: PublicKey;
+    mint: PublicKey;
+    mintMetadata: PublicKey;
+    royaltiesRemainingAccounts: AccountMeta[];
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const paymentManagerProgram = new Program<PAYMENT_MANAGER_PROGRAM>(
+    PAYMENT_MANAGER_IDL,
+    PAYMENT_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [paymentManagerId] = await findPaymentManagerAddress(name);
+  return paymentManagerProgram.instruction.handlePaymentWithRoyalties(
+    params.paymentAmount,
+    {
+      accounts: {
+        paymentManager: paymentManagerId,
+        payerTokenAccount: params.payerTokenAccount,
+        feeCollectorTokenAccount: params.feeCollectorTokenAccount,
+        paymentTokenAccount: params.paymentTokenAccount,
+        paymentMint: params.paymentMint,
+        mint: params.mint,
+        mintMetadata: params.mintMetadata,
+        payer: wallet.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+      },
+      remainingAccounts: params.royaltiesRemainingAccounts,
+    }
+  );
 };
 
 export const close = async (

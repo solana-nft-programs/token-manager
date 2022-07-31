@@ -243,6 +243,11 @@ export type CardinalPaidClaimApprover = {
       code: 6009;
       name: "InvalidPaymentMint";
       msg: "Invalid payment mint";
+    },
+    {
+      code: 6010;
+      name: "InvalidMint";
+      msg: "Invalid mint";
     }
   ];
 };
@@ -492,6 +497,11 @@ export const IDL: CardinalPaidClaimApprover = {
       code: 6009,
       name: "InvalidPaymentMint",
       msg: "Invalid payment mint",
+    },
+    {
+      code: 6010,
+      name: "InvalidMint",
+      msg: "Invalid mint",
     },
   ],
 };

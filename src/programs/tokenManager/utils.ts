@@ -53,12 +53,21 @@ export const withRemainingAccountsForPayment = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
+  mint: PublicKey,
   paymentMint: PublicKey,
   issuerId: PublicKey,
   paymentManagerId: PublicKey,
   receiptMint?: PublicKey | null,
   payer = wallet.publicKey
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
+  const royaltiesRemainingAccounts =
+    await withRemainingAccountsForHanldePaymentWithRoyalties(
+      transaction,
+      connection,
+      wallet,
+      mint,
+      paymentMint
+    );
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
       receiptMint
@@ -111,6 +120,7 @@ export const withRemainingAccountsForPayment = async (
           isSigner: false,
           isWritable: true,
         },
+        ...royaltiesRemainingAccounts,
       ],
     ];
   } else {
@@ -136,7 +146,11 @@ export const withRemainingAccountsForPayment = async (
         payer,
         true
       );
-    return [issuerTokenAccountId, feeCollectorTokenAccountId, []];
+    return [
+      issuerTokenAccountId,
+      feeCollectorTokenAccountId,
+      royaltiesRemainingAccounts,
+    ];
   }
 };
 
@@ -223,31 +237,38 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
   const creatorsRemainingAccounts: AccountMeta[] = [];
   const mintMetadataId = await Metadata.getPDA(mint);
   const accountInfo = await connection.getAccountInfo(mintMetadataId);
-  const metaplexMintData = MetadataData.deserialize(
-    accountInfo?.data as Buffer
-  ) as MetadataData;
+  let metaplexMintData: MetadataData | undefined;
+  try {
+    metaplexMintData = MetadataData.deserialize(
+      accountInfo?.data as Buffer
+    ) as MetadataData;
+  } catch (e) {
+    return [];
+  }
   if (metaplexMintData.data.creators) {
     for (const creator of metaplexMintData.data.creators) {
-      const creatorAddress = new PublicKey(creator.address);
-      const creatorMintTokenAccount =
-        await withFindOrInitAssociatedTokenAccount(
-          transaction,
-          connection,
-          paymentMint,
-          creatorAddress,
-          wallet.publicKey,
-          true
-        );
-      creatorsRemainingAccounts.push({
-        pubkey: creatorAddress,
-        isSigner: false,
-        isWritable: true,
-      });
-      creatorsRemainingAccounts.push({
-        pubkey: creatorMintTokenAccount,
-        isSigner: false,
-        isWritable: true,
-      });
+      if (creator.share !== 0) {
+        const creatorAddress = new PublicKey(creator.address);
+        const creatorMintTokenAccount =
+          await withFindOrInitAssociatedTokenAccount(
+            transaction,
+            connection,
+            paymentMint,
+            creatorAddress,
+            wallet.publicKey,
+            true
+          );
+        creatorsRemainingAccounts.push({
+          pubkey: creatorAddress,
+          isSigner: false,
+          isWritable: true,
+        });
+        creatorsRemainingAccounts.push({
+          pubkey: creatorMintTokenAccount,
+          isSigner: false,
+          isWritable: true,
+        });
+      }
     }
   }
 

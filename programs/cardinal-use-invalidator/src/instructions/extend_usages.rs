@@ -1,7 +1,7 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
-    anchor_spl::token::{self, Token, TokenAccount, Transfer},
+    anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer},
     cardinal_payment_manager::program::CardinalPaymentManager,
     cardinal_token_manager::{
         state::{TokenManager, TokenManagerState},
@@ -43,6 +43,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     assert_payment_token_account(&ctx.accounts.payment_token_account, &ctx.accounts.token_manager, remaining_accs)?;
 
+    let token_manager = &mut ctx.accounts.token_manager;
     let use_invalidator = &mut ctx.accounts.use_invalidator;
     if use_invalidator.extension_payment_amount == None || use_invalidator.extension_usages == None || use_invalidator.extension_payment_mint == None || use_invalidator.total_usages == None {
         return Err(error!(ErrorCode::InvalidUseInvalidator));
@@ -59,17 +60,38 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         return Err(error!(ErrorCode::MaxUsagesReached));
     }
 
+    let payment_mint_info = next_account_info(remaining_accs)?;
+    let payment_mint = Account::<Mint>::try_from(payment_mint_info)?;
+    if use_invalidator.extension_payment_mint.unwrap() != payment_mint.key() {
+        return Err(error!(ErrorCode::InvalidPaymentMint));
+    }
+
+    let mint_info = next_account_info(remaining_accs)?;
+    let mint = Account::<Mint>::try_from(mint_info)?;
+    if token_manager.mint != mint.key() {
+        return Err(error!(ErrorCode::InvalidMint));
+    }
+    let mint_metadata_info = next_account_info(remaining_accs)?;
+
+    let rent = next_account_info(remaining_accs)?;
+    let system_proram = next_account_info(remaining_accs)?;
+
     if ctx.accounts.payment_manager.owner.key() == ctx.accounts.cardinal_payment_manager.key() {
-        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentCtx {
+        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
             payment_manager: ctx.accounts.payment_manager.to_account_info(),
             payer_token_account: ctx.accounts.payer_token_account.to_account_info(),
             fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
             payment_token_account: ctx.accounts.payment_token_account.to_account_info(),
+            payment_mint: payment_mint.to_account_info(),
+            mint: mint.to_account_info(),
+            mint_metadata: mint_metadata_info.to_account_info(),
             payer: ctx.accounts.payer.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
+            rent: rent.to_account_info(),
+            system_program: system_proram.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
-        cardinal_payment_manager::cpi::manage_payment(cpi_ctx, price_to_pay)?;
+        cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, price_to_pay)?;
     } else {
         let cpi_accounts = Transfer {
             from: ctx.accounts.payer_token_account.to_account_info(),

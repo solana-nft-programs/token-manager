@@ -395,6 +395,11 @@ export type CardinalUseInvalidator = {
       code: 6013;
       name: "InvalidPaymentMint";
       msg: "Invalid payment mint";
+    },
+    {
+      code: 6014;
+      name: "InvalidMint";
+      msg: "Invalid mint";
     }
   ];
 };
@@ -796,6 +801,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6013,
       name: "InvalidPaymentMint",
       msg: "Invalid payment mint",
+    },
+    {
+      code: 6014,
+      name: "InvalidMint",
+      msg: "Invalid mint",
     },
   ],
 };

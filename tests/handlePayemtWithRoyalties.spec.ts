@@ -26,10 +26,7 @@ import {
   init,
 } from "../src/programs/paymentManager/instruction";
 import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
-import {
-  withRemainingAccountsForHanldePaymentWithRoyalties,
-  withRemainingAccountsForPayment,
-} from "../src/programs/tokenManager";
+import { withRemainingAccountsForPayment } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -204,11 +201,12 @@ describe("Handle payment with royalties", () => {
     const [
       paymentTokenAccountId,
       feeCollectorTokenAccount,
-      _paymentRemainingAccounts,
+      paymentRemainingAccounts,
     ] = await withRemainingAccountsForPayment(
       transaction,
       provider.connection,
       provider.wallet,
+      rentalMint.publicKey,
       paymentMint.publicKey,
       provider.wallet.publicKey,
       paymentManagerId
@@ -222,15 +220,6 @@ describe("Handle payment with royalties", () => {
       provider.wallet.publicKey,
       true
     );
-
-    const royaltiesRemainingAccounts =
-      await withRemainingAccountsForHanldePaymentWithRoyalties(
-        transaction,
-        provider.connection,
-        provider.wallet,
-        rentalMint.publicKey,
-        paymentMint.publicKey
-      );
 
     const paymentMintInfo = new splToken.Token(
       provider.connection,
@@ -285,7 +274,7 @@ describe("Handle payment with royalties", () => {
           paymentMint: paymentMint.publicKey,
           mint: rentalMint.publicKey,
           mintMetadata: metadataId,
-          royaltiesRemainingAccounts: royaltiesRemainingAccounts,
+          royaltiesRemainingAccounts: paymentRemainingAccounts,
         }
       )
     );

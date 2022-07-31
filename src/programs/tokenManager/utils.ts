@@ -7,12 +7,7 @@ import {
 import type { Wallet } from "@saberhq/solana-contrib";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
-} from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
@@ -256,17 +251,5 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
     }
   }
 
-  return [
-    {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: SYSVAR_RENT_PUBKEY,
-      isSigner: false,
-      isWritable: true,
-    },
-    ...creatorsRemainingAccounts,
-  ];
+  return creatorsRemainingAccounts;
 };

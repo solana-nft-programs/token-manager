@@ -255,26 +255,22 @@ describe("Handle payment with royalties", () => {
       creator3.publicKey,
       true
     );
-    try {
-      await paymentMintInfo.getAccountInfo(creator1Ata);
-      throw Error("Account should not have been initialized");
-    } catch (e) {
-      // pass
-    }
 
-    try {
-      await paymentMintInfo.getAccountInfo(creator2Ata);
-      throw Error("Account should not have been initialized");
-    } catch (e) {
-      // pass
-    }
-
-    try {
-      await paymentMintInfo.getAccountInfo(creator3Ata);
-      throw Error("Account should not have been initialized");
-    } catch (e) {
-      // pass
-    }
+    expect(async () => {
+      await expect(() =>
+        paymentMintInfo.getAccountInfo(creator1Ata)
+      ).to.be.rejectedWith(Error);
+    });
+    expect(async () => {
+      await expect(() =>
+        paymentMintInfo.getAccountInfo(creator2Ata)
+      ).to.be.rejectedWith(Error);
+    });
+    expect(async () => {
+      await expect(() =>
+        paymentMintInfo.getAccountInfo(creator3Ata)
+      ).to.be.rejectedWith(Error);
+    });
 
     transaction.add(
       await handlePaymentWithRoyalties(

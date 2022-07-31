@@ -10,4 +10,6 @@ pub enum ErrorCode {
     InvalidMintMetadata,
     #[msg("Invalid creator address")]
     InvalidCreatorAddress,
+    #[msg("Invalid token account")]
+    InvalidTokenAccount,
 }

@@ -123,6 +123,16 @@ export type CardinalPaymentManager = {
           name: "tokenProgram";
           isMut: false;
           isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
         }
       ];
       args: [
@@ -234,6 +244,11 @@ export type CardinalPaymentManager = {
       code: 6003;
       name: "InvalidCreatorAddress";
       msg: "Invalid creator address";
+    },
+    {
+      code: 6004;
+      name: "InvalidTokenAccount";
+      msg: "Invalid token account";
     }
   ];
 };
@@ -364,6 +379,16 @@ export const IDL: CardinalPaymentManager = {
           isMut: false,
           isSigner: false,
         },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
       ],
       args: [
         {
@@ -474,6 +499,11 @@ export const IDL: CardinalPaymentManager = {
       code: 6003,
       name: "InvalidCreatorAddress",
       msg: "Invalid creator address",
+    },
+    {
+      code: 6004,
+      name: "InvalidTokenAccount",
+      msg: "Invalid token account",
     },
   ],
 };

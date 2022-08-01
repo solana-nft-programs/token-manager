@@ -152,6 +152,34 @@ export type CardinalPaymentManager = {
         }
       ];
       args: [];
+    },
+    {
+      name: "update";
+      accounts: [
+        {
+          name: "paymentManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdateIx";
+          };
+        }
+      ];
     }
   ];
   accounts: [
@@ -212,6 +240,30 @@ export type CardinalPaymentManager = {
           }
         ];
       };
+    },
+    {
+      name: "UpdateIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "authority";
+            type: "publicKey";
+          },
+          {
+            name: "feeCollector";
+            type: "publicKey";
+          },
+          {
+            name: "makerFeeBasisPoints";
+            type: "u16";
+          },
+          {
+            name: "takerFeeBasisPoints";
+            type: "u16";
+          }
+        ];
+      };
     }
   ];
   errors: [
@@ -239,6 +291,11 @@ export type CardinalPaymentManager = {
       code: 6004;
       name: "InvalidTokenAccount";
       msg: "Invalid token account";
+    },
+    {
+      code: 6005;
+      name: "InvalidPaymentManager";
+      msg: "Invalid payment manager";
     }
   ];
 };
@@ -398,6 +455,34 @@ export const IDL: CardinalPaymentManager = {
       ],
       args: [],
     },
+    {
+      name: "update",
+      accounts: [
+        {
+          name: "paymentManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdateIx",
+          },
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -458,6 +543,30 @@ export const IDL: CardinalPaymentManager = {
         ],
       },
     },
+    {
+      name: "UpdateIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "authority",
+            type: "publicKey",
+          },
+          {
+            name: "feeCollector",
+            type: "publicKey",
+          },
+          {
+            name: "makerFeeBasisPoints",
+            type: "u16",
+          },
+          {
+            name: "takerFeeBasisPoints",
+            type: "u16",
+          },
+        ],
+      },
+    },
   ],
   errors: [
     {
@@ -484,6 +593,11 @@ export const IDL: CardinalPaymentManager = {
       code: 6004,
       name: "InvalidTokenAccount",
       msg: "Invalid token account",
+    },
+    {
+      code: 6005,
+      name: "InvalidPaymentManager",
+      msg: "Invalid payment manager",
     },
   ],
 };

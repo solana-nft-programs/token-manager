@@ -453,7 +453,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-token-manager"
-version = "1.4.13"
+version = "1.5.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",

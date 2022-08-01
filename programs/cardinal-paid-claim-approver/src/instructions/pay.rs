@@ -51,20 +51,20 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let token_manager = &mut ctx.accounts.token_manager;
     let claim_approver = &mut ctx.accounts.claim_approver;
 
-    let payment_mint_info = next_account_info(remaining_accs)?;
-    let payment_mint = Account::<Mint>::try_from(payment_mint_info)?;
-    if claim_approver.payment_mint != payment_mint.key() {
-        return Err(error!(ErrorCode::InvalidPaymentMint));
-    }
-
-    let mint_info = next_account_info(remaining_accs)?;
-    let mint = Account::<Mint>::try_from(mint_info)?;
-    if token_manager.mint != mint.key() {
-        return Err(error!(ErrorCode::InvalidMint));
-    }
-    let mint_metadata_info = next_account_info(remaining_accs)?;
-
     if ctx.accounts.payment_manager.owner.key() == ctx.accounts.cardinal_payment_manager.key() {
+        let payment_mint_info = next_account_info(remaining_accs)?;
+        let payment_mint = Account::<Mint>::try_from(payment_mint_info)?;
+        if claim_approver.payment_mint != payment_mint.key() {
+            return Err(error!(ErrorCode::InvalidPaymentMint));
+        }
+
+        let mint_info = next_account_info(remaining_accs)?;
+        let mint = Account::<Mint>::try_from(mint_info)?;
+        if token_manager.mint != mint.key() {
+            return Err(error!(ErrorCode::InvalidMint));
+        }
+        let mint_metadata_info = next_account_info(remaining_accs)?;
+
         let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
             payment_manager: ctx.accounts.payment_manager.to_account_info(),
             payer_token_account: ctx.accounts.payer_token_account.to_account_info(),

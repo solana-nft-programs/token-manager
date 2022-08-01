@@ -1,5 +1,3 @@
-use anchor_lang::system_program;
-
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,

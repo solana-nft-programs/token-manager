@@ -57,7 +57,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
             token::transfer(cpi_context, total_fees)?;
         } else {
-            let mint_metadata = Metadata::from_account_info(&ctx.accounts.mint_metadata.to_account_info())?;
+            let mint_metadata_data = ctx.accounts.mint_metadata.try_borrow_mut_data().expect("Failed to borrow data");
+            let mint_metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref())?;
             if mint_metadata.mint != ctx.accounts.mint.key() {
                 return Err(error!(ErrorCode::InvalidMintMetadata));
             }

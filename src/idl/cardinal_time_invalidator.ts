@@ -397,6 +397,11 @@ export type CardinalTimeInvalidator = {
       code: 6016;
       name: "InvalidPaymentManager";
       msg: "Invalid payment manager";
+    },
+    {
+      code: 6017;
+      name: "InvalidMint";
+      msg: "Invalid mint";
     }
   ];
 };
@@ -800,6 +805,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6016,
       name: "InvalidPaymentManager",
       msg: "Invalid payment manager",
+    },
+    {
+      code: 6017,
+      name: "InvalidMint",
+      msg: "Invalid mint",
     },
   ],
 };

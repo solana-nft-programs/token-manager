@@ -7,7 +7,12 @@ import {
 import type { Wallet } from "@saberhq/solana-contrib";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
@@ -53,12 +58,50 @@ export const withRemainingAccountsForPayment = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
+  mint: PublicKey,
   paymentMint: PublicKey,
   issuerId: PublicKey,
   paymentManagerId: PublicKey,
   receiptMint?: PublicKey | null,
   payer = wallet.publicKey
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
+  const royaltiesRemainingAccounts =
+    await withRemainingAccountsForHanldePaymentWithRoyalties(
+      transaction,
+      connection,
+      wallet,
+      mint,
+      paymentMint
+    );
+  const mintMetadataId = await Metadata.getPDA(mint);
+  const paymentRemainingAccounts = [
+    {
+      pubkey: paymentMint,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: mint,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: mintMetadataId,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SYSVAR_RENT_PUBKEY,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SystemProgram.programId,
+      isSigner: false,
+      isWritable: true,
+    },
+  ];
+
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
       receiptMint
@@ -111,6 +154,8 @@ export const withRemainingAccountsForPayment = async (
           isSigner: false,
           isWritable: true,
         },
+        ...paymentRemainingAccounts,
+        ...royaltiesRemainingAccounts,
       ],
     ];
   } else {
@@ -136,7 +181,11 @@ export const withRemainingAccountsForPayment = async (
         payer,
         true
       );
-    return [issuerTokenAccountId, feeCollectorTokenAccountId, []];
+    return [
+      issuerTokenAccountId,
+      feeCollectorTokenAccountId,
+      [...paymentRemainingAccounts, ...royaltiesRemainingAccounts],
+    ];
   }
 };
 
@@ -223,31 +272,38 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
   const creatorsRemainingAccounts: AccountMeta[] = [];
   const mintMetadataId = await Metadata.getPDA(mint);
   const accountInfo = await connection.getAccountInfo(mintMetadataId);
-  const metaplexMintData = MetadataData.deserialize(
-    accountInfo?.data as Buffer
-  ) as MetadataData;
+  let metaplexMintData: MetadataData | undefined;
+  try {
+    metaplexMintData = MetadataData.deserialize(
+      accountInfo?.data as Buffer
+    ) as MetadataData;
+  } catch (e) {
+    return [];
+  }
   if (metaplexMintData.data.creators) {
     for (const creator of metaplexMintData.data.creators) {
-      const creatorAddress = new PublicKey(creator.address);
-      const creatorMintTokenAccount =
-        await withFindOrInitAssociatedTokenAccount(
-          transaction,
-          connection,
-          paymentMint,
-          creatorAddress,
-          wallet.publicKey,
-          true
-        );
-      creatorsRemainingAccounts.push({
-        pubkey: creatorAddress,
-        isSigner: false,
-        isWritable: true,
-      });
-      creatorsRemainingAccounts.push({
-        pubkey: creatorMintTokenAccount,
-        isSigner: false,
-        isWritable: true,
-      });
+      if (creator.share !== 0) {
+        const creatorAddress = new PublicKey(creator.address);
+        const creatorMintTokenAccount =
+          await withFindOrInitAssociatedTokenAccount(
+            transaction,
+            connection,
+            paymentMint,
+            creatorAddress,
+            wallet.publicKey,
+            true
+          );
+        creatorsRemainingAccounts.push({
+          pubkey: creatorAddress,
+          isSigner: false,
+          isWritable: true,
+        });
+        creatorsRemainingAccounts.push({
+          pubkey: creatorMintTokenAccount,
+          isSigner: false,
+          isWritable: true,
+        });
+      }
     }
   }
 

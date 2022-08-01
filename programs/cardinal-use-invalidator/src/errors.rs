@@ -30,4 +30,6 @@ pub enum ErrorCode {
     InvalidPaymentManager,
     #[msg("Invalid payment mint")]
     InvalidPaymentMint,
+    #[msg("Invalid mint")]
+    InvalidMint,
 }

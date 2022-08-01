@@ -473,6 +473,7 @@ dependencies = [
  "arrayref",
  "cardinal-payment-manager",
  "cardinal-token-manager",
+ "mpl-token-metadata",
  "proptest",
  "solana-program",
  "spl-associated-token-account",

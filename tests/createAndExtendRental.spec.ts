@@ -234,6 +234,7 @@ describe("Create and Extend Rental", () => {
       expiration + 1000
     );
   });
+
   it("Exceed Max Expiration", async () => {
     const provider = getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
@@ -264,6 +265,7 @@ describe("Create and Extend Rental", () => {
       }).to.be.rejectedWith(Error);
     });
   });
+
   it("Invalid Partial Expiration", async () => {
     const provider = getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(

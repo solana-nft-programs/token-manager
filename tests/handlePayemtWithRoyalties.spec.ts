@@ -15,7 +15,8 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import * as splToken from "@solana/spl-token";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import type { AccountMeta } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
 
@@ -26,10 +27,7 @@ import {
   init,
 } from "../src/programs/paymentManager/instruction";
 import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
-import {
-  withRemainingAccountsForHanldePaymentWithRoyalties,
-  withRemainingAccountsForPayment,
-} from "../src/programs/tokenManager";
+import { withRemainingAccountsForPayment } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -201,18 +199,76 @@ describe("Handle payment with royalties", () => {
       paymentManagerName
     );
 
-    const [
-      paymentTokenAccountId,
-      feeCollectorTokenAccount,
-      _paymentRemainingAccounts,
-    ] = await withRemainingAccountsForPayment(
-      transaction,
+    const [paymentTokenAccountId, feeCollectorTokenAccount, _accounts] =
+      await withRemainingAccountsForPayment(
+        transaction,
+        provider.connection,
+        provider.wallet,
+        rentalMint.publicKey,
+        paymentMint.publicKey,
+        provider.wallet.publicKey,
+        paymentManagerId
+      );
+    const royaltiesRemainingAccounts: AccountMeta[] = [];
+
+    ///
+    const creator1MintTokenAccount = await withFindOrInitAssociatedTokenAccount(
+      new Transaction(),
       provider.connection,
-      provider.wallet,
       paymentMint.publicKey,
+      creator1.publicKey,
       provider.wallet.publicKey,
-      paymentManagerId
+      true
     );
+    royaltiesRemainingAccounts.push({
+      pubkey: creator1.publicKey,
+      isSigner: false,
+      isWritable: true,
+    });
+    royaltiesRemainingAccounts.push({
+      pubkey: creator1MintTokenAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+
+    const creator2MintTokenAccount = await withFindOrInitAssociatedTokenAccount(
+      new Transaction(),
+      provider.connection,
+      paymentMint.publicKey,
+      creator2.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+    royaltiesRemainingAccounts.push({
+      pubkey: creator2.publicKey,
+      isSigner: false,
+      isWritable: true,
+    });
+    royaltiesRemainingAccounts.push({
+      pubkey: creator2MintTokenAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+
+    const creator3MintTokenAccount = await withFindOrInitAssociatedTokenAccount(
+      new Transaction(),
+      provider.connection,
+      paymentMint.publicKey,
+      creator3.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+    royaltiesRemainingAccounts.push({
+      pubkey: creator3.publicKey,
+      isSigner: false,
+      isWritable: true,
+    });
+    royaltiesRemainingAccounts.push({
+      pubkey: creator3MintTokenAccount,
+      isSigner: false,
+      isWritable: true,
+    });
+    ///
 
     const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
       transaction,
@@ -222,15 +278,6 @@ describe("Handle payment with royalties", () => {
       provider.wallet.publicKey,
       true
     );
-
-    const royaltiesRemainingAccounts =
-      await withRemainingAccountsForHanldePaymentWithRoyalties(
-        transaction,
-        provider.connection,
-        provider.wallet,
-        rentalMint.publicKey,
-        paymentMint.publicKey
-      );
 
     const paymentMintInfo = new splToken.Token(
       provider.connection,

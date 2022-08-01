@@ -7,7 +7,12 @@ import {
 import type { Wallet } from "@saberhq/solana-contrib";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
@@ -68,6 +73,35 @@ export const withRemainingAccountsForPayment = async (
       mint,
       paymentMint
     );
+  const mintMetadataId = await Metadata.getPDA(mint);
+  const paymentRemainingAccounts = [
+    {
+      pubkey: paymentMint,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: mint,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: mintMetadataId,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SYSVAR_RENT_PUBKEY,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SystemProgram.programId,
+      isSigner: false,
+      isWritable: true,
+    },
+  ];
+
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
       receiptMint
@@ -120,6 +154,7 @@ export const withRemainingAccountsForPayment = async (
           isSigner: false,
           isWritable: true,
         },
+        ...paymentRemainingAccounts,
         ...royaltiesRemainingAccounts,
       ],
     ];
@@ -149,7 +184,7 @@ export const withRemainingAccountsForPayment = async (
     return [
       issuerTokenAccountId,
       feeCollectorTokenAccountId,
-      royaltiesRemainingAccounts,
+      [...paymentRemainingAccounts, ...royaltiesRemainingAccounts],
     ];
   }
 };

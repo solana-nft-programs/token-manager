@@ -6,7 +6,7 @@ import {
   MasterEdition,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { web3 } from "@project-serum/anchor";
+import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -15,29 +15,31 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import * as splToken from "@solana/spl-token";
-import type { AccountMeta } from "@solana/web3.js";
+import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { BN } from "bn.js";
 import { expect } from "chai";
 
-import { findAta, withFindOrInitAssociatedTokenAccount } from "../src";
+import { findAta, rentals } from "../src";
+import { tokenManager } from "../src/programs";
 import { getPaymentManager } from "../src/programs/paymentManager/accounts";
-import {
-  handlePaymentWithRoyalties,
-  init,
-} from "../src/programs/paymentManager/instruction";
+import { init } from "../src/programs/paymentManager/instruction";
 import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
-import { withRemainingAccountsForPayment } from "../src/programs/tokenManager";
+import {
+  TokenManagerKind,
+  TokenManagerState,
+} from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Handle payment with royalties", () => {
+describe("Create Rental With Royalties", () => {
   const MAKER_FEE = new BN(500);
   const TAKER_FEE = new BN(300);
   const BASIS_POINTS_DIVISOR = new BN(10000);
   const FEE_SPLIT = new BN(50);
-  const paymentAmount = new BN(1000);
-  const RECIPIENT_START_PAYMENT_AMOUNT = new BN(10000000000);
+  const RECIPIENT_START_PAYMENT_AMOUNT = 1000000;
+  const RENTAL_PAYMENT_AMONT = 1000;
+  const recipient = Keypair.generate();
+  const tokenCreator = Keypair.generate();
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
   const feeCollector = Keypair.generate();
 
@@ -47,7 +49,8 @@ describe("Handle payment with royalties", () => {
   const creator2Share = new BN(30);
   const creator3 = Keypair.generate();
   const creator3Share = new BN(55);
-  const tokenCreator = Keypair.generate();
+  let recipientPaymentTokenAccountId: PublicKey;
+  let issuerTokenAccountId: PublicKey;
   let paymentMint: Token;
   let rentalMint: Token;
 
@@ -59,16 +62,22 @@ describe("Handle payment with royalties", () => {
     );
     await provider.connection.confirmTransaction(airdropCreator);
 
+    const airdropRecipient = await provider.connection.requestAirdrop(
+      recipient.publicKey,
+      LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(airdropRecipient);
+
     // create payment mint
-    [, paymentMint] = await createMint(
+    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
       tokenCreator,
-      provider.wallet.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT.toNumber()
+      recipient.publicKey,
+      RECIPIENT_START_PAYMENT_AMOUNT
     );
 
     // create rental mint
-    [, rentalMint] = await createMint(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
       tokenCreator,
       provider.wallet.publicKey,
@@ -76,7 +85,6 @@ describe("Handle payment with royalties", () => {
       tokenCreator.publicKey
     );
 
-    // specify creators shares
     const metadataId = await Metadata.getPDA(rentalMint.publicKey);
     const metadataTx = new CreateMetadataV2(
       { feePayer: tokenCreator.publicKey },
@@ -147,7 +155,7 @@ describe("Handle payment with royalties", () => {
 
   it("Create payment manager", async () => {
     const provider = getProvider();
-    const transaction = new web3.Transaction();
+    const transaction = new Transaction();
 
     const [ix] = await init(
       provider.connection,
@@ -190,94 +198,78 @@ describe("Handle payment with royalties", () => {
     );
   });
 
-  it("Handle payment with royalties", async () => {
+  it("Create rental", async () => {
     const provider = getProvider();
-    const transaction = new web3.Transaction();
-
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
-    const [paymentManagerId] = await findPaymentManagerAddress(
+    const [paymentManager] = await findPaymentManagerAddress(
       paymentManagerName
     );
-
-    const [paymentTokenAccountId, feeCollectorTokenAccount, _accounts] =
-      await withRemainingAccountsForPayment(
-        transaction,
-        provider.connection,
-        provider.wallet,
-        rentalMint.publicKey,
-        paymentMint.publicKey,
-        provider.wallet.publicKey,
-        paymentManagerId
-      );
-    const royaltiesRemainingAccounts: AccountMeta[] = [];
-
-    ///
-    const creator1MintTokenAccount = await withFindOrInitAssociatedTokenAccount(
-      new Transaction(),
+    const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      paymentMint.publicKey,
-      creator1.publicKey,
-      provider.wallet.publicKey,
-      true
+      provider.wallet,
+      {
+        claimPayment: {
+          paymentAmount: RENTAL_PAYMENT_AMONT,
+          paymentMint: paymentMint.publicKey,
+          paymentManager: paymentManager,
+        },
+        timeInvalidation: {
+          durationSeconds: 1000,
+          maxExpiration: Date.now() / 1000 + 5000,
+          extension: {
+            extensionPaymentAmount: 1, // Pay 1 lamport to add 1000 seconds of expiration time
+            extensionDurationSeconds: 1000,
+            extensionPaymentMint: paymentMint.publicKey,
+            disablePartialExtension: true,
+          },
+        },
+        mint: rentalMint.publicKey,
+        issuerTokenAccountId: issuerTokenAccountId,
+        amount: new BN(1),
+        kind: TokenManagerKind.Edition,
+      }
     );
-    royaltiesRemainingAccounts.push({
-      pubkey: creator1.publicKey,
-      isSigner: false,
-      isWritable: true,
-    });
-    royaltiesRemainingAccounts.push({
-      pubkey: creator1MintTokenAccount,
-      isSigner: false,
-      isWritable: true,
-    });
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+    await expectTXTable(txEnvelope, "test", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
 
-    const creator2MintTokenAccount = await withFindOrInitAssociatedTokenAccount(
-      new Transaction(),
+    const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
-      paymentMint.publicKey,
-      creator2.publicKey,
-      provider.wallet.publicKey,
-      true
+      tokenManagerId
     );
-    royaltiesRemainingAccounts.push({
-      pubkey: creator2.publicKey,
-      isSigner: false,
-      isWritable: true,
-    });
-    royaltiesRemainingAccounts.push({
-      pubkey: creator2MintTokenAccount,
-      isSigner: false,
-      isWritable: true,
-    });
+    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(
+      provider.wallet.publicKey
+    );
 
-    const creator3MintTokenAccount = await withFindOrInitAssociatedTokenAccount(
-      new Transaction(),
-      provider.connection,
-      paymentMint.publicKey,
-      creator3.publicKey,
-      provider.wallet.publicKey,
-      true
+    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+      issuerTokenAccountId
     );
-    royaltiesRemainingAccounts.push({
-      pubkey: creator3.publicKey,
-      isSigner: false,
-      isWritable: true,
-    });
-    royaltiesRemainingAccounts.push({
-      pubkey: creator3MintTokenAccount,
-      isSigner: false,
-      isWritable: true,
-    });
-    ///
+    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
 
-    const payerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-      transaction,
+    // check receipt-index
+    const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
-      paymentMint.publicKey,
-      provider.wallet.publicKey,
-      provider.wallet.publicKey,
-      true
+      provider.wallet.publicKey
     );
+    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+      tokenManagerId.toString()
+    );
+  });
+
+  it("Claim rental", async () => {
+    const provider = getProvider();
 
     const paymentMintInfo = new splToken.Token(
       provider.connection,
@@ -319,41 +311,66 @@ describe("Handle payment with royalties", () => {
       ).to.be.rejectedWith(Error);
     });
 
-    transaction.add(
-      await handlePaymentWithRoyalties(
-        provider.connection,
-        provider.wallet,
-        paymentManagerName,
-        {
-          paymentAmount: new BN(paymentAmount),
-          payerTokenAccount: payerTokenAccountId,
-          feeCollectorTokenAccount: feeCollectorTokenAccount,
-          paymentTokenAccount: paymentTokenAccountId,
-          paymentMint: paymentMint.publicKey,
-          mint: rentalMint.publicKey,
-          mintMetadata: metadataId,
-          royaltiesRemainingAccounts: royaltiesRemainingAccounts,
-        }
-      )
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    const transaction = await rentals.claimRental(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId
     );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(recipient),
         opts: provider.opts,
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "Handle Payment With Royalties", {
+
+    await expectTXTable(txEnvelope, "test", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const makerFee = paymentAmount.mul(MAKER_FEE).div(BASIS_POINTS_DIVISOR);
-    const takerFee = paymentAmount.mul(TAKER_FEE).div(BASIS_POINTS_DIVISOR);
+    const tokenManagerData = await tokenManager.accounts.getTokenManager(
+      provider.connection,
+      tokenManagerId
+    );
+    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+
+    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+      issuerTokenAccountId
+    );
+    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+
+    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
+      await findAta(rentalMint.publicKey, recipient.publicKey)
+    );
+    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+
+    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
+      recipientPaymentTokenAccountId
+    );
+
+    const BN_RENTAL_PAYMENT_AMONT = new BN(RENTAL_PAYMENT_AMONT);
+    const makerFee =
+      BN_RENTAL_PAYMENT_AMONT.mul(MAKER_FEE).div(BASIS_POINTS_DIVISOR);
+    const takerFee =
+      BN_RENTAL_PAYMENT_AMONT.mul(TAKER_FEE).div(BASIS_POINTS_DIVISOR);
     const totalFees = makerFee.add(takerFee);
     const splitFees = totalFees.mul(FEE_SPLIT).div(new BN(100));
+
+    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
+      RECIPIENT_START_PAYMENT_AMOUNT -
+        RENTAL_PAYMENT_AMONT -
+        takerFee.toNumber()
+    );
 
     const creator1Funds = splitFees.mul(creator1Share).div(new BN(100));
     const creator1AtaInfo = await paymentMintInfo.getAccountInfo(creator1Ata);

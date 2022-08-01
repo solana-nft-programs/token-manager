@@ -101,16 +101,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
                     token::transfer(cpi_context, creator_funds)?;
                 }
-
-                let cpi_accounts = Transfer {
-                    from: ctx.accounts.payer_token_account.to_account_info(),
-                    to: ctx.accounts.fee_collector_token_account.to_account_info(),
-                    authority: ctx.accounts.payer.to_account_info(),
-                };
-                let cpi_program = ctx.accounts.token_program.to_account_info();
-                let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-                token::transfer(cpi_context, split_fees)?;
             }
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.payer_token_account.to_account_info(),
+                to: ctx.accounts.fee_collector_token_account.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+            token::transfer(cpi_context, split_fees)?;
         }
     }
 

@@ -114,7 +114,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             rent: rent.to_account_info(),
             system_program: system_proram.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts);
+        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(remaining_accs.cloned().collect::<Vec<AccountInfo<'info>>>());
         cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, price_to_pay)?;
     } else {
         let cpi_accounts = Transfer {

@@ -1,5 +1,5 @@
 export type CardinalPaymentManager = {
-  version: "1.4.10";
+  version: "1.4.11";
   name: "cardinal_payment_manager";
   instructions: [
     {
@@ -123,16 +123,6 @@ export type CardinalPaymentManager = {
           name: "tokenProgram";
           isMut: false;
           isSigner: false;
-        },
-        {
-          name: "rent";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
         }
       ];
       args: [
@@ -254,7 +244,7 @@ export type CardinalPaymentManager = {
 };
 
 export const IDL: CardinalPaymentManager = {
-  version: "1.4.10",
+  version: "1.4.11",
   name: "cardinal_payment_manager",
   instructions: [
     {
@@ -376,16 +366,6 @@ export const IDL: CardinalPaymentManager = {
         },
         {
           name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "rent",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "systemProgram",
           isMut: false,
           isSigner: false,
         },

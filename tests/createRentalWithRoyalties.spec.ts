@@ -19,8 +19,8 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals } from "../src";
-import { tokenManager } from "../src/programs";
+import { findAta, rentals, tryGetAccount } from "../src";
+import { timeInvalidator, tokenManager } from "../src/programs";
 import { getPaymentManager } from "../src/programs/paymentManager/accounts";
 import { init } from "../src/programs/paymentManager/instruction";
 import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
@@ -43,12 +43,11 @@ describe("Create Rental With Royalties", () => {
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
   const feeCollector = Keypair.generate();
 
+  const myShare = new BN(15);
   const creator1 = Keypair.generate();
-  const creator1Share = new BN(15);
+  const creator1Share = new BN(30);
   const creator2 = Keypair.generate();
-  const creator2Share = new BN(30);
-  const creator3 = Keypair.generate();
-  const creator3Share = new BN(55);
+  const creator2Share = new BN(55);
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
   let paymentMint: Token;
@@ -99,7 +98,7 @@ describe("Create Rental With Royalties", () => {
             new Creator({
               address: tokenCreator.publicKey.toString(),
               verified: true,
-              share: 0,
+              share: myShare.toNumber(),
             }),
             new Creator({
               address: creator1.publicKey.toString(),
@@ -110,11 +109,6 @@ describe("Create Rental With Royalties", () => {
               address: creator2.publicKey.toString(),
               verified: false,
               share: creator2Share.toNumber(),
-            }),
-            new Creator({
-              address: creator3.publicKey.toString(),
-              verified: false,
-              share: creator3Share.toNumber(),
             }),
           ],
           collection: null,
@@ -279,6 +273,11 @@ describe("Create Rental With Royalties", () => {
       // @ts-ignore
       null
     );
+    const myAta = await findAta(
+      paymentMint.publicKey,
+      tokenCreator.publicKey,
+      true
+    );
     const creator1Ata = await findAta(
       paymentMint.publicKey,
       creator1.publicKey,
@@ -287,11 +286,6 @@ describe("Create Rental With Royalties", () => {
     const creator2Ata = await findAta(
       paymentMint.publicKey,
       creator2.publicKey,
-      true
-    );
-    const creator3Ata = await findAta(
-      paymentMint.publicKey,
-      creator3.publicKey,
       true
     );
 
@@ -303,11 +297,6 @@ describe("Create Rental With Royalties", () => {
     expect(async () => {
       await expect(() =>
         paymentMintInfo.getAccountInfo(creator2Ata)
-      ).to.be.rejectedWith(Error);
-    });
-    expect(async () => {
-      await expect(() =>
-        paymentMintInfo.getAccountInfo(creator3Ata)
       ).to.be.rejectedWith(Error);
     });
 
@@ -372,6 +361,10 @@ describe("Create Rental With Royalties", () => {
         takerFee.toNumber()
     );
 
+    const myFunds = splitFees.mul(myShare).div(new BN(100));
+    const myAtaInfo = await paymentMintInfo.getAccountInfo(myAta);
+    expect(myAtaInfo.amount.toNumber()).to.eq(myFunds.toNumber());
+
     const creator1Funds = splitFees.mul(creator1Share).div(new BN(100));
     const creator1AtaInfo = await paymentMintInfo.getAccountInfo(creator1Ata);
     expect(creator1AtaInfo.amount.toNumber()).to.eq(creator1Funds.toNumber());
@@ -379,9 +372,52 @@ describe("Create Rental With Royalties", () => {
     const creator2Funds = splitFees.mul(creator2Share).div(new BN(100));
     const creator2AtaInfo = await paymentMintInfo.getAccountInfo(creator2Ata);
     expect(creator2AtaInfo.amount.toNumber()).to.eq(creator2Funds.toNumber());
+  });
 
-    const creator3Funds = splitFees.mul(creator3Share).div(new BN(100));
-    const creator3AtaInfo = await paymentMintInfo.getAccountInfo(creator3Ata);
-    expect(creator3AtaInfo.amount.toNumber()).to.eq(creator3Funds.toNumber());
+  it("Extend Rental", async () => {
+    const provider = getProvider();
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+
+    await tryGetAccount(async () =>
+      timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        (
+          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+        )[0]
+      )
+    );
+
+    const transaction = await rentals.extendRentalExpiration(
+      provider.connection,
+      new SignerWallet(recipient),
+      tokenManagerId,
+      1000
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(recipient),
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "extend", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    await tryGetAccount(async () =>
+      timeInvalidator.accounts.getTimeInvalidator(
+        provider.connection,
+        (
+          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
+        )[0]
+      )
+    );
   });
 });

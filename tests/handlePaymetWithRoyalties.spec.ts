@@ -221,11 +221,6 @@ describe("Handle payment with royalties", () => {
       true
     );
     royaltiesRemainingAccounts.push({
-      pubkey: creator1.publicKey,
-      isSigner: false,
-      isWritable: true,
-    });
-    royaltiesRemainingAccounts.push({
       pubkey: creator1MintTokenAccount,
       isSigner: false,
       isWritable: true,
@@ -240,11 +235,6 @@ describe("Handle payment with royalties", () => {
       true
     );
     royaltiesRemainingAccounts.push({
-      pubkey: creator2.publicKey,
-      isSigner: false,
-      isWritable: true,
-    });
-    royaltiesRemainingAccounts.push({
       pubkey: creator2MintTokenAccount,
       isSigner: false,
       isWritable: true,
@@ -258,11 +248,6 @@ describe("Handle payment with royalties", () => {
       provider.wallet.publicKey,
       true
     );
-    royaltiesRemainingAccounts.push({
-      pubkey: creator3.publicKey,
-      isSigner: false,
-      isWritable: true,
-    });
     royaltiesRemainingAccounts.push({
       pubkey: creator3MintTokenAccount,
       isSigner: false,

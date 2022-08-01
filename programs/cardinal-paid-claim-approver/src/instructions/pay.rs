@@ -63,8 +63,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         return Err(error!(ErrorCode::InvalidMint));
     }
     let mint_metadata_info = next_account_info(remaining_accs)?;
-    let rent = next_account_info(remaining_accs)?;
-    let system_program = next_account_info(remaining_accs)?;
 
     if ctx.accounts.payment_manager.owner.key() == ctx.accounts.cardinal_payment_manager.key() {
         let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
@@ -77,8 +75,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             mint_metadata: mint_metadata_info.to_account_info(),
             payer: ctx.accounts.payer.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
-            rent: rent.to_account_info(),
-            system_program: system_program.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(remaining_accs.cloned().collect::<Vec<AccountInfo<'info>>>());
         cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, claim_approver.payment_amount)?;

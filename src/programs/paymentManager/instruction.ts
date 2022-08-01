@@ -8,7 +8,7 @@ import type {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { SystemProgram } from "@solana/web3.js";
 
 import { CRANK_KEY } from "../tokenManager";
 import type { PAYMENT_MANAGER_PROGRAM } from ".";
@@ -126,8 +126,6 @@ export const handlePaymentWithRoyalties = async (
         mintMetadata: params.mintMetadata,
         payer: wallet.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
       },
       remainingAccounts: params.royaltiesRemainingAccounts,
     }

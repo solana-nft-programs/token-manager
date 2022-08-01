@@ -68,6 +68,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 return Err(error!(ErrorCode::InvalidMintMetadata));
             }
 
+            let mut fees_paid_out: u64 = 0;
             let creators = mint_metadata.data.creators;
             if let Some(creators) = creators {
                 let remaining_accs = &mut ctx.remaining_accounts.iter();
@@ -102,14 +103,17 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                         let share = u64::try_from(creator.share).expect("Could not cast u8 to u64");
                         let creator_funds = split_fees.checked_mul(share).unwrap().checked_div(100).expect("Div error");
 
-                        let cpi_accounts = Transfer {
-                            from: ctx.accounts.payer_token_account.to_account_info(),
-                            to: creator_token_account_info.to_account_info(),
-                            authority: ctx.accounts.payer.to_account_info(),
-                        };
-                        let cpi_program = ctx.accounts.token_program.to_account_info();
-                        let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-                        token::transfer(cpi_context, creator_funds)?;
+                        if creator_funds > 0 {
+                            fees_paid_out = fees_paid_out.checked_add(creator_funds).expect("Add error");
+                            let cpi_accounts = Transfer {
+                                from: ctx.accounts.payer_token_account.to_account_info(),
+                                to: creator_token_account_info.to_account_info(),
+                                authority: ctx.accounts.payer.to_account_info(),
+                            };
+                            let cpi_program = ctx.accounts.token_program.to_account_info();
+                            let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+                            token::transfer(cpi_context, creator_funds)?;
+                        }
                     }
                 }
             }
@@ -120,7 +124,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             };
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-            token::transfer(cpi_context, split_fees)?;
+            token::transfer(cpi_context, total_fees.checked_sub(fees_paid_out).expect("Add error"))?;
         }
     }
 

@@ -12,4 +12,6 @@ pub enum ErrorCode {
     InvalidCreatorAddress,
     #[msg("Invalid token account")]
     InvalidTokenAccount,
+    #[msg("Invalid payment manager")]
+    InvalidPaymentManager,
 }

@@ -28,4 +28,8 @@ pub mod cardinal_payment_manager {
     pub fn close(ctx: Context<CloseCtx>) -> Result<()> {
         close::handler(ctx)
     }
+
+    pub fn update(ctx: Context<UpdateCtx>, ix: UpdateIx) -> Result<()> {
+        update::handler(ctx, ix)
+    }
 }

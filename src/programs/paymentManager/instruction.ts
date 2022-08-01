@@ -155,3 +155,44 @@ export const close = async (
     },
   });
 };
+
+export const update = async (
+  connection: Connection,
+  wallet: Wallet,
+  name: string,
+  params: {
+    authority: PublicKey;
+    feeCollector: PublicKey;
+    makerFeeBasisPoints: number;
+    takerFeeBasisPoints: number;
+  }
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const paymentManagerProgram = new Program<PAYMENT_MANAGER_PROGRAM>(
+    PAYMENT_MANAGER_IDL,
+    PAYMENT_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [paymentManagerId] = await findPaymentManagerAddress(name);
+
+  return [
+    paymentManagerProgram.instruction.update(
+      {
+        authority: params.authority,
+        feeCollector: params.feeCollector,
+        makerFeeBasisPoints: params.makerFeeBasisPoints,
+        takerFeeBasisPoints: params.takerFeeBasisPoints,
+      },
+      {
+        accounts: {
+          paymentManager: paymentManagerId,
+          payer: wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    ),
+    paymentManagerId,
+  ];
+};

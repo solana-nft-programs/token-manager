@@ -12,11 +12,11 @@ const main = async (paymentManagerName: string, cluster = "mainnet") => {
     getPaymentManager(connection, paymentManagerId)
   );
   if (!paymentManagerData) {
-    console.log("Error: Failed to create payment manager");
+    console.log("Error: Failed to get payment manager");
   } else {
     console.log(
-      `Created payment manager ${paymentManagerName} (${paymentManagerId.toString()})`,
-      paymentManagerData.parsed.feeCollector.toString()
+      `Got payment manager ${paymentManagerName} (${paymentManagerId.toString()})`,
+      paymentManagerData
     );
   }
 };

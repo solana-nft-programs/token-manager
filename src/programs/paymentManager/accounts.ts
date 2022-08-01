@@ -6,7 +6,6 @@ import {
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
-import type { PaidClaimApproverData } from "../claimApprover";
 import type { PAYMENT_MANAGER_PROGRAM, PaymentManagerData } from ".";
 import { PAYMENT_MANAGER_ADDRESS, PAYMENT_MANAGER_IDL } from ".";
 
@@ -52,7 +51,7 @@ export const getPaymentManagers = async (
         paymentManagerIds
       )) as (PaymentManagerData | null)[];
   } catch (e) {
-    console.log(e);
+    //
   }
 
   return paymentManagers.reduce(
@@ -73,7 +72,7 @@ export const getAllPaymentManagers = async (
   const coder = new BorshAccountsCoder(PAYMENT_MANAGER_IDL);
   programAccounts.forEach((account) => {
     try {
-      const paymentManagerData: PaidClaimApproverData = coder.decode(
+      const paymentManagerData: PaymentManagerData = coder.decode(
         "paymentManager",
         account.account.data
       );
@@ -82,7 +81,7 @@ export const getAllPaymentManagers = async (
         parsed: paymentManagerData,
       });
     } catch (e) {
-      console.log(`Failed to decode claim approver data`);
+      //
     }
   });
   return paymentManagers;

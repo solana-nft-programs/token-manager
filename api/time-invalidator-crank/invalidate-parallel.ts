@@ -5,7 +5,11 @@ import {
 } from "@cardinal/token-manager";
 import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
 import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
-import { withRemainingAccountsForReturn } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import {
+  InvalidationType,
+  TokenManagerState,
+  withRemainingAccountsForReturn,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import { utils } from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import {
@@ -159,15 +163,17 @@ const main = async (cluster: string) => {
                 remainingAccountsForReturn
               )
             );
-            transaction.add(
-              timeInvalidator.instruction.close(
-                connection,
-                new SignerWallet(wallet),
-                timeInvalidatorData.pubkey,
-                timeInvalidatorData.parsed.tokenManager,
-                timeInvalidatorData.parsed.collector
-              )
-            );
+            if (tokenManagerData.parsed.state === InvalidationType.Reissue) {
+              transaction.add(
+                timeInvalidator.instruction.close(
+                  connection,
+                  new SignerWallet(wallet),
+                  timeInvalidatorData.pubkey,
+                  timeInvalidatorData.parsed.tokenManager,
+                  timeInvalidatorData.parsed.collector
+                )
+              );
+            }
             console.log(
               `[${chunkNum}/${chunks.length}][${
                 i / chunk.length

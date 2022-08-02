@@ -16,7 +16,8 @@ const main = async (paymentManagerName: string, cluster = "mainnet") => {
   } else {
     console.log(
       `Got payment manager ${paymentManagerName} (${paymentManagerId.toString()})`,
-      paymentManagerData
+      paymentManagerData,
+      paymentManagerData.parsed.authority.toString()
     );
   }
 };

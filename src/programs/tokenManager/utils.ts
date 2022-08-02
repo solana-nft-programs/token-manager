@@ -70,6 +70,24 @@ export const withRemainingAccountsForPayment = async (
       paymentMint,
       excludeCreators
     );
+  const mintMetadataId = await Metadata.getPDA(mint);
+  const paymentRemainingAccounts = [
+    {
+      pubkey: paymentMint,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: mint,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: mintMetadataId,
+      isSigner: false,
+      isWritable: true,
+    },
+  ];
 
   if (receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
@@ -123,6 +141,7 @@ export const withRemainingAccountsForPayment = async (
           isSigner: false,
           isWritable: true,
         },
+        ...paymentRemainingAccounts,
         ...royaltiesRemainingAccounts,
       ],
     ];
@@ -152,7 +171,7 @@ export const withRemainingAccountsForPayment = async (
     return [
       issuerTokenAccountId,
       feeCollectorTokenAccountId,
-      royaltiesRemainingAccounts,
+      [...paymentRemainingAccounts, ...royaltiesRemainingAccounts],
     ];
   }
 };
@@ -274,22 +293,5 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
     }
   }
 
-  return [
-    {
-      pubkey: paymentMint,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: mint,
-      isSigner: false,
-      isWritable: true,
-    },
-    {
-      pubkey: mintMetadataId,
-      isSigner: false,
-      isWritable: true,
-    },
-    ...creatorsRemainingAccounts,
-  ];
+  return creatorsRemainingAccounts;
 };

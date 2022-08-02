@@ -252,7 +252,8 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
   connection: Connection,
   wallet: Wallet,
   mint: PublicKey,
-  paymentMint: PublicKey
+  paymentMint: PublicKey,
+  exclude?: string[]
 ): Promise<AccountMeta[]> => {
   const creatorsRemainingAccounts: AccountMeta[] = [];
   const mintMetadataId = await Metadata.getPDA(mint);
@@ -270,14 +271,16 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
       if (creator.share !== 0) {
         const creatorAddress = new PublicKey(creator.address);
         const creatorMintTokenAccount =
-          await withFindOrInitAssociatedTokenAccount(
-            transaction,
-            connection,
-            paymentMint,
-            creatorAddress,
-            wallet.publicKey,
-            true
-          );
+          !exclude || !exclude.includes(creator.address.toString())
+            ? await withFindOrInitAssociatedTokenAccount(
+                transaction,
+                connection,
+                paymentMint,
+                creatorAddress,
+                wallet.publicKey,
+                true
+              )
+            : await findAta(mint, wallet.publicKey, true);
         creatorsRemainingAccounts.push({
           pubkey: creatorMintTokenAccount,
           isSigner: false,

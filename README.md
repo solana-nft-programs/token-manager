@@ -289,7 +289,7 @@ try {
 
 Cardinal also provides an image generator API. You provide your NFT metadata and image, or a URL to where its hosted, and use the url `https://api.cardinal.so/metadata/{mintId}` when minting the token and the API will dynamically update the image and metadata based on usages or expiration associated with it so that its always up to date forever and wherever it is viewed.
 
-Reach out to team@cardinal.so if you are interested in using this service.
+Reach out to team@cardinal.so or in our in our discord (https://discord.gg/cardinallabs) if you are interested in using this service.
 
 ---
 

@@ -22,7 +22,7 @@ export type PaymentManagerParams = {
 const main = async (
   paymentManagerName: string,
   params: PaymentManagerParams,
-  cluster = "devnet"
+  cluster = "mainnet"
 ) => {
   const connection = connectionFor(cluster);
   const transaction = new web3Js.Transaction();
@@ -63,8 +63,8 @@ const paymentManagerName = "cardinal";
 const params: PaymentManagerParams = {
   authority: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
   feeCollector: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
-  makerFeeBasisPoints: 300,
-  takerFeeBasisPoints: 300,
+  makerFeeBasisPoints: 600,
+  takerFeeBasisPoints: 0,
 };
 
 main(paymentManagerName, params).catch((e) => console.log(e));

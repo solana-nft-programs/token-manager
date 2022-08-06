@@ -50,6 +50,9 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     if ix.num_invalidators > MAX_INVALIDATORS {
         return Err(error!(ErrorCode::MaximumInvalidatorsReached));
     }
+    if ctx.accounts.mint.freeze_authority.is_none() && ix.kind != TokenManagerKind::Unmanaged as u8 {
+        return Err(error!(ErrorCode::TokenMissingFreezeAuthority));
+    }
     let token_manager = &mut ctx.accounts.token_manager;
     if token_manager.state != TokenManagerState::Initialized as u8 {
         return Err(error!(ErrorCode::InvalidTokenManagerState));

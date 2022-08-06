@@ -60,4 +60,6 @@ pub enum ErrorCode {
     InvalidMintSupply,
     #[msg("Invalid account discriminator")]
     AccountDiscriminatorMismatch,
+    #[msg("Token misisng freeze authority")]
+    TokenMissingFreezeAuthority,
 }

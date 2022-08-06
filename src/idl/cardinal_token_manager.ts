@@ -1,5 +1,5 @@
 export type CardinalTokenManager = {
-  version: "1.5.0";
+  version: "1.5.7";
   name: "cardinal_token_manager";
   instructions: [
     {
@@ -973,12 +973,17 @@ export type CardinalTokenManager = {
       code: 6028;
       name: "AccountDiscriminatorMismatch";
       msg: "Invalid account discriminator";
+    },
+    {
+      code: 6029;
+      name: "TokenMissingFreezeAuthority";
+      msg: "Token misisng freeze authority";
     }
   ];
 };
 
 export const IDL: CardinalTokenManager = {
-  version: "1.5.0",
+  version: "1.5.7",
   name: "cardinal_token_manager",
   instructions: [
     {
@@ -1952,6 +1957,11 @@ export const IDL: CardinalTokenManager = {
       code: 6028,
       name: "AccountDiscriminatorMismatch",
       msg: "Invalid account discriminator",
+    },
+    {
+      code: 6029,
+      name: "TokenMissingFreezeAuthority",
+      msg: "Token misisng freeze authority",
     },
   ],
 };

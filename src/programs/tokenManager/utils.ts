@@ -72,8 +72,7 @@ export const withRemainingAccountsForPayment = async (
       wallet,
       mint,
       paymentMint,
-      options?.skipTokenAccountCreation,
-      options?.excludeCreators
+      options?.skipTokenAccountCreation
     );
   const mintMetadataId = await Metadata.getPDA(mint);
   const paymentRemainingAccounts = [
@@ -279,8 +278,7 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
   wallet: Wallet,
   mint: PublicKey,
   paymentMint: PublicKey,
-  skipTokenAccountCreation?: boolean,
-  excludeCreators?: string[]
+  skipTokenAccountCreation?: boolean
 ): Promise<AccountMeta[]> => {
   const creatorsRemainingAccounts: AccountMeta[] = [];
   const mintMetadataId = await Metadata.getPDA(mint);
@@ -297,18 +295,16 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
     for (const creator of metaplexMintData.data.creators) {
       if (creator.share !== 0) {
         const creatorAddress = new PublicKey(creator.address);
-        const creatorMintTokenAccount =
-          skipTokenAccountCreation ||
-          excludeCreators?.includes(creator.address.toString())
-            ? await findAta(mint, creatorAddress, true)
-            : await withFindOrInitAssociatedTokenAccount(
-                transaction,
-                connection,
-                paymentMint,
-                creatorAddress,
-                wallet.publicKey,
-                true
-              );
+        const creatorMintTokenAccount = skipTokenAccountCreation
+          ? await findAta(mint, creatorAddress, true)
+          : await withFindOrInitAssociatedTokenAccount(
+              transaction,
+              connection,
+              paymentMint,
+              creatorAddress,
+              wallet.publicKey,
+              true
+            );
         creatorsRemainingAccounts.push({
           pubkey: creatorMintTokenAccount,
           isSigner: false,

@@ -277,7 +277,7 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
         const creatorMintTokenAccount = excludeCreators?.includes(
           creator.address.toString()
         )
-          ? await findAta(mint, creatorAddress, true)
+          ? await findAta(paymentMint, creatorAddress, true)
           : await withFindOrInitAssociatedTokenAccount(
               transaction,
               connection,

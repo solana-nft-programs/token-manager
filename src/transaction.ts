@@ -698,7 +698,6 @@ export const withExtendExpiration = async (
   secondsToAdd: number,
   options?: {
     payer?: PublicKey;
-    skipTokenAccountCreation?: boolean;
   }
 ): Promise<Transaction> => {
   const [timeInvalidatorId] =
@@ -724,7 +723,7 @@ export const withExtendExpiration = async (
       timeInvalidatorData.parsed.paymentManager,
       {
         receiptMint: tokenManagerData.parsed.receiptMint,
-        ...options,
+        payer: options?.payer,
       }
     );
 
@@ -755,7 +754,6 @@ export const withExtendUsages = async (
   usagesToAdd: number,
   options?: {
     payer?: PublicKey;
-    skipTokenAccountCreation?: boolean;
   }
 ): Promise<Transaction> => {
   const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
@@ -785,7 +783,7 @@ export const withExtendUsages = async (
       useInvalidatorData.parsed.paymentManager,
       {
         receiptMint: tokenManagerData.parsed.receiptMint,
-        ...options,
+        payer: options?.payer,
       }
     );
 

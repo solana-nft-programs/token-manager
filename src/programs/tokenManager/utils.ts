@@ -57,10 +57,14 @@ export const withRemainingAccountsForPayment = async (
   paymentMint: PublicKey,
   issuerId: PublicKey,
   paymentManagerId: PublicKey,
-  receiptMint?: PublicKey | null,
-  payer = wallet.publicKey,
-  excludeCreators?: string[]
+  options?: {
+    receiptMint?: PublicKey | null;
+    payer?: PublicKey;
+    skipTokenAccountCreation?: boolean;
+    excludeCreators?: string[];
+  }
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
+  const payer = options?.payer ?? wallet.publicKey;
   const royaltiesRemainingAccounts =
     await withRemainingAccountsForHanldePaymentWithRoyalties(
       transaction,
@@ -68,7 +72,8 @@ export const withRemainingAccountsForPayment = async (
       wallet,
       mint,
       paymentMint,
-      excludeCreators
+      options?.skipTokenAccountCreation,
+      options?.excludeCreators
     );
   const mintMetadataId = await Metadata.getPDA(mint);
   const paymentRemainingAccounts = [
@@ -89,16 +94,16 @@ export const withRemainingAccountsForPayment = async (
     },
   ];
 
-  if (receiptMint) {
+  if (options?.receiptMint) {
     const receiptMintLargestAccount = await connection.getTokenLargestAccounts(
-      receiptMint
+      options.receiptMint
     );
     // get holder of receipt mint
     const receiptTokenAccountId = receiptMintLargestAccount.value[0]?.address;
     if (!receiptTokenAccountId) throw new Error("No token accounts found");
     const receiptMintToken = new Token(
       connection,
-      receiptMint,
+      options.receiptMint,
       TOKEN_PROGRAM_ID,
       Keypair.generate()
     );
@@ -255,6 +260,7 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
   wallet: Wallet,
   mint: PublicKey,
   paymentMint: PublicKey,
+  skipTokenAccountCreation?: boolean,
   excludeCreators?: string[]
 ): Promise<AccountMeta[]> => {
   const creatorsRemainingAccounts: AccountMeta[] = [];
@@ -273,8 +279,8 @@ export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
       if (creator.share !== 0) {
         const creatorAddress = new PublicKey(creator.address);
         const creatorMintTokenAccount =
-          !excludeCreators ||
-          !excludeCreators.includes(creator.address.toString())
+          !skipTokenAccountCreation &&
+          !excludeCreators?.includes(creator.address.toString())
             ? await withFindOrInitAssociatedTokenAccount(
                 transaction,
                 connection,

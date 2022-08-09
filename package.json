@@ -1,6 +1,6 @@
 {
   "name": "@cardinal/token-manager",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "Cardinal token manager SDK",
   "keywords": [
     "solana",

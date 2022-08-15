@@ -3,13 +3,11 @@ import { Connection } from "@solana/web3.js";
 const networkURLs: { [key: string]: { primary: string; secondary?: string } } =
   {
     ["mainnet-beta"]: {
-      primary:
-        "https://solana-api.syndica.io/access-token/bpK4wglyeHHxd7hdEzeXCVdq8MnWQwHsqlmsCXzVYPq7jct19ouUy7ZEQzl5ZrmC/rpc",
+      primary: process.env.MAINNET_PRIMARY || "https://ssc-dao.genesysgo.net/",
       secondary: "https://ssc-dao.genesysgo.net/",
     },
     mainnet: {
-      primary:
-        "https://solana-api.syndica.io/access-token/bpK4wglyeHHxd7hdEzeXCVdq8MnWQwHsqlmsCXzVYPq7jct19ouUy7ZEQzl5ZrmC/rpc",
+      primary: process.env.MAINNET_PRIMARY || "https://ssc-dao.genesysgo.net/",
       secondary: "https://ssc-dao.genesysgo.net/",
     },
     devnet: { primary: "https://api.devnet.solana.com/" },

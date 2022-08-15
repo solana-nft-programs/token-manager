@@ -7,6 +7,8 @@ provider:
   name: aws
   runtime: nodejs14.x
   lambdaHashingVersion: "20201221"
+  environment:
+    MAINNET_PRIMARY: ${param:MAINNET_PRIMARY}
 
 package:
   individually: true

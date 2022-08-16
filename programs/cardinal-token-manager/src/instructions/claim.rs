@@ -137,7 +137,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     }
 
     // verify claim receipt
-    if token_manager.claim_approver != None {
+    if token_manager.claim_approver.is_some() {
         let claim_receipt_info = next_account_info(remaining_accs)?;
         let claim_receipt = Account::<ClaimReceipt>::try_from(claim_receipt_info)?;
         if claim_receipt.mint_count != token_manager.count {

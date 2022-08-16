@@ -5,7 +5,7 @@ use {
 };
 
 pub fn assert_payment_token_account(token_account: &Account<TokenAccount>, token_manager: &Account<TokenManager>, remaining_accounts: &mut std::slice::Iter<AccountInfo>) -> Result<()> {
-    if token_manager.receipt_mint == None {
+    if token_manager.receipt_mint.is_none() {
         if token_account.owner != token_manager.issuer {
             return Err(error!(ErrorCode::InvalidIssuer));
         }

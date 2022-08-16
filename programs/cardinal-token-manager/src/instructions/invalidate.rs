@@ -102,7 +102,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             // find receipt holder
             let return_token_account_info = next_account_info(remaining_accs)?;
             let return_token_account = Account::<TokenAccount>::try_from(return_token_account_info)?;
-            if token_manager.receipt_mint == None {
+            if token_manager.receipt_mint.is_none() {
                 if return_token_account.owner != token_manager.issuer {
                     return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
                 }

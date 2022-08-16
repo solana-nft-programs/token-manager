@@ -37,11 +37,11 @@ pub struct InitCtx<'info> {
 }
 
 pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
-    if ix.duration_seconds == None && ix.max_expiration == None {
+    if ix.duration_seconds.is_none() && ix.max_expiration.is_none() {
         return Err(error!(ErrorCode::InvalidInstruction));
-    } else if (ix.extension_payment_amount == None && ix.extension_duration_seconds != None) || (ix.extension_payment_amount != None && ix.extension_duration_seconds == None) {
+    } else if (ix.extension_payment_amount.is_none() && ix.extension_duration_seconds.is_some()) || (ix.extension_payment_amount.is_some() && ix.extension_duration_seconds.is_none()) {
         return Err(error!(ErrorCode::InvalidInstruction));
-    } else if ix.extension_payment_amount != None && ix.extension_payment_mint == None {
+    } else if ix.extension_payment_amount.is_some() && ix.extension_payment_mint.is_none() {
         return Err(error!(ErrorCode::InvalidInstruction));
     }
     // discriminator check

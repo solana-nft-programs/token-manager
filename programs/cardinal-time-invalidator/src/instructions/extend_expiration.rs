@@ -46,7 +46,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     let token_manager = &mut ctx.accounts.token_manager;
     let time_invalidator = &mut ctx.accounts.time_invalidator;
-    if time_invalidator.extension_payment_amount == None || time_invalidator.extension_duration_seconds == None || time_invalidator.extension_payment_mint == None {
+    if time_invalidator.extension_payment_amount.is_none() || time_invalidator.extension_duration_seconds.is_none() || time_invalidator.extension_payment_mint.is_none() {
         return Err(error!(ErrorCode::InvalidTimeInvalidator));
     }
 
@@ -61,7 +61,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     }
     msg!("Extending by {:?} seconds by paying {:?}", seconds_to_add, price_to_pay);
 
-    if time_invalidator.disable_partial_extension != None
+    if time_invalidator.disable_partial_extension.is_some()
         && time_invalidator.disable_partial_extension.unwrap()
         && seconds_to_add
             .checked_rem(time_invalidator.extension_duration_seconds.expect("No extension duration"))
@@ -75,12 +75,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         .state_changed_at
         .checked_add(time_invalidator.duration_seconds.expect("No duration set"))
         .expect("Add error");
-    if time_invalidator.expiration != None {
+    if time_invalidator.expiration.is_some() {
         expiration = max(expiration, time_invalidator.expiration.unwrap());
     }
     let new_expiration = Some(expiration.checked_add(seconds_to_add as i64).expect("Addition error"));
 
-    if time_invalidator.max_expiration != None && new_expiration > time_invalidator.max_expiration {
+    if time_invalidator.max_expiration.is_some() && new_expiration > time_invalidator.max_expiration {
         return Err(error!(ErrorCode::InvalidExtendExpiration));
     }
 

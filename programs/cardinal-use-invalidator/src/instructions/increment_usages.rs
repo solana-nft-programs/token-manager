@@ -10,14 +10,14 @@ use {
 pub struct IncrementUsagesCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut, constraint = use_invalidator.total_usages == None || use_invalidator.usages.checked_add(num_usages).expect("Add error") <= use_invalidator.total_usages.expect("No usage limit") @ ErrorCode::InsufficientUsages)]
+    #[account(mut, constraint = use_invalidator.total_usages.is_none() || use_invalidator.usages.checked_add(num_usages).expect("Add error") <= use_invalidator.total_usages.expect("No usage limit") @ ErrorCode::InsufficientUsages)]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
     #[account(constraint = token_manager.recipient_token_account == recipient_token_account.key() @ ErrorCode::InvalidTokenAccount)]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
     #[account(
-        constraint = (use_invalidator.use_authority != None && user.key() == use_invalidator.use_authority.unwrap())
-        || (use_invalidator.use_authority == None && user.key() == recipient_token_account.owner)
+        constraint = (use_invalidator.use_authority.is_some() && user.key() == use_invalidator.use_authority.unwrap())
+        || (use_invalidator.use_authority.is_none() && user.key() == recipient_token_account.owner)
         @ ErrorCode::InvalidUser
     )]
     user: Signer<'info>,

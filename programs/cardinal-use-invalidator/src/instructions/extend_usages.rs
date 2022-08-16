@@ -45,7 +45,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     let token_manager = &mut ctx.accounts.token_manager;
     let use_invalidator = &mut ctx.accounts.use_invalidator;
-    if use_invalidator.extension_payment_amount == None || use_invalidator.extension_usages == None || use_invalidator.extension_payment_mint == None || use_invalidator.total_usages == None {
+    if use_invalidator.extension_payment_amount.is_none() || use_invalidator.extension_usages.is_none() || use_invalidator.extension_payment_mint.is_none() || use_invalidator.total_usages.is_none() {
         return Err(error!(ErrorCode::InvalidUseInvalidator));
     }
 

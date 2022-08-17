@@ -47,7 +47,7 @@ Cardinal token-manager is made to be composable. It allows for plugins for
 
 When instantiating a token-manager, the issuer can set a claim approver, transfer authority and invalidators that can control the claim, transfer and invalidate mechanisms. These are all plugins that can be pointed to any program-derived account or user owned account. Out of the box, there are basic plugins to power use and time rentals and subscriptions.
 
-All of these are modeled are separate programs so users can choose to implement custom logic in a separate program for claim, transfer and invalidation.
+All of these are modeled are separate programs so users can choose to implement custom logic in a separate program for claim, transfer and invalidation. Payment manager handles payment splits for all payments associated with the programs and also has built in support for paying out creator royalties.
 
 # Documentation
 

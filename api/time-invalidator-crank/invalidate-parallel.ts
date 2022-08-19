@@ -57,8 +57,9 @@ const main = async (cluster: string) => {
   }
   const clock = solanaClock || startTime;
 
-  const allTimeInvalidators =
-    await programs.timeInvalidator.accounts.getAllTimeInvalidators(connection);
+  let allTimeInvalidators = (
+    await programs.timeInvalidator.accounts.getAllTimeInvalidators(connection)
+  ).sort(() => 0.5 - Math.random());
 
   const tokenManagerIds = allTimeInvalidators.map(
     (timeInvalidator) => timeInvalidator.parsed.tokenManager

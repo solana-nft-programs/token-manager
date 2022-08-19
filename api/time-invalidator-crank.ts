@@ -1,3 +1,4 @@
 import { invalidateAll } from "./time-invalidator-crank/invalidate";
+import { invalidateAllParallel } from "./time-invalidator-crank/invalidate-parallel";
 
-invalidateAll().catch((e) => console.log(e));
+invalidateAllParallel().catch((e) => console.log(e));

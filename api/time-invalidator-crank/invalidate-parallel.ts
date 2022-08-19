@@ -5,7 +5,10 @@ import {
 } from "@cardinal/token-manager";
 import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
 import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
-import { withRemainingAccountsForReturn } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import {
+  TokenManagerData,
+  withRemainingAccountsForReturn,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import { utils } from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import {
@@ -15,6 +18,7 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import { string } from "superstruct";
 
 import { connectionFor, secondaryConnectionFor } from "../common/connection";
 
@@ -57,9 +61,8 @@ const main = async (cluster: string) => {
   }
   const clock = solanaClock || startTime;
 
-  let allTimeInvalidators = (
-    await programs.timeInvalidator.accounts.getAllTimeInvalidators(connection)
-  ).sort(() => 0.5 - Math.random());
+  const allTimeInvalidators =
+    await programs.timeInvalidator.accounts.getAllTimeInvalidators(connection);
 
   const tokenManagerIds = allTimeInvalidators.map(
     (timeInvalidator) => timeInvalidator.parsed.tokenManager
@@ -69,20 +72,49 @@ const main = async (cluster: string) => {
     connection,
     tokenManagerIds
   );
+  const tokenManagersById = tokenManagers.reduce(
+    (acc, tm) => ({ ...acc, [tm.pubkey?.toString()]: tm }),
+    {} as { [s: string]: AccountData<TokenManagerData> }
+  );
+  const filteredTimeInvalidators = allTimeInvalidators
+    .filter((timeInvalidatorData) => {
+      const tokenManagerData =
+        tokenManagersById[timeInvalidatorData.parsed.tokenManager.toString()];
+      return (
+        !tokenManagerData?.parsed ||
+        shouldTimeInvalidate(
+          tokenManagerData,
+          timeInvalidatorData,
+          clock + (Date.now() / 1000 - startTime)
+        )
+      );
+    })
+    .sort(() => 0.5 - Math.random());
 
   console.log(
     `\n\n--------------- ${wallet.publicKey.toString()} found ${
       allTimeInvalidators.length
     } time invalidators found on ${cluster} ---------------`
   );
+  console.log(
+    `--------------- ${wallet.publicKey.toString()} filtered to ${
+      filteredTimeInvalidators.length
+    } time invalidators found on ${cluster} ---------------`
+  );
 
-  const chunks = chunkArray(allTimeInvalidators, BATCH_SIZE).slice(
+  const chunks = chunkArray(filteredTimeInvalidators, BATCH_SIZE).slice(
     0,
     process.env.CRANK_PARALLEL_MAX_CHUNKS &&
       parseInt(process.env.CRANK_PARALLEL_MAX_CHUNKS)
       ? parseInt(process.env.CRANK_PARALLEL_MAX_CHUNKS)
       : DEFAULT_MAX_CHUNKS
   );
+  console.log(
+    `Chunks: ${chunks
+      .map((i) => i.map((j) => j.pubkey.toString()).join(","))
+      .join(":")}`
+  );
+
   await Promise.all(
     chunks.map(async (chunk, chunkNum) => {
       const transaction = new Transaction();
@@ -98,11 +130,10 @@ const main = async (cluster: string) => {
           //   timeInvalidatorData.pubkey.toString(),
           //   timeInvalidatorData.parsed.tokenManager.toString()
           // );
-          const tokenManagerData = tokenManagers.find(
-            (tokenManager) =>
-              tokenManager.pubkey.toString() ===
+          const tokenManagerData =
+            tokenManagersById[
               timeInvalidatorData.parsed.tokenManager.toString()
-          );
+            ];
 
           if (!tokenManagerData?.parsed) {
             transaction.add(

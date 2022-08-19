@@ -92,9 +92,9 @@ const main = async (cluster: string) => {
     .sort(() => 0.5 - Math.random());
 
   console.log(
-    `\n\n--------------- ${wallet.publicKey.toString()} found ${
+    `\n\n--------------- ${wallet.publicKey.toString()} ${
       allTimeInvalidators.length
-    } time invalidators found on ${cluster} ---------------`
+    } total time invalidators found on ${cluster} ---------------`
   );
   console.log(
     `--------------- ${wallet.publicKey.toString()} filtered to ${

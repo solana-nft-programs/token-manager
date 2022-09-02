@@ -3,7 +3,9 @@ import {
   BorshAccountsCoder,
   Program,
 } from "@project-serum/anchor";
+import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
 import type { PAYMENT_MANAGER_PROGRAM, PaymentManagerData } from ".";
@@ -13,9 +15,11 @@ export const getPaymentManager = async (
   connection: Connection,
   paymentManagerId: PublicKey
 ): Promise<AccountData<PaymentManagerData>> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const paymentManagerProgram = new Program<PAYMENT_MANAGER_PROGRAM>(
     PAYMENT_MANAGER_IDL,
     PAYMENT_MANAGER_ADDRESS,
@@ -35,9 +39,11 @@ export const getPaymentManagers = async (
   connection: Connection,
   paymentManagerIds: PublicKey[]
 ): Promise<AccountData<PaymentManagerData>[]> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const paymentManagerProgram = new Program<PAYMENT_MANAGER_PROGRAM>(
     PAYMENT_MANAGER_IDL,
     PAYMENT_MANAGER_ADDRESS,

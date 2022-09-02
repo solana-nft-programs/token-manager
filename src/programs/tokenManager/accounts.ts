@@ -5,7 +5,9 @@ import {
   Program,
   utils,
 } from "@project-serum/anchor";
+import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
 import type { TokenManagerState } from ".";
@@ -21,9 +23,11 @@ export const getTokenManager = async (
   connection: Connection,
   tokenManagerId: PublicKey
 ): Promise<AccountData<TokenManagerData>> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -43,9 +47,11 @@ export const getTokenManagers = async (
   connection: Connection,
   tokenManagerIds: PublicKey[]
 ): Promise<AccountData<TokenManagerData>[]> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -131,9 +137,11 @@ export const getMintManager = async (
   connection: Connection,
   mintManagerId: PublicKey
 ): Promise<AccountData<MintManagerData>> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,
@@ -153,9 +161,11 @@ export const getMintCounter = async (
   connection: Connection,
   mintCounterId: PublicKey
 ): Promise<AccountData<MintCounterData>> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
     TOKEN_MANAGER_IDL,
     TOKEN_MANAGER_ADDRESS,

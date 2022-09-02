@@ -3,7 +3,9 @@ import {
   BorshAccountsCoder,
   Program,
 } from "@project-serum/anchor";
+import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
 import type {
@@ -13,14 +15,15 @@ import type {
 import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
 import { findClaimApproverAddress } from "./pda";
 
-// TODO fix types
 export const getClaimApprover = async (
   connection: Connection,
   tokenManagerId: PublicKey
 ): Promise<AccountData<PaidClaimApproverData>> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
     CLAIM_APPROVER_IDL,
     CLAIM_APPROVER_ADDRESS,
@@ -33,8 +36,6 @@ export const getClaimApprover = async (
     claimApproverId
   );
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     parsed,
     pubkey: claimApproverId,
   };
@@ -44,32 +45,29 @@ export const getClaimApprovers = async (
   connection: Connection,
   claimApproverIds: PublicKey[]
 ): Promise<AccountData<PaidClaimApproverData>[]> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
     CLAIM_APPROVER_IDL,
     CLAIM_APPROVER_ADDRESS,
     provider
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  let claimApprovers = [];
+  let claimApprovers: (PaidClaimApproverData | null)[] = [];
   try {
     claimApprovers =
-      await claimApproverProgram.account.paidClaimApprover.fetchMultiple(
+      (await claimApproverProgram.account.paidClaimApprover.fetchMultiple(
         claimApproverIds
-      );
+      )) as (PaidClaimApproverData | null)[];
   } catch (e) {
     console.log(e);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   return claimApprovers.map((tm, i) => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    parsed: tm,
-    pubkey: claimApproverIds[i],
+    parsed: tm!,
+    pubkey: claimApproverIds[i]!,
   }));
 };
 

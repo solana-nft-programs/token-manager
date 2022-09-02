@@ -4,7 +4,9 @@ import {
   BorshAccountsCoder,
   Program,
 } from "@project-serum/anchor";
+import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
 import type {
@@ -13,14 +15,15 @@ import type {
 } from "./constants";
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
 
-// TODO fix types
 export const getTimeInvalidator = async (
   connection: Connection,
   timeInvalidatorId: PublicKey
 ): Promise<AccountData<TimeInvalidatorData>> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,
     TIME_INVALIDATOR_ADDRESS,
@@ -40,32 +43,29 @@ export const getTimeInvalidators = async (
   connection: Connection,
   timeInvalidatorIds: PublicKey[]
 ): Promise<AccountData<TimeInvalidatorData>[]> => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, null, {});
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
     TIME_INVALIDATOR_IDL,
     TIME_INVALIDATOR_ADDRESS,
     provider
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  let timeInvalidators = [];
+  let timeInvalidators: (TimeInvalidatorData | null)[] = [];
   try {
     timeInvalidators =
-      await timeInvalidatorProgram.account.timeInvalidator.fetchMultiple(
+      (await timeInvalidatorProgram.account.timeInvalidator.fetchMultiple(
         timeInvalidatorIds
-      );
+      )) as (TimeInvalidatorData | null)[];
   } catch (e) {
     console.log(e);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return timeInvalidators.map((tm, i) => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    parsed: tm,
-    pubkey: timeInvalidatorIds[i],
+  return timeInvalidators.map((data, i) => ({
+    parsed: data!,
+    pubkey: timeInvalidatorIds[i]!,
   }));
 };
 

@@ -64,7 +64,7 @@ export const withRemainingAccountsForPayment = async (
 ): Promise<[PublicKey, PublicKey, AccountMeta[]]> => {
   const payer = options?.payer ?? wallet.publicKey;
   const royaltiesRemainingAccounts =
-    await withRemainingAccountsForHanldePaymentWithRoyalties(
+    await withRemainingAccountsForHandlePaymentWithRoyalties(
       transaction,
       connection,
       wallet,
@@ -251,7 +251,7 @@ export const withRemainingAccountsForReturn = async (
   }
 };
 
-export const withRemainingAccountsForHanldePaymentWithRoyalties = async (
+export const withRemainingAccountsForHandlePaymentWithRoyalties = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,

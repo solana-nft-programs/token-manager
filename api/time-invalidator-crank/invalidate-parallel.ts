@@ -18,7 +18,6 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { string } from "superstruct";
 
 import { connectionFor, secondaryConnectionFor } from "../common/connection";
 
@@ -141,7 +140,8 @@ const main = async (cluster: string) => {
                 connection,
                 new SignerWallet(wallet),
                 timeInvalidatorData.pubkey,
-                timeInvalidatorData.parsed.tokenManager
+                timeInvalidatorData.parsed.tokenManager,
+                timeInvalidatorData.parsed.collector
               )
             );
             console.log(

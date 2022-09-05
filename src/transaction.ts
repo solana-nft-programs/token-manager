@@ -24,8 +24,13 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "./programs/tokenManager";
-import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
+import { getTokenManager } from "./programs/tokenManager/accounts";
 import {
+  findTokenManagerAddress,
+  tokenManagerAddressFromMint,
+} from "./programs/tokenManager/pda";
+import {
+  getRemainingAccountsForTransfer,
   withRemainingAccountsForPayment,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager/utils";
@@ -864,6 +869,55 @@ export const withUpdateMaxExpiration = async (
   } else {
     console.log("Token Manager not in state issued to update max expiration");
   }
+};
+
+export const withTransfer = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  recipient: PublicKey
+): Promise<Transaction> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!tokenManagerData?.parsed) {
+    throw "No token manager found";
+  }
+
+  const tokenManagerTokenAccountId = await findAta(
+    mintId,
+    tokenManagerId,
+    true
+  );
+
+  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    mintId,
+    recipient,
+    wallet.publicKey,
+    true
+  );
+
+  const remainingAccountsForTransfer = await getRemainingAccountsForTransfer(
+    tokenManagerData.parsed.transferAuthority,
+    tokenManagerId,
+    recipient
+  );
+
+  tokenManager.instruction.transfer(
+    connection,
+    wallet,
+    tokenManagerId,
+    tokenManagerTokenAccountId,
+    mintId,
+    tokenManagerData.parsed.recipientTokenAccount,
+    recipient,
+    recipientTokenAccountId,
+    remainingAccountsForTransfer
+  );
 
   return transaction;
 };

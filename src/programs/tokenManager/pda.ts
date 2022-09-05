@@ -78,13 +78,13 @@ export const findClaimReceiptId = async (
  * @returns
  */
 export const findTransferReceiptId = async (
-  tokenManagerKey: PublicKey,
+  tokenManagerId: PublicKey,
   recipientKey: PublicKey
 ): Promise<[PublicKey, number]> => {
   return PublicKey.findProgramAddress(
     [
       utils.bytes.utf8.encode(TRANSFER_RECEIPT_SEED),
-      tokenManagerKey.toBuffer(),
+      tokenManagerId.toBuffer(),
       recipientKey.toBuffer(),
     ],
     TOKEN_MANAGER_ADDRESS

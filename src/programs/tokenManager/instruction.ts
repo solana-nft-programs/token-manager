@@ -147,6 +147,38 @@ export const setTransferAuthority = (
   );
 };
 
+export const transfer = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey,
+  mint: PublicKey,
+  currentHolderTokenAccountId: PublicKey,
+  recipient: PublicKey,
+  recipientTokenAccountId: PublicKey,
+  remainingAcounts?: AccountMeta[]
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.transfer({
+    accounts: {
+      tokenManager: tokenManagerId,
+      tokenManagerTokenAccount: tokenManagerTokenAccountId,
+      mint: mint,
+      currentHolderTokenAccount: currentHolderTokenAccountId,
+      recipient: recipient,
+      recipientTokenAccount: recipientTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    },
+    remainingAccounts: remainingAcounts ? remainingAcounts : [],
+  });
+};
+
 export const addInvalidator = (
   connection: Connection,
   wallet: Wallet,
@@ -299,10 +331,7 @@ export const createClaimReceipt = async (
     provider
   );
 
-  const [claimReceiptId, _claimReceiptBump] = await findClaimReceiptId(
-    tokenManagerId,
-    target
-  );
+  const [claimReceiptId] = await findClaimReceiptId(tokenManagerId, target);
 
   return [
     tokenManagerProgram.instruction.createClaimReceipt(target, {
@@ -315,6 +344,35 @@ export const createClaimReceipt = async (
       },
     }),
     claimReceiptId,
+  ];
+};
+
+export const createTransferReceipt = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  transferAuthority: PublicKey,
+  target = wallet.publicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [transferReceiptId] = await findClaimReceiptId(tokenManagerId, target);
+
+  return [
+    tokenManagerProgram.instruction.createTransferReceipt({
+      accounts: {
+        tokenManager: tokenManagerId,
+        transferAuthority: transferAuthority,
+        transferReceipt: transferReceiptId,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
+    transferReceiptId,
   ];
 };
 

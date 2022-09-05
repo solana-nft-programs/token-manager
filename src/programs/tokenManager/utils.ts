@@ -15,7 +15,7 @@ import { tryGetAccount } from "../../utils";
 import { getPaymentManager } from "../paymentManager/accounts";
 import type { TokenManagerData } from ".";
 import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
-import { findMintManagerId } from "./pda";
+import { findMintManagerId, findTransferReceiptId } from "./pda";
 
 export const getRemainingAccountsForKind = async (
   mintId: PublicKey,
@@ -296,4 +296,26 @@ export const withRemainingAccountsForHandlePaymentWithRoyalties = async (
   }
 
   return creatorsRemainingAccounts;
+};
+
+export const getRemainingAccountsForTransfer = async (
+  transferAuthority: PublicKey | null,
+  tokenManagerId: PublicKey,
+  recipient: PublicKey
+): Promise<AccountMeta[]> => {
+  if (transferAuthority) {
+    const [transferReceiptId] = await findTransferReceiptId(
+      tokenManagerId,
+      recipient
+    );
+    return [
+      {
+        pubkey: transferReceiptId,
+        isSigner: false,
+        isWritable: true,
+      },
+    ];
+  } else {
+    return [];
+  }
 };

@@ -79,7 +79,6 @@ export const issueToken = async (
 export const claimFromLink = async (
   connection: Connection,
   wallet: Wallet,
-  tokenManagerId: PublicKey,
-  otpKeypair: Keypair
+  tokenManagerId: PublicKey
 ): Promise<Transaction> =>
   withClaimToken(new Transaction(), connection, wallet, tokenManagerId);

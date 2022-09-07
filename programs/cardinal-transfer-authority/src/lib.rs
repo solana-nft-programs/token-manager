@@ -11,7 +11,7 @@ pub mod cardinal_paid_claim_approver {
     use super::*;
 
     pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
-        init::handler(ctx, ix)
+        init_transfer_authority::handler(ctx, ix)
     }
 
     pub fn pay<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, PayCtx<'info>>) -> Result<()> {

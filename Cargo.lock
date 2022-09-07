@@ -465,6 +465,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cardinal-transfer-approver"
+version = "1.5.12"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "cardinal-token-manager",
+ "proptest",
+ "solana-program",
+ "spl-associated-token-account",
+ "spl-token",
+]
+
+[[package]]
 name = "cardinal-use-invalidator"
 version = "1.6.3"
 dependencies = [

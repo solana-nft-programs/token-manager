@@ -11,11 +11,17 @@ export const getLink = (
   tokenManagerId: PublicKey,
   otp: Keypair | undefined,
   cluster = "devnet",
-  baseUrl = "https://main.cardinal.so/claim"
+  baseUrl = "https://rent.cardinal.so",
+  collection = "claim"
 ): string => {
-  return `${baseUrl}/${tokenManagerId.toString()}${
-    otp ? `?otp=${utils.bytes.bs58.encode(otp.secretKey)}` : "?"
-  }${cluster === "devnet" ? "&cluster=devnet" : ""}`;
+  const url = new URL(`${baseUrl}/${collection}/${tokenManagerId.toString()}`);
+  if (otp) {
+    url.searchParams.append("otp", utils.bytes.bs58.encode(otp.secretKey));
+  }
+  if (cluster === "devnet") {
+    url.searchParams.append("cluster", "devnet");
+  }
+  return url.toString();
 };
 
 export const fromLink = (link: string): [PublicKey, Keypair] => {

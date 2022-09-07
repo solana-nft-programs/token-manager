@@ -14,7 +14,13 @@ import {
 } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimLinks, findAta, useTransaction, withIssueToken } from "../src";
+import {
+  claimLinks,
+  claimToken,
+  findAta,
+  useTransaction,
+  withIssueToken,
+} from "../src";
 import { fromLink } from "../src/claimLinks";
 import { tokenManager, useInvalidator } from "../src/programs";
 import {
@@ -112,11 +118,10 @@ describe("Claim links", () => {
 
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
-    const transaction = await claimLinks.claimFromLink(
+    const transaction = await claimToken(
       provider.connection,
       new SignerWallet(recipient),
-      tokenManagerId,
-      otpKeypair
+      tokenManagerId
     );
 
     const txEnvelope = new TransactionEnvelope(

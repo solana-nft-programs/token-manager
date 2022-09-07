@@ -122,7 +122,6 @@ describe("Issue payer invalidate", () => {
       new SignerWallet(recipient),
       tokenManagerId,
       {
-        otpKeypair,
         payer: payer.publicKey,
       }
     );

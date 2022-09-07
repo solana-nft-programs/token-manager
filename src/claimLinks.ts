@@ -82,6 +82,4 @@ export const claimFromLink = async (
   tokenManagerId: PublicKey,
   otpKeypair: Keypair
 ): Promise<Transaction> =>
-  withClaimToken(new Transaction(), connection, wallet, tokenManagerId, {
-    otpKeypair,
-  });
+  withClaimToken(new Transaction(), connection, wallet, tokenManagerId);

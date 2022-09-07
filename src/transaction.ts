@@ -291,7 +291,6 @@ export const withClaimToken = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   additionalOptions?: {
-    otpKeypair?: Keypair | null;
     payer?: PublicKey;
   }
 ): Promise<Transaction> => {
@@ -345,20 +344,13 @@ export const withClaimToken = async (
       )
     );
   } else if (tokenManagerData.parsed.claimApprover) {
-    if (
-      !additionalOptions?.otpKeypair ||
-      additionalOptions?.otpKeypair.publicKey.toString() !==
-        tokenManagerData.parsed.claimApprover.toString()
-    ) {
-      throw new Error("Invalid OTP");
-    }
     // approve claim request
     const [createClaimReceiptIx, claimReceipt] =
       await tokenManager.instruction.createClaimReceipt(
         connection,
         wallet,
         tokenManagerId,
-        additionalOptions?.otpKeypair.publicKey,
+        tokenManagerData.parsed.claimApprover,
         additionalOptions?.payer
       );
     transaction.add(createClaimReceiptIx);

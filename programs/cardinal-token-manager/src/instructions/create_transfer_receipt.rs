@@ -17,11 +17,13 @@ pub struct CreateTransferReceiptCtx<'info> {
 
     #[account(
         init,
-        payer = transfer_authority,
+        payer = payer,
         seeds = [TRANSFER_RECEIPT_SEED.as_bytes(), token_manager.key().as_ref(), target.as_ref()], bump,
         space = TRANSFER_RECEIPT_SIZE,
     )]
     transfer_receipt: Box<Account<'info, TranferReceipt>>,
+    #[account(mut)]
+    payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
 

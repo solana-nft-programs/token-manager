@@ -59,10 +59,10 @@ const main = async (
   }
 };
 
-const paymentManagerName = "mainnet-cardinal-mini-royale";
+const paymentManagerName = "devnet-cardinal-paymentguild";
 const params: PaymentManagerParams = {
-  feeCollector: new PublicKey("rG8DYcfoNCqJaQRZE5c9m8ynXycuJxZaF65VZVorB8L"),
-  authority: new PublicKey("7KJ322BQnje7oPN315dRNK7Arioom7d8mAPhAJFME2MA"),
+  feeCollector: new PublicKey(""),
+  authority: new PublicKey(""),
   makerFeeBasisPoints: 600,
   takerFeeBasisPoints: 0,
 };

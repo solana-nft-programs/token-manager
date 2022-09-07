@@ -7,7 +7,7 @@ use {
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct InitIx {
+pub struct InitTransferAuthorityIx {
     pub collector: Pubkey,
     pub payment_amount: Option<u64>,
     pub payment_mint: Option<Pubkey>,
@@ -16,7 +16,7 @@ pub struct InitIx {
 
 #[derive(Accounts)]
 #[instruction(ix: InitIx)]
-pub struct InitCtx<'info> {
+pub struct InitTransferAuthorityCtx<'info> {
     #[account(constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
 
@@ -37,7 +37,7 @@ pub struct InitCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
+pub fn handler(ctx: Context<InitTransferAuthorityCtx>, ix: InitIx) -> Result<()> {
     let transfer_authority = &mut ctx.accounts.transfer_authority;
     transfer_authority.bump = *ctx.bumps.get("transfer_authority").unwrap();
     transfer_authority.token_manager = ctx.accounts.token_manager.key();

@@ -45,7 +45,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         .expect("Multiplication error")
         .checked_div(BASIS_POINTS_DIVISOR.into())
         .expect("Division error");
-    let total_fees = maker_fee.checked_add(taker_fee).expect("Add error");
+    let mut total_fees = maker_fee.checked_add(taker_fee).expect("Add error");
 
     // assert metadata account derivation
     assert_derivation(
@@ -65,8 +65,24 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         if mint_metadata.mint != ctx.accounts.mint.key() {
             return Err(error!(ErrorCode::InvalidMintMetadata));
         }
+        let seller_fee = if payment_manager.include_seller_fee_basis_points {
+            payment_amount
+                .checked_mul(mint_metadata.data.seller_fee_basis_points.into())
+                .expect("Multiplication error")
+                .checked_div(BASIS_POINTS_DIVISOR.into())
+                .expect("Division error")
+        } else {
+            0
+        };
+        let total_creators_fee = total_fees
+            .checked_mul(payment_manager.royalty_fee_share.unwrap_or(DEFAULT_ROYALTY_FEE_SHARE))
+            .unwrap()
+            .checked_div(100)
+            .expect("Div error")
+            .checked_add(seller_fee)
+            .expect("Add error");
+        total_fees = total_fees.checked_add(seller_fee).expect("Add error");
 
-        let total_creators_fee = total_fees.checked_mul(DEFAULT_ROYALTY_FEE_SHARE).unwrap().checked_div(100).expect("Div error");
         if total_creators_fee > 0 {
             if let Some(creators) = mint_metadata.data.creators {
                 let remaining_accs = &mut ctx.remaining_accounts.iter();

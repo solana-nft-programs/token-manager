@@ -13,4 +13,6 @@ pub struct PaymentManager {
     pub maker_fee_basis_points: u16,
     pub taker_fee_basis_points: u16,
     pub name: String,
+    pub include_seller_fee_basis_points: bool,
+    pub royalty_fee_share: Option<u64>,
 }

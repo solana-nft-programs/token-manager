@@ -7,18 +7,10 @@ use {anchor_lang::prelude::*, instructions::*};
 declare_id!("pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR");
 
 #[program]
-pub mod cardinal_paid_claim_approver {
+pub mod cardinal_paid_transfer_authority {
     use super::*;
 
-    pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
+    pub fn init(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
         init_transfer_authority::handler(ctx, ix)
-    }
-
-    pub fn pay<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, PayCtx<'info>>) -> Result<()> {
-        pay::handler(ctx)
-    }
-
-    pub fn close(ctx: Context<CloseCtx>) -> Result<()> {
-        close::handler(ctx)
     }
 }

@@ -1,49 +1,31 @@
-use anchor_spl::token::TokenAccount;
-
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    cardinal_token_manager::state::{TokenManager, TokenManagerState},
-};
+use {crate::state::*, anchor_lang::prelude::*};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitTransferAuthorityIx {
-    pub collector: Pubkey,
-    pub payment_amount: Option<u64>,
-    pub payment_mint: Option<Pubkey>,
-    pub payment_manager: Option<Pubkey>,
+    pub payment_manager: Pubkey,
+    pub authority: Pubkey,
+    pub name: String,
 }
 
 #[derive(Accounts)]
-#[instruction(ix: InitIx)]
+#[instruction(ix: InitTransferAuthorityIx)]
 pub struct InitTransferAuthorityCtx<'info> {
-    #[account(constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
-    token_manager: Box<Account<'info, TokenManager>>,
-
     #[account(
-        init_if_needed,
+        init,
         payer = payer,
         space = TRANSFER_AUTHORITY_SIZE,
-        seeds = [TRANSFER_AUTHORITY_SEED.as_bytes(), token_manager.key().as_ref()], bump,
+        seeds = [TRANSFER_AUTHORITY_SEED.as_bytes(), ix.name.as_bytes()], bump,
     )]
-    transfer_authority: Box<Account<'info, TranssferAuthority>>,
-
-    #[account(mut, constraint = holder_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidHolderTokenAccount)]
-    holder_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = holder.key() == holder_token_account.owner @ ErrorCode::InvalidRecipient)]
-    holder: Signer<'info>,
+    transfer_authority: Box<Account<'info, TransferAuthority>>,
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitTransferAuthorityCtx>, ix: InitIx) -> Result<()> {
+pub fn handler(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
     let transfer_authority = &mut ctx.accounts.transfer_authority;
     transfer_authority.bump = *ctx.bumps.get("transfer_authority").unwrap();
-    transfer_authority.token_manager = ctx.accounts.token_manager.key();
-    transfer_authority.collector = ix.collector;
-    transfer_authority.payment_amount = ix.payment_amount;
-    transfer_authority.payment_mint = ix.payment_mint;
     transfer_authority.payment_manager = ix.payment_manager;
+    transfer_authority.authority = ix.authority;
     Ok(())
 }

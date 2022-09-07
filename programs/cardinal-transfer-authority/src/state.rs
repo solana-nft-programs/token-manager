@@ -1,21 +1,23 @@
 use anchor_lang::prelude::*;
 
 pub const TRANSFER_AUTHORITY_SEED: &str = "transfer-authority";
-pub const TRANSFER_AUTHORITY_SIZE: usize = 8 + std::mem::size_of::<TranssferAuthority>() + 8;
+pub const TRANSFER_AUTHORITY_SIZE: usize = 8 + std::mem::size_of::<TransferAuthority>() + 8;
 #[account]
-pub struct TranssferAuthority {
+pub struct TransferAuthority {
     pub bump: u8,
+    pub authority: Pubkey,
     pub payment_manager: Pubkey,
+    pub name: String,
 }
 
-pub const OFFER_SEED: &str = "offer";
-pub const OFFER_SIZE: usize = 8 + std::mem::size_of::<Offer>() + 8;
+pub const LISTING_SEED: &str = "listing";
+pub const LISTING_SIZE: usize = 8 + std::mem::size_of::<Listing>() + 8;
 #[account]
-pub struct Offer {
+pub struct Listing {
     pub bump: u8,
     pub payment_amount: u64,
     pub payment_mint: Pubkey,
-    pub offerer: Pubkey,
+    pub lister: Pubkey,
     pub token_manager: Pubkey,
 }
 

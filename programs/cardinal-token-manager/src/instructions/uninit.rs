@@ -10,9 +10,11 @@ pub struct UninitCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(mut)]
+    // permissionlesss if you are the current token holder to prevent others from leaving token-manager initiailized
     issuer: Signer<'info>,
     #[account(mut, constraint =
-        issuer_token_account.mint == token_manager.mint
+        issuer_token_account.owner == issuer.key()
+        && issuer_token_account.mint == token_manager.mint
         && issuer_token_account.amount >= 1
         @ ErrorCode::InvalidIssuerTokenAccount
     )]

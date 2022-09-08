@@ -14,12 +14,6 @@ pub struct TransferCtx<'info> {
         token_manager.state == TokenManagerState::Claimed as u8
     )]
     token_manager: Box<Account<'info, TokenManager>>,
-    #[account(mut, constraint =
-        token_manager_token_account.owner == token_manager.key()
-        && token_manager_token_account.mint == token_manager.mint
-        @ ErrorCode::InvalidTokenManagerTokenAccount
-    )]
-    token_manager_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
 

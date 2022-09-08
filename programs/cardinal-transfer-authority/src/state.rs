@@ -32,19 +32,6 @@ pub struct Listing {
     pub payment_mint: Pubkey,
 }
 
-pub const OFFER_SEED: &str = "offer";
-pub const OFFER_SIZE: usize = 8 + std::mem::size_of::<Offer>() + 64;
-#[account]
-pub struct Offer {
-    pub bump: u8,
-    pub offerer: Pubkey,
-    pub token_manager: Pubkey,
-    pub marketplace: Pubkey,
-    // payment
-    pub payment_amount: u64,
-    pub payment_mint: Pubkey,
-}
-
 pub fn tranfer_authority_seed(name: Option<String>) -> String {
     if name.is_some() {
         return name.unwrap();

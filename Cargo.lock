@@ -470,6 +470,7 @@ version = "1.5.12"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "cardinal-payment-manager",
  "cardinal-token-manager",
  "proptest",
  "solana-program",

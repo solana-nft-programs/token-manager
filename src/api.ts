@@ -48,8 +48,7 @@ export const claimToken = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   additionalOptions?: {
-    otpKeypair?: Keypair | null;
-    timeInvalidatorId?: PublicKey;
+    payer?: PublicKey;
   }
 ): Promise<Transaction> =>
   withClaimToken(

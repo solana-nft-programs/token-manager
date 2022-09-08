@@ -6,37 +6,26 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  sendAndConfirmRawTransaction,
-  Transaction,
-} from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import {
-  claimLinks,
-  claimToken,
-  findAta,
-  rentals,
-  useTransaction,
-} from "../src";
-import { fromLink } from "../src/claimLinks";
-import { tokenManager, useInvalidator } from "../src/programs";
+import { claimToken, findAta, issueToken } from "../src";
+import { tokenManager } from "../src/programs";
 import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
+import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Private rental", () => {
+describe("Permissioned rental", () => {
   const recipient = Keypair.generate();
+  const alternativeRecipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
   let claimLink: string;
-  let serializedUsage: string;
 
   before(async () => {
     const provider = getProvider();
@@ -62,9 +51,26 @@ describe("Private rental", () => {
     );
   });
 
-  it("Create link", async () => {
+  it("Requires permissioned publicKey", async () => {
     const provider = getProvider();
-    const [transaction, tokenManagerId, otp] = await rentals.createRental(
+    await issueToken(provider.connection, provider.wallet, {
+      mint: rentalMint.publicKey,
+      issuerTokenAccountId,
+      useInvalidation: { totalUsages: 4 },
+      kind: TokenManagerKind.Managed,
+      visibility: "permissioned",
+    })
+      .then(() => {
+        throw "Invalid success";
+      })
+      .catch((e) => {
+        expect(e).to.not.eq("Invalid success");
+      });
+  });
+
+  it("Issue token", async () => {
+    const provider = getProvider();
+    const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       provider.wallet,
       {
@@ -72,7 +78,8 @@ describe("Private rental", () => {
         issuerTokenAccountId,
         useInvalidation: { totalUsages: 4 },
         kind: TokenManagerKind.Managed,
-        visibility: "private",
+        visibility: "permissioned",
+        permissionedClaimApprover: recipient.publicKey,
       }
     );
 
@@ -89,8 +96,6 @@ describe("Private rental", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    claimLink = claimLinks.getLink(tokenManagerId, otp);
-
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
       tokenManagerId
@@ -102,8 +107,9 @@ describe("Private rental", () => {
     expect(tokenManagerData.parsed.issuer).to.eqAddress(
       provider.wallet.publicKey
     );
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(otp!.publicKey);
+    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(
+      recipient.publicKey
+    );
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
@@ -113,10 +119,39 @@ describe("Private rental", () => {
     console.log("Link created: ", claimLink);
   });
 
-  it("Claim from link", async () => {
+  it("Cannot be claimed by incorrect address", async () => {
     const provider = getProvider();
+    const [tokenManagerId] = await findTokenManagerAddress(
+      rentalMint.publicKey
+    );
 
-    const [tokenManagerId, otpKeypair] = fromLink(claimLink);
+    expect(async () => {
+      await expectTXTable(
+        new TransactionEnvelope(
+          SolanaProvider.init({
+            connection: provider.connection,
+            wallet: new SignerWallet(alternativeRecipient),
+            opts: provider.opts,
+          }),
+          (
+            await claimToken(
+              provider.connection,
+              new SignerWallet(alternativeRecipient),
+              tokenManagerId
+            )
+          ).instructions
+        ),
+        "Cannot be claimed by incorrect address",
+        { verbosity: "error" }
+      ).to.be.rejectedWith(Error);
+    });
+  });
+
+  it("Claim token", async () => {
+    const provider = getProvider();
+    const [tokenManagerId] = await findTokenManagerAddress(
+      rentalMint.publicKey
+    );
 
     const transaction = await claimToken(
       provider.connection,
@@ -130,8 +165,7 @@ describe("Private rental", () => {
         wallet: new SignerWallet(recipient),
         opts: provider.opts,
       }),
-      [...transaction.instructions],
-      [otpKeypair]
+      [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "test", {
       verbosity: "error",
@@ -155,58 +189,5 @@ describe("Private rental", () => {
     );
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
-  });
-
-  it("Get use tx", async () => {
-    const provider = getProvider();
-    const transaction = await useTransaction(
-      provider.connection,
-      new SignerWallet(recipient),
-      rentalMint.publicKey,
-      1
-    );
-    transaction.feePayer = recipient.publicKey;
-    transaction.recentBlockhash = (
-      await provider.connection.getRecentBlockhash("max")
-    ).blockhash;
-    await new SignerWallet(recipient).signTransaction(transaction);
-    serializedUsage = transaction.serialize().toString("base64");
-  });
-
-  it("Execute use tx", async () => {
-    const provider = getProvider();
-    const buffer = Buffer.from(serializedUsage, "base64");
-    const transaction = Transaction.from(buffer);
-    await sendAndConfirmRawTransaction(
-      provider.connection,
-      transaction.serialize()
-    );
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
-      rentalMint.publicKey
-    );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
-    const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
-      provider.connection,
-      useInvalidatorId
-    );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
-  });
-
-  it("Get new use tx", async () => {
-    const provider = getProvider();
-    const transaction = await useTransaction(
-      provider.connection,
-      new SignerWallet(recipient),
-      rentalMint.publicKey,
-      2
-    );
-    transaction.feePayer = recipient.publicKey;
-    transaction.recentBlockhash = (
-      await provider.connection.getRecentBlockhash("max")
-    ).blockhash;
-    await new SignerWallet(recipient).signTransaction(transaction);
-    serializedUsage = transaction.serialize().toString("base64");
   });
 });

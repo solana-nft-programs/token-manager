@@ -40,7 +40,8 @@ export type IssueParameters = {
   mint: PublicKey;
   amount?: BN;
   issuerTokenAccountId: PublicKey;
-  visibility?: "private" | "public";
+  visibility?: "private" | "public" | "permissioned";
+  permissionedClaimApprover?: PublicKey;
   kind?: TokenManagerKind;
   invalidationType?: InvalidationType;
   receiptOptions?: {
@@ -71,6 +72,7 @@ export const withIssueToken = async (
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
+    permissionedClaimApprover,
     receiptOptions = undefined,
     customInvalidators = undefined,
   }: IssueParameters
@@ -100,8 +102,8 @@ export const withIssueToken = async (
   //////////////////////////////
   let otp;
   if (claimPayment) {
-    if (visibility === "private") {
-      throw new Error("Private links do not currently support payment");
+    if (visibility !== "public") {
+      throw "Paid rentals currently must be public";
     }
     const [paidClaimApproverIx, paidClaimApproverId] =
       await claimApprover.instruction.init(
@@ -127,6 +129,18 @@ export const withIssueToken = async (
         wallet,
         tokenManagerId,
         otp.publicKey
+      )
+    );
+  } else if (visibility === "permissioned") {
+    if (!permissionedClaimApprover) {
+      throw "Claim approver is not specified for permissioned link";
+    }
+    transaction.add(
+      tokenManager.instruction.setClaimApprover(
+        connection,
+        wallet,
+        tokenManagerId,
+        permissionedClaimApprover
       )
     );
   }
@@ -291,7 +305,6 @@ export const withClaimToken = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   additionalOptions?: {
-    otpKeypair?: Keypair | null;
     payer?: PublicKey;
   }
 ): Promise<Transaction> => {
@@ -345,20 +358,13 @@ export const withClaimToken = async (
       )
     );
   } else if (tokenManagerData.parsed.claimApprover) {
-    if (
-      !additionalOptions?.otpKeypair ||
-      additionalOptions?.otpKeypair.publicKey.toString() !==
-        tokenManagerData.parsed.claimApprover.toString()
-    ) {
-      throw new Error("Invalid OTP");
-    }
     // approve claim request
     const [createClaimReceiptIx, claimReceipt] =
       await tokenManager.instruction.createClaimReceipt(
         connection,
         wallet,
         tokenManagerId,
-        additionalOptions?.otpKeypair.publicKey,
+        tokenManagerData.parsed.claimApprover,
         additionalOptions?.payer
       );
     transaction.add(createClaimReceiptIx);

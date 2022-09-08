@@ -9,10 +9,11 @@ pub struct UninitCtx<'info> {
     #[account(mut, close = issuer, constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut)]
+    #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
     issuer: Signer<'info>,
     #[account(mut, constraint =
-        issuer_token_account.mint == token_manager.mint
+        issuer_token_account.owner == issuer.key()
+        && issuer_token_account.mint == token_manager.mint
         && issuer_token_account.amount >= 1
         @ ErrorCode::InvalidIssuerTokenAccount
     )]

@@ -117,7 +117,7 @@ We soon plan on releasing a React library to make it easy to integrate Cardinal 
 
 ```js
 export type IssueParameters = {
-  // Mint of the tokens this token manager will manager
+  // Mint of the tokens this token manager will manage
   mint: PublicKey,
 
   // Amoun of tokens to put into token manager, for NFTs this should use the default of 1

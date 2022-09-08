@@ -9,8 +9,7 @@ pub struct UninitCtx<'info> {
     #[account(mut, close = issuer, constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut)]
-    // permissionlesss if you are the current token holder to prevent others from leaving token-manager initiailized
+    #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
     issuer: Signer<'info>,
     #[account(mut, constraint =
         issuer_token_account.owner == issuer.key()

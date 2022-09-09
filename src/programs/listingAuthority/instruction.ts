@@ -1,4 +1,3 @@
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import type { BN } from "@project-serum/anchor";
 import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
@@ -11,27 +10,18 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import { findAta } from "../../utils";
 import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
-import {
-  findTokenManagerAddress,
-  findTransferReceiptId,
-} from "../tokenManager/pda";
 import * as constants from "./constants";
-import {
-  findListingAddress,
-  findListingAuthorityAddress,
-  findMarketplaceAddress,
-} from "./pda";
 
-export const initTransferAuthority = async (
+export const initListingAuthority = (
   connection: Connection,
   wallet: Wallet,
   name: string,
+  listingAuthorityId: PublicKey,
   payer = wallet.publicKey,
   allowedMarketplaces?: PublicKey[]
-): Promise<[TransactionInstruction, PublicKey]> => {
+): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
@@ -41,33 +31,29 @@ export const initTransferAuthority = async (
       provider
     );
 
-  const [listingAuthorityId] = await findListingAuthorityAddress(name);
-  return [
-    transferAuthorityProgram.instruction.initListingAuthority(
-      {
-        name: name,
-        authority: wallet.publicKey,
-        allowedMarketplaces: allowedMarketplaces || undefined,
+  return transferAuthorityProgram.instruction.initListingAuthority(
+    {
+      name: name,
+      authority: wallet.publicKey,
+      allowedMarketplaces: allowedMarketplaces || undefined,
+    },
+    {
+      accounts: {
+        listingAuthority: listingAuthorityId,
+        payer: payer,
+        systemProgram: SystemProgram.programId,
       },
-      {
-        accounts: {
-          listingAuthority: listingAuthorityId,
-          payer: payer,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
-    listingAuthorityId,
-  ];
+    }
+  );
 };
 
-export const updateTransferAuthority = async (
+export const updateListingAuthority = (
   connection: Connection,
   wallet: Wallet,
-  name: string,
+  listingAuthorityId: PublicKey,
   authority: PublicKey,
   allowedMarketplaces: PublicKey[]
-): Promise<[TransactionInstruction, PublicKey]> => {
+): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
@@ -77,101 +63,102 @@ export const updateTransferAuthority = async (
       provider
     );
 
-  const [listingAuthorityId] = await findListingAuthorityAddress(name);
-  return [
-    transferAuthorityProgram.instruction.updateListingAuthority(
-      {
-        authority: wallet.publicKey,
-        allowedMarketplaces: allowedMarketplaces,
-      },
-      {
-        accounts: {
-          listingAuthority: listingAuthorityId,
-          authority: authority,
-        },
-      }
-    ),
-    listingAuthorityId,
-  ];
-};
-
-export const initMarketplace = async (
-  connection: Connection,
-  wallet: Wallet,
-  name: string,
-  paymentManager: PublicKey,
-  payer = wallet.publicKey
-): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new AnchorProvider(connection, wallet, {});
-
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
-
-  const [marketplaceId] = await findMarketplaceAddress(name);
-  return [
-    transferAuthorityProgram.instruction.initMarketplace(
-      {
-        name: name,
-        paymentManager: paymentManager,
-        authority: provider.wallet.publicKey,
-      },
-      {
-        accounts: {
-          marketplace: marketplaceId,
-          payer: payer,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
-    marketplaceId,
-  ];
-};
-
-export const updateMarketplace = async (
-  connection: Connection,
-  wallet: Wallet,
-  name: string,
-  paymentManager: PublicKey,
-  authority: PublicKey
-): Promise<TransactionInstruction> => {
-  const provider = new AnchorProvider(connection, wallet, {});
-
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
-
-  const [marketplaceId] = await findMarketplaceAddress(name);
-  return transferAuthorityProgram.instruction.updateMarketplace(
+  return transferAuthorityProgram.instruction.updateListingAuthority(
     {
+      authority: wallet.publicKey,
+      allowedMarketplaces: allowedMarketplaces,
+    },
+    {
+      accounts: {
+        listingAuthority: listingAuthorityId,
+        authority: authority,
+      },
+    }
+  );
+};
+
+export const initMarketplace = (
+  connection: Connection,
+  wallet: Wallet,
+  name: string,
+  marketplaceId: PublicKey,
+  listingAuthority: PublicKey,
+  paymentManager: PublicKey,
+  paymentMints: PublicKey[],
+  payer = wallet.publicKey
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const transferAuthorityProgram =
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
+      provider
+    );
+
+  return transferAuthorityProgram.instruction.initMarketplace(
+    {
+      name: name,
       paymentManager: paymentManager,
-      authority: authority,
+      authority: provider.wallet.publicKey,
+      paymentMints: paymentMints,
+      listingAuthority: listingAuthority,
     },
     {
       accounts: {
         marketplace: marketplaceId,
+        payer: payer,
+        systemProgram: SystemProgram.programId,
+      },
+    }
+  );
+};
+
+export const updateMarketplace = (
+  connection: Connection,
+  wallet: Wallet,
+  marketplace: PublicKey,
+  listingAuthority: PublicKey,
+  paymentManager: PublicKey,
+  authority: PublicKey,
+  paymentMints: PublicKey[]
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const transferAuthorityProgram =
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
+      provider
+    );
+
+  return transferAuthorityProgram.instruction.updateMarketplace(
+    {
+      listingAuthority: listingAuthority,
+      paymentManager: paymentManager,
+      authority: authority,
+      paymentMints: paymentMints,
+    },
+    {
+      accounts: {
+        marketplace: marketplace,
         authority: provider.wallet.publicKey,
       },
     }
   );
 };
 
-export const createListing = async (
+export const createListing = (
   connection: Connection,
   wallet: Wallet,
-  tokenManagerId: PublicKey,
+  listingId: PublicKey,
+  listingAuthorityId: PublicKey,
   marketplaceId: PublicKey,
   listerTokenAccount: PublicKey,
   paymentAmount: BN,
   paymentMint: PublicKey,
   payer = wallet.publicKey
-): Promise<[TransactionInstruction, PublicKey]> => {
+): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
@@ -180,38 +167,34 @@ export const createListing = async (
       constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
-
-  const [listingId] = await findListingAddress(tokenManagerId);
-  return [
-    transferAuthorityProgram.instruction.createListing(
-      {
-        paymentAmount: paymentAmount,
-        paymentMint: paymentMint,
+  return transferAuthorityProgram.instruction.createListing(
+    {
+      paymentAmount: paymentAmount,
+      paymentMint: paymentMint,
+    },
+    {
+      accounts: {
+        listing: listingId,
+        tokenManager: marketplaceId,
+        listingAuthority: listingAuthorityId,
+        marketplace: marketplaceId,
+        listerTokenAccount: listerTokenAccount,
+        lister: wallet.publicKey,
+        payer: payer,
+        systemProgram: SystemProgram.programId,
       },
-      {
-        accounts: {
-          listing: listingId,
-          tokenManager: marketplaceId,
-          marketplace: marketplaceId,
-          listerTokenAccount: listerTokenAccount,
-          lister: wallet.publicKey,
-          payer: payer,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    ),
-    listingId,
-  ];
+    }
+  );
 };
 
-export const updateListing = async (
+export const updateListing = (
   connection: Connection,
   wallet: Wallet,
-  tokenManagerId: PublicKey,
+  listingId: PublicKey,
   marketplaceId: PublicKey,
   paymentAmount: BN,
   paymentMint: PublicKey
-): Promise<TransactionInstruction> => {
+): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
@@ -221,7 +204,6 @@ export const updateListing = async (
       provider
     );
 
-  const [listingId] = await findListingAddress(tokenManagerId);
   return transferAuthorityProgram.instruction.updateListing(
     {
       marketplace: marketplaceId,
@@ -237,11 +219,11 @@ export const updateListing = async (
   );
 };
 
-export const removeListing = async (
+export const removeListing = (
   connection: Connection,
   wallet: Wallet,
-  tokenManagerId: PublicKey
-): Promise<TransactionInstruction> => {
+  listingId: PublicKey
+): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
@@ -251,7 +233,6 @@ export const removeListing = async (
       provider
     );
 
-  const [listingId] = await findListingAddress(tokenManagerId);
   return transferAuthorityProgram.instruction.removeListing({
     accounts: {
       listing: listingId,
@@ -260,23 +241,28 @@ export const removeListing = async (
   });
 };
 
-export const acceptListing = async (
+export const acceptListing = (
   connection: Connection,
   wallet: Wallet,
   listingAuthorityId: PublicKey,
   listerPaymentTokenAccountId: PublicKey,
+  listerMintTokenAccountId: PublicKey,
   lister: PublicKey,
   buyerPaymentTokenAccountId: PublicKey,
   buyerMintTokenAccountId: PublicKey,
   buyer: PublicKey,
   marketplaceId: PublicKey,
   mintId: PublicKey,
+  listingId: PublicKey,
+  tokenManagerId: PublicKey,
+  mintMetadataId: PublicKey,
+  transferReceiptId: PublicKey,
   paymentManagerId: PublicKey,
   paymentMintId: PublicKey,
   feeCollectorTokenAccountId: PublicKey,
   remainingAccounts: AccountMeta[],
   payer = wallet.publicKey
-): Promise<TransactionInstruction> => {
+): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
@@ -286,14 +272,6 @@ export const acceptListing = async (
       provider
     );
 
-  const mintMetadataId = await Metadata.getPDA(mintId);
-  const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  const [listingId] = await findListingAddress(tokenManagerId);
-  const [transferReceiptId] = await findTransferReceiptId(
-    tokenManagerId,
-    buyer
-  );
-  const listerMintTokenAccountId = await findAta(mintId, lister, true);
   return transferAuthorityProgram.instruction.acceptListing({
     accounts: {
       listingAuthority: listingAuthorityId,

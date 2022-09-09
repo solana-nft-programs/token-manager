@@ -23,9 +23,12 @@ pub struct CreateListingCtx<'info> {
     )]
     listing: Box<Account<'info, Listing>>,
 
+    #[account(constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
+    listing_authority: Box<Account<'info, ListingAuthority>>,
+    marketplace: Box<Account<'info, Marketplace>>,
+
     #[account(constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
-    marketplace: Box<Account<'info, Marketplace>>,
 
     #[account(mut, constraint = lister_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidListerMintTokenAccount)]
     lister_token_account: Box<Account<'info, TokenAccount>>,
@@ -46,6 +49,14 @@ pub fn handler(ctx: Context<CreateListingCtx>, ix: CreateListingIx) -> Result<()
     // payment
     listing.payment_amount = ix.payment_amount;
     listing.payment_mint = ix.payment_mint;
+
+    if ctx.accounts.marketplace.payment_mints.len() > 0 && !ctx.accounts.marketplace.payment_mints.contains(&ix.payment_mint) {
+        return Err(error!(ErrorCode::InvalidPaymentMint));
+    }
+
+    if ctx.accounts.listing_authority.allowed_marketplaces.is_some() && !ctx.accounts.listing_authority.allowed_marketplaces.as_ref().unwrap().contains(&ctx.accounts.marketplace.key()) {
+        return Err(error!(ErrorCode::MarketplaceNotAllowed));
+    }
 
     Ok(())
 }

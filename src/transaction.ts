@@ -858,12 +858,6 @@ export const withTransfer = async (
     throw "No token manager found";
   }
 
-  const tokenManagerTokenAccountId = await findAta(
-    mintId,
-    tokenManagerId,
-    true
-  );
-
   const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
@@ -883,7 +877,6 @@ export const withTransfer = async (
     connection,
     wallet,
     tokenManagerId,
-    tokenManagerTokenAccountId,
     mintId,
     tokenManagerData.parsed.recipientTokenAccount,
     recipient,

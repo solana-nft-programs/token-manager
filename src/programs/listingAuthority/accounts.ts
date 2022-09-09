@@ -59,6 +59,30 @@ export const getAllListingAuthorities = async (
 
 export const getMarketplace = async (
   connection: Connection,
+  marketplaceId: PublicKey
+): Promise<AccountData<MarketplaceData>> => {
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
+  const listingAuthorityProgram = new Program<LISTING_AUTHORITY_PROGRAM>(
+    LISTING_AUTHORITY_IDL,
+    LISTING_AUTHORITY_ADDRESS,
+    provider
+  );
+
+  const parsed = await listingAuthorityProgram.account.marketplace.fetch(
+    marketplaceId
+  );
+  return {
+    parsed,
+    pubkey: marketplaceId,
+  };
+};
+
+export const getMarketplaceByName = async (
+  connection: Connection,
   name: string
 ): Promise<AccountData<MarketplaceData>> => {
   const provider = new AnchorProvider(
@@ -92,7 +116,7 @@ export const getAllMarketplaces = async (
 
 export const getListing = async (
   connection: Connection,
-  tokenManagerId: PublicKey
+  mintId: PublicKey
 ): Promise<AccountData<ListingData>> => {
   const provider = new AnchorProvider(
     connection,
@@ -105,7 +129,7 @@ export const getListing = async (
     provider
   );
 
-  const [listingId] = await findListingAddress(tokenManagerId);
+  const [listingId] = await findListingAddress(mintId);
 
   const parsed = await listingAuthorityProgram.account.listing.fetch(listingId);
   return {

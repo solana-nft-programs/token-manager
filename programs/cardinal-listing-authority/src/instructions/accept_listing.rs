@@ -10,7 +10,7 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 pub struct AcceptListingCtx<'info> {
-    #[account(mut)]
+    #[account(mut, constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
     listing_authority: Box<Account<'info, ListingAuthority>>,
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,

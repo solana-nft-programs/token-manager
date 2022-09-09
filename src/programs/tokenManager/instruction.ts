@@ -151,7 +151,6 @@ export const transfer = (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  tokenManagerTokenAccountId: PublicKey,
   mint: PublicKey,
   currentHolderTokenAccountId: PublicKey,
   recipient: PublicKey,
@@ -168,7 +167,6 @@ export const transfer = (
   return tokenManagerProgram.instruction.transfer({
     accounts: {
       tokenManager: tokenManagerId,
-      tokenManagerTokenAccount: tokenManagerTokenAccountId,
       mint: mint,
       currentHolderTokenAccount: currentHolderTokenAccountId,
       recipient: recipient,
@@ -329,6 +327,7 @@ export const createTransferReceipt = async (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   transferAuthority: PublicKey,
+  payer = wallet.publicKey,
   target = wallet.publicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -346,6 +345,7 @@ export const createTransferReceipt = async (
         tokenManager: tokenManagerId,
         transferAuthority: transferAuthority,
         transferReceipt: transferReceiptId,
+        payer: payer,
         systemProgram: SystemProgram.programId,
       },
     }),

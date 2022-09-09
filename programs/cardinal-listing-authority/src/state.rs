@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 pub const LISTING_AUTHORITY_SEED: &str = "listing-authority";
-pub const LISTING_AUTHORITY_SIZE: usize = 8 + 1 + 24 + 32 * 5 + 64;
+pub const LISTING_AUTHORITY_SIZE: usize = 8 + 1 + 24 + 32 + 32 * 5 + 64;
 #[account]
 pub struct ListingAuthority {
     pub bump: u8,
@@ -11,13 +11,15 @@ pub struct ListingAuthority {
 }
 
 pub const MARKETPLACE_SEED: &str = "marketplace";
-pub const MARKETPLACE_SIZE: usize = 8 + std::mem::size_of::<ListingAuthority>() + 64;
+pub const MARKETPLACE_SIZE: usize = 8 + 1 + 24 + 32 + 32 + 32 * 5 + 64;
 #[account]
 pub struct Marketplace {
     pub bump: u8,
     pub name: String,
+    pub listing_authority: Pubkey,
     pub payment_manager: Pubkey,
     pub authority: Pubkey,
+    pub payment_mints: Vec<Pubkey>,
 }
 
 pub const LISTING_SEED: &str = "listing";

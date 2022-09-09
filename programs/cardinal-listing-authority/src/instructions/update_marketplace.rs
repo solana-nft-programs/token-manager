@@ -12,10 +12,10 @@ pub struct UpdateMarketplaceIx {
 #[derive(Accounts)]
 #[instruction(ix: UpdateMarketplaceIx)]
 pub struct UpdateMarketplaceCtx<'info> {
-    #[account(mut, constraint = marketplace.authority == authority.key() @ ErrorCode::InvalidMarketplaceAuthority)]
+    #[account(mut)]
     marketplace: Box<Account<'info, Marketplace>>,
 
-    #[account(mut)]
+    #[account(mut, constraint = authority.key() == marketplace.authority @ ErrorCode::InvalidMarketplaceAuthority)]
     authority: Signer<'info>,
 }
 

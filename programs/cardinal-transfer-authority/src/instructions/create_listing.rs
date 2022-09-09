@@ -8,7 +8,6 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct CreateListingIx {
-    pub collector: Pubkey,
     pub payment_amount: u64,
     pub payment_mint: Pubkey,
 }

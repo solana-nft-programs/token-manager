@@ -7,7 +7,7 @@ use {anchor_lang::prelude::*, instructions::*};
 declare_id!("trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW");
 
 #[program]
-pub mod cardinal_paid_transfer_authority {
+pub mod cardinal_transfer_authority {
     use super::*;
 
     pub fn accept_listing<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {

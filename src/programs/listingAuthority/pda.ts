@@ -2,25 +2,25 @@ import { utils } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 
 import {
+  LISTING_AUTHORITY_ADDRESS,
+  LISTING_AUTHORITY_SEED,
   LISTING_SEED,
   MARKETPLACE_SEED,
-  TRANSFER_AUTHORITY_ADDRESS,
-  TRANSFER_AUTHORITY_SEED,
 } from "./constants";
 
 /**
  * Finds the address of the transfer authority.
  * @returns
  */
-export const findTransferAuthorityAddress = async (
+export const findListingAuthorityAddress = async (
   name: string
 ): Promise<[PublicKey, number]> => {
   return await PublicKey.findProgramAddress(
     [
-      utils.bytes.utf8.encode(TRANSFER_AUTHORITY_SEED),
+      utils.bytes.utf8.encode(LISTING_AUTHORITY_SEED),
       utils.bytes.utf8.encode(name),
     ],
-    TRANSFER_AUTHORITY_ADDRESS
+    LISTING_AUTHORITY_ADDRESS
   );
 };
 /**
@@ -32,7 +32,7 @@ export const findMarketplaceAddress = async (
 ): Promise<[PublicKey, number]> => {
   return await PublicKey.findProgramAddress(
     [utils.bytes.utf8.encode(MARKETPLACE_SEED), utils.bytes.utf8.encode(name)],
-    TRANSFER_AUTHORITY_ADDRESS
+    LISTING_AUTHORITY_ADDRESS
   );
 };
 /**
@@ -44,6 +44,6 @@ export const findListingAddress = async (
 ): Promise<[PublicKey, number]> => {
   return await PublicKey.findProgramAddress(
     [utils.bytes.utf8.encode(LISTING_SEED), tokenManager.toBytes()],
-    TRANSFER_AUTHORITY_ADDRESS
+    LISTING_AUTHORITY_ADDRESS
   );
 };

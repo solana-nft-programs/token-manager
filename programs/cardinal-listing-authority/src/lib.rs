@@ -7,7 +7,7 @@ use {anchor_lang::prelude::*, instructions::*};
 declare_id!("trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW");
 
 #[program]
-pub mod cardinal_transfer_authority {
+pub mod cardinal_listing_authority {
     use super::*;
 
     pub fn accept_listing<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {
@@ -22,8 +22,8 @@ pub mod cardinal_transfer_authority {
         init_marketplace::handler(ctx, ix)
     }
 
-    pub fn init_transfer_authority(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
-        init_transfer_authority::handler(ctx, ix)
+    pub fn init_listing_authority(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
+        init_listing_authority::handler(ctx, ix)
     }
 
     pub fn remove_listing(ctx: Context<RemoveListingCtx>) -> Result<()> {
@@ -38,7 +38,7 @@ pub mod cardinal_transfer_authority {
         update_marketplace::handler(ctx, ix)
     }
 
-    pub fn update_transfer_authority(ctx: Context<UpdateTransferAuthorityCtx>, ix: UpdateTransferAuthorityIx) -> Result<()> {
-        update_transfer_authority::handler(ctx, ix)
+    pub fn update_listing_authority(ctx: Context<UpdateListingAuthorityCtx>, ix: UpdateListingAuthorityIx) -> Result<()> {
+        update_listing_authority::handler(ctx, ix)
     }
 }

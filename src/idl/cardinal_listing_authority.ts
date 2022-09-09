@@ -1,12 +1,12 @@
-export type CardinalTransferAuthority = {
+export type CardinalListingAuthority = {
   version: "1.5.12";
-  name: "cardinal_transfer_authority";
+  name: "cardinal_listing_authority";
   instructions: [
     {
       name: "acceptListing";
       accounts: [
         {
-          name: "transferAuthority";
+          name: "listingAuthority";
           isMut: true;
           isSigner: false;
         },
@@ -190,10 +190,10 @@ export type CardinalTransferAuthority = {
       ];
     },
     {
-      name: "initTransferAuthority";
+      name: "initListingAuthority";
       accounts: [
         {
-          name: "transferAuthority";
+          name: "listingAuthority";
           isMut: true;
           isSigner: false;
         },
@@ -280,10 +280,10 @@ export type CardinalTransferAuthority = {
       ];
     },
     {
-      name: "updateTransferAuthority";
+      name: "updateListingAuthority";
       accounts: [
         {
-          name: "transferAuthority";
+          name: "listingAuthority";
           isMut: true;
           isSigner: false;
         },
@@ -297,7 +297,7 @@ export type CardinalTransferAuthority = {
         {
           name: "ix";
           type: {
-            defined: "UpdateTransferAuthorityIx";
+            defined: "UpdateListingAuthorityIx";
           };
         }
       ];
@@ -305,7 +305,7 @@ export type CardinalTransferAuthority = {
   ];
   accounts: [
     {
-      name: "transferAuthority";
+      name: "listingAuthority";
       type: {
         kind: "struct";
         fields: [
@@ -396,9 +396,9 @@ export type CardinalTransferAuthority = {
         kind: "struct";
         fields: [
           {
-            name: "transferAuthority";
+            name: "listingAuthority";
             type: {
-              defined: "Box<Account<'info,TransferAuthority>>";
+              defined: "Account<'info,ListingAuthority>";
             };
           },
           {
@@ -410,19 +410,19 @@ export type CardinalTransferAuthority = {
           {
             name: "listing";
             type: {
-              defined: "Box<Account<'info,Listing>>";
+              defined: "Account<'info,Listing>";
             };
           },
           {
             name: "listerPaymentTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
             name: "listerMintTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
@@ -434,13 +434,13 @@ export type CardinalTransferAuthority = {
           {
             name: "buyerPaymentTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
             name: "buyerMintTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
@@ -452,13 +452,13 @@ export type CardinalTransferAuthority = {
           {
             name: "marketplace";
             type: {
-              defined: "Box<Account<'info,Marketplace>>";
+              defined: "Account<'info,Marketplace>";
             };
           },
           {
             name: "tokenManager";
             type: {
-              defined: "Box<Account<'info,TokenManager>>";
+              defined: "Account<'info,TokenManager>";
             };
           },
           {
@@ -541,6 +541,30 @@ export type CardinalTransferAuthority = {
       };
     },
     {
+      name: "InitTransferAuthorityIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "name";
+            type: "string";
+          },
+          {
+            name: "authority";
+            type: "publicKey";
+          },
+          {
+            name: "allowedMarketplaces";
+            type: {
+              option: {
+                vec: "publicKey";
+              };
+            };
+          }
+        ];
+      };
+    },
+    {
       name: "InitMarketplaceIx";
       type: {
         kind: "struct";
@@ -561,14 +585,10 @@ export type CardinalTransferAuthority = {
       };
     },
     {
-      name: "InitTransferAuthorityIx";
+      name: "UpdateListingAuthorityIx";
       type: {
         kind: "struct";
         fields: [
-          {
-            name: "name";
-            type: "string";
-          },
           {
             name: "authority";
             type: "publicKey";
@@ -616,26 +636,6 @@ export type CardinalTransferAuthority = {
           {
             name: "authority";
             type: "publicKey";
-          }
-        ];
-      };
-    },
-    {
-      name: "UpdateTransferAuthorityIx";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "authority";
-            type: "publicKey";
-          },
-          {
-            name: "allowedMarketplaces";
-            type: {
-              option: {
-                vec: "publicKey";
-              };
-            };
           }
         ];
       };
@@ -715,15 +715,15 @@ export type CardinalTransferAuthority = {
   ];
 };
 
-export const IDL: CardinalTransferAuthority = {
+export const IDL: CardinalListingAuthority = {
   version: "1.5.12",
-  name: "cardinal_transfer_authority",
+  name: "cardinal_listing_authority",
   instructions: [
     {
       name: "acceptListing",
       accounts: [
         {
-          name: "transferAuthority",
+          name: "listingAuthority",
           isMut: true,
           isSigner: false,
         },
@@ -907,10 +907,10 @@ export const IDL: CardinalTransferAuthority = {
       ],
     },
     {
-      name: "initTransferAuthority",
+      name: "initListingAuthority",
       accounts: [
         {
-          name: "transferAuthority",
+          name: "listingAuthority",
           isMut: true,
           isSigner: false,
         },
@@ -997,10 +997,10 @@ export const IDL: CardinalTransferAuthority = {
       ],
     },
     {
-      name: "updateTransferAuthority",
+      name: "updateListingAuthority",
       accounts: [
         {
-          name: "transferAuthority",
+          name: "listingAuthority",
           isMut: true,
           isSigner: false,
         },
@@ -1014,7 +1014,7 @@ export const IDL: CardinalTransferAuthority = {
         {
           name: "ix",
           type: {
-            defined: "UpdateTransferAuthorityIx",
+            defined: "UpdateListingAuthorityIx",
           },
         },
       ],
@@ -1022,7 +1022,7 @@ export const IDL: CardinalTransferAuthority = {
   ],
   accounts: [
     {
-      name: "transferAuthority",
+      name: "listingAuthority",
       type: {
         kind: "struct",
         fields: [
@@ -1113,9 +1113,9 @@ export const IDL: CardinalTransferAuthority = {
         kind: "struct",
         fields: [
           {
-            name: "transferAuthority",
+            name: "listingAuthority",
             type: {
-              defined: "Box<Account<'info,TransferAuthority>>",
+              defined: "Account<'info,ListingAuthority>",
             },
           },
           {
@@ -1127,19 +1127,19 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "listing",
             type: {
-              defined: "Box<Account<'info,Listing>>",
+              defined: "Account<'info,Listing>",
             },
           },
           {
             name: "listerPaymentTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
             name: "listerMintTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
@@ -1151,13 +1151,13 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "buyerPaymentTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
             name: "buyerMintTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
@@ -1169,13 +1169,13 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "marketplace",
             type: {
-              defined: "Box<Account<'info,Marketplace>>",
+              defined: "Account<'info,Marketplace>",
             },
           },
           {
             name: "tokenManager",
             type: {
-              defined: "Box<Account<'info,TokenManager>>",
+              defined: "Account<'info,TokenManager>",
             },
           },
           {
@@ -1258,6 +1258,30 @@ export const IDL: CardinalTransferAuthority = {
       },
     },
     {
+      name: "InitTransferAuthorityIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "name",
+            type: "string",
+          },
+          {
+            name: "authority",
+            type: "publicKey",
+          },
+          {
+            name: "allowedMarketplaces",
+            type: {
+              option: {
+                vec: "publicKey",
+              },
+            },
+          },
+        ],
+      },
+    },
+    {
       name: "InitMarketplaceIx",
       type: {
         kind: "struct",
@@ -1278,14 +1302,10 @@ export const IDL: CardinalTransferAuthority = {
       },
     },
     {
-      name: "InitTransferAuthorityIx",
+      name: "UpdateListingAuthorityIx",
       type: {
         kind: "struct",
         fields: [
-          {
-            name: "name",
-            type: "string",
-          },
           {
             name: "authority",
             type: "publicKey",
@@ -1333,26 +1353,6 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "authority",
             type: "publicKey",
-          },
-        ],
-      },
-    },
-    {
-      name: "UpdateTransferAuthorityIx",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "authority",
-            type: "publicKey",
-          },
-          {
-            name: "allowedMarketplaces",
-            type: {
-              option: {
-                vec: "publicKey",
-              },
-            },
           },
         ],
       },

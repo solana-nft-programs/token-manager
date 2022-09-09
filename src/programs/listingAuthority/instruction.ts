@@ -21,8 +21,8 @@ import {
 import * as constants from "./constants";
 import {
   findListingAddress,
+  findListingAuthorityAddress,
   findMarketplaceAddress,
-  findTransferAuthorityAddress,
 } from "./pda";
 
 export const initTransferAuthority = async (
@@ -35,15 +35,15 @@ export const initTransferAuthority = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
-  const [transferAuthorityId] = await findTransferAuthorityAddress(name);
+  const [listingAuthorityId] = await findListingAuthorityAddress(name);
   return [
-    transferAuthorityProgram.instruction.initTransferAuthority(
+    transferAuthorityProgram.instruction.initListingAuthority(
       {
         name: name,
         authority: wallet.publicKey,
@@ -51,13 +51,13 @@ export const initTransferAuthority = async (
       },
       {
         accounts: {
-          transferAuthority: transferAuthorityId,
+          listingAuthority: listingAuthorityId,
           payer: payer,
           systemProgram: SystemProgram.programId,
         },
       }
     ),
-    transferAuthorityId,
+    listingAuthorityId,
   ];
 };
 
@@ -71,27 +71,27 @@ export const updateTransferAuthority = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
-  const [transferAuthorityId] = await findTransferAuthorityAddress(name);
+  const [listingAuthorityId] = await findListingAuthorityAddress(name);
   return [
-    transferAuthorityProgram.instruction.updateTransferAuthority(
+    transferAuthorityProgram.instruction.updateListingAuthority(
       {
         authority: wallet.publicKey,
         allowedMarketplaces: allowedMarketplaces,
       },
       {
         accounts: {
-          transferAuthority: transferAuthorityId,
+          listingAuthority: listingAuthorityId,
           authority: authority,
         },
       }
     ),
-    transferAuthorityId,
+    listingAuthorityId,
   ];
 };
 
@@ -105,9 +105,9 @@ export const initMarketplace = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
@@ -141,9 +141,9 @@ export const updateMarketplace = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
@@ -175,9 +175,9 @@ export const createListing = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
@@ -215,9 +215,9 @@ export const updateListing = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
@@ -245,9 +245,9 @@ export const removeListing = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
@@ -263,7 +263,7 @@ export const removeListing = async (
 export const acceptListing = async (
   connection: Connection,
   wallet: Wallet,
-  transferAuthorityId: PublicKey,
+  listingAuthorityId: PublicKey,
   listerPaymentTokenAccountId: PublicKey,
   lister: PublicKey,
   buyerPaymentTokenAccountId: PublicKey,
@@ -280,9 +280,9 @@ export const acceptListing = async (
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram =
-    new Program<constants.TRANSFER_AUTHORITY_PROGRAM>(
-      constants.TRANSFER_AUTHORITY_IDL,
-      constants.TRANSFER_AUTHORITY_ADDRESS,
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
 
@@ -296,7 +296,7 @@ export const acceptListing = async (
   const listerMintTokenAccountId = await findAta(mintId, lister, true);
   return transferAuthorityProgram.instruction.acceptListing({
     accounts: {
-      transferAuthority: transferAuthorityId,
+      listingAuthority: listingAuthorityId,
       transferReceipt: transferReceiptId,
       listing: listingId,
       listerPaymentTokenAccount: listerPaymentTokenAccountId,

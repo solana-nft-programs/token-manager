@@ -1,12 +1,13 @@
 use anchor_lang::prelude::*;
 
 pub const TRANSFER_AUTHORITY_SEED: &str = "transfer-authority";
-pub const TRANSFER_AUTHORITY_SIZE: usize = 8 + std::mem::size_of::<TransferAuthority>() + 64;
+pub const TRANSFER_AUTHORITY_SIZE: usize = 8 + 1 + 24 + 32 * 5 + 64;
 #[account]
 pub struct TransferAuthority {
     pub bump: u8,
-    pub name: Option<String>,
-    pub marketplace: Option<Pubkey>,
+    pub name: String,
+    pub authority: Pubkey,
+    pub allowed_marketplaces: Option<Vec<Pubkey>>,
 }
 
 pub const MARKETPLACE_SEED: &str = "marketplace";

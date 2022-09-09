@@ -28,4 +28,6 @@ pub enum ErrorCode {
     InvalidListerMintTokenAccount,
     #[msg("Invalid marketplace authority")]
     InvalidMarketplaceAuthority,
+    #[msg("Invalid transfer authority authority")]
+    InvalidTransferAuthorityAuthority,
 }

@@ -79,7 +79,11 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(remaining_accs.cloned().collect::<Vec<AccountInfo<'info>>>());
     cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, ctx.accounts.listing.payment_amount)?;
 
-    let transfer_authority_seeds = &[TRANSFER_AUTHORITY_SEED.as_bytes(), &[ctx.accounts.transfer_authority.bump]];
+    let transfer_authority_seeds = &[
+        TRANSFER_AUTHORITY_SEED.as_bytes(),
+        ctx.accounts.transfer_authority.name.as_bytes(),
+        &[ctx.accounts.transfer_authority.bump],
+    ];
     let transfer_authority_signer = &[&transfer_authority_seeds[..]];
 
     // approve

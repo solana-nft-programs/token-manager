@@ -39,6 +39,7 @@ export type CardinalUseInvalidator = {
           };
         }
       ];
+      returns: null;
     },
     {
       name: "incrementUsages";
@@ -70,6 +71,7 @@ export type CardinalUseInvalidator = {
           type: "u64";
         }
       ];
+      returns: null;
     },
     {
       name: "extendUsages";
@@ -126,6 +128,7 @@ export type CardinalUseInvalidator = {
           type: "u64";
         }
       ];
+      returns: null;
     },
     {
       name: "invalidate";
@@ -177,6 +180,7 @@ export type CardinalUseInvalidator = {
         }
       ];
       args: [];
+      returns: null;
     },
     {
       name: "close";
@@ -203,6 +207,7 @@ export type CardinalUseInvalidator = {
         }
       ];
       args: [];
+      returns: null;
     }
   ];
   accounts: [
@@ -445,6 +450,7 @@ export const IDL: CardinalUseInvalidator = {
           },
         },
       ],
+      returns: null,
     },
     {
       name: "incrementUsages",
@@ -476,6 +482,7 @@ export const IDL: CardinalUseInvalidator = {
           type: "u64",
         },
       ],
+      returns: null,
     },
     {
       name: "extendUsages",
@@ -532,6 +539,7 @@ export const IDL: CardinalUseInvalidator = {
           type: "u64",
         },
       ],
+      returns: null,
     },
     {
       name: "invalidate",
@@ -583,6 +591,7 @@ export const IDL: CardinalUseInvalidator = {
         },
       ],
       args: [],
+      returns: null,
     },
     {
       name: "close",
@@ -609,6 +618,7 @@ export const IDL: CardinalUseInvalidator = {
         },
       ],
       args: [],
+      returns: null,
     },
   ],
   accounts: [

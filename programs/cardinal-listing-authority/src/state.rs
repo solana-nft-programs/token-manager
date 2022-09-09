@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 
-pub const TRANSFER_AUTHORITY_SEED: &str = "transfer-authority";
-pub const TRANSFER_AUTHORITY_SIZE: usize = 8 + 1 + 24 + 32 * 5 + 64;
+pub const LISTING_AUTHORITY_SEED: &str = "listing-authority";
+pub const LISTING_AUTHORITY_SIZE: usize = 8 + 1 + 24 + 32 * 5 + 64;
 #[account]
-pub struct TransferAuthority {
+pub struct ListingAuthority {
     pub bump: u8,
     pub name: String,
     pub authority: Pubkey,
@@ -11,7 +11,7 @@ pub struct TransferAuthority {
 }
 
 pub const MARKETPLACE_SEED: &str = "marketplace";
-pub const MARKETPLACE_SIZE: usize = 8 + std::mem::size_of::<TransferAuthority>() + 64;
+pub const MARKETPLACE_SIZE: usize = 8 + std::mem::size_of::<ListingAuthority>() + 64;
 #[account]
 pub struct Marketplace {
     pub bump: u8,

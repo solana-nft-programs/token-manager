@@ -13,21 +13,21 @@ pub struct InitTransferAuthorityCtx<'info> {
     #[account(
         init,
         payer = payer,
-        space = TRANSFER_AUTHORITY_SIZE,
-        seeds = [TRANSFER_AUTHORITY_SEED.as_bytes(), ix.name.as_bytes()], bump,
+        space = LISTING_AUTHORITY_SIZE,
+        seeds = [LISTING_AUTHORITY_SEED.as_bytes(), ix.name.as_bytes()], bump,
     )]
-    transfer_authority: Box<Account<'info, TransferAuthority>>,
+    listing_authority: Box<Account<'info, ListingAuthority>>,
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
 
 pub fn handler(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
-    let transfer_authority = &mut ctx.accounts.transfer_authority;
-    transfer_authority.bump = *ctx.bumps.get("transfer_authority").unwrap();
-    transfer_authority.name = ix.name;
-    transfer_authority.authority = ix.authority;
-    transfer_authority.allowed_marketplaces = ix.allowed_marketplaces;
+    let listing_authority = &mut ctx.accounts.listing_authority;
+    listing_authority.bump = *ctx.bumps.get("listing_authority").unwrap();
+    listing_authority.name = ix.name;
+    listing_authority.authority = ix.authority;
+    listing_authority.allowed_marketplaces = ix.allowed_marketplaces;
 
     Ok(())
 }

@@ -10,53 +10,50 @@ import { Keypair } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
 import type {
+  LISTING_AUTHORITY_PROGRAM,
+  ListingAuthorityData,
   ListingData,
   MarketplaceData,
-  TRANSFER_AUTHORITY_PROGRAM,
-  TransferAuthorityData,
 } from "./constants";
-import {
-  TRANSFER_AUTHORITY_ADDRESS,
-  TRANSFER_AUTHORITY_IDL,
-} from "./constants";
+import { LISTING_AUTHORITY_ADDRESS, LISTING_AUTHORITY_IDL } from "./constants";
 import {
   findListingAddress,
+  findListingAuthorityAddress,
   findMarketplaceAddress,
-  findTransferAuthorityAddress,
 } from "./pda";
 
-//////// TRANSFER AUTHORITY ////////
+//////// LISTING AUTHORITY ////////
 
-export const getTransferAuthority = async (
+export const getListingAuthority = async (
   connection: Connection,
   name: string
-): Promise<AccountData<TransferAuthorityData>> => {
+): Promise<AccountData<ListingAuthorityData>> => {
   const provider = new AnchorProvider(
     connection,
     new SignerWallet(Keypair.generate()),
     {}
   );
-  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
-    TRANSFER_AUTHORITY_IDL,
-    TRANSFER_AUTHORITY_ADDRESS,
+  const listingAuthorityProgram = new Program<LISTING_AUTHORITY_PROGRAM>(
+    LISTING_AUTHORITY_IDL,
+    LISTING_AUTHORITY_ADDRESS,
     provider
   );
 
-  const [transferAuthorityId] = await findTransferAuthorityAddress(name);
+  const [listingAuthorityId] = await findListingAuthorityAddress(name);
 
-  const parsed = await transferAuthorityProgram.account.transferAuthority.fetch(
-    transferAuthorityId
+  const parsed = await listingAuthorityProgram.account.listingAuthority.fetch(
+    listingAuthorityId
   );
   return {
     parsed,
-    pubkey: transferAuthorityId,
+    pubkey: listingAuthorityId,
   };
 };
 
-export const getAllTransferAuthorities = async (
+export const getAllListingAuthorities = async (
   connection: Connection
-): Promise<AccountData<TransferAuthorityData>[]> =>
-  getAllOfType<TransferAuthorityData>(connection, "transferAuthority");
+): Promise<AccountData<ListingAuthorityData>[]> =>
+  getAllOfType<ListingAuthorityData>(connection, "listingAuthority");
 
 //////// MARKETPLACE ////////
 
@@ -69,15 +66,15 @@ export const getMarketplace = async (
     new SignerWallet(Keypair.generate()),
     {}
   );
-  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
-    TRANSFER_AUTHORITY_IDL,
-    TRANSFER_AUTHORITY_ADDRESS,
+  const listingAuthorityProgram = new Program<LISTING_AUTHORITY_PROGRAM>(
+    LISTING_AUTHORITY_IDL,
+    LISTING_AUTHORITY_ADDRESS,
     provider
   );
 
   const [marketplaceId] = await findMarketplaceAddress(name);
 
-  const parsed = await transferAuthorityProgram.account.marketplace.fetch(
+  const parsed = await listingAuthorityProgram.account.marketplace.fetch(
     marketplaceId
   );
   return {
@@ -89,7 +86,7 @@ export const getMarketplace = async (
 export const getAllMarketplaces = async (
   connection: Connection
 ): Promise<AccountData<MarketplaceData>[]> =>
-  getAllOfType<TransferAuthorityData>(connection, "marketplace");
+  getAllOfType<ListingAuthorityData>(connection, "marketplace");
 
 //////// LISTING ////////
 
@@ -102,17 +99,15 @@ export const getListing = async (
     new SignerWallet(Keypair.generate()),
     {}
   );
-  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
-    TRANSFER_AUTHORITY_IDL,
-    TRANSFER_AUTHORITY_ADDRESS,
+  const listingAuthorityProgram = new Program<LISTING_AUTHORITY_PROGRAM>(
+    LISTING_AUTHORITY_IDL,
+    LISTING_AUTHORITY_ADDRESS,
     provider
   );
 
   const [listingId] = await findListingAddress(tokenManagerId);
 
-  const parsed = await transferAuthorityProgram.account.listing.fetch(
-    listingId
-  );
+  const parsed = await listingAuthorityProgram.account.listing.fetch(listingId);
   return {
     parsed,
     pubkey: listingId,
@@ -124,7 +119,7 @@ export const getListingForMarketplace = async (
   marketplaceId: PublicKey
 ): Promise<AccountData<ListingData>[]> => {
   const programAccounts = await connection.getProgramAccounts(
-    TRANSFER_AUTHORITY_ADDRESS,
+    LISTING_AUTHORITY_ADDRESS,
     {
       filters: [
         {
@@ -141,7 +136,7 @@ export const getListingForMarketplace = async (
   );
 
   const datas: AccountData<ListingData>[] = [];
-  const coder = new BorshAccountsCoder(TRANSFER_AUTHORITY_IDL);
+  const coder = new BorshAccountsCoder(LISTING_AUTHORITY_IDL);
   programAccounts.forEach((account) => {
     try {
       const data: ListingData = coder.decode("listing", account.account.data);
@@ -171,7 +166,7 @@ export const getAllOfType = async <T>(
   key: string
 ): Promise<AccountData<T>[]> => {
   const programAccounts = await connection.getProgramAccounts(
-    TRANSFER_AUTHORITY_ADDRESS,
+    LISTING_AUTHORITY_ADDRESS,
     {
       filters: [
         {
@@ -187,7 +182,7 @@ export const getAllOfType = async <T>(
   );
 
   const datas: AccountData<T>[] = [];
-  const coder = new BorshAccountsCoder(TRANSFER_AUTHORITY_IDL);
+  const coder = new BorshAccountsCoder(LISTING_AUTHORITY_IDL);
   programAccounts.forEach((account) => {
     try {
       const data: T = coder.decode(key, account.account.data);

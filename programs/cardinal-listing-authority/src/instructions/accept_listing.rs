@@ -11,7 +11,7 @@ use {
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 pub struct AcceptListingCtx<'info> {
     #[account(mut)]
-    transfer_authority: Box<Account<'info, TransferAuthority>>,
+    listing_authority: Box<Account<'info, ListingAuthority>>,
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
 
@@ -80,16 +80,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, ctx.accounts.listing.payment_amount)?;
 
     let transfer_authority_seeds = &[
-        TRANSFER_AUTHORITY_SEED.as_bytes(),
-        ctx.accounts.transfer_authority.name.as_bytes(),
-        &[ctx.accounts.transfer_authority.bump],
+        LISTING_AUTHORITY_SEED.as_bytes(),
+        ctx.accounts.listing_authority.name.as_bytes(),
+        &[ctx.accounts.listing_authority.bump],
     ];
     let transfer_authority_signer = &[&transfer_authority_seeds[..]];
 
     // approve
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateTransferReceiptCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
-        transfer_authority: ctx.accounts.transfer_authority.to_account_info(),
+        transfer_authority: ctx.accounts.listing_authority.to_account_info(),
         transfer_receipt: ctx.accounts.transfer_receipt.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),

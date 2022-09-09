@@ -122,12 +122,17 @@ export type CardinalListingAuthority = {
           isSigner: false;
         },
         {
-          name: "tokenManager";
+          name: "listingAuthority";
           isMut: false;
           isSigner: false;
         },
         {
           name: "marketplace";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
           isMut: false;
           isSigner: false;
         },
@@ -346,12 +351,22 @@ export type CardinalListingAuthority = {
             type: "string";
           },
           {
+            name: "listingAuthority";
+            type: "publicKey";
+          },
+          {
             name: "paymentManager";
             type: "publicKey";
           },
           {
             name: "authority";
             type: "publicKey";
+          },
+          {
+            name: "paymentMints";
+            type: {
+              vec: "publicKey";
+            };
           }
         ];
       };
@@ -580,6 +595,16 @@ export type CardinalListingAuthority = {
           {
             name: "authority";
             type: "publicKey";
+          },
+          {
+            name: "paymentMints";
+            type: {
+              vec: "publicKey";
+            };
+          },
+          {
+            name: "listingAuthority";
+            type: "publicKey";
           }
         ];
       };
@@ -630,12 +655,22 @@ export type CardinalListingAuthority = {
         kind: "struct";
         fields: [
           {
+            name: "listingAuthority";
+            type: "publicKey";
+          },
+          {
             name: "paymentManager";
             type: "publicKey";
           },
           {
             name: "authority";
             type: "publicKey";
+          },
+          {
+            name: "paymentMints";
+            type: {
+              vec: "publicKey";
+            };
           }
         ];
       };
@@ -711,6 +746,16 @@ export type CardinalListingAuthority = {
       code: 6013;
       name: "InvalidTransferAuthorityAuthority";
       msg: "Invalid transfer authority authority";
+    },
+    {
+      code: 6014;
+      name: "InvalidListingAuthority";
+      msg: "Invalid listing authority";
+    },
+    {
+      code: 6015;
+      name: "MarketplaceNotAllowed";
+      msg: "Marketplace place not allowed by listing authority";
     }
   ];
 };
@@ -839,12 +884,17 @@ export const IDL: CardinalListingAuthority = {
           isSigner: false,
         },
         {
-          name: "tokenManager",
+          name: "listingAuthority",
           isMut: false,
           isSigner: false,
         },
         {
           name: "marketplace",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
           isMut: false,
           isSigner: false,
         },
@@ -1063,12 +1113,22 @@ export const IDL: CardinalListingAuthority = {
             type: "string",
           },
           {
+            name: "listingAuthority",
+            type: "publicKey",
+          },
+          {
             name: "paymentManager",
             type: "publicKey",
           },
           {
             name: "authority",
             type: "publicKey",
+          },
+          {
+            name: "paymentMints",
+            type: {
+              vec: "publicKey",
+            },
           },
         ],
       },
@@ -1298,6 +1358,16 @@ export const IDL: CardinalListingAuthority = {
             name: "authority",
             type: "publicKey",
           },
+          {
+            name: "paymentMints",
+            type: {
+              vec: "publicKey",
+            },
+          },
+          {
+            name: "listingAuthority",
+            type: "publicKey",
+          },
         ],
       },
     },
@@ -1347,12 +1417,22 @@ export const IDL: CardinalListingAuthority = {
         kind: "struct",
         fields: [
           {
+            name: "listingAuthority",
+            type: "publicKey",
+          },
+          {
             name: "paymentManager",
             type: "publicKey",
           },
           {
             name: "authority",
             type: "publicKey",
+          },
+          {
+            name: "paymentMints",
+            type: {
+              vec: "publicKey",
+            },
           },
         ],
       },
@@ -1428,6 +1508,16 @@ export const IDL: CardinalListingAuthority = {
       code: 6013,
       name: "InvalidTransferAuthorityAuthority",
       msg: "Invalid transfer authority authority",
+    },
+    {
+      code: 6014,
+      name: "InvalidListingAuthority",
+      msg: "Invalid listing authority",
+    },
+    {
+      code: 6015,
+      name: "MarketplaceNotAllowed",
+      msg: "Marketplace place not allowed by listing authority",
     },
   ],
 };

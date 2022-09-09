@@ -5,8 +5,10 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdateMarketplaceIx {
+    pub listing_authority: Pubkey,
     pub payment_manager: Pubkey,
     pub authority: Pubkey,
+    pub payment_mints: Vec<Pubkey>,
 }
 
 #[derive(Accounts)]
@@ -21,8 +23,10 @@ pub struct UpdateMarketplaceCtx<'info> {
 
 pub fn handler(ctx: Context<UpdateMarketplaceCtx>, ix: UpdateMarketplaceIx) -> Result<()> {
     let marketplace = &mut ctx.accounts.marketplace;
+    marketplace.listing_authority = ix.listing_authority;
     marketplace.payment_manager = ix.payment_manager;
     marketplace.authority = ix.authority;
+    marketplace.payment_mints = ix.payment_mints;
 
     Ok(())
 }

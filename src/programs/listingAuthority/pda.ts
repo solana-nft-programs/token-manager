@@ -1,6 +1,7 @@
 import { utils } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 
+import { findTokenManagerAddress } from "../tokenManager/pda";
 import {
   LISTING_AUTHORITY_ADDRESS,
   LISTING_AUTHORITY_SEED,
@@ -40,10 +41,11 @@ export const findMarketplaceAddress = async (
  * @returns
  */
 export const findListingAddress = async (
-  tokenManager: PublicKey
+  mintId: PublicKey
 ): Promise<[PublicKey, number]> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
   return await PublicKey.findProgramAddress(
-    [utils.bytes.utf8.encode(LISTING_SEED), tokenManager.toBytes()],
+    [utils.bytes.utf8.encode(LISTING_SEED), tokenManagerId.toBytes()],
     LISTING_AUTHORITY_ADDRESS
   );
 };

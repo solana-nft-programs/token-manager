@@ -23,6 +23,10 @@ export type ListingAuthorityTypes = AnchorTypes<
   }
 >;
 
+export const WSOL_MINT = new PublicKey(
+  "So11111111111111111111111111111111111111112"
+);
+
 type Accounts = ListingAuthorityTypes["Accounts"];
 export type ListingAuthorityData = Accounts["listingAuthority"];
 export type MarketplaceData = Accounts["marketplace"];

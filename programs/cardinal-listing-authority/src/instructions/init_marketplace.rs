@@ -5,6 +5,8 @@ pub struct InitMarketplaceIx {
     pub name: String,
     pub payment_manager: Pubkey,
     pub authority: Pubkey,
+    pub payment_mints: Vec<Pubkey>,
+    pub listing_authority: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -26,8 +28,10 @@ pub struct InitMarketplaceCtx<'info> {
 pub fn handler(ctx: Context<InitMarketplaceCtx>, ix: InitMarketplaceIx) -> Result<()> {
     let marketplace = &mut ctx.accounts.marketplace;
     marketplace.name = ix.name;
+    marketplace.listing_authority = ix.listing_authority;
     marketplace.payment_manager = ix.payment_manager;
     marketplace.authority = ix.authority;
+    marketplace.payment_mints = ix.payment_mints;
 
     Ok(())
 }

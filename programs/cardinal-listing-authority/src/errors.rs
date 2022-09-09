@@ -30,4 +30,8 @@ pub enum ErrorCode {
     InvalidMarketplaceAuthority,
     #[msg("Invalid transfer authority authority")]
     InvalidTransferAuthorityAuthority,
+    #[msg("Invalid listing authority")]
+    InvalidListingAuthority,
+    #[msg("Marketplace place not allowed by listing authority")]
+    MarketplaceNotAllowed,
 }

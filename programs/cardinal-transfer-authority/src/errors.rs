@@ -26,4 +26,6 @@ pub enum ErrorCode {
     InvalidListerPaymentTokenAccount,
     #[msg("Invalid lister mint token account")]
     InvalidListerMintTokenAccount,
+    #[msg("Invalid marketplace authority")]
+    InvalidMarketplaceAuthority,
 }

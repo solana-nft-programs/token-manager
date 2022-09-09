@@ -64,7 +64,6 @@ pub struct AcceptListingCtx<'info> {
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
-    let listing = &mut ctx.accounts.listing;
 
     let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
         payment_manager: ctx.accounts.payment_manager.to_account_info(),

@@ -465,7 +465,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "cardinal-transfer-approver"
+name = "cardinal-transfer-authorityr"
 version = "1.5.12"
 dependencies = [
  "anchor-lang",

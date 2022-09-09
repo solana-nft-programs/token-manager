@@ -1,6 +1,6 @@
-export type CardinalPaidTransferAuthority = {
+export type CardinalTransferAuthority = {
   version: "1.5.12";
-  name: "cardinal_paid_transfer_authority";
+  name: "cardinal_transfer_authority";
   instructions: [
     {
       name: "acceptListing";
@@ -278,6 +278,29 @@ export type CardinalPaidTransferAuthority = {
           };
         }
       ];
+    },
+    {
+      name: "updateTransferAuthority";
+      accounts: [
+        {
+          name: "transferAuthority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdateTransferAuthorityIx";
+          };
+        }
+      ];
     }
   ];
   accounts: [
@@ -292,14 +315,18 @@ export type CardinalPaidTransferAuthority = {
           },
           {
             name: "name";
-            type: {
-              option: "string";
-            };
+            type: "string";
           },
           {
-            name: "marketplace";
+            name: "authority";
+            type: "publicKey";
+          },
+          {
+            name: "allowedMarketplaces";
             type: {
-              option: "publicKey";
+              option: {
+                vec: "publicKey";
+              };
             };
           }
         ];
@@ -503,10 +530,6 @@ export type CardinalPaidTransferAuthority = {
         kind: "struct";
         fields: [
           {
-            name: "collector";
-            type: "publicKey";
-          },
-          {
             name: "paymentAmount";
             type: "u64";
           },
@@ -544,14 +567,18 @@ export type CardinalPaidTransferAuthority = {
         fields: [
           {
             name: "name";
-            type: {
-              option: "string";
-            };
+            type: "string";
           },
           {
-            name: "marketplace";
+            name: "authority";
+            type: "publicKey";
+          },
+          {
+            name: "allowedMarketplaces";
             type: {
-              option: "publicKey";
+              option: {
+                vec: "publicKey";
+              };
             };
           }
         ];
@@ -589,6 +616,26 @@ export type CardinalPaidTransferAuthority = {
           {
             name: "authority";
             type: "publicKey";
+          }
+        ];
+      };
+    },
+    {
+      name: "UpdateTransferAuthorityIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "authority";
+            type: "publicKey";
+          },
+          {
+            name: "allowedMarketplaces";
+            type: {
+              option: {
+                vec: "publicKey";
+              };
+            };
           }
         ];
       };
@@ -659,13 +706,18 @@ export type CardinalPaidTransferAuthority = {
       code: 6012;
       name: "InvalidMarketplaceAuthority";
       msg: "Invalid marketplace authority";
+    },
+    {
+      code: 6013;
+      name: "InvalidTransferAuthorityAuthority";
+      msg: "Invalid transfer authority authority";
     }
   ];
 };
 
-export const IDL: CardinalPaidTransferAuthority = {
+export const IDL: CardinalTransferAuthority = {
   version: "1.5.12",
-  name: "cardinal_paid_transfer_authority",
+  name: "cardinal_transfer_authority",
   instructions: [
     {
       name: "acceptListing",
@@ -944,6 +996,29 @@ export const IDL: CardinalPaidTransferAuthority = {
         },
       ],
     },
+    {
+      name: "updateTransferAuthority",
+      accounts: [
+        {
+          name: "transferAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdateTransferAuthorityIx",
+          },
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -957,14 +1032,18 @@ export const IDL: CardinalPaidTransferAuthority = {
           },
           {
             name: "name",
-            type: {
-              option: "string",
-            },
+            type: "string",
           },
           {
-            name: "marketplace",
+            name: "authority",
+            type: "publicKey",
+          },
+          {
+            name: "allowedMarketplaces",
             type: {
-              option: "publicKey",
+              option: {
+                vec: "publicKey",
+              },
             },
           },
         ],
@@ -1168,10 +1247,6 @@ export const IDL: CardinalPaidTransferAuthority = {
         kind: "struct",
         fields: [
           {
-            name: "collector",
-            type: "publicKey",
-          },
-          {
             name: "paymentAmount",
             type: "u64",
           },
@@ -1209,14 +1284,18 @@ export const IDL: CardinalPaidTransferAuthority = {
         fields: [
           {
             name: "name",
-            type: {
-              option: "string",
-            },
+            type: "string",
           },
           {
-            name: "marketplace",
+            name: "authority",
+            type: "publicKey",
+          },
+          {
+            name: "allowedMarketplaces",
             type: {
-              option: "publicKey",
+              option: {
+                vec: "publicKey",
+              },
             },
           },
         ],
@@ -1254,6 +1333,26 @@ export const IDL: CardinalPaidTransferAuthority = {
           {
             name: "authority",
             type: "publicKey",
+          },
+        ],
+      },
+    },
+    {
+      name: "UpdateTransferAuthorityIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "authority",
+            type: "publicKey",
+          },
+          {
+            name: "allowedMarketplaces",
+            type: {
+              option: {
+                vec: "publicKey",
+              },
+            },
           },
         ],
       },
@@ -1324,6 +1423,11 @@ export const IDL: CardinalPaidTransferAuthority = {
       code: 6012,
       name: "InvalidMarketplaceAuthority",
       msg: "Invalid marketplace authority",
+    },
+    {
+      code: 6013,
+      name: "InvalidTransferAuthorityAuthority",
+      msg: "Invalid transfer authority authority",
     },
   ],
 };

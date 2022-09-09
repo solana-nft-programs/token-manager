@@ -32,10 +32,3 @@ pub struct Listing {
     pub payment_amount: u64,
     pub payment_mint: Pubkey,
 }
-
-pub fn tranfer_authority_seed(name: Option<String>) -> String {
-    if name.is_some() {
-        return name.unwrap();
-    }
-    return "".to_string();
-}

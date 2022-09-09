@@ -17,7 +17,7 @@ pub struct CreateListingIx {
 #[instruction(ix: CreateListingIx)]
 pub struct CreateListingCtx<'info> {
     #[account(
-        init_if_needed,
+        init,
         payer = payer,
         space = LISTING_SIZE,
         seeds = [LISTING_SEED.as_bytes(), token_manager.key().as_ref()], bump,

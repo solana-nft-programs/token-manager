@@ -36,25 +36,96 @@ import { getPaymentManager } from "./programs/paymentManager/accounts";
 import { findPaymentManagerAddress } from "./programs/paymentManager/pda";
 import {
   getRemainingAccountsForKind,
+  InvalidationType,
   TokenManagerKind,
   withRemainingAccountsForHandlePaymentWithRoyalties,
 } from "./programs/tokenManager";
+import { getTokenManager } from "./programs/tokenManager/accounts";
+import { claim } from "./programs/tokenManager/instruction";
 import {
   findTokenManagerAddress,
   findTransferReceiptId,
 } from "./programs/tokenManager/pda";
+import { withIssueToken } from "./transaction";
 import {
   findAta,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "./utils";
 
+export const withWrapToken = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  listingAuthorityName?: string,
+  payer = wallet.publicKey
+): Promise<[Transaction, PublicKey]> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const checkTokenManager = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (checkTokenManager?.parsed) {
+    throw "Token is already wrapped";
+  }
+  const issuerTokenAccountId = await findAta(mintId, wallet.publicKey, true);
+  let kind = TokenManagerKind.Edition;
+  try {
+    await MasterEdition.getPDA(mintId);
+  } catch (e) {
+    kind = TokenManagerKind.Managed;
+  }
+
+  await withIssueToken(
+    transaction,
+    connection,
+    wallet,
+    {
+      mint: mintId,
+      invalidationType: InvalidationType.Release,
+      issuerTokenAccountId: issuerTokenAccountId,
+      kind: kind,
+      listingAuthorityName: listingAuthorityName,
+    },
+    payer
+  );
+
+  const tokenManagerTokenAccountId = await findAta(
+    mintId,
+    tokenManagerId,
+    true
+  );
+  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    mintId,
+    wallet.publicKey,
+    payer,
+    true
+  );
+
+  transaction.add(
+    await claim(
+      connection,
+      wallet,
+      tokenManagerId,
+      kind,
+      mintId,
+      tokenManagerTokenAccountId,
+      recipientTokenAccountId,
+      undefined
+    )
+  );
+
+  return [transaction, tokenManagerId];
+};
+
 export const withInitListingAuthority = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
   name: string,
-  authority: PublicKey,
+  authority = wallet.publicKey,
   payer = wallet.publicKey,
   allowedMarketplaces?: PublicKey[]
 ): Promise<[Transaction, PublicKey]> => {
@@ -168,6 +239,7 @@ export const withCreateListing = async (
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
   const [listingId] = await findListingAddress(mintId);
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const listerTokenAccountId = await findAta(mintId, wallet.publicKey, true);
   const [marketplaceId] = await findMarketplaceAddress(markeptlaceName);
   const markeptlaceData = await tryGetAccount(() =>
@@ -183,6 +255,7 @@ export const withCreateListing = async (
       wallet,
       listingId,
       markeptlaceData.parsed.listingAuthority,
+      tokenManagerId,
       marketplaceId,
       listerTokenAccountId,
       paymentAmount,

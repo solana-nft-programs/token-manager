@@ -6,7 +6,11 @@ import {
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { expectTXTable } from "@saberhq/chai-solana";
-import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
+import {
+  SignerWallet,
+  SolanaProvider,
+  TransactionEnvelope,
+} from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
@@ -16,6 +20,7 @@ import {
   withCreateListing,
   withInitListingAuthority,
   withInitMarketplace,
+  withWrapToken,
 } from "../../src";
 import {
   getListing,
@@ -32,19 +37,18 @@ import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
-describe("Create and Extend Rental", () => {
-  const listingAuthorityName = `listing-authority-${Math.random()}`;
-  const marketplaceName = `marketplace-${Math.random()}`;
+describe("Create Listing", () => {
+  const listingAuthorityName = `lst-auth-${Math.random()}`;
+  const marketplaceName = `mrkt-${Math.random()}`;
 
   const tokenCreator = Keypair.generate();
-  let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
   const rentalPaymentAmount = new BN(1);
   const rentalPaymentMint = new PublicKey(
     "So11111111111111111111111111111111111111112"
   );
 
-  const paymentManagerName = `payment-manager-${Math.random()}`;
+  const paymentManagerName = `pm-${Math.random()}`;
   const feeCollector = Keypair.generate();
   const MAKER_FEE = 500;
   const TAKER_FEE = 0;
@@ -52,23 +56,11 @@ describe("Create and Extend Rental", () => {
 
   before(async () => {
     const provider = getProvider();
-    const transaction = new Transaction();
-
-    transaction.add(
-      (
-        await init(provider.connection, provider.wallet, paymentManagerName, {
-          feeCollector: feeCollector.publicKey,
-          makerFeeBasisPoints: MAKER_FEE,
-          takerFeeBasisPoints: TAKER_FEE,
-        })
-      )[0]
-    );
-
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    [, rentalMint] = await createMint(
       provider.connection,
       tokenCreator,
-      tokenCreator.publicKey,
+      provider.wallet.publicKey,
       1,
       tokenCreator.publicKey
     );
@@ -109,17 +101,38 @@ describe("Create and Extend Rental", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
+        wallet: new SignerWallet(tokenCreator),
+        opts: provider.opts,
+      }),
+      [...metadataTx.instructions, ...masterEditionTx.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "Create Token", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const pmTransaction = new Transaction();
+    pmTransaction.add(
+      (
+        await init(provider.connection, provider.wallet, paymentManagerName, {
+          feeCollector: feeCollector.publicKey,
+          makerFeeBasisPoints: MAKER_FEE,
+          takerFeeBasisPoints: TAKER_FEE,
+        })
+      )[0]
+    );
+
+    const pmTxEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
         wallet: provider.wallet,
         opts: provider.opts,
       }),
-      [
-        ...transaction.instructions,
-        ...metadataTx.instructions,
-        ...masterEditionTx.instructions,
-      ]
+      [...pmTransaction.instructions]
     );
 
-    await expectTXTable(txEnvelope, "Create Payment Manager", {
+    await expectTXTable(pmTxEnvelope, "Create Payment Manager", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -133,8 +146,7 @@ describe("Create and Extend Rental", () => {
       transaction,
       provider.connection,
       provider.wallet,
-      listingAuthorityName,
-      provider.wallet.publicKey
+      listingAuthorityName
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -145,7 +157,7 @@ describe("Create and Extend Rental", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "create listing authority", {
+    await expectTXTable(txEnvelope, "Create listing authority", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -160,6 +172,33 @@ describe("Create and Extend Rental", () => {
       provider.wallet.publicKey
     );
     expect(checkListingAuthority.parsed.allowedMarketplaces).to.be.null;
+  });
+
+  it("Wrap Token", async () => {
+    const provider = getProvider();
+    const wrapTransaction = new Transaction();
+
+    await withWrapToken(
+      wrapTransaction,
+      provider.connection,
+      provider.wallet,
+      rentalMint.publicKey,
+      listingAuthorityName
+    );
+
+    const wrapTxEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...wrapTransaction.instructions]
+    );
+
+    await expectTXTable(wrapTxEnvelope, "Wrap Token", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
   });
 
   it("Create Marketplace", async () => {
@@ -193,7 +232,7 @@ describe("Create and Extend Rental", () => {
       marketplaceName
     );
 
-    expect(checkMarketplace.parsed.name).to.eq(listingAuthorityName);
+    expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
     const [listingAuthorityId] = await findListingAuthorityAddress(
       listingAuthorityName
     );
@@ -209,7 +248,7 @@ describe("Create and Extend Rental", () => {
     expect(checkMarketplace.parsed.authority).to.eqAddress(
       provider.wallet.publicKey
     );
-    expect(checkMarketplace.parsed.paymentMints).to.equal([]);
+    expect(checkMarketplace.parsed.paymentMints).to.be.null;
   });
 
   it("Create Listing", async () => {
@@ -251,7 +290,9 @@ describe("Create and Extend Rental", () => {
     expect(checkListing.parsed.tokenManager).to.eqAddress(tokenManagerId);
     const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
     expect(checkListing.parsed.marketplace).to.eqAddress(marketplaceId);
-    expect(checkListing.parsed.paymentAmount).to.eq(rentalPaymentAmount);
-    expect(checkListing.parsed.paymentAmount).to.eqAddress(rentalPaymentMint);
+    expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
+      rentalPaymentAmount.toNumber()
+    );
+    expect(checkListing.parsed.paymentMint).to.eqAddress(rentalPaymentMint);
   });
 });

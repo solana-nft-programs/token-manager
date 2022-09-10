@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import * as LISTING_AUTHORITY_TYPES from "../../idl/cardinal_listing_authority";
 
 export const LISTING_AUTHORITY_ADDRESS = new PublicKey(
-  "trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW"
+  "t7UND4Dhg8yoykPAr1WjwfZhfHDwXih5RY8voM47FMS"
 );
 
 export const LISTING_AUTHORITY_SEED = "listing-authority";
@@ -26,6 +26,8 @@ export type ListingAuthorityTypes = AnchorTypes<
 export const WSOL_MINT = new PublicKey(
   "So11111111111111111111111111111111111111112"
 );
+
+export const DEFAULT_LISTING_AUTHORITY_NAME = "global";
 
 type Accounts = ListingAuthorityTypes["Accounts"];
 export type ListingAuthorityData = Accounts["listingAuthority"];

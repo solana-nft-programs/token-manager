@@ -4,7 +4,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW");
+declare_id!("t7UND4Dhg8yoykPAr1WjwfZhfHDwXih5RY8voM47FMS");
 
 #[program]
 pub mod cardinal_listing_authority {
@@ -22,7 +22,7 @@ pub mod cardinal_listing_authority {
         init_marketplace::handler(ctx, ix)
     }
 
-    pub fn init_listing_authority(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
+    pub fn init_listing_authority(ctx: Context<InitTransferAuthorityCtx>, ix: InitListingAuthorityIx) -> Result<()> {
         init_listing_authority::handler(ctx, ix)
     }
 

@@ -1,14 +1,14 @@
 use {crate::state::*, anchor_lang::prelude::*};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct InitTransferAuthorityIx {
+pub struct InitListingAuthorityIx {
     pub name: String,
     pub authority: Pubkey,
     pub allowed_marketplaces: Option<Vec<Pubkey>>,
 }
 
 #[derive(Accounts)]
-#[instruction(ix: InitTransferAuthorityIx)]
+#[instruction(ix: InitListingAuthorityIx)]
 pub struct InitTransferAuthorityCtx<'info> {
     #[account(
         init,
@@ -22,7 +22,7 @@ pub struct InitTransferAuthorityCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
+pub fn handler(ctx: Context<InitTransferAuthorityCtx>, ix: InitListingAuthorityIx) -> Result<()> {
     let listing_authority = &mut ctx.accounts.listing_authority;
     listing_authority.bump = *ctx.bumps.get("listing_authority").unwrap();
     listing_authority.name = ix.name;

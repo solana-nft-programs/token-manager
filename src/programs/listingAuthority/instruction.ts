@@ -36,7 +36,7 @@ export const initListingAuthority = (
     {
       name: name,
       authority: authorityId,
-      allowedMarketplaces: allowedMarketplaces || undefined,
+      allowedMarketplaces: allowedMarketplaces || null,
     },
     {
       accounts: {
@@ -102,7 +102,7 @@ export const initMarketplace = (
       name: name,
       paymentManager: paymentManager,
       authority: provider.wallet.publicKey,
-      paymentMints: paymentMints,
+      paymentMints: paymentMints || null,
       listingAuthority: listingAuthority,
     },
     {
@@ -154,6 +154,7 @@ export const createListing = (
   wallet: Wallet,
   listingId: PublicKey,
   listingAuthorityId: PublicKey,
+  tokenManagerId: PublicKey,
   marketplaceId: PublicKey,
   listerTokenAccount: PublicKey,
   paymentAmount: BN,
@@ -176,7 +177,7 @@ export const createListing = (
     {
       accounts: {
         listing: listingId,
-        tokenManager: marketplaceId,
+        tokenManager: tokenManagerId,
         listingAuthority: listingAuthorityId,
         marketplace: marketplaceId,
         listerTokenAccount: listerTokenAccount,

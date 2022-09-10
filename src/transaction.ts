@@ -16,6 +16,8 @@ import {
   useInvalidator,
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
+import { DEFAULT_LISTING_AUTHORITY_NAME } from "./programs/listingAuthority";
+import { getListingAuthority } from "./programs/listingAuthority/accounts";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
 import type { TokenManagerData } from "./programs/tokenManager";
@@ -25,6 +27,7 @@ import {
   TokenManagerState,
 } from "./programs/tokenManager";
 import { getTokenManager } from "./programs/tokenManager/accounts";
+import { setTransferAuthority } from "./programs/tokenManager/instruction";
 import {
   findTokenManagerAddress,
   tokenManagerAddressFromMint,
@@ -42,6 +45,7 @@ export type IssueParameters = {
   claimPayment?: ClaimApproverParams;
   timeInvalidation?: TimeInvalidationParams;
   useInvalidation?: UseInvalidationParams;
+  listingAuthorityName?: string;
   mint: PublicKey;
   amount?: BN;
   issuerTokenAccountId: PublicKey;
@@ -72,15 +76,17 @@ export const withIssueToken = async (
     timeInvalidation,
     useInvalidation,
     mint,
-    amount = new BN(1),
     issuerTokenAccountId,
+    amount = new BN(1),
+    listingAuthorityName = DEFAULT_LISTING_AUTHORITY_NAME,
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
     permissionedClaimApprover,
     receiptOptions = undefined,
     customInvalidators = undefined,
-  }: IssueParameters
+  }: IssueParameters,
+  payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   // init token manager
   const numInvalidator =
@@ -98,9 +104,25 @@ export const withIssueToken = async (
     amount,
     kind,
     invalidationType,
-    numInvalidator
+    numInvalidator,
+    payer
   );
   transaction.add(tokenManagerIx);
+
+  const checkListingAuthority = await tryGetAccount(() =>
+    getListingAuthority(connection, listingAuthorityName)
+  );
+  if (!checkListingAuthority?.parsed) {
+    throw `No listing authority with name ${listingAuthorityName} found`;
+  }
+  transaction.add(
+    setTransferAuthority(
+      connection,
+      wallet,
+      tokenManagerId,
+      checkListingAuthority.pubkey
+    )
+  );
 
   //////////////////////////////
   /////// claim approver ///////
@@ -115,7 +137,8 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        claimPayment
+        claimPayment,
+        payer
       );
     transaction.add(paidClaimApproverIx);
     transaction.add(
@@ -159,7 +182,8 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        timeInvalidation
+        timeInvalidation,
+        payer
       );
     transaction.add(timeInvalidatorIx);
     transaction.add(
@@ -198,7 +222,8 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        useInvalidation
+        useInvalidation,
+        payer
       );
     transaction.add(useInvalidatorIx);
     transaction.add(
@@ -246,7 +271,12 @@ export const withIssueToken = async (
 
   if (kind === TokenManagerKind.Managed) {
     const [mintManagerIx, mintManagerId] =
-      await tokenManager.instruction.creatMintManager(connection, wallet, mint);
+      await tokenManager.instruction.creatMintManager(
+        connection,
+        wallet,
+        mint,
+        payer
+      );
 
     const mintManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getMintManager(connection, mintManagerId)
@@ -262,7 +292,7 @@ export const withIssueToken = async (
     connection,
     mint,
     tokenManagerId,
-    wallet.publicKey,
+    payer,
     true
   );
 
@@ -272,7 +302,8 @@ export const withIssueToken = async (
       wallet,
       tokenManagerId,
       tokenManagerTokenAccountId,
-      issuerTokenAccountId
+      issuerTokenAccountId,
+      payer
     )
   );
 
@@ -287,7 +318,8 @@ export const withIssueToken = async (
         wallet,
         "receipt",
         tokenManagerId,
-        receiptMintKeypair.publicKey
+        receiptMintKeypair.publicKey,
+        payer
       )
     );
   }

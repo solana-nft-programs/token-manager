@@ -217,7 +217,7 @@ export type CardinalListingAuthority = {
         {
           name: "ix";
           type: {
-            defined: "InitTransferAuthorityIx";
+            defined: "InitListingAuthorityIx";
           };
         }
       ];
@@ -558,7 +558,7 @@ export type CardinalListingAuthority = {
       };
     },
     {
-      name: "InitTransferAuthorityIx";
+      name: "InitListingAuthorityIx";
       type: {
         kind: "struct";
         fields: [
@@ -985,7 +985,7 @@ export const IDL: CardinalListingAuthority = {
         {
           name: "ix",
           type: {
-            defined: "InitTransferAuthorityIx",
+            defined: "InitListingAuthorityIx",
           },
         },
       ],
@@ -1326,7 +1326,7 @@ export const IDL: CardinalListingAuthority = {
       },
     },
     {
-      name: "InitTransferAuthorityIx",
+      name: "InitListingAuthorityIx",
       type: {
         kind: "struct",
         fields: [

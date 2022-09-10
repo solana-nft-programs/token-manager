@@ -31,7 +31,8 @@ export const init = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  params: ClaimApproverParams
+  params: ClaimApproverParams,
+  payer = wallet.publicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
 
@@ -62,7 +63,7 @@ export const init = async (
           tokenManager: tokenManagerId,
           claimApprover: claimApproverId,
           issuer: wallet.publicKey,
-          payer: wallet.publicKey,
+          payer: payer,
           systemProgram: SystemProgram.programId,
         },
       }

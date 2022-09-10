@@ -11,12 +11,12 @@ import type {
 } from "@solana/web3.js";
 import type BN from "bn.js";
 
-import { WSOL_MINT } from "../programs/listingAuthority";
+import { WSOL_MINT } from "./programs/listingAuthority";
 import {
   getListing,
   getMarketplace,
   getMarketplaceByName,
-} from "../programs/listingAuthority/accounts";
+} from "./programs/listingAuthority/accounts";
 import {
   acceptListing,
   createListing,
@@ -26,28 +26,28 @@ import {
   updateListing,
   updateListingAuthority,
   updateMarketplace,
-} from "../programs/listingAuthority/instruction";
+} from "./programs/listingAuthority/instruction";
 import {
   findListingAddress,
   findListingAuthorityAddress,
   findMarketplaceAddress,
-} from "../programs/listingAuthority/pda";
-import { getPaymentManager } from "../programs/paymentManager/accounts";
-import { findPaymentManagerAddress } from "../programs/paymentManager/pda";
+} from "./programs/listingAuthority/pda";
+import { getPaymentManager } from "./programs/paymentManager/accounts";
+import { findPaymentManagerAddress } from "./programs/paymentManager/pda";
 import {
   getRemainingAccountsForKind,
   TokenManagerKind,
   withRemainingAccountsForHandlePaymentWithRoyalties,
-} from "../programs/tokenManager";
+} from "./programs/tokenManager";
 import {
   findTokenManagerAddress,
   findTransferReceiptId,
-} from "../programs/tokenManager/pda";
+} from "./programs/tokenManager/pda";
 import {
   findAta,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
-} from "../utils";
+} from "./utils";
 
 export const withInitListingAuthority = async (
   transaction: Transaction,

@@ -19,6 +19,7 @@ export const initListingAuthority = (
   wallet: Wallet,
   name: string,
   listingAuthorityId: PublicKey,
+  authorityId: PublicKey,
   payer = wallet.publicKey,
   allowedMarketplaces?: PublicKey[]
 ): TransactionInstruction => {
@@ -34,7 +35,7 @@ export const initListingAuthority = (
   return transferAuthorityProgram.instruction.initListingAuthority(
     {
       name: name,
-      authority: wallet.publicKey,
+      authority: authorityId,
       allowedMarketplaces: allowedMarketplaces || undefined,
     },
     {
@@ -84,7 +85,7 @@ export const initMarketplace = (
   marketplaceId: PublicKey,
   listingAuthority: PublicKey,
   paymentManager: PublicKey,
-  paymentMints: PublicKey[],
+  paymentMints: PublicKey[] | undefined,
   payer = wallet.publicKey
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -121,7 +122,7 @@ export const updateMarketplace = (
   listingAuthority: PublicKey,
   paymentManager: PublicKey,
   authority: PublicKey,
-  paymentMints: PublicKey[]
+  paymentMints: PublicKey[] | undefined
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 

@@ -5,7 +5,7 @@ pub struct InitMarketplaceIx {
     pub name: String,
     pub payment_manager: Pubkey,
     pub authority: Pubkey,
-    pub payment_mints: Vec<Pubkey>,
+    pub payment_mints: Option<Vec<Pubkey>>,
     pub listing_authority: Pubkey,
 }
 

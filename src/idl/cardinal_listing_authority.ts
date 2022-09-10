@@ -365,7 +365,9 @@ export type CardinalListingAuthority = {
           {
             name: "paymentMints";
             type: {
-              vec: "publicKey";
+              option: {
+                vec: "publicKey";
+              };
             };
           }
         ];
@@ -599,7 +601,9 @@ export type CardinalListingAuthority = {
           {
             name: "paymentMints";
             type: {
-              vec: "publicKey";
+              option: {
+                vec: "publicKey";
+              };
             };
           },
           {
@@ -669,7 +673,9 @@ export type CardinalListingAuthority = {
           {
             name: "paymentMints";
             type: {
-              vec: "publicKey";
+              option: {
+                vec: "publicKey";
+              };
             };
           }
         ];
@@ -1127,7 +1133,9 @@ export const IDL: CardinalListingAuthority = {
           {
             name: "paymentMints",
             type: {
-              vec: "publicKey",
+              option: {
+                vec: "publicKey",
+              },
             },
           },
         ],
@@ -1361,7 +1369,9 @@ export const IDL: CardinalListingAuthority = {
           {
             name: "paymentMints",
             type: {
-              vec: "publicKey",
+              option: {
+                vec: "publicKey",
+              },
             },
           },
           {
@@ -1431,7 +1441,9 @@ export const IDL: CardinalListingAuthority = {
           {
             name: "paymentMints",
             type: {
-              vec: "publicKey",
+              option: {
+                vec: "publicKey",
+              },
             },
           },
         ],

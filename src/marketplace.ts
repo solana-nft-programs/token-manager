@@ -54,6 +54,7 @@ export const withInitListingAuthority = async (
   connection: Connection,
   wallet: Wallet,
   name: string,
+  authority: PublicKey,
   payer = wallet.publicKey,
   allowedMarketplaces?: PublicKey[]
 ): Promise<[Transaction, PublicKey]> => {
@@ -64,6 +65,7 @@ export const withInitListingAuthority = async (
       wallet,
       name,
       listingAuthorityId,
+      authority,
       payer,
       allowedMarketplaces
     )
@@ -117,7 +119,7 @@ export const withInitMarketplace = async (
       marketplaceId,
       listingAuthorityId,
       paymentManagerId,
-      paymentMints || [],
+      paymentMints,
       payer
     )
   );
@@ -149,7 +151,7 @@ export const withUpdateMarketplace = async (
       listingAuthorityId,
       paymentManagerId,
       authority,
-      paymentMints
+      paymentMints.length !== 0 ? paymentMints : undefined
     )
   );
   return transaction;

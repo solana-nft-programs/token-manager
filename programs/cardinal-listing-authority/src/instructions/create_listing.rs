@@ -50,7 +50,7 @@ pub fn handler(ctx: Context<CreateListingCtx>, ix: CreateListingIx) -> Result<()
     listing.payment_amount = ix.payment_amount;
     listing.payment_mint = ix.payment_mint;
 
-    if ctx.accounts.marketplace.payment_mints.len() > 0 && !ctx.accounts.marketplace.payment_mints.contains(&ix.payment_mint) {
+    if ctx.accounts.marketplace.payment_mints.is_some() && !ctx.accounts.marketplace.payment_mints.as_ref().unwrap().contains(&ix.payment_mint) {
         return Err(error!(ErrorCode::InvalidPaymentMint));
     }
 

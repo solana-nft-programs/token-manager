@@ -19,7 +19,7 @@ pub struct Marketplace {
     pub listing_authority: Pubkey,
     pub payment_manager: Pubkey,
     pub authority: Pubkey,
-    pub payment_mints: Vec<Pubkey>,
+    pub payment_mints: Option<Vec<Pubkey>>,
 }
 
 pub const LISTING_SEED: &str = "listing";

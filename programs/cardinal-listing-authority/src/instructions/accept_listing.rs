@@ -6,6 +6,7 @@ use {
     anchor_lang::{prelude::*, AccountsClose},
     anchor_spl::token::Token,
     cardinal_payment_manager::program::CardinalPaymentManager,
+    mpl_token_metadata,
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
@@ -21,7 +22,8 @@ pub struct AcceptListingCtx<'info> {
         lister_payment_token_account.mint == listing.payment_mint &&
         lister_payment_token_account.owner == listing.lister @ ErrorCode::InvalidListerPaymentTokenAccount)]
     lister_payment_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(constraint =
+    #[account(mut, constraint =
+        lister_mint_token_account.amount == 1 &&
         lister_mint_token_account.mint == token_manager.mint &&
         lister_mint_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
     lister_mint_token_account: Box<Account<'info, TokenAccount>>,
@@ -30,13 +32,14 @@ pub struct AcceptListingCtx<'info> {
 
     #[account(constraint =
         buyer_payment_token_account.mint == listing.payment_mint &&
-        buyer_payment_token_account.amount == listing.payment_amount &&
+        buyer_payment_token_account.amount >= listing.payment_amount &&
         buyer_payment_token_account.owner == buyer.key() @ ErrorCode::InvalidBuyerPaymentTokenAccount)]
     buyer_payment_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(constraint =
-        buyer_payment_token_account.mint == token_manager.mint &&
-        buyer_payment_token_account.owner == buyer.key() @ ErrorCode::InvalidBuyerMintTokenAccount)]
+    #[account(mut, constraint =
+        buyer_mint_token_account.mint == token_manager.mint &&
+        buyer_mint_token_account.owner == buyer.key() @ ErrorCode::InvalidBuyerMintTokenAccount)]
     buyer_mint_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
     buyer: Signer<'info>,
 
     #[account(mut, constraint = marketplace.key() == listing.marketplace @ ErrorCode::InvalidMarketplace)]
@@ -55,6 +58,7 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut)]
     fee_collector_token_account: UncheckedAccount<'info>,
 
+    #[account(mut)]
     payer: Signer<'info>,
     token_program: Program<'info, Token>,
     cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
@@ -63,7 +67,7 @@ pub struct AcceptListingCtx<'info> {
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    let remaining_accs = &mut ctx.remaining_accounts.to_vec();
 
     let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
         payment_manager: ctx.accounts.payment_manager.to_account_info(),
@@ -76,7 +80,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         payer: ctx.accounts.buyer.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(remaining_accs.cloned().collect::<Vec<AccountInfo<'info>>>());
+    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(ctx.remaining_accounts.to_vec());
     cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, ctx.accounts.listing.payment_amount)?;
 
     let transfer_authority_seeds = &[
@@ -97,6 +101,18 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(transfer_authority_signer);
     cardinal_token_manager::cpi::create_transfer_receipt(cpi_ctx, ctx.accounts.buyer.key())?;
 
+    let remaining_accounts_length = remaining_accs.len();
+    let mut transfer_remaining_accounts = Vec::new();
+    if remaining_accs[remaining_accounts_length - 1].key() == mpl_token_metadata::id() {
+        // kind Edition
+        transfer_remaining_accounts.push(remaining_accs[remaining_accounts_length - 2].to_account_info());
+        transfer_remaining_accounts.push(remaining_accs[remaining_accounts_length - 1].to_account_info());
+        transfer_remaining_accounts.push(ctx.accounts.transfer_receipt.to_account_info());
+    } else {
+        // kind Managed
+        transfer_remaining_accounts.push(remaining_accs[remaining_accounts_length - 1].to_account_info());
+        transfer_remaining_accounts.push(ctx.accounts.transfer_receipt.to_account_info());
+    }
     let cpi_accounts = cardinal_token_manager::cpi::accounts::TransferCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
@@ -105,9 +121,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         recipient_token_account: ctx.accounts.buyer_mint_token_account.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(remaining_accs.cloned().collect::<Vec<AccountInfo<'info>>>());
+    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_remaining_accounts(transfer_remaining_accounts);
     cardinal_token_manager::cpi::transfer(cpi_ctx)?;
 
+    // close listing
     ctx.accounts.listing.close(ctx.accounts.lister.to_account_info())?;
 
     Ok(())

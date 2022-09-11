@@ -19,7 +19,7 @@ pub struct TransferCtx<'info> {
 
     // current
     #[account(mut, constraint =
-        recipient_token_account.key() == token_manager.recipient_token_account
+        current_holder_token_account.key() == token_manager.recipient_token_account
         @ ErrorCode::InvalidCurrentTokenAccount
     )]
     current_holder_token_account: Box<Account<'info, TokenAccount>>,
@@ -97,8 +97,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);
         token::freeze_account(cpi_context)?;
     } else if token_manager.kind == TokenManagerKind::Edition as u8 {
-        let remaining_accs = &mut ctx.remaining_accounts.iter();
-        let current_edition_info = next_account_info(remaining_accs)?;
         let edition_info = next_account_info(remaining_accs)?;
         let metadata_program = next_account_info(remaining_accs)?;
 
@@ -112,13 +110,13 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 *metadata_program.key,
                 token_manager.key(),
                 ctx.accounts.current_holder_token_account.key(),
-                *current_edition_info.key,
+                *edition_info.key,
                 ctx.accounts.mint.key(),
             ),
             &[
                 token_manager.to_account_info(),
                 ctx.accounts.current_holder_token_account.to_account_info(),
-                current_edition_info.to_account_info(),
+                edition_info.to_account_info(),
                 ctx.accounts.mint.to_account_info(),
             ],
             &[token_manager_seeds],

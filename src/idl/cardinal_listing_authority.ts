@@ -22,7 +22,7 @@ export type CardinalListingAuthority = {
         },
         {
           name: "listerPaymentTokenAccount";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -37,7 +37,7 @@ export type CardinalListingAuthority = {
         },
         {
           name: "buyerPaymentTokenAccount";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -790,7 +790,7 @@ export const IDL: CardinalListingAuthority = {
         },
         {
           name: "listerPaymentTokenAccount",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -805,7 +805,7 @@ export const IDL: CardinalListingAuthority = {
         },
         {
           name: "buyerPaymentTokenAccount",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {

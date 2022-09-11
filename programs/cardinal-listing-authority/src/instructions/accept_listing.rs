@@ -18,7 +18,7 @@ pub struct AcceptListingCtx<'info> {
 
     #[account(mut)]
     listing: Box<Account<'info, Listing>>,
-    #[account(constraint =
+    #[account(mut, constraint =
         lister_payment_token_account.mint == listing.payment_mint &&
         lister_payment_token_account.owner == listing.lister @ ErrorCode::InvalidListerPaymentTokenAccount)]
     lister_payment_token_account: Box<Account<'info, TokenAccount>>,
@@ -30,7 +30,7 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
     lister: UncheckedAccount<'info>,
 
-    #[account(constraint =
+    #[account(mut, constraint =
         buyer_payment_token_account.mint == listing.payment_mint &&
         buyer_payment_token_account.amount >= listing.payment_amount &&
         buyer_payment_token_account.owner == buyer.key() @ ErrorCode::InvalidBuyerPaymentTokenAccount)]

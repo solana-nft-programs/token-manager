@@ -23,6 +23,7 @@ import { BN } from "bn.js";
 import { expect } from "chai";
 
 import {
+  emptyWallet,
   findAta,
   withAcceptListing,
   withCreateListing,
@@ -49,7 +50,7 @@ describe("Accept Listing", () => {
   const listingAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
-  const tokenCreator = Keypair.generate();
+  const lister = Keypair.generate();
   const buyer = Keypair.generate();
   let rentalMint: Token;
   const rentalPaymentAmount = new BN(100);
@@ -66,24 +67,29 @@ describe("Accept Listing", () => {
   before(async () => {
     const provider = getProvider();
 
-    const airdropCreator = await provider.connection.requestAirdrop(
+    const airdropLister = await provider.connection.requestAirdrop(
+      lister.publicKey,
+      LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(airdropLister);
+    const airdropBuyer = await provider.connection.requestAirdrop(
       buyer.publicKey,
       LAMPORTS_PER_SOL
     );
-    await provider.connection.confirmTransaction(airdropCreator);
+    await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
     [, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      lister,
+      lister.publicKey,
       1,
-      tokenCreator.publicKey
+      lister.publicKey
     );
 
     const metadataId = await Metadata.getPDA(rentalMint.publicKey);
     const metadataTx = new CreateMetadataV2(
-      { feePayer: tokenCreator.publicKey },
+      { feePayer: lister.publicKey },
       {
         metadata: metadataId,
         metadataData: new DataV2({
@@ -95,21 +101,21 @@ describe("Accept Listing", () => {
           collection: null,
           uses: null,
         }),
-        updateAuthority: tokenCreator.publicKey,
+        updateAuthority: lister.publicKey,
         mint: rentalMint.publicKey,
-        mintAuthority: tokenCreator.publicKey,
+        mintAuthority: lister.publicKey,
       }
     );
 
     const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
     const masterEditionTx = new CreateMasterEditionV3(
-      { feePayer: tokenCreator.publicKey },
+      { feePayer: lister.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
-        updateAuthority: tokenCreator.publicKey,
+        updateAuthority: lister.publicKey,
         mint: rentalMint.publicKey,
-        mintAuthority: tokenCreator.publicKey,
+        mintAuthority: lister.publicKey,
         maxSupply: new BN(1),
       }
     );
@@ -117,7 +123,7 @@ describe("Accept Listing", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: new SignerWallet(tokenCreator),
+        wallet: new SignerWallet(lister),
         opts: provider.opts,
       }),
       [...metadataTx.instructions, ...masterEditionTx.instructions]
@@ -197,7 +203,7 @@ describe("Accept Listing", () => {
     await withWrapToken(
       wrapTransaction,
       provider.connection,
-      provider.wallet,
+      emptyWallet(lister.publicKey),
       rentalMint.publicKey,
       listingAuthorityName
     );
@@ -208,13 +214,31 @@ describe("Accept Listing", () => {
         wallet: provider.wallet,
         opts: provider.opts,
       }),
-      [...wrapTransaction.instructions]
+      [...wrapTransaction.instructions],
+      [lister]
     );
 
     await expectTXTable(wrapTxEnvelope, "Wrap Token", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
+
+    const checkMint = new splToken.Token(
+      provider.connection,
+      rentalMint.publicKey,
+      splToken.TOKEN_PROGRAM_ID,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      null
+    );
+    const mintTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      lister.publicKey,
+      true
+    );
+    const mintTokenAccount = await checkMint.getAccountInfo(mintTokenAccountId);
+    expect(mintTokenAccount.amount.toNumber()).to.equal(1);
+    expect(mintTokenAccount.isFrozen).to.be.true;
   });
 
   it("Create Marketplace", async () => {
@@ -274,7 +298,7 @@ describe("Accept Listing", () => {
     await withCreateListing(
       transaction,
       provider.connection,
-      provider.wallet,
+      emptyWallet(lister.publicKey),
       rentalMint.publicKey,
       marketplaceName,
       rentalPaymentAmount,
@@ -287,7 +311,8 @@ describe("Accept Listing", () => {
         wallet: provider.wallet,
         opts: provider.opts,
       }),
-      [...transaction.instructions]
+      [...transaction.instructions],
+      [lister]
     );
     await expectTXTable(txEnvelope, "create listing", {
       verbosity: "error",
@@ -299,7 +324,7 @@ describe("Accept Listing", () => {
       rentalMint.publicKey
     );
 
-    expect(checkListing.parsed.lister).to.eqAddress(provider.wallet.publicKey);
+    expect(checkListing.parsed.lister).to.eqAddress(lister.publicKey);
     const [tokenManagerId] = await findTokenManagerAddress(
       rentalMint.publicKey
     );
@@ -360,10 +385,19 @@ describe("Accept Listing", () => {
     const makerFee = rentalPaymentAmount
       .mul(MAKER_FEE)
       .div(BASIS_POINTS_DIVISOR);
+    const takerFee = rentalPaymentAmount
+      .mul(TAKER_FEE)
+      .div(BASIS_POINTS_DIVISOR);
+    const totalFees = makerFee.add(takerFee);
 
     const listerMintTokenAccountId = await findAta(
       rentalPaymentMint,
-      provider.wallet.publicKey,
+      lister.publicKey,
+      true
+    );
+    const feeCollectorTokenAccountId = await findAta(
+      rentalPaymentMint,
+      feeCollector.publicKey,
       true
     );
     const checkPaymentMint = new splToken.Token(
@@ -379,6 +413,13 @@ describe("Accept Listing", () => {
     );
     expect(listerPaymentMintTokenAccount.amount.toNumber()).to.eq(
       rentalPaymentAmount.sub(makerFee).toNumber()
+    );
+
+    const feeCollectorTokenAccount = await checkPaymentMint.getAccountInfo(
+      feeCollectorTokenAccountId
+    );
+    expect(feeCollectorTokenAccount.amount.toNumber()).to.eq(
+      totalFees.toNumber()
     );
   });
 });

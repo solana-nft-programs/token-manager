@@ -273,7 +273,6 @@ export const acceptListing = (
       constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
-
   return transferAuthorityProgram.instruction.acceptListing({
     accounts: {
       listingAuthority: listingAuthorityId,

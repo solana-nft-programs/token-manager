@@ -48,10 +48,12 @@ import {
 } from "./programs/tokenManager/pda";
 import { withIssueToken } from "./transaction";
 import {
+  emptyWallet,
   findAta,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "./utils";
+import { withWrapSol } from "./wrappedSol";
 
 export const withWrapToken = async (
   transaction: Transaction,
@@ -353,6 +355,16 @@ export const withAcceptListing = async (
     buyer,
     wallet.publicKey
   );
+
+  if (listingData.parsed.paymentMint.toString() === WSOL_MINT.toString()) {
+    await withWrapSol(
+      transaction,
+      connection,
+      emptyWallet(buyer),
+      listingData.parsed.paymentAmount.toNumber(),
+      true
+    );
+  }
 
   const buyerMintTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,

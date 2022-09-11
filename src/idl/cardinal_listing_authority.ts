@@ -27,7 +27,7 @@ export type CardinalListingAuthority = {
         },
         {
           name: "listerMintTokenAccount";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -42,12 +42,12 @@ export type CardinalListingAuthority = {
         },
         {
           name: "buyerMintTokenAccount";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
           name: "buyer";
-          isMut: false;
+          isMut: true;
           isSigner: true;
         },
         {
@@ -87,7 +87,7 @@ export type CardinalListingAuthority = {
         },
         {
           name: "payer";
-          isMut: false;
+          isMut: true;
           isSigner: true;
         },
         {
@@ -795,7 +795,7 @@ export const IDL: CardinalListingAuthority = {
         },
         {
           name: "listerMintTokenAccount",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -810,12 +810,12 @@ export const IDL: CardinalListingAuthority = {
         },
         {
           name: "buyerMintTokenAccount",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
           name: "buyer",
-          isMut: false,
+          isMut: true,
           isSigner: true,
         },
         {
@@ -855,7 +855,7 @@ export const IDL: CardinalListingAuthority = {
         },
         {
           name: "payer",
-          isMut: false,
+          isMut: true,
           isSigner: true,
         },
         {

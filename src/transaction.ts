@@ -17,7 +17,7 @@ import {
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
 import { DEFAULT_LISTING_AUTHORITY_NAME } from "./programs/listingAuthority";
-import { getListingAuthority } from "./programs/listingAuthority/accounts";
+import { getListingAuthorityByName } from "./programs/listingAuthority/accounts";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
 import type { TokenManagerData } from "./programs/tokenManager";
@@ -110,7 +110,7 @@ export const withIssueToken = async (
   transaction.add(tokenManagerIx);
 
   const checkListingAuthority = await tryGetAccount(() =>
-    getListingAuthority(connection, listingAuthorityName)
+    getListingAuthorityByName(connection, listingAuthorityName)
   );
   if (!checkListingAuthority?.parsed) {
     throw `No listing authority with name ${listingAuthorityName} found`;

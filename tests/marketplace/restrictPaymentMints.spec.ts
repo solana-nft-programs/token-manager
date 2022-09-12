@@ -29,7 +29,7 @@ import {
 import { WSOL_MINT } from "../../src/programs/listingAuthority";
 import {
   getListing,
-  getListingAuthority,
+  getListingAuthorityByName,
   getMarketplaceByName,
 } from "../../src/programs/listingAuthority/accounts";
 import {
@@ -187,7 +187,7 @@ describe("Restrict Payment Mints", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const checkListingAuthority = await getListingAuthority(
+    const checkListingAuthority = await getListingAuthorityByName(
       provider.connection,
       listingAuthorityName
     );

@@ -26,6 +26,30 @@ import {
 
 export const getListingAuthority = async (
   connection: Connection,
+  listingAuthorityId: PublicKey
+): Promise<AccountData<ListingAuthorityData>> => {
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
+  const listingAuthorityProgram = new Program<LISTING_AUTHORITY_PROGRAM>(
+    LISTING_AUTHORITY_IDL,
+    LISTING_AUTHORITY_ADDRESS,
+    provider
+  );
+
+  const parsed = await listingAuthorityProgram.account.listingAuthority.fetch(
+    listingAuthorityId
+  );
+  return {
+    parsed,
+    pubkey: listingAuthorityId,
+  };
+};
+
+export const getListingAuthorityByName = async (
+  connection: Connection,
   name: string
 ): Promise<AccountData<ListingAuthorityData>> => {
   const provider = new AnchorProvider(

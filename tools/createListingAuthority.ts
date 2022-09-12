@@ -1,12 +1,11 @@
 import * as anchor from "@project-serum/anchor";
 
-import { getPaymentManager } from "../src/programs/paymentManager/accounts";
 import { tryGetAccount, withInitListingAuthority } from "../src";
 import { connectionFor } from "./connection";
-import { findListingAuthorityAddress } from "../src/programs/listingAuthority/pda";
 import { executeTransaction } from "./utils";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Keypair, Transaction } from "@solana/web3.js";
+import { getListingAuthorityByName } from "../src/programs/listingAuthority/accounts";
 
 const wallet = Keypair.fromSecretKey(anchor.utils.bytes.bs58.decode("")); // your wallet's secret key
 
@@ -21,22 +20,25 @@ const main = async (listingAuthorityName: string, cluster = "devnet") => {
     listingAuthorityName
   );
 
+  console.log(transaction.instructions.map((ix) => ix.programId.toString()));
+
   try {
     await executeTransaction(
       connection,
       new SignerWallet(wallet),
       transaction,
-      {}
+      {
+        confirmOptions: {
+          skipPreflight: true,
+        },
+      }
     );
   } catch (e) {
     console.log(`Transactionn failed: ${e}`);
   }
 
-  const [listingAuthorityId] = await findListingAuthorityAddress(
-    listingAuthorityName
-  );
   const listingAuthorityData = await tryGetAccount(() =>
-    getPaymentManager(connection, listingAuthorityId)
+    getListingAuthorityByName(connection, listingAuthorityName)
   );
   if (!listingAuthorityData) {
     console.log("Error: Failed to create listing authority");

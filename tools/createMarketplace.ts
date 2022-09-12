@@ -52,7 +52,7 @@ const main = async (params: MarketplaceParams, cluster = "devnet") => {
 
 const params: MarketplaceParams = {
   name: "cardinal",
-  listingAuthorityName: "cardinal",
+  listingAuthorityName: "global",
   paymentManagerName: "cardinal",
 };
 main(params).catch((e) => console.log(e));

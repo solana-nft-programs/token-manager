@@ -33,7 +33,7 @@ import {
 } from "../../src";
 import {
   getListing,
-  getListingAuthority,
+  getListingAuthorityByName,
   getMarketplaceByName,
 } from "../../src/programs/listingAuthority/accounts";
 import {
@@ -184,7 +184,7 @@ describe("Accept Listing", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const checkListingAuthority = await getListingAuthority(
+    const checkListingAuthority = await getListingAuthorityByName(
       provider.connection,
       listingAuthorityName
     );

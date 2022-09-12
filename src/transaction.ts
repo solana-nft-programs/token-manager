@@ -426,7 +426,7 @@ export const withUnissueToken = async (
     wallet.publicKey
   );
 
-  return transaction.add(
+  transaction.add(
     tokenManager.instruction.unissue(
       connection,
       wallet,
@@ -435,6 +435,45 @@ export const withUnissueToken = async (
       issuerTokenAccountId
     )
   );
+
+  const [[useInvalidatorId], [timeInvalidatorId]] = await Promise.all([
+    useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId),
+    timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId),
+  ]);
+
+  const [useInvalidatorData, timeInvalidatorData] = await Promise.all([
+    tryGetAccount(() =>
+      useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
+    ),
+    tryGetAccount(() =>
+      timeInvalidator.accounts.getTimeInvalidator(connection, timeInvalidatorId)
+    ),
+  ]);
+
+  if (timeInvalidatorData) {
+    transaction.add(
+      timeInvalidator.instruction.close(
+        connection,
+        wallet,
+        timeInvalidatorId,
+        tokenManagerId,
+        timeInvalidatorData.parsed.collector
+      )
+    );
+  }
+  if (useInvalidatorData) {
+    transaction.add(
+      useInvalidator.instruction.close(
+        connection,
+        wallet,
+        useInvalidatorId,
+        tokenManagerId,
+        useInvalidatorData.parsed.collector
+      )
+    );
+  }
+
+  return transaction;
 };
 
 export const withInvalidate = async (

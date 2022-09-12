@@ -306,6 +306,29 @@ export type CardinalListingAuthority = {
           };
         }
       ];
+    },
+    {
+      name: "whitelistMarketplaces";
+      accounts: [
+        {
+          name: "listingAuthority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "WhitelistMarketplacesIx";
+          };
+        }
+      ];
     }
   ];
   accounts: [
@@ -676,6 +699,20 @@ export type CardinalListingAuthority = {
               option: {
                 vec: "publicKey";
               };
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "WhitelistMarketplacesIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "allowedMarketplaces";
+            type: {
+              vec: "publicKey";
             };
           }
         ];
@@ -1075,6 +1112,29 @@ export const IDL: CardinalListingAuthority = {
         },
       ],
     },
+    {
+      name: "whitelistMarketplaces",
+      accounts: [
+        {
+          name: "listingAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "WhitelistMarketplacesIx",
+          },
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -1444,6 +1504,20 @@ export const IDL: CardinalListingAuthority = {
               option: {
                 vec: "publicKey",
               },
+            },
+          },
+        ],
+      },
+    },
+    {
+      name: "WhitelistMarketplacesIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "allowedMarketplaces",
+            type: {
+              vec: "publicKey",
             },
           },
         ],

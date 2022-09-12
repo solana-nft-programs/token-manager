@@ -300,3 +300,29 @@ export const acceptListing = (
     remainingAccounts: remainingAccounts,
   });
 };
+
+export const whitelistMarkeplaces = (
+  connection: Connection,
+  wallet: Wallet,
+  listingAuthorityId: PublicKey,
+  whitelistMarketplaces: PublicKey[]
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const transferAuthorityProgram =
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
+      provider
+    );
+
+  return transferAuthorityProgram.instruction.whitelistMarketplaces(
+    { allowedMarketplaces: whitelistMarketplaces },
+    {
+      accounts: {
+        listingAuthority: listingAuthorityId,
+        authority: wallet.publicKey,
+      },
+    }
+  );
+};

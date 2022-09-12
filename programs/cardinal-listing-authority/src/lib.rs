@@ -41,4 +41,8 @@ pub mod cardinal_listing_authority {
     pub fn update_listing_authority(ctx: Context<UpdateListingAuthorityCtx>, ix: UpdateListingAuthorityIx) -> Result<()> {
         update_listing_authority::handler(ctx, ix)
     }
+
+    pub fn whitelist_marketplaces(ctx: Context<WhitelistMarketplacesCtx>, ix: WhitelistMarketplacesIx) -> Result<()> {
+        whitelist_marketplaces::handler(ctx, ix)
+    }
 }

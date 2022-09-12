@@ -26,6 +26,7 @@ import {
   updateListing,
   updateListingAuthority,
   updateMarketplace,
+  whitelistMarkeplaces,
 } from "./programs/listingAuthority/instruction";
 import {
   findListingAddress,
@@ -435,6 +436,28 @@ export const withAcceptListing = async (
       feeCollectorTokenAccountId,
       remainingAccounts
     )
+  );
+  return transaction;
+};
+
+export const withWhitelistMarektplaces = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  listingAuthorityName: string,
+  marketplaceNames: string[]
+): Promise<Transaction> => {
+  const [listingAuthorityId] = await findListingAuthorityAddress(
+    listingAuthorityName
+  );
+
+  const marketplaceIds = (
+    await Promise.all(
+      marketplaceNames.map((name) => findMarketplaceAddress(name))
+    )
+  ).map((el) => el[0]);
+  transaction.add(
+    whitelistMarkeplaces(connection, wallet, listingAuthorityId, marketplaceIds)
   );
   return transaction;
 };

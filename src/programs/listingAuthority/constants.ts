@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import * as LISTING_AUTHORITY_TYPES from "../../idl/cardinal_listing_authority";
 
 export const LISTING_AUTHORITY_ADDRESS = new PublicKey(
-  "t7UND4Dhg8yoykPAr1WjwfZhfHDwXih5RY8voM47FMS"
+  "trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW"
 );
 
 export const LISTING_AUTHORITY_SEED = "listing-authority";

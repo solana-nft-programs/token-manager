@@ -44,6 +44,7 @@ clean-test-keys:
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/g" {} +
 	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_payment_manager-keypair.json)/pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn/g" {} +
+	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_listing_authority-keypair.json)/trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW/g" {} +
 
 stop:
 	pkill solana-test-validator

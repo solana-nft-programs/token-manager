@@ -4,7 +4,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("t7UND4Dhg8yoykPAr1WjwfZhfHDwXih5RY8voM47FMS");
+declare_id!("trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW");
 
 #[program]
 pub mod cardinal_listing_authority {

@@ -162,7 +162,7 @@ export const getListing = async (
   };
 };
 
-export const getListingForMarketplace = async (
+export const getListingsForMarketplace = async (
   connection: Connection,
   marketplaceId: PublicKey
 ): Promise<AccountData<ListingData>[]> => {
@@ -178,7 +178,7 @@ export const getListingForMarketplace = async (
             ),
           },
         },
-        { memcmp: { offset: 55, bytes: marketplaceId.toBase58() } },
+        { memcmp: { offset: 73, bytes: marketplaceId.toBase58() } },
       ],
     }
   );

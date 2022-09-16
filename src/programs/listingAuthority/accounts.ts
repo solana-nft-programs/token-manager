@@ -203,6 +203,47 @@ export const getListingsForMarketplace = async (
   );
 };
 
+export const getListingsForIssuer = async (
+  connection: Connection,
+  issuerId: PublicKey
+): Promise<AccountData<ListingData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    LISTING_AUTHORITY_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("listing")
+            ),
+          },
+        },
+        { memcmp: { offset: 9, bytes: issuerId.toBase58() } },
+      ],
+    }
+  );
+
+  const datas: AccountData<ListingData>[] = [];
+  const coder = new BorshAccountsCoder(LISTING_AUTHORITY_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const data: ListingData = coder.decode("listing", account.account.data);
+      if (data) {
+        datas.push({
+          ...account,
+          parsed: data,
+        });
+      }
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+  });
+
+  return datas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
+};
+
 export const getAllListings = async (
   connection: Connection
 ): Promise<AccountData<ListingData>[]> =>

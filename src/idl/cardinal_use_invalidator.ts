@@ -1,5 +1,5 @@
 export type CardinalUseInvalidator = {
-  version: "1.5.17";
+  version: "1.5.18";
   name: "cardinal_use_invalidator";
   instructions: [
     {
@@ -400,12 +400,17 @@ export type CardinalUseInvalidator = {
       code: 6014;
       name: "InvalidMint";
       msg: "Invalid mint";
+    },
+    {
+      code: 6015;
+      name: "InvalidIssuer";
+      msg: "Invalid issuer";
     }
   ];
 };
 
 export const IDL: CardinalUseInvalidator = {
-  version: "1.5.17",
+  version: "1.5.18",
   name: "cardinal_use_invalidator",
   instructions: [
     {
@@ -806,6 +811,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6014,
       name: "InvalidMint",
       msg: "Invalid mint",
+    },
+    {
+      code: 6015,
+      name: "InvalidIssuer",
+      msg: "Invalid issuer",
     },
   ],
 };

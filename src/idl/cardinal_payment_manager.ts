@@ -1,5 +1,5 @@
 export type CardinalPaymentManager = {
-  version: "1.5.17";
+  version: "1.5.18";
   name: "cardinal_payment_manager";
   instructions: [
     {
@@ -296,12 +296,17 @@ export type CardinalPaymentManager = {
       code: 6005;
       name: "InvalidPaymentManager";
       msg: "Invalid payment manager";
+    },
+    {
+      code: 6006;
+      name: "InvalidMintMetadataOwner";
+      msg: "Mint metadata is owned by the incorrect program";
     }
   ];
 };
 
 export const IDL: CardinalPaymentManager = {
-  version: "1.5.17",
+  version: "1.5.18",
   name: "cardinal_payment_manager",
   instructions: [
     {
@@ -598,6 +603,11 @@ export const IDL: CardinalPaymentManager = {
       code: 6005,
       name: "InvalidPaymentManager",
       msg: "Invalid payment manager",
+    },
+    {
+      code: 6006,
+      name: "InvalidMintMetadataOwner",
+      msg: "Mint metadata is owned by the incorrect program",
     },
   ],
 };

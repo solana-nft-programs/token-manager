@@ -48,9 +48,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     // royalties
     let mut fees_paid_out: u64 = 0;
     if !ctx.accounts.mint_metadata.data_is_empty() {
+        if ctx.accounts.mint_metadata.to_account_info().owner.key() != mpl_token_metadata::id() {
+            return Err(error!(ErrorCode::InvalidMintMetadataOwner));
+        }
         let mint_metadata_data = ctx.accounts.mint_metadata.try_borrow_mut_data().expect("Failed to borrow data");
-        let mint_metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref())?;
-        if ctx.accounts.mint_metadata.to_account_info().owner.key() != mpl_token_metadata::id() || mint_metadata.mint != ctx.accounts.mint.key() {
+        let mint_metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to desirialize metadata");
+        if mint_metadata.mint != ctx.accounts.mint.key() {
             return Err(error!(ErrorCode::InvalidMintMetadata));
         }
 

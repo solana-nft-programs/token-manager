@@ -14,4 +14,6 @@ pub enum ErrorCode {
     InvalidTokenAccount,
     #[msg("Invalid payment manager")]
     InvalidPaymentManager,
+    #[msg("Mint metadata is owned by the incorrect program")]
+    InvalidMintMetadataOwner,
 }

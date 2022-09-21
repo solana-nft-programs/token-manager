@@ -16,7 +16,7 @@ import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Use without use invalidator", () => {
+describe("Time invalidation", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
@@ -154,7 +154,7 @@ describe("Use without use invalidator", () => {
       [...transaction.instructions]
     );
 
-    await expectTXTable(txEnvelope, "use", {
+    await expectTXTable(txEnvelope, "invalidate", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;

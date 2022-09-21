@@ -29,7 +29,7 @@ pub struct InitCtx<'info> {
     )]
     use_invalidator: Box<Account<'info, UseInvalidator>>,
 
-    #[account(mut)]
+    #[account(mut, constraint = issuer.key() == token_manager.issuer @ ErrorCode::InvalidIssuer)]
     issuer: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,

@@ -1,3 +1,5 @@
+use mpl_token_metadata::utils::assert_derivation;
+
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
@@ -44,6 +46,13 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         .checked_div(BASIS_POINTS_DIVISOR.into())
         .expect("Division error");
     let total_fees = maker_fee.checked_add(taker_fee).expect("Add error");
+
+    // assert metadata account derivation
+    assert_derivation(
+        &mpl_token_metadata::id(),
+        &ctx.accounts.mint_metadata.to_account_info(),
+        &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), ctx.accounts.mint.key().as_ref()],
+    )?;
 
     // royalties
     let mut fees_paid_out: u64 = 0;

@@ -26,7 +26,7 @@ describe("Update max expiration", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   const durationSeconds = 1;
-  const newMaxExpiration = new BN(Date.now() / 1000 + 5);
+  let newMaxExpiration = new BN(0); // setting below to not set on runtime
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
 
@@ -179,6 +179,7 @@ describe("Update max expiration", () => {
       rentalMint.publicKey
     );
 
+    newMaxExpiration = new BN(Date.now() / 1000 + 5);
     const transaction = new Transaction();
     await withUpdateMaxExpiration(
       transaction,
@@ -274,7 +275,7 @@ describe("Update max expiration", () => {
   });
 
   it("Invalidate", async () => {
-    await new Promise((r) => setTimeout(r, 5000));
+    await new Promise((r) => setTimeout(r, 7000));
 
     const provider = getProvider();
     const transaction = await invalidate(

@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-paid-claim-approver"
-version = "1.5.20"
+version = "1.5.21"
 description = "Cardinal paid claim approver"
 edition = "2021"
 homepage = "https://cardinal.so"

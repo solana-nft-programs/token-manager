@@ -412,7 +412,7 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "cardinal-paid-claim-approver"
-version = "1.5.20"
+version = "1.5.21"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -426,7 +426,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-payment-manager"
-version = "1.5.20"
+version = "1.5.21"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -439,7 +439,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-time-invalidator"
-version = "1.5.20"
+version = "1.5.21"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -453,7 +453,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-token-manager"
-version = "1.5.20"
+version = "1.5.21"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -466,7 +466,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-use-invalidator"
-version = "1.5.20"
+version = "1.5.21"
 dependencies = [
  "anchor-lang",
  "anchor-spl",

@@ -231,3 +231,32 @@ export const close = (
     },
   });
 };
+
+export const updateMaxExpiration = (
+  connection: Connection,
+  wallet: Wallet,
+  timeInvalidatorId: PublicKey,
+  tokenManagerId: PublicKey,
+  newMaxExpiration: BN
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    provider
+  );
+
+  return timeInvalidatorProgram.instruction.updateMaxExpiration(
+    {
+      newMaxExpiration: newMaxExpiration,
+    },
+    {
+      accounts: {
+        tokenManager: tokenManagerId,
+        timeInvalidator: timeInvalidatorId,
+        issuer: wallet.publicKey,
+      },
+    }
+  );
+};

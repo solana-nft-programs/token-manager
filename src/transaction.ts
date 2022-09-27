@@ -837,3 +837,33 @@ export const withResetExpiration = async (
 
   return transaction;
 };
+
+export const withUpdateMaxExpiration = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  newMaxExpiration: BN
+): Promise<Transaction> => {
+  const [timeInvalidatorId] =
+    await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
+  const [tokenManagerData] = await Promise.all([
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId),
+  ]);
+
+  if (tokenManagerData.parsed.state !== TokenManagerState.Invalidated) {
+    transaction.add(
+      timeInvalidator.instruction.updateMaxExpiration(
+        connection,
+        wallet,
+        timeInvalidatorId,
+        tokenManagerId,
+        newMaxExpiration
+      )
+    );
+  } else {
+    console.log("Token Manager not in state issued to update max expiration");
+  }
+
+  return transaction;
+};

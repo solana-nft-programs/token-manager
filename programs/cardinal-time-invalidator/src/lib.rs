@@ -22,6 +22,10 @@ pub mod cardinal_time_invalidator {
         reset_expiration::handler(ctx)
     }
 
+    pub fn update_max_expiration(ctx: Context<UpdateMaxExpirationCtx>, ix: UpdateMaxExpirationIx) -> Result<()> {
+        update_max_expiration::handler(ctx, ix)
+    }
+
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
         invalidate::handler(ctx)
     }

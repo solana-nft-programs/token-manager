@@ -113,6 +113,34 @@ export type CardinalTimeInvalidator = {
       args: [];
     },
     {
+      name: "updateMaxExpiration";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "timeInvalidator";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "issuer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdateMaxExpirationIx";
+          };
+        }
+      ];
+    },
+    {
       name: "invalidate";
       accounts: [
         {
@@ -310,6 +338,18 @@ export type CardinalTimeInvalidator = {
           }
         ];
       };
+    },
+    {
+      name: "UpdateMaxExpirationIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "newMaxExpiration";
+            type: "i64";
+          }
+        ];
+      };
     }
   ];
   errors: [
@@ -402,6 +442,11 @@ export type CardinalTimeInvalidator = {
       code: 6017;
       name: "InvalidMint";
       msg: "Invalid mint";
+    },
+    {
+      code: 6018;
+      name: "InvalidNewMaxExpiration";
+      msg: "Invalid new max expiration";
     }
   ];
 };
@@ -519,6 +564,34 @@ export const IDL: CardinalTimeInvalidator = {
         },
       ],
       args: [],
+    },
+    {
+      name: "updateMaxExpiration",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "timeInvalidator",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "issuer",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdateMaxExpirationIx",
+          },
+        },
+      ],
     },
     {
       name: "invalidate",
@@ -719,6 +792,18 @@ export const IDL: CardinalTimeInvalidator = {
         ],
       },
     },
+    {
+      name: "UpdateMaxExpirationIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "newMaxExpiration",
+            type: "i64",
+          },
+        ],
+      },
+    },
   ],
   errors: [
     {
@@ -810,6 +895,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6017,
       name: "InvalidMint",
       msg: "Invalid mint",
+    },
+    {
+      code: 6018,
+      name: "InvalidNewMaxExpiration",
+      msg: "Invalid new max expiration",
     },
   ],
 };

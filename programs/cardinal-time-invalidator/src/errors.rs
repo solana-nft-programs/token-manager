@@ -38,4 +38,6 @@ pub enum ErrorCode {
     InvalidPaymentManager,
     #[msg("Invalid mint")]
     InvalidMint,
+    #[msg("Invalid new max expiration")]
+    InvalidNewMaxExpiration,
 }

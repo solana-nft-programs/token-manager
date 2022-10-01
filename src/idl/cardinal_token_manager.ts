@@ -504,6 +504,22 @@ export type CardinalTokenManager = {
       args: [];
     },
     {
+      name: "disableReissue";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "issuer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "createMintManager";
       accounts: [
         {
@@ -1478,6 +1494,22 @@ export const IDL: CardinalTokenManager = {
           name: "rent",
           isMut: false,
           isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "disableReissue",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "issuer",
+          isMut: true,
+          isSigner: true,
         },
       ],
       args: [],

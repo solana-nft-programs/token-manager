@@ -220,6 +220,25 @@ export const unissue = (
   });
 };
 
+export const disableReissue = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+  return tokenManagerProgram.instruction.disableReissue({
+    accounts: {
+      tokenManager: tokenManagerId,
+      issuer: wallet.publicKey,
+    },
+  });
+};
+
 export const claim = async (
   connection: Connection,
   wallet: Wallet,

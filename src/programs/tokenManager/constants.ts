@@ -50,6 +50,7 @@ export enum InvalidationType {
   Invalidate = 2,
   Release = 3,
   Reissue = 4,
+  Vest = 5,
 }
 
 export enum TokenManagerState {
@@ -58,10 +59,6 @@ export enum TokenManagerState {
   Claimed = 2,
   Invalidated = 3,
 }
-
-export const PAYMENT_MANAGER_KEY = new PublicKey(
-  "crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr"
-);
 
 export const CRANK_KEY = new PublicKey(
   "crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr"

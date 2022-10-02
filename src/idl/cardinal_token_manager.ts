@@ -504,6 +504,27 @@ export type CardinalTokenManager = {
       args: [];
     },
     {
+      name: "updateInvalidationType";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "issuer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "invalidationType";
+          type: "u8";
+        }
+      ];
+    },
+    {
       name: "createMintManager";
       accounts: [
         {
@@ -973,6 +994,11 @@ export type CardinalTokenManager = {
       code: 6028;
       name: "AccountDiscriminatorMismatch";
       msg: "Invalid account discriminator";
+    },
+    {
+      code: 6029;
+      name: "InvalidationTypeUpdateDisallowed";
+      msg: "Invalidation type update only allowed between return and reissue";
     }
   ];
 };
@@ -1483,6 +1509,27 @@ export const IDL: CardinalTokenManager = {
       args: [],
     },
     {
+      name: "updateInvalidationType",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "issuer",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "invalidationType",
+          type: "u8",
+        },
+      ],
+    },
+    {
       name: "createMintManager",
       accounts: [
         {
@@ -1952,6 +1999,11 @@ export const IDL: CardinalTokenManager = {
       code: 6028,
       name: "AccountDiscriminatorMismatch",
       msg: "Invalid account discriminator",
+    },
+    {
+      code: 6029,
+      name: "InvalidationTypeUpdateDisallowed",
+      msg: "Invalidation type update only allowed between return and reissue",
     },
   ],
 };

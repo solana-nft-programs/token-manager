@@ -14,6 +14,7 @@ pub mod set_transfer_authority;
 pub mod transfer;
 pub mod uninit;
 pub mod unissue;
+pub mod update_invalidation_type;
 
 pub use add_invalidator::*;
 pub use claim::*;
@@ -31,3 +32,4 @@ pub use set_transfer_authority::*;
 pub use transfer::*;
 pub use uninit::*;
 pub use unissue::*;
+pub use update_invalidation_type::*;

@@ -36,6 +36,8 @@ pub enum InvalidationType {
     Release = 3,
     /// Upon invalidation the token manager will be reset back to issued state
     Reissue = 4,
+    /// Vest for vesting tokens that release to the claim_approver automatically if not yet claimed
+    Vest = 5,
 }
 
 pub const INVALIDATION_REWARD_LAMPORTS: u64 = 5_000_000;

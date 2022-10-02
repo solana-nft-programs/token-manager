@@ -60,4 +60,6 @@ pub enum ErrorCode {
     InvalidMintSupply,
     #[msg("Invalid account discriminator")]
     AccountDiscriminatorMismatch,
+    #[msg("Invalidation type update only allowed between return and reissue")]
+    InvalidationTypeUpdateDisallowed,
 }

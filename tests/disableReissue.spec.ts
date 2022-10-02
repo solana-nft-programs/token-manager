@@ -21,7 +21,7 @@ import {
   InvalidationType,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { disableReissue } from "../src/programs/tokenManager/instruction";
+import { updateInvalidationType } from "../src/programs/tokenManager/instruction";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -316,7 +316,12 @@ describe("Create rental reissue", () => {
       rentalMint.publicKey
     );
     const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
-      disableReissue(provider.connection, provider.wallet, tokenManagerId),
+      updateInvalidationType(
+        provider.connection,
+        provider.wallet,
+        tokenManagerId,
+        InvalidationType.Return
+      ),
     ]);
 
     await expectTXTable(txEnvelope, "disable reissue", {

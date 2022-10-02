@@ -220,10 +220,11 @@ export const unissue = (
   });
 };
 
-export const disableReissue = (
+export const updateInvalidationType = (
   connection: Connection,
   wallet: Wallet,
-  tokenManagerId: PublicKey
+  tokenManagerId: PublicKey,
+  invalidationType: InvalidationType
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -231,12 +232,15 @@ export const disableReissue = (
     TOKEN_MANAGER_ADDRESS,
     provider
   );
-  return tokenManagerProgram.instruction.disableReissue({
-    accounts: {
-      tokenManager: tokenManagerId,
-      issuer: wallet.publicKey,
-    },
-  });
+  return tokenManagerProgram.instruction.updateInvalidationType(
+    invalidationType,
+    {
+      accounts: {
+        tokenManager: tokenManagerId,
+        issuer: wallet.publicKey,
+      },
+    }
+  );
 };
 
 export const claim = async (

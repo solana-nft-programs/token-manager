@@ -67,8 +67,8 @@ pub mod cardinal_token_manager {
         invalidate::handler(ctx)
     }
 
-    pub fn disable_reissue(ctx: Context<DisableReissueCtx>) -> Result<()> {
-        disable_reissue::handler(ctx)
+    pub fn update_invalidation_type(ctx: Context<UpdateInvalidationTypeCtx>, invalidation_type: u8) -> Result<()> {
+        update_invalidation_type::handler(ctx, invalidation_type)
     }
 
     pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>) -> Result<()> {

@@ -11,6 +11,9 @@ pub struct UpdateInvalidationTypeCtx<'info> {
     issuer: Signer<'info>,
 }
 
+/**
+ * only allows updates from return => reissue and back
+ */
 pub fn handler(ctx: Context<UpdateInvalidationTypeCtx>, invalidation_type: u8) -> Result<()> {
     let token_manager = &mut ctx.accounts.token_manager;
     if token_manager.invalidation_type != InvalidationType::Return as u8 && token_manager.invalidation_type != InvalidationType::Reissue as u8 {

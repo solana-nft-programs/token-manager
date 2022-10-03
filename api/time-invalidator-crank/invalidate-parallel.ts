@@ -18,12 +18,13 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { string } from "superstruct";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 import { connectionFor, secondaryConnectionFor } from "../common/connection";
 
 const BATCH_SIZE = 1;
-const DEFAULT_MAX_CHUNKS = 250;
+const DEFAULT_MAX_CHUNKS = 100;
 
 // crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr
 const wallet = Keypair.fromSecretKey(

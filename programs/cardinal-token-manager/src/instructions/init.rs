@@ -72,6 +72,11 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
         return Err(error!(ErrorCode::InvalidInvalidationType));
     }
 
+    // Unamanged must use invalidate
+    if ix.kind == TokenManagerKind::Unmanaged as u8 && ix.invalidation_type != InvalidationType::Invalidate as u8 {
+        return Err(error!(ErrorCode::InvalidInvalidationType));
+    }
+
     let mint_counter = &mut ctx.accounts.mint_counter;
     mint_counter.bump = *ctx.bumps.get("mint_counter").unwrap();
     mint_counter.count = mint_counter.count.checked_add(1).expect("Addition error");

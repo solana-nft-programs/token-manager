@@ -84,8 +84,10 @@
     "*.{js,json,jsx,html,css,md}": "prettier --write"
   },
   "dependencies": {
+    "@cardinal/common": "^2.0.12",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
     "@solana/buffer-layout": "^4.0.0",
+    "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-token": "^0.1.8",
     "borsh": "^0.7.0",
     "bs58": "^4.0.1",

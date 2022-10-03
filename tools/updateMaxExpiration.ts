@@ -1,4 +1,3 @@
-eimport { getTokenManagersForIssuer } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/accounts";
 import { utils } from "@project-serum/anchor";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
@@ -7,6 +6,7 @@ import { AccountData, withUpdateMaxExpiration } from "../src";
 import { TimeInvalidatorData } from "../src/programs/timeInvalidator";
 import { getTimeInvalidator } from "../src/programs/timeInvalidator/accounts";
 import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
+import { getTokenManagersForIssuer } from "../src/programs/tokenManager/accounts";
 
 import { connectionFor } from "./connection";
 import { chunkArray, executeTransaction } from "./utils";

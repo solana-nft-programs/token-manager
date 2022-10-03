@@ -67,6 +67,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
         && ix.invalidation_type != InvalidationType::Invalidate as u8
         && ix.invalidation_type != InvalidationType::Release as u8
         && ix.invalidation_type != InvalidationType::Reissue as u8
+        && ix.invalidation_type != InvalidationType::Vest as u8
     {
         return Err(error!(ErrorCode::InvalidInvalidationType));
     }

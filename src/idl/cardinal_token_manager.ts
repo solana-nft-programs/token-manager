@@ -844,6 +844,9 @@ export type CardinalTokenManager = {
           },
           {
             name: "Reissue";
+          },
+          {
+            name: "Vest";
           }
         ];
       };
@@ -999,6 +1002,11 @@ export type CardinalTokenManager = {
       code: 6029;
       name: "InvalidationTypeUpdateDisallowed";
       msg: "Invalidation type update only allowed between return and reissue";
+    },
+    {
+      code: 6030;
+      name: "ClaimApproverMustBeSet";
+      msg: "Claim approver must be set to use vesting invalidation type";
     }
   ];
 };
@@ -1850,6 +1858,9 @@ export const IDL: CardinalTokenManager = {
           {
             name: "Reissue",
           },
+          {
+            name: "Vest",
+          },
         ],
       },
     },
@@ -2004,6 +2015,11 @@ export const IDL: CardinalTokenManager = {
       code: 6029,
       name: "InvalidationTypeUpdateDisallowed",
       msg: "Invalidation type update only allowed between return and reissue",
+    },
+    {
+      code: 6030,
+      name: "ClaimApproverMustBeSet",
+      msg: "Claim approver must be set to use vesting invalidation type",
     },
   ],
 };

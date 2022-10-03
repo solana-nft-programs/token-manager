@@ -85,7 +85,7 @@
   },
   "dependencies": {
     "@cardinal/common": "^2.0.12",
-    "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
+    "@metaplex-foundation/mpl-token-metadata": "^2.3.2",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-token": "^0.1.8",

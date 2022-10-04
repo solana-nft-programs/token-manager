@@ -38,10 +38,11 @@ pub fn handler(ctx: Context<UpdateMaxExpirationCtx>, ix: UpdateMaxExpirationIx) 
             }
         }
 
-        if time_invalidator.max_expiration.is_none() && time_invalidator.duration_seconds.is_some() {
-            if ix.new_max_expiration < token_manager.state_changed_at.checked_add(time_invalidator.duration_seconds.unwrap()).expect("Add error") {
-                return Err(error!(ErrorCode::InvalidNewMaxExpiration));
-            }
+        if time_invalidator.max_expiration.is_none()
+            && time_invalidator.duration_seconds.is_some()
+            && ix.new_max_expiration < token_manager.state_changed_at.checked_add(time_invalidator.duration_seconds.unwrap()).expect("Add error")
+        {
+            return Err(error!(ErrorCode::InvalidNewMaxExpiration));
         }
     }
     time_invalidator.max_expiration = Some(ix.new_max_expiration);

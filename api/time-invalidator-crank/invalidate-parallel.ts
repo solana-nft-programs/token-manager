@@ -24,7 +24,9 @@ dotenv.config();
 import { connectionFor, secondaryConnectionFor } from "../common/connection";
 
 const BATCH_SIZE = 1;
-const DEFAULT_MAX_CHUNKS = 100;
+const DEFAULT_MAX_CHUNKS = 50;
+const MAX_PARALLEL_BATCH_LOOKUP = 2000;
+const BATCH_LOOKUP_WAIT_TIME_SECONDS = 1000;
 
 // crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr
 const wallet = Keypair.fromSecretKey(
@@ -65,14 +67,25 @@ const main = async (cluster: string) => {
   const allTimeInvalidators =
     await programs.timeInvalidator.accounts.getAllTimeInvalidators(connection);
 
-  const tokenManagerIds = allTimeInvalidators.map(
-    (timeInvalidator) => timeInvalidator.parsed.tokenManager
+  const tokenManagerIdChunks = chunkArray(
+    allTimeInvalidators.map(
+      (timeInvalidator) => timeInvalidator.parsed.tokenManager
+    ),
+    MAX_PARALLEL_BATCH_LOOKUP
   );
 
-  const tokenManagers = await programs.tokenManager.accounts.getTokenManagers(
-    connection,
-    tokenManagerIds
-  );
+  const tokenManagers: AccountData<TokenManagerData>[] = [];
+  for (let i = 0; i < tokenManagerIdChunks.length; i++) {
+    console.log(
+      `[${i}/${tokenManagerIdChunks.length - 1} batch token manager lookup]`
+    );
+    const singleBatch = await programs.tokenManager.accounts.getTokenManagers(
+      connection,
+      tokenManagerIdChunks[i]
+    );
+    tokenManagers.push(...singleBatch);
+    await new Promise((r) => setTimeout(r, BATCH_LOOKUP_WAIT_TIME_SECONDS));
+  }
   const tokenManagersById = tokenManagers.reduce(
     (acc, tm) => ({ ...acc, [tm.pubkey?.toString()]: tm }),
     {} as { [s: string]: AccountData<TokenManagerData> }

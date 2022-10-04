@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -10,7 +9,13 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, invalidate, rentals, tryGetAccount } from "../src";
+import {
+  claimToken,
+  findAta,
+  invalidate,
+  issueToken,
+  tryGetAccount,
+} from "../src";
 import { tokenManager } from "../src/programs";
 import {
   InvalidationType,
@@ -19,7 +24,7 @@ import {
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Time invalidation release", () => {
+describe("Time invalidation vest claimed", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
@@ -51,15 +56,16 @@ describe("Time invalidation release", () => {
 
   it("Create rental", async () => {
     const provider = getProvider();
-    const [transaction, tokenManagerId] = await rentals.createRental(
+    const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       provider.wallet,
       {
         timeInvalidation: { maxExpiration: Date.now() / 1000 + 1 },
         mint: rentalMint.publicKey,
         issuerTokenAccountId: issuerTokenAccountId,
-        amount: new BN(1),
-        invalidationType: InvalidationType.Release,
+        permissionedClaimApprover: recipient.publicKey,
+        visibility: "permissioned",
+        invalidationType: InvalidationType.Vest,
       }
     );
     const txEnvelope = new TransactionEnvelope(
@@ -101,7 +107,7 @@ describe("Time invalidation release", () => {
       rentalMint.publicKey
     );
 
-    const transaction = await rentals.claimRental(
+    const transaction = await claimToken(
       provider.connection,
       new SignerWallet(recipient),
       tokenManagerId

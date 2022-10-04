@@ -83,6 +83,11 @@ pub mod cardinal_token_manager {
     }
 
     #[allow(clippy::result_large_err)]
+    pub fn update_invalidation_type(ctx: Context<UpdateInvalidationTypeCtx>, invalidation_type: u8) -> Result<()> {
+        update_invalidation_type::handler(ctx, invalidation_type)
+    }
+
+    #[allow(clippy::result_large_err)]
     pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
         create_mint_manager::handler(ctx)
     }

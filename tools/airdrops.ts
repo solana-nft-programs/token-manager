@@ -15,16 +15,21 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { connectionFor } from "./connection";
-
+import * as dotenv from "dotenv";
 import { createMintTransaction } from "./utils";
+
+dotenv.config();
 
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
 );
 
+const METADATA_URI =
+  "https://arweave.net/JYP2QIEmcMC_sY22kD9xlJE7jWR9h8gGY8B_zHqnPQI";
+
 export const airdropMasterEdition = async (
-  metadataUrl: string,
-  num: number,
+  metadataUrl: string = METADATA_URI,
+  num: number = 1,
   cluster = "devnet",
   startNum = 0
 ) => {
@@ -41,7 +46,7 @@ export const airdropMasterEdition = async (
     try {
       const masterEditionTransaction = new Transaction();
       const masterEditionMint = Keypair.generate();
-      const [masterEditionTokenAccountId] = await createMintTransaction(
+      await createMintTransaction(
         masterEditionTransaction,
         connection,
         new SignerWallet(wallet),
@@ -58,8 +63,8 @@ export const airdropMasterEdition = async (
         {
           metadata: masterEditionMetadataId,
           metadataData: new DataV2({
-            name: `DeGod Event Ticket #${counter}`,
-            symbol: "DGOD",
+            name: `Test #${counter}`,
+            symbol: "TEST",
             uri: metadataUrl,
             sellerFeeBasisPoints: 0,
             creators: [
@@ -108,11 +113,15 @@ export const airdropMasterEdition = async (
         await connection.getRecentBlockhash("max")
       ).blockhash;
       transaction.sign(wallet, masterEditionMint);
-      await sendAndConfirmRawTransaction(connection, transaction.serialize(), {
-        commitment: "confirmed",
-      });
+      const txid = await sendAndConfirmRawTransaction(
+        connection,
+        transaction.serialize(),
+        {
+          commitment: "confirmed",
+        }
+      );
       console.log(
-        `Master edition data created mintId=(${masterEditionMint.publicKey.toString()}) masterEditionId=(${masterEditionId.toString()}) metadataId=(${masterEditionMetadataId.toString()}) tokenAccount=(${masterEditionTokenAccountId.toString()})`
+        `[success] https://explorer.solana.com/tx/${txid}?cluster=${cluster}`
       );
       allMintIds.push(masterEditionMint.publicKey);
       counter += 1;
@@ -124,12 +133,7 @@ export const airdropMasterEdition = async (
   return allMintIds;
 };
 
-airdropMasterEdition(
-  "https://nft.cardinal.so/metadata/?event=degods-solympus",
-  2,
-  "mainnet",
-  10
-)
+airdropMasterEdition()
   .then((allMintIds) => {
     console.log(allMintIds.map((pk) => pk.toString()));
   })

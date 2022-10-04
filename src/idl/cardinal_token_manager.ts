@@ -1,5 +1,5 @@
 export type CardinalTokenManager = {
-  version: "1.5.21";
+  version: "1.6.0";
   name: "cardinal_token_manager";
   instructions: [
     {
@@ -504,6 +504,27 @@ export type CardinalTokenManager = {
       args: [];
     },
     {
+      name: "updateInvalidationType";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "issuer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "invalidationType";
+          type: "u8";
+        }
+      ];
+    },
+    {
       name: "createMintManager";
       accounts: [
         {
@@ -823,6 +844,9 @@ export type CardinalTokenManager = {
           },
           {
             name: "Reissue";
+          },
+          {
+            name: "Vest";
           }
         ];
       };
@@ -973,12 +997,22 @@ export type CardinalTokenManager = {
       code: 6028;
       name: "AccountDiscriminatorMismatch";
       msg: "Invalid account discriminator";
+    },
+    {
+      code: 6029;
+      name: "InvalidationTypeUpdateDisallowed";
+      msg: "Invalidation type update only allowed between return and reissue";
+    },
+    {
+      code: 6030;
+      name: "ClaimApproverMustBeSet";
+      msg: "Claim approver must be set to use vesting invalidation type";
     }
   ];
 };
 
 export const IDL: CardinalTokenManager = {
-  version: "1.5.21",
+  version: "1.6.0",
   name: "cardinal_token_manager",
   instructions: [
     {
@@ -1483,6 +1517,27 @@ export const IDL: CardinalTokenManager = {
       args: [],
     },
     {
+      name: "updateInvalidationType",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "issuer",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "invalidationType",
+          type: "u8",
+        },
+      ],
+    },
+    {
       name: "createMintManager",
       accounts: [
         {
@@ -1803,6 +1858,9 @@ export const IDL: CardinalTokenManager = {
           {
             name: "Reissue",
           },
+          {
+            name: "Vest",
+          },
         ],
       },
     },
@@ -1952,6 +2010,16 @@ export const IDL: CardinalTokenManager = {
       code: 6028,
       name: "AccountDiscriminatorMismatch",
       msg: "Invalid account discriminator",
+    },
+    {
+      code: 6029,
+      name: "InvalidationTypeUpdateDisallowed",
+      msg: "Invalidation type update only allowed between return and reissue",
+    },
+    {
+      code: 6030,
+      name: "ClaimApproverMustBeSet",
+      msg: "Claim approver must be set to use vesting invalidation type",
     },
   ],
 };

@@ -185,9 +185,30 @@ export const withRemainingAccountsForReturn = async (
   tokenManagerData: AccountData<TokenManagerData>,
   allowOwnerOffCurve = true
 ): Promise<AccountMeta[]> => {
-  const { issuer, mint, invalidationType, receiptMint, state } =
+  const { issuer, mint, claimApprover, invalidationType, receiptMint, state } =
     tokenManagerData.parsed;
   if (
+    invalidationType === InvalidationType.Vest &&
+    state === TokenManagerState.Issued
+  ) {
+    if (!claimApprover) throw "Claim approver must be set";
+    const claimApproverTokenAccountId =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        mint,
+        claimApprover,
+        wallet.publicKey,
+        allowOwnerOffCurve
+      );
+    return [
+      {
+        pubkey: claimApproverTokenAccountId,
+        isSigner: false,
+        isWritable: true,
+      },
+    ];
+  } else if (
     invalidationType === InvalidationType.Return ||
     state === TokenManagerState.Issued
   ) {

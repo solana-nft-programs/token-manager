@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-use-invalidator"
-version = "1.5.21"
+version = "1.6.0"
 description = "Cardinal usage invalidator and counter"
 edition = "2021"
 homepage = "https://cardinal.so"

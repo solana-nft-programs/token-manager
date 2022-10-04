@@ -98,6 +98,61 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     }
 
     match token_manager.invalidation_type {
+        t if t == InvalidationType::Vest as u8 => {
+            if token_manager.state == TokenManagerState::Issued as u8 {
+                // find claim_approver token account
+                let claim_approver_token_account_info = next_account_info(remaining_accs)?;
+                let claim_approver_token_account = Account::<TokenAccount>::try_from(claim_approver_token_account_info)?;
+                if claim_approver_token_account.owner != token_manager.claim_approver.expect("No claim approver found") {
+                    return Err(error!(ErrorCode::InvalidReceiptMintOwner));
+                }
+
+                // transfer to claim_approver
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.token_manager_token_account.to_account_info(),
+                    to: claim_approver_token_account.to_account_info(),
+                    authority: token_manager.to_account_info(),
+                };
+                let cpi_program = ctx.accounts.token_program.to_account_info();
+                let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+                token::transfer(cpi_context, token_manager.amount)?;
+            } else {
+                // transfer to token_manager to clear the delegate
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.recipient_token_account.to_account_info(),
+                    to: ctx.accounts.token_manager_token_account.to_account_info(),
+                    authority: token_manager.to_account_info(),
+                };
+                let cpi_program = ctx.accounts.token_program.to_account_info();
+                let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+                token::transfer(cpi_context, token_manager.amount)?;
+
+                // transfer back to receipient unlocked
+                let cpi_accounts = Transfer {
+                    from: ctx.accounts.token_manager_token_account.to_account_info(),
+                    to: ctx.accounts.recipient_token_account.to_account_info(),
+                    authority: token_manager.to_account_info(),
+                };
+                let cpi_program = ctx.accounts.token_program.to_account_info();
+                let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+                token::transfer(cpi_context, token_manager.amount)?;
+            }
+
+            // close token_manager_token_account
+            let cpi_accounts = CloseAccount {
+                account: ctx.accounts.token_manager_token_account.to_account_info(),
+                destination: ctx.accounts.collector.to_account_info(),
+                authority: token_manager.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+            token::close_account(cpi_context)?;
+
+            // close token_manager
+            token_manager.state = TokenManagerState::Invalidated as u8;
+            token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+            token_manager.close(ctx.accounts.collector.to_account_info())?;
+        }
         t if t == InvalidationType::Return as u8 || token_manager.state == TokenManagerState::Issued as u8 => {
             // find receipt holder
             let return_token_account_info = next_account_info(remaining_accs)?;

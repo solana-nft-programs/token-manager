@@ -60,4 +60,8 @@ pub enum ErrorCode {
     InvalidMintSupply,
     #[msg("Invalid account discriminator")]
     AccountDiscriminatorMismatch,
+    #[msg("Invalidation type update only allowed between return and reissue")]
+    InvalidationTypeUpdateDisallowed,
+    #[msg("Claim approver must be set to use vesting invalidation type")]
+    ClaimApproverMustBeSet,
 }

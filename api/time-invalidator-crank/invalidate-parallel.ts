@@ -24,7 +24,7 @@ dotenv.config();
 import { connectionFor, secondaryConnectionFor } from "../common/connection";
 
 const BATCH_SIZE = 1;
-const DEFAULT_MAX_CHUNKS = 50;
+const DEFAULT_MAX_CHUNKS = 100;
 const MAX_PARALLEL_BATCH_LOOKUP = 2000;
 const BATCH_LOOKUP_WAIT_TIME_SECONDS = 2000;
 

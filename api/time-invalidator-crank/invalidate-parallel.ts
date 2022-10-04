@@ -26,7 +26,7 @@ import { connectionFor, secondaryConnectionFor } from "../common/connection";
 const BATCH_SIZE = 1;
 const DEFAULT_MAX_CHUNKS = 50;
 const MAX_PARALLEL_BATCH_LOOKUP = 2000;
-const BATCH_LOOKUP_WAIT_TIME_SECONDS = 1000;
+const BATCH_LOOKUP_WAIT_TIME_SECONDS = 2000;
 
 // crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr
 const wallet = Keypair.fromSecretKey(
@@ -54,6 +54,10 @@ const tryGetSolanaClock = async (
 };
 
 const main = async (cluster: string) => {
+  console.log(
+    `\n\n--------------- ${wallet.publicKey.toString()} invalidating [${cluster}] ---------------`
+  );
+
   const connection = connectionFor(cluster);
   const startTime = Date.now() / 1000;
   let solanaClock = await tryGetSolanaClock(connection);
@@ -74,14 +78,19 @@ const main = async (cluster: string) => {
     MAX_PARALLEL_BATCH_LOOKUP
   );
 
+  console.log(`> Looking up ${allTimeInvalidators.length} token managers`);
+
   const tokenManagers: AccountData<TokenManagerData>[] = [];
   for (let i = 0; i < tokenManagerIdChunks.length; i++) {
+    const tokenManagerIds = tokenManagerIdChunks[i];
     console.log(
-      `[${i}/${tokenManagerIdChunks.length - 1} batch token manager lookup]`
+      `>> [${i}/${
+        tokenManagerIdChunks.length - 1
+      }] batch token manager lookup [${tokenManagerIds.length}]`
     );
     const singleBatch = await programs.tokenManager.accounts.getTokenManagers(
       connection,
-      tokenManagerIdChunks[i]
+      tokenManagerIds
     );
     tokenManagers.push(...singleBatch);
     await new Promise((r) => setTimeout(r, BATCH_LOOKUP_WAIT_TIME_SECONDS));
@@ -106,14 +115,10 @@ const main = async (cluster: string) => {
     .sort(() => 0.5 - Math.random());
 
   console.log(
-    `\n\n--------------- ${wallet.publicKey.toString()} ${
-      allTimeInvalidators.length
-    } total time invalidators found on ${cluster} ---------------`
+    `\n> ${allTimeInvalidators.length} total time invalidators [${cluster}]`
   );
   console.log(
-    `--------------- ${wallet.publicKey.toString()} filtered to ${
-      filteredTimeInvalidators.length
-    } time invalidators found on ${cluster} ---------------`
+    `> filtered to ${filteredTimeInvalidators.length} time invalidators [${cluster}]`
   );
 
   const chunks = chunkArray(filteredTimeInvalidators, BATCH_SIZE).slice(
@@ -124,9 +129,9 @@ const main = async (cluster: string) => {
       : DEFAULT_MAX_CHUNKS
   );
   console.log(
-    `Chunks: ${chunks
+    `Chunks: [${chunks
       .map((i) => i.map((j) => j.pubkey.toString()).join(","))
-      .join(":")}`
+      .join(":")}]`
   );
 
   await Promise.all(

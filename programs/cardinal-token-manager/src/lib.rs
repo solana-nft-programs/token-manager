@@ -12,66 +12,82 @@ declare_id!("mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM");
 pub mod cardinal_token_manager {
     use super::*;
 
+    #[allow(clippy::result_large_err)]
     pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
         init::handler(ctx, ix)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn uninit(ctx: Context<UninitCtx>) -> Result<()> {
         uninit::handler(ctx)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn init_mint_counter(ctx: Context<InitMintCounterCtx>, mint: Pubkey) -> Result<()> {
         init_mint_counter::handler(ctx, mint)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn set_claim_approver(ctx: Context<SetClaimApproverCtx>, claim_approver: Pubkey) -> Result<()> {
         set_claim_approver::handler(ctx, claim_approver)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn set_transfer_authority(ctx: Context<SetTransferAuthorityCtx>, transfer_authority: Pubkey) -> Result<()> {
         set_transfer_authority::handler(ctx, transfer_authority)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn add_invalidator(ctx: Context<AddInvalidatorCtx>, invalidator: Pubkey) -> Result<()> {
         add_invalidator::handler(ctx, invalidator)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn create_claim_receipt(ctx: Context<CreateClaimReceiptCtx>, target: Pubkey) -> Result<()> {
         create_claim_receipt::handler(ctx, target)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
         create_transfer_receipt::handler(ctx, target)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
         claim_receipt_mint::handler(ctx, name)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn issue(ctx: Context<IssueCtx>) -> Result<()> {
         issue::handler(ctx)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn unissue(ctx: Context<UnissueCtx>) -> Result<()> {
         unissue::handler(ctx)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn claim<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimCtx<'info>>) -> Result<()> {
         claim::handler(ctx)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn transfer<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, TransferCtx<'info>>) -> Result<()> {
         transfer::handler(ctx)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
         invalidate::handler(ctx)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn create_mint_manager(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
         create_mint_manager::handler(ctx)
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn close_mint_manager(ctx: Context<CloseMintManagerCtx>) -> Result<()> {
         close_mint_manager::handler(ctx)
     }

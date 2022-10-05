@@ -95,9 +95,17 @@ const main = async (cluster: string) => {
     tokenManagers.push(...singleBatch);
     await new Promise((r) => setTimeout(r, BATCH_LOOKUP_WAIT_TIME_SECONDS));
   }
-  const tokenManagersById = tokenManagers.reduce(
-    (acc, tm) => ({ ...acc, [tm.pubkey?.toString()]: tm }),
-    {} as { [s: string]: AccountData<TokenManagerData> }
+
+  console.log(`\n> Filtering and sorting`);
+  console.log(
+    `>> Collecting ${tokenManagers.length} total token managers [${cluster}]`
+  );
+  const tokenManagersById = tokenManagers.reduce((acc, tm) => {
+    acc[tm.pubkey?.toString()] = tm;
+    return acc;
+  }, {});
+  console.log(
+    `>> filtering ${allTimeInvalidators.length} total time invalidators [${cluster}]`
   );
   const filteredTimeInvalidators = allTimeInvalidators
     .filter((timeInvalidatorData) => {
@@ -113,12 +121,8 @@ const main = async (cluster: string) => {
       );
     })
     .sort(() => 0.5 - Math.random());
-
   console.log(
-    `\n> ${allTimeInvalidators.length} total time invalidators [${cluster}]`
-  );
-  console.log(
-    `> filtered to ${filteredTimeInvalidators.length} time invalidators [${cluster}]`
+    `>> filtered to ${filteredTimeInvalidators.length} time invalidators [${cluster}]`
   );
 
   const chunks = chunkArray(filteredTimeInvalidators, BATCH_SIZE).slice(
@@ -128,12 +132,12 @@ const main = async (cluster: string) => {
       ? parseInt(process.env.CRANK_PARALLEL_MAX_CHUNKS)
       : DEFAULT_MAX_CHUNKS
   );
+  console.log(`\n> Chunks`);
   console.log(
-    `Chunks: [${chunks
+    `>> Executing chunks [${chunks
       .map((i) => i.map((j) => j.pubkey.toString()).join(","))
       .join(":")}]`
   );
-
   await Promise.all(
     chunks.map(async (chunk, chunkNum) => {
       const transaction = new Transaction();

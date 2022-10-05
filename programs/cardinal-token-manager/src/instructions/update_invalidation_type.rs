@@ -25,9 +25,7 @@ pub fn handler(ctx: Context<UpdateInvalidationTypeCtx>, invalidation_type: u8) -
             return Err(error!(ErrorCode::InvalidationTypeUpdateDisallowed));
         }
         token_manager.invalidation_type = InvalidationType::Reissue as u8;
-    }
-
-    if token_manager.invalidation_type == InvalidationType::Reissue as u8 {
+    } else if token_manager.invalidation_type == InvalidationType::Reissue as u8 {
         if invalidation_type != InvalidationType::Return as u8 {
             return Err(error!(ErrorCode::InvalidationTypeUpdateDisallowed));
         }

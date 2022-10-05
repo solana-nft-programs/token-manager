@@ -6,11 +6,6 @@ module.exports.invalidate = async (event: any) => {
   console.log(
     `--------------- Expiring time-invalidators on ${new Date().toLocaleString()}  ---------------`
   );
-  console.log(
-    process.env,
-    process.env.CRANK_DISABLED,
-    process.env.CRANK_PARALLEL_DISABLED
-  );
   if (process.env.CRANK_DISABLED === "true") {
     console.log("Crank disabled");
   } else if (process.env.CRANK_PARALLEL_DISABLED === "true") {

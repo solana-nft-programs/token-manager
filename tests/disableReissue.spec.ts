@@ -340,6 +340,70 @@ describe("Create rental reissue", () => {
     );
   });
 
+  it("Enable reissue", async () => {
+    const provider = getProvider();
+
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+    const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
+      updateInvalidationType(
+        provider.connection,
+        provider.wallet,
+        tokenManagerId,
+        InvalidationType.Reissue
+      ),
+    ]);
+
+    await expectTXTable(txEnvelope, "enable reissue", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const tokenManagerData = await tokenManager.accounts.getTokenManager(
+      provider.connection,
+      tokenManagerId
+    );
+    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.invalidationType).to.eq(
+      InvalidationType.Reissue
+    );
+  });
+
+  it("Disable reissue again", async () => {
+    const provider = getProvider();
+
+    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+      provider.connection,
+      rentalMint.publicKey
+    );
+    const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
+      updateInvalidationType(
+        provider.connection,
+        provider.wallet,
+        tokenManagerId,
+        InvalidationType.Return
+      ),
+    ]);
+
+    await expectTXTable(txEnvelope, "Disable reissue again", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const tokenManagerData = await tokenManager.accounts.getTokenManager(
+      provider.connection,
+      tokenManagerId
+    );
+    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.invalidationType).to.eq(
+      InvalidationType.Return
+    );
+  });
+
   it("Invalidate again", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 

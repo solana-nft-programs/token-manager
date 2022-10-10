@@ -29,7 +29,7 @@ pub struct AcceptTransferCtx<'info> {
     #[account(mut, constraint = recipient.key() == transfer.target @ ErrorCode::InvalidRecipient)]
     recipient: Signer<'info>,
 
-    #[account(mut, constraint = holder_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidHolderMintTokenAccount)]
+    #[account(mut, constraint = holder_token_account.owner == holder.key() && holder_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidHolderMintTokenAccount)]
     holder_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = holder.key() == transfer.holder @ ErrorCode::InvalidHolder)]
     /// CHECK: This is not dangerous because this is just the pubkey that collects the closing account lamports

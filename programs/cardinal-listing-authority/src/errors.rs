@@ -34,4 +34,16 @@ pub enum ErrorCode {
     InvalidListingAuthority,
     #[msg("Marketplace place not allowed by listing authority")]
     MarketplaceNotAllowed,
+    #[msg("Invalid token holder")]
+    InvalidHolder,
+    #[msg("Invalid holder token account")]
+    InvalidHolderMintTokenAccount,
+    #[msg("Invalid transfer account")]
+    InvalidTransfer,
+    #[msg("Invalid recipient")]
+    InvalidRecipient,
+    #[msg("Invalid recipient mint token account")]
+    InvalidRecipientMintTokenAccount,
+    #[msg("Invalid transfer authority")]
+    InvalidTransferAuthority,
 }

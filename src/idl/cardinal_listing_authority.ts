@@ -427,6 +427,30 @@ export type CardinalListingAuthority = {
           }
         ];
       };
+    },
+    {
+      name: "transfer";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "tokenManager";
+            type: "publicKey";
+          },
+          {
+            name: "holder";
+            type: "publicKey";
+          },
+          {
+            name: "target";
+            type: "publicKey";
+          }
+        ];
+      };
     }
   ];
   types: [
@@ -581,6 +605,26 @@ export type CardinalListingAuthority = {
       };
     },
     {
+      name: "UpdateListingIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "marketplace";
+            type: "publicKey";
+          },
+          {
+            name: "paymentAmount";
+            type: "u64";
+          },
+          {
+            name: "paymentMint";
+            type: "publicKey";
+          }
+        ];
+      };
+    },
+    {
       name: "InitListingAuthorityIx";
       type: {
         kind: "struct";
@@ -599,6 +643,40 @@ export type CardinalListingAuthority = {
               option: {
                 vec: "publicKey";
               };
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "UpdateListingAuthorityIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "authority";
+            type: "publicKey";
+          },
+          {
+            name: "allowedMarketplaces";
+            type: {
+              option: {
+                vec: "publicKey";
+              };
+            };
+          }
+        ];
+      };
+    },
+    {
+      name: "WhitelistMarketplacesIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "allowedMarketplaces";
+            type: {
+              vec: "publicKey";
             };
           }
         ];
@@ -637,46 +715,6 @@ export type CardinalListingAuthority = {
       };
     },
     {
-      name: "UpdateListingAuthorityIx";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "authority";
-            type: "publicKey";
-          },
-          {
-            name: "allowedMarketplaces";
-            type: {
-              option: {
-                vec: "publicKey";
-              };
-            };
-          }
-        ];
-      };
-    },
-    {
-      name: "UpdateListingIx";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "marketplace";
-            type: "publicKey";
-          },
-          {
-            name: "paymentAmount";
-            type: "u64";
-          },
-          {
-            name: "paymentMint";
-            type: "publicKey";
-          }
-        ];
-      };
-    },
-    {
       name: "UpdateMarketplaceIx";
       type: {
         kind: "struct";
@@ -705,15 +743,13 @@ export type CardinalListingAuthority = {
       };
     },
     {
-      name: "WhitelistMarketplacesIx";
+      name: "InitTransferIx";
       type: {
         kind: "struct";
         fields: [
           {
-            name: "allowedMarketplaces";
-            type: {
-              vec: "publicKey";
-            };
+            name: "target";
+            type: "publicKey";
           }
         ];
       };
@@ -799,6 +835,36 @@ export type CardinalListingAuthority = {
       code: 6015;
       name: "MarketplaceNotAllowed";
       msg: "Marketplace place not allowed by listing authority";
+    },
+    {
+      code: 6016;
+      name: "InvalidHolder";
+      msg: "Invalid token holder";
+    },
+    {
+      code: 6017;
+      name: "InvalidHolderMintTokenAccount";
+      msg: "Invalid holder token account";
+    },
+    {
+      code: 6018;
+      name: "InvalidTransfer";
+      msg: "Invalid transfer account";
+    },
+    {
+      code: 6019;
+      name: "InvalidRecipient";
+      msg: "Invalid recipient";
+    },
+    {
+      code: 6020;
+      name: "InvalidRecipientMintTokenAccount";
+      msg: "Invalid recipient mint token account";
+    },
+    {
+      code: 6021;
+      name: "InvalidTransferAuthority";
+      msg: "Invalid transfer authority";
     }
   ];
 };
@@ -1233,6 +1299,30 @@ export const IDL: CardinalListingAuthority = {
         ],
       },
     },
+    {
+      name: "transfer",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "bump",
+            type: "u8",
+          },
+          {
+            name: "tokenManager",
+            type: "publicKey",
+          },
+          {
+            name: "holder",
+            type: "publicKey",
+          },
+          {
+            name: "target",
+            type: "publicKey",
+          },
+        ],
+      },
+    },
   ],
   types: [
     {
@@ -1386,6 +1476,26 @@ export const IDL: CardinalListingAuthority = {
       },
     },
     {
+      name: "UpdateListingIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "marketplace",
+            type: "publicKey",
+          },
+          {
+            name: "paymentAmount",
+            type: "u64",
+          },
+          {
+            name: "paymentMint",
+            type: "publicKey",
+          },
+        ],
+      },
+    },
+    {
       name: "InitListingAuthorityIx",
       type: {
         kind: "struct",
@@ -1404,6 +1514,40 @@ export const IDL: CardinalListingAuthority = {
               option: {
                 vec: "publicKey",
               },
+            },
+          },
+        ],
+      },
+    },
+    {
+      name: "UpdateListingAuthorityIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "authority",
+            type: "publicKey",
+          },
+          {
+            name: "allowedMarketplaces",
+            type: {
+              option: {
+                vec: "publicKey",
+              },
+            },
+          },
+        ],
+      },
+    },
+    {
+      name: "WhitelistMarketplacesIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "allowedMarketplaces",
+            type: {
+              vec: "publicKey",
             },
           },
         ],
@@ -1442,46 +1586,6 @@ export const IDL: CardinalListingAuthority = {
       },
     },
     {
-      name: "UpdateListingAuthorityIx",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "authority",
-            type: "publicKey",
-          },
-          {
-            name: "allowedMarketplaces",
-            type: {
-              option: {
-                vec: "publicKey",
-              },
-            },
-          },
-        ],
-      },
-    },
-    {
-      name: "UpdateListingIx",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "marketplace",
-            type: "publicKey",
-          },
-          {
-            name: "paymentAmount",
-            type: "u64",
-          },
-          {
-            name: "paymentMint",
-            type: "publicKey",
-          },
-        ],
-      },
-    },
-    {
       name: "UpdateMarketplaceIx",
       type: {
         kind: "struct",
@@ -1510,15 +1614,13 @@ export const IDL: CardinalListingAuthority = {
       },
     },
     {
-      name: "WhitelistMarketplacesIx",
+      name: "InitTransferIx",
       type: {
         kind: "struct",
         fields: [
           {
-            name: "allowedMarketplaces",
-            type: {
-              vec: "publicKey",
-            },
+            name: "target",
+            type: "publicKey",
           },
         ],
       },
@@ -1604,6 +1706,36 @@ export const IDL: CardinalListingAuthority = {
       code: 6015,
       name: "MarketplaceNotAllowed",
       msg: "Marketplace place not allowed by listing authority",
+    },
+    {
+      code: 6016,
+      name: "InvalidHolder",
+      msg: "Invalid token holder",
+    },
+    {
+      code: 6017,
+      name: "InvalidHolderMintTokenAccount",
+      msg: "Invalid holder token account",
+    },
+    {
+      code: 6018,
+      name: "InvalidTransfer",
+      msg: "Invalid transfer account",
+    },
+    {
+      code: 6019,
+      name: "InvalidRecipient",
+      msg: "Invalid recipient",
+    },
+    {
+      code: 6020,
+      name: "InvalidRecipientMintTokenAccount",
+      msg: "Invalid recipient mint token account",
+    },
+    {
+      code: 6021,
+      name: "InvalidTransferAuthority",
+      msg: "Invalid transfer authority",
     },
   ],
 };

@@ -34,3 +34,13 @@ pub struct Listing {
     pub payment_amount: u64,
     pub payment_mint: Pubkey,
 }
+
+pub const TRANSFER_SEED: &str = "transfer";
+pub const TRANSFER_SIZE: usize = 8 + std::mem::size_of::<Transfer>() + 64;
+#[account]
+pub struct Transfer {
+    pub bump: u8,
+    pub token_manager: Pubkey,
+    pub holder: Pubkey,
+    pub target: Pubkey,
+}

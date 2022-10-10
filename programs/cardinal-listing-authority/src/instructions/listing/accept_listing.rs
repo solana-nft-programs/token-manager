@@ -13,6 +13,7 @@ use {
 pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
     listing_authority: Box<Account<'info, ListingAuthority>>,
+    // CHECK: This is not dangerous because this is just the pubkey that collects the closing account lamports
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
 

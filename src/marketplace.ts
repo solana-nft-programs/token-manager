@@ -19,9 +19,12 @@ import {
 } from "./programs/listingAuthority/accounts";
 import {
   acceptListing,
+  acceptTransfer,
+  cancelTransfer,
   createListing,
   initListingAuthority,
   initMarketplace,
+  initTransfer,
   removeListing,
   updateListing,
   updateListingAuthority,
@@ -32,6 +35,7 @@ import {
   findListingAddress,
   findListingAuthorityAddress,
   findMarketplaceAddress,
+  findTransferAddress,
 } from "./programs/listingAuthority/pda";
 import { getPaymentManager } from "./programs/paymentManager/accounts";
 import { findPaymentManagerAddress } from "./programs/paymentManager/pda";
@@ -458,6 +462,113 @@ export const withWhitelistMarektplaces = async (
   ).map((el) => el[0]);
   transaction.add(
     whitelistMarkeplaces(connection, wallet, listingAuthorityId, marketplaceIds)
+  );
+  return transaction;
+};
+
+export const withInitTransfer = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  target: PublicKey,
+  mintId: PublicKey,
+  payer = wallet.publicKey
+): Promise<Transaction> => {
+  const [transferId] = await findTransferAddress(mintId);
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  let holderTokenAccountId: PublicKey;
+  try {
+    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
+  } catch (e) {
+    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  }
+  transaction.add(
+    initTransfer(connection, wallet, {
+      target: target,
+      transferId: transferId,
+      tokenManagerId: tokenManagerId,
+      holderTokenAccountId: holderTokenAccountId,
+      holder: wallet.publicKey,
+      payer: payer,
+    })
+  );
+  return transaction;
+};
+
+export const withCancelTransfer = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey
+): Promise<Transaction> => {
+  const [transferId] = await findTransferAddress(mintId);
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  let holderTokenAccountId: PublicKey;
+  try {
+    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
+  } catch (e) {
+    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  }
+  transaction.add(
+    cancelTransfer(connection, wallet, {
+      transferId: transferId,
+      tokenManagerId: tokenManagerId,
+      holderTokenAccountId: holderTokenAccountId,
+      holder: wallet.publicKey,
+    })
+  );
+  return transaction;
+};
+
+export const withAcceptTransfer = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  recipient: PublicKey,
+  holder: PublicKey
+): Promise<Transaction> => {
+  const [transferId] = await findTransferAddress(mintId);
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  let holderTokenAccountId: PublicKey;
+  try {
+    holderTokenAccountId = await findAta(mintId, holder, true);
+  } catch (e) {
+    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  }
+  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    mintId,
+    recipient,
+    wallet.publicKey,
+    true
+  );
+  const [transferReceiptId] = await findTransferReceiptId(
+    tokenManagerId,
+    recipient
+  );
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!tokenManagerData) {
+    throw `No token manager found for mint ${mintId.toString()}`;
+  }
+  if (!tokenManagerData.parsed.transferAuthority) {
+    throw `No transfer autority found for mint id ${mintId.toString()}`;
+  }
+  transaction.add(
+    acceptTransfer(connection, wallet, {
+      transferId: transferId,
+      tokenManagerId: tokenManagerId,
+      holderTokenAccountId: holderTokenAccountId,
+      holder: wallet.publicKey,
+      recipient: recipient,
+      recipientTokenAccountId: recipientTokenAccountId,
+      mintId: mintId,
+      transferReceiptId: transferReceiptId,
+      listingAuthorityId: tokenManagerData.parsed.transferAuthority,
+    })
   );
   return transaction;
 };

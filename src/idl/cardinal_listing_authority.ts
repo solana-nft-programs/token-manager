@@ -329,6 +329,141 @@ export type CardinalListingAuthority = {
           };
         }
       ];
+    },
+    {
+      name: "initTransfer";
+      accounts: [
+        {
+          name: "transfer";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "holderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "holder";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "InitTransferIx";
+          };
+        }
+      ];
+    },
+    {
+      name: "cancelTransfer";
+      accounts: [
+        {
+          name: "transfer";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "holderTokenAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "holder";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "acceptTransfer";
+      accounts: [
+        {
+          name: "transfer";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "listingAuthority";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "transferReceipt";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "recipientTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipient";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "holderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "holder";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "cardinalTokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -1200,6 +1335,141 @@ export const IDL: CardinalListingAuthority = {
           },
         },
       ],
+    },
+    {
+      name: "initTransfer",
+      accounts: [
+        {
+          name: "transfer",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "holderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "holder",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "InitTransferIx",
+          },
+        },
+      ],
+    },
+    {
+      name: "cancelTransfer",
+      accounts: [
+        {
+          name: "transfer",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "holderTokenAccount",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "holder",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "acceptTransfer",
+      accounts: [
+        {
+          name: "transfer",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "listingAuthority",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "transferReceipt",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipient",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "holderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "holder",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "cardinalTokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
     },
   ],
   accounts: [

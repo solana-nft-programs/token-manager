@@ -10,6 +10,7 @@ export const LISTING_AUTHORITY_ADDRESS = new PublicKey(
 export const LISTING_AUTHORITY_SEED = "listing-authority";
 export const MARKETPLACE_SEED = "marketplace";
 export const LISTING_SEED = "listing";
+export const TRANSFER_SEED = "transfer";
 
 export const LISTING_AUTHORITY_IDL = LISTING_AUTHORITY_TYPES.IDL;
 
@@ -33,3 +34,4 @@ type Accounts = ListingAuthorityTypes["Accounts"];
 export type ListingAuthorityData = Accounts["listingAuthority"];
 export type MarketplaceData = Accounts["marketplace"];
 export type ListingData = Accounts["listing"];
+export type TransferData = Accounts["transfer"];

@@ -8,6 +8,7 @@ declare_id!("trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW");
 
 #[program]
 pub mod cardinal_listing_authority {
+
     use super::*;
 
     pub fn accept_listing<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {
@@ -44,5 +45,17 @@ pub mod cardinal_listing_authority {
 
     pub fn whitelist_marketplaces(ctx: Context<WhitelistMarketplacesCtx>, ix: WhitelistMarketplacesIx) -> Result<()> {
         listing_authority::whitelist_marketplaces::handler(ctx, ix)
+    }
+
+    pub fn init_transfer(ctx: Context<InitTransferCtx>, ix: InitTransferIx) -> Result<()> {
+        transfer::init_transfer::handler(ctx, ix)
+    }
+
+    pub fn cancel_transfer(ctx: Context<CancelTransferCtx>) -> Result<()> {
+        transfer::cancel_transfer::handler(ctx)
+    }
+
+    pub fn accept_transfer<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptTransferCtx<'info>>) -> Result<()> {
+        transfer::accept_transfer::handler(ctx)
     }
 }

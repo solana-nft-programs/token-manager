@@ -326,3 +326,110 @@ export const whitelistMarkeplaces = (
     }
   );
 };
+
+export const initTransfer = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    target: PublicKey;
+    transferId: PublicKey;
+    tokenManagerId: PublicKey;
+    holderTokenAccountId: PublicKey;
+    holder: PublicKey;
+    payer?: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const transferAuthorityProgram =
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
+      provider
+    );
+
+  return transferAuthorityProgram.instruction.initTransfer(
+    { target: params.target },
+    {
+      accounts: {
+        transfer: params.transferId,
+        tokenManager: params.tokenManagerId,
+        holderTokenAccount: params.holderTokenAccountId,
+        holder: params.holder,
+        payer: params.payer || wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }
+  );
+};
+
+export const cancelTransfer = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    transferId: PublicKey;
+    tokenManagerId: PublicKey;
+    holderTokenAccountId: PublicKey;
+    holder: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const transferAuthorityProgram =
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
+      provider
+    );
+
+  return transferAuthorityProgram.instruction.cancelTransfer({
+    accounts: {
+      transfer: params.transferId,
+      tokenManager: params.tokenManagerId,
+      holderTokenAccount: params.holderTokenAccountId,
+      holder: params.holder,
+    },
+  });
+};
+
+export const acceptTransfer = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    transferId: PublicKey;
+    tokenManagerId: PublicKey;
+    holderTokenAccountId: PublicKey;
+    holder: PublicKey;
+    recipient: PublicKey;
+    recipientTokenAccountId: PublicKey;
+    mintId: PublicKey;
+    transferReceiptId: PublicKey;
+    listingAuthorityId: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const transferAuthorityProgram =
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
+      provider
+    );
+
+  return transferAuthorityProgram.instruction.acceptTransfer({
+    accounts: {
+      transfer: params.transferId,
+      listingAuthority: params.listingAuthorityId,
+      transferReceipt: params.transferReceiptId,
+      tokenManager: params.tokenManagerId,
+      mint: params.mintId,
+      recipientTokenAccount: params.recipientTokenAccountId,
+      recipient: params.recipient,
+      holderTokenAccount: params.holderTokenAccountId,
+      holder: params.holder,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      systemProgram: SystemProgram.programId,
+    },
+  });
+};

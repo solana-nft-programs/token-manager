@@ -901,6 +901,7 @@ export const withUpdateMaxExpiration = async (
   } else {
     console.log("Token Manager not in state issued to update max expiration");
   }
+  return transaction;
 };
 
 export const withTransfer = async (

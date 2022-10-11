@@ -21,7 +21,7 @@ pub struct WhitelistMarketplacesCtx<'info> {
 pub fn handler(ctx: Context<WhitelistMarketplacesCtx>, ix: WhitelistMarketplacesIx) -> Result<()> {
     let listing_authority = &mut ctx.accounts.listing_authority;
 
-    if ix.allowed_marketplaces.len() == 0 {
+    if ix.allowed_marketplaces.is_empty() {
         listing_authority.allowed_marketplaces = None;
     } else {
         listing_authority.allowed_marketplaces = Some(ix.allowed_marketplaces);

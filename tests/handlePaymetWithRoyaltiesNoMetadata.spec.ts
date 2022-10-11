@@ -71,6 +71,7 @@ describe("Handle payment with royalties with no metadata", () => {
         feeCollector: feeCollector.publicKey,
         makerFeeBasisPoints: MAKER_FEE.toNumber(),
         takerFeeBasisPoints: TAKER_FEE.toNumber(),
+        includeSellerFeeBasisPoints: false,
       }
     );
 

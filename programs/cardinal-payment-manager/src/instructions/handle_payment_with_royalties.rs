@@ -77,7 +77,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         let total_creators_fee = total_fees
             .checked_mul(payment_manager.royalty_fee_share.unwrap_or(DEFAULT_ROYALTY_FEE_SHARE))
             .unwrap()
-            .checked_div(100)
+            .checked_div(BASIS_POINTS_DIVISOR.into())
             .expect("Div error")
             .checked_add(seller_fee)
             .expect("Add error");

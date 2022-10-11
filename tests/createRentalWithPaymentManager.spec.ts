@@ -81,6 +81,7 @@ describe("Create rental with payment manager and extend", () => {
         feeCollector: feeCollector.publicKey,
         makerFeeBasisPoints: MAKER_FEE,
         takerFeeBasisPoints: TAKER_FEE,
+        includeSellerFeeBasisPoints: false,
       }
     );
     paymentManagerId = outPaymentManagerId;

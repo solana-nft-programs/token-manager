@@ -28,6 +28,7 @@ describe("Init again and close payment manager", () => {
         feeCollector: feeCollector.publicKey,
         makerFeeBasisPoints: MAKER_FEE,
         takerFeeBasisPoints: TAKER_FEE,
+        includeSellerFeeBasisPoints: false,
       }
     );
 
@@ -71,11 +72,12 @@ describe("Init again and close payment manager", () => {
                 feeCollector: feeCollector.publicKey,
                 makerFeeBasisPoints: MAKER_FEE,
                 takerFeeBasisPoints: TAKER_FEE,
+                includeSellerFeeBasisPoints: false,
               }
             )
           )[0],
         ]),
-        "Fail to use",
+        "Fail to init again",
         { verbosity: "error" }
       ).to.be.rejectedWith(Error);
     });

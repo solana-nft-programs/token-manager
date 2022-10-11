@@ -13,7 +13,7 @@ use {
 pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
     listing_authority: Box<Account<'info, ListingAuthority>>,
-    // CHECK: This is not dangerous because this is just the pubkey that collects the closing account lamports
+    // CHECK: This is not dangerous because this is the receipt getting initialized
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
 
@@ -28,6 +28,7 @@ pub struct AcceptListingCtx<'info> {
         lister_mint_token_account.mint == token_manager.mint &&
         lister_mint_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
     lister_mint_token_account: Box<Account<'info, TokenAccount>>,
+    // CHECK: This is not dangerous because of the listing.lister check
     #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
     lister: UncheckedAccount<'info>,
 
@@ -47,13 +48,16 @@ pub struct AcceptListingCtx<'info> {
     marketplace: Box<Account<'info, Marketplace>>,
     #[account(mut, constraint = token_manager.key() == listing.token_manager @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
+    // CHECK: This is not dangerous because of the token_manager.mint check
     #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: UncheckedAccount<'info>,
     mint_metadata_info: UncheckedAccount<'info>,
 
     // payment accounts
+    // CHECK: This is not dangerous because of the marketplace.payment_manager check
     #[account(mut, constraint = payment_manager.key() == marketplace.payment_manager @ ErrorCode::InvalidPaymentManager)]
     payment_manager: UncheckedAccount<'info>,
+    // CHECK: This is not dangerous because of the listing.payment_mint check
     #[account(mut, constraint = payment_mint.key() == listing.payment_mint @ ErrorCode::InvalidPaymentMint)]
     payment_mint: UncheckedAccount<'info>,
     #[account(mut)]

@@ -3,6 +3,8 @@ import { PublicKey } from "@solana/web3.js";
 
 import * as PAYMENT_MANAGER_TYPES from "../../idl/cardinal_payment_manager";
 
+export const BASIS_POINTS_DIVISOR = 10000;
+
 export const PAYMENT_MANAGER_ADDRESS = new PublicKey(
   "pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn"
 );

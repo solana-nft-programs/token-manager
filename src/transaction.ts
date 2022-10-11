@@ -16,7 +16,6 @@ import {
   useInvalidator,
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
-import { DEFAULT_LISTING_AUTHORITY_NAME } from "./programs/listingAuthority";
 import { getListingAuthorityByName } from "./programs/listingAuthority/accounts";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
@@ -78,7 +77,7 @@ export const withIssueToken = async (
     mint,
     issuerTokenAccountId,
     amount = new BN(1),
-    listingAuthorityName = DEFAULT_LISTING_AUTHORITY_NAME,
+    listingAuthorityName,
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
@@ -109,20 +108,22 @@ export const withIssueToken = async (
   );
   transaction.add(tokenManagerIx);
 
-  const checkListingAuthority = await tryGetAccount(() =>
-    getListingAuthorityByName(connection, listingAuthorityName)
-  );
-  if (!checkListingAuthority?.parsed) {
-    throw `No listing authority with name ${listingAuthorityName} found`;
+  if (listingAuthorityName) {
+    const checkListingAuthority = await tryGetAccount(() =>
+      getListingAuthorityByName(connection, listingAuthorityName)
+    );
+    if (!checkListingAuthority?.parsed) {
+      throw `No listing authority with name ${listingAuthorityName} found`;
+    }
+    transaction.add(
+      setTransferAuthority(
+        connection,
+        wallet,
+        tokenManagerId,
+        checkListingAuthority.pubkey
+      )
+    );
   }
-  transaction.add(
-    setTransferAuthority(
-      connection,
-      wallet,
-      tokenManagerId,
-      checkListingAuthority.pubkey
-    )
-  );
 
   //////////////////////////////
   /////// claim approver ///////

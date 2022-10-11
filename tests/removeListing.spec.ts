@@ -17,27 +17,29 @@ import { BN } from "bn.js";
 import { expect } from "chai";
 
 import {
+  tryGetAccount,
   withCreateListing,
   withInitListingAuthority,
   withInitMarketplace,
+  withRemoveListing,
   withWrapToken,
-} from "../../src";
+} from "../src";
 import {
   getListing,
   getListingAuthorityByName,
   getMarketplaceByName,
-} from "../../src/programs/listingAuthority/accounts";
+} from "../src/programs/listingAuthority/accounts";
 import {
   findListingAuthorityAddress,
   findMarketplaceAddress,
-} from "../../src/programs/listingAuthority/pda";
-import { init } from "../../src/programs/paymentManager/instruction";
-import { findPaymentManagerAddress } from "../../src/programs/paymentManager/pda";
-import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
-import { createMint } from "../utils";
-import { getProvider } from "../workspace";
+} from "../src/programs/listingAuthority/pda";
+import { init } from "../src/programs/paymentManager/instruction";
+import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
+import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
+import { createMint } from "./utils";
+import { getProvider } from "./workspace";
 
-describe("Create Listing", () => {
+describe("Remove Listing", () => {
   const listingAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
@@ -294,5 +296,35 @@ describe("Create Listing", () => {
       rentalPaymentAmount.toNumber()
     );
     expect(checkListing.parsed.paymentMint).to.eqAddress(rentalPaymentMint);
+  });
+
+  it("Remove Listing", async () => {
+    const provider = getProvider();
+    const transaction = new Transaction();
+
+    await withRemoveListing(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      rentalMint.publicKey
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+    await expectTXTable(txEnvelope, "remove listing", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const checkListing = await tryGetAccount(() =>
+      getListing(provider.connection, rentalMint.publicKey)
+    );
+    expect(checkListing).to.be.null;
   });
 });

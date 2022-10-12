@@ -13,15 +13,14 @@ use {
 pub struct AcceptTransferCtx<'info> {
     #[account(mut, close = holder, constraint = transfer.token_manager == token_manager.key() @ ErrorCode::InvalidTransfer)]
     transfer: Box<Account<'info, Transfer>>,
-    // checks in handler
     listing_authority: Box<Account<'info, ListingAuthority>>,
     /// CHECK: This is not dangerous because this is just the pubkey that collects the closing account lamports
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
 
-    #[account(constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
+    #[account(mut, constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
-    #[account(constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
+    #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
 
     #[account(mut, constraint = recipient_token_account.mint == token_manager.mint && recipient_token_account.owner == recipient.key() @ ErrorCode::InvalidRecipientMintTokenAccount)]

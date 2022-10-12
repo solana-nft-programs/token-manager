@@ -535,7 +535,7 @@ export const withAcceptTransfer = async (
   try {
     holderTokenAccountId = await findAta(mintId, holder, true);
   } catch (e) {
-    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+    throw `Holder is not the owner of mint ${mintId.toString()}`;
   }
   const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,
@@ -558,17 +558,32 @@ export const withAcceptTransfer = async (
   if (!tokenManagerData.parsed.transferAuthority) {
     throw `No transfer autority found for mint id ${mintId.toString()}`;
   }
+  let kind = TokenManagerKind.Edition;
+  try {
+    await MasterEdition.getPDA(mintId);
+  } catch (e) {
+    kind = TokenManagerKind.Managed;
+  }
+  const remainingAccountsForTransfer = [
+    ...(await getRemainingAccountsForKind(mintId, kind)),
+    {
+      pubkey: transferReceiptId,
+      isSigner: false,
+      isWritable: true,
+    },
+  ];
   transaction.add(
     acceptTransfer(connection, wallet, {
       transferId: transferId,
       tokenManagerId: tokenManagerId,
       holderTokenAccountId: holderTokenAccountId,
-      holder: wallet.publicKey,
+      holder: holder,
       recipient: recipient,
       recipientTokenAccountId: recipientTokenAccountId,
       mintId: mintId,
       transferReceiptId: transferReceiptId,
       listingAuthorityId: tokenManagerData.parsed.transferAuthority,
+      remainingAccounts: remainingAccountsForTransfer,
     })
   );
   return transaction;

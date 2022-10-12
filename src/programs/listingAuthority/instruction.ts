@@ -347,7 +347,6 @@ export const initTransfer = (
       constants.LISTING_AUTHORITY_ADDRESS,
       provider
     );
-
   return transferAuthorityProgram.instruction.initTransfer(
     { to: params.to },
     {
@@ -405,6 +404,7 @@ export const acceptTransfer = (
     mintId: PublicKey;
     transferReceiptId: PublicKey;
     listingAuthorityId: PublicKey;
+    remainingAccounts: AccountMeta[];
   }
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -431,6 +431,7 @@ export const acceptTransfer = (
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       systemProgram: SystemProgram.programId,
     },
+    remainingAccounts: params.remainingAccounts,
   });
 };
 

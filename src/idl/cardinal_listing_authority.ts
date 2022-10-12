@@ -470,12 +470,12 @@ export type CardinalListingAuthority = {
         },
         {
           name: "tokenManager";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
           name: "mint";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -1527,12 +1527,12 @@ export const IDL: CardinalListingAuthority = {
         },
         {
           name: "tokenManager",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
           name: "mint",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {

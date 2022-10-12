@@ -269,7 +269,6 @@ export const getTransfer = async (
   );
 
   const [transferId] = await findTransferAddress(mintId);
-
   const parsed = await listingAuthorityProgram.account.transfer.fetch(
     transferId
   );

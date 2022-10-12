@@ -25,9 +25,16 @@ export const useTransaction = async (
 export const invalidate = async (
   connection: Connection,
   wallet: Wallet,
-  mintId: PublicKey
+  mintId: PublicKey,
+  listingAuthorityId: PublicKey
 ): Promise<Transaction> =>
-  withInvalidate(new Transaction(), connection, wallet, mintId);
+  withInvalidate(
+    new Transaction(),
+    connection,
+    wallet,
+    mintId,
+    listingAuthorityId
+  );
 
 export const issueToken = async (
   connection: Connection,

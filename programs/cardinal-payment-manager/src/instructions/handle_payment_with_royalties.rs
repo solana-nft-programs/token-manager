@@ -56,6 +56,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     // royalties
     let mut fees_paid_out: u64 = 0;
+    let mut seller_fee: u64 = 0;
     if !ctx.accounts.mint_metadata.data_is_empty() {
         if ctx.accounts.mint_metadata.to_account_info().owner.key() != mpl_token_metadata::id() {
             return Err(error!(ErrorCode::InvalidMintMetadataOwner));
@@ -65,7 +66,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         if mint_metadata.mint != ctx.accounts.mint.key() {
             return Err(error!(ErrorCode::InvalidMintMetadata));
         }
-        let seller_fee = if payment_manager.include_seller_fee_basis_points {
+        seller_fee = if payment_manager.include_seller_fee_basis_points {
             payment_amount
                 .checked_mul(mint_metadata.data.seller_fee_basis_points.into())
                 .expect("Multiplication error")
@@ -86,6 +87,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         if total_creators_fee > 0 {
             if let Some(creators) = mint_metadata.data.creators {
                 let remaining_accs = &mut ctx.remaining_accounts.iter();
+                let mut creator_fee_remainder = total_creators_fee.checked_rem(creators.len().try_into().expect("Could not cast to u64")).expect("Remainder error");
                 for creator in creators {
                     if creator.share != 0 {
                         let creator_token_account_info = next_account_info(remaining_accs)?;
@@ -94,7 +96,14 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                             return Err(error!(ErrorCode::InvalidTokenAccount));
                         }
                         let share = u64::try_from(creator.share).expect("Could not cast u8 to u64");
-                        let creator_fee_amount = total_creators_fee.checked_mul(share).unwrap().checked_div(100).expect("Div error");
+                        let creator_fee_amount = total_creators_fee
+                            .checked_add(if creator_fee_remainder > 0 { 1 } else { 0 })
+                            .expect("Add error")
+                            .checked_mul(share)
+                            .unwrap()
+                            .checked_div(100)
+                            .expect("Div error");
+                        creator_fee_remainder = if creator_fee_remainder > 0 { creator_fee_remainder.checked_sub(1).expect("Sub error") } else { 0 };
 
                         if creator_fee_amount > 0 {
                             fees_paid_out = fees_paid_out.checked_add(creator_fee_amount).expect("Add error");
@@ -122,7 +131,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_context, total_fees.checked_sub(fees_paid_out).expect("Add error"))?;
+        token::transfer(cpi_context, total_fees.checked_sub(fees_paid_out).expect("Add error").checked_add(seller_fee).expect("Add error"))?;
     }
 
     // pay target

@@ -86,16 +86,20 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         if total_creators_fee > 0 {
             if let Some(creators) = mint_metadata.data.creators {
                 let remaining_accs = &mut ctx.remaining_accounts.iter();
-                let mut creators_fee_remainder = 0_u64;
-                for creator in creators.clone() {
-                    let share = u64::try_from(creator.share).expect("Could not cast u8 to u64");
-                    let creator_fee_amount = total_creators_fee.checked_mul(share).unwrap().checked_div(100).expect("Div error");
-                    creators_fee_remainder = creators_fee_remainder.checked_add(creator_fee_amount).expect("Add error");
-                }
-                creators_fee_remainder = creators_fee_remainder
-                    .checked_rem(creators.clone().len().try_into().expect("Could not cast to u64"))
-                    .expect("Remainder error");
-                for creator in creators.clone() {
+
+                let creator_amounts: Vec<u64> = creators
+                    .clone()
+                    .into_iter()
+                    .map(|creator| {
+                        total_creators_fee
+                            .checked_mul(u64::try_from(creator.share).expect("Could not cast u8 to u64"))
+                            .unwrap()
+                            .checked_div(100)
+                            .expect("Div error")
+                    })
+                    .collect();
+                let mut creators_fee_remainder = total_creators_fee.checked_sub(creator_amounts.iter().sum()).expect("Sub error");
+                for creator in creators {
                     if creator.share != 0 {
                         let creator_token_account_info = next_account_info(remaining_accs)?;
                         let creator_token_account = Account::<TokenAccount>::try_from(creator_token_account_info)?;

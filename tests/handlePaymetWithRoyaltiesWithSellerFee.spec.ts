@@ -383,7 +383,6 @@ describe("Handle payment with royalties with seller fee", () => {
         totalCreatorsFee.mul(creator2Share).div(new BN(100)).toNumber(),
         totalCreatorsFee.mul(creator3Share).div(new BN(100)).toNumber(),
       ].reduce((partialSum, a) => partialSum + a, 0) % totalNumberOfCreators;
-    console.log("cretorsFeeRemainder", cretorsFeeRemainder);
 
     const creator1Funds = totalCreatorsFee
       .mul(creator1Share)
@@ -420,10 +419,6 @@ describe("Handle payment with royalties with seller fee", () => {
     );
     const paymentAtaInfo = await paymentMintInfo.getAccountInfo(
       paymentTokenAccountId
-    );
-    console.log(
-      "beforePaymentTokenAccount",
-      beforePaymentTokenAccountAmount.toNumber()
     );
     expect(paymentAtaInfo.amount.toNumber()).to.eq(
       beforePaymentTokenAccountAmount

@@ -45,7 +45,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         .expect("Multiplication error")
         .checked_div(BASIS_POINTS_DIVISOR.into())
         .expect("Division error");
-    let total_fees = maker_fee.checked_add(taker_fee).expect("Add error");
+    let mut total_fees = maker_fee.checked_add(taker_fee).expect("Add error");
 
     // assert metadata account derivation
     assert_derivation(
@@ -65,11 +65,40 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         if mint_metadata.mint != ctx.accounts.mint.key() {
             return Err(error!(ErrorCode::InvalidMintMetadata));
         }
+        let seller_fee = if payment_manager.include_seller_fee_basis_points {
+            payment_amount
+                .checked_mul(mint_metadata.data.seller_fee_basis_points.into())
+                .expect("Multiplication error")
+                .checked_div(BASIS_POINTS_DIVISOR.into())
+                .expect("Division error")
+        } else {
+            0
+        };
+        let total_creators_fee = total_fees
+            .checked_mul(payment_manager.royalty_fee_share.unwrap_or(DEFAULT_ROYALTY_FEE_SHARE))
+            .unwrap()
+            .checked_div(BASIS_POINTS_DIVISOR.into())
+            .expect("Div error")
+            .checked_add(seller_fee)
+            .expect("Add error");
+        total_fees = total_fees.checked_add(seller_fee).expect("Add error");
 
-        let total_creators_fee = total_fees.checked_mul(DEFAULT_ROYALTY_FEE_SHARE).unwrap().checked_div(100).expect("Div error");
         if total_creators_fee > 0 {
             if let Some(creators) = mint_metadata.data.creators {
                 let remaining_accs = &mut ctx.remaining_accounts.iter();
+
+                let creator_amounts: Vec<u64> = creators
+                    .clone()
+                    .into_iter()
+                    .map(|creator| {
+                        total_creators_fee
+                            .checked_mul(u64::try_from(creator.share).expect("Could not cast u8 to u64"))
+                            .unwrap()
+                            .checked_div(100)
+                            .expect("Div error")
+                    })
+                    .collect();
+                let mut creators_fee_remainder = total_creators_fee.checked_sub(creator_amounts.iter().sum()).expect("Sub error");
                 for creator in creators {
                     if creator.share != 0 {
                         let creator_token_account_info = next_account_info(remaining_accs)?;
@@ -78,7 +107,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                             return Err(error!(ErrorCode::InvalidTokenAccount));
                         }
                         let share = u64::try_from(creator.share).expect("Could not cast u8 to u64");
-                        let creator_fee_amount = total_creators_fee.checked_mul(share).unwrap().checked_div(100).expect("Div error");
+                        let creator_fee_remainder_amount = u64::from(creators_fee_remainder > 0);
+                        let creator_fee_amount = total_creators_fee
+                            .checked_mul(share)
+                            .unwrap()
+                            .checked_div(100)
+                            .expect("Div error")
+                            .checked_add(creator_fee_remainder_amount)
+                            .expect("Add error");
+                        creators_fee_remainder = creators_fee_remainder.checked_sub(creator_fee_remainder_amount).expect("Sub error");
 
                         if creator_fee_amount > 0 {
                             fees_paid_out = fees_paid_out.checked_add(creator_fee_amount).expect("Add error");

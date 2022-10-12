@@ -9,6 +9,7 @@ pub struct UpdateIx {
     pub fee_collector: Pubkey,
     pub maker_fee_basis_points: u16,
     pub taker_fee_basis_points: u16,
+    pub royalty_fee_share: Option<u64>,
 }
 
 #[derive(Accounts)]
@@ -28,5 +29,6 @@ pub fn handler(ctx: Context<UpdateCtx>, ix: UpdateIx) -> Result<()> {
     payment_manager.fee_collector = ix.fee_collector;
     payment_manager.maker_fee_basis_points = ix.maker_fee_basis_points;
     payment_manager.taker_fee_basis_points = ix.taker_fee_basis_points;
+    payment_manager.royalty_fee_share = ix.royalty_fee_share;
     Ok(())
 }

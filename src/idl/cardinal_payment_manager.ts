@@ -211,6 +211,16 @@ export type CardinalPaymentManager = {
           {
             name: "name";
             type: "string";
+          },
+          {
+            name: "includeSellerFeeBasisPoints";
+            type: "bool";
+          },
+          {
+            name: "royaltyFeeShare";
+            type: {
+              option: "u64";
+            };
           }
         ];
       };
@@ -237,6 +247,16 @@ export type CardinalPaymentManager = {
           {
             name: "takerFeeBasisPoints";
             type: "u16";
+          },
+          {
+            name: "includeSellerFeeBasisPoints";
+            type: "bool";
+          },
+          {
+            name: "royaltyFeeShare";
+            type: {
+              option: "u64";
+            };
           }
         ];
       };
@@ -261,6 +281,12 @@ export type CardinalPaymentManager = {
           {
             name: "takerFeeBasisPoints";
             type: "u16";
+          },
+          {
+            name: "royaltyFeeShare";
+            type: {
+              option: "u64";
+            };
           }
         ];
       };
@@ -519,6 +545,16 @@ export const IDL: CardinalPaymentManager = {
             name: "name",
             type: "string",
           },
+          {
+            name: "includeSellerFeeBasisPoints",
+            type: "bool",
+          },
+          {
+            name: "royaltyFeeShare",
+            type: {
+              option: "u64",
+            },
+          },
         ],
       },
     },
@@ -545,6 +581,16 @@ export const IDL: CardinalPaymentManager = {
             name: "takerFeeBasisPoints",
             type: "u16",
           },
+          {
+            name: "includeSellerFeeBasisPoints",
+            type: "bool",
+          },
+          {
+            name: "royaltyFeeShare",
+            type: {
+              option: "u64",
+            },
+          },
         ],
       },
     },
@@ -568,6 +614,12 @@ export const IDL: CardinalPaymentManager = {
           {
             name: "takerFeeBasisPoints",
             type: "u16",
+          },
+          {
+            name: "royaltyFeeShare",
+            type: {
+              option: "u64",
+            },
           },
         ],
       },

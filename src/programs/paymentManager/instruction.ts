@@ -24,6 +24,8 @@ export const init = async (
     authority?: PublicKey;
     makerFeeBasisPoints: number;
     takerFeeBasisPoints: number;
+    includeSellerFeeBasisPoints: boolean;
+    royaltyFeeShare?: BN;
   }
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -43,6 +45,8 @@ export const init = async (
         feeCollector: params.feeCollector,
         makerFeeBasisPoints: params.makerFeeBasisPoints,
         takerFeeBasisPoints: params.takerFeeBasisPoints,
+        includeSellerFeeBasisPoints: params.includeSellerFeeBasisPoints,
+        royaltyFeeShare: params.royaltyFeeShare ?? null,
       },
       {
         accounts: {
@@ -165,6 +169,7 @@ export const update = async (
     feeCollector: PublicKey;
     makerFeeBasisPoints: number;
     takerFeeBasisPoints: number;
+    royaltyFeeShare?: BN;
   }
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -184,6 +189,7 @@ export const update = async (
         feeCollector: params.feeCollector,
         makerFeeBasisPoints: params.makerFeeBasisPoints,
         takerFeeBasisPoints: params.takerFeeBasisPoints,
+        royaltyFeeShare: params.royaltyFeeShare ?? null,
       },
       {
         accounts: {

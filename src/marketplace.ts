@@ -574,7 +574,7 @@ export const withAcceptTransfer = async (
   return transaction;
 };
 
-export const withInvalidate = async (
+export const withRelease = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,

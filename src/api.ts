@@ -7,8 +7,8 @@ import {
   withClaimToken,
   withExtendExpiration,
   withExtendUsages,
-  withInvalidate,
   withIssueToken,
+  withRelease,
   withUnissueToken,
   withUse,
 } from ".";
@@ -22,13 +22,13 @@ export const useTransaction = async (
 ): Promise<Transaction> =>
   withUse(new Transaction(), connection, wallet, mintId, usages, collector);
 
-export const invalidate = async (
+export const release = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
   listingAuthorityId: PublicKey
 ): Promise<Transaction> =>
-  withInvalidate(
+  withRelease(
     new Transaction(),
     connection,
     wallet,

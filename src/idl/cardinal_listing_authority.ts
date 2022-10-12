@@ -628,11 +628,11 @@ export type CardinalListingAuthority = {
             type: "publicKey";
           },
           {
-            name: "holder";
+            name: "from";
             type: "publicKey";
           },
           {
-            name: "target";
+            name: "to";
             type: "publicKey";
           }
         ];
@@ -934,7 +934,7 @@ export type CardinalListingAuthority = {
         kind: "struct";
         fields: [
           {
-            name: "target";
+            name: "to";
             type: "publicKey";
           }
         ];
@@ -1685,11 +1685,11 @@ export const IDL: CardinalListingAuthority = {
             type: "publicKey",
           },
           {
-            name: "holder",
+            name: "from",
             type: "publicKey",
           },
           {
-            name: "target",
+            name: "to",
             type: "publicKey",
           },
         ],
@@ -1991,7 +1991,7 @@ export const IDL: CardinalListingAuthority = {
         kind: "struct",
         fields: [
           {
-            name: "target",
+            name: "to",
             type: "publicKey",
           },
         ],

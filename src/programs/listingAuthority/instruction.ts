@@ -331,7 +331,7 @@ export const initTransfer = (
   connection: Connection,
   wallet: Wallet,
   params: {
-    target: PublicKey;
+    to: PublicKey;
     transferId: PublicKey;
     tokenManagerId: PublicKey;
     holderTokenAccountId: PublicKey;
@@ -349,7 +349,7 @@ export const initTransfer = (
     );
 
   return transferAuthorityProgram.instruction.initTransfer(
-    { target: params.target },
+    { to: params.to },
     {
       accounts: {
         transfer: params.transferId,

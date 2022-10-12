@@ -41,6 +41,6 @@ pub const TRANSFER_SIZE: usize = 8 + std::mem::size_of::<Transfer>() + 64;
 pub struct Transfer {
     pub bump: u8,
     pub token_manager: Pubkey,
-    pub holder: Pubkey,
-    pub target: Pubkey,
+    pub from: Pubkey,
+    pub to: Pubkey,
 }

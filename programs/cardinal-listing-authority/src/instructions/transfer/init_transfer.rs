@@ -8,7 +8,7 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitTransferIx {
-    pub target: Pubkey,
+    pub to: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -39,8 +39,8 @@ pub fn handler(ctx: Context<InitTransferCtx>, ix: InitTransferIx) -> Result<()> 
     let transfer = &mut ctx.accounts.transfer;
     transfer.bump = *ctx.bumps.get("transfer").unwrap();
     transfer.token_manager = ctx.accounts.token_manager.key();
-    transfer.holder = ctx.accounts.holder.key();
-    transfer.target = ix.target;
+    transfer.from = ctx.accounts.holder.key();
+    transfer.to = ix.to;
 
     Ok(())
 }

@@ -471,7 +471,7 @@ export const withInitTransfer = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  target: PublicKey,
+  to: PublicKey,
   mintId: PublicKey,
   payer = wallet.publicKey
 ): Promise<Transaction> => {
@@ -485,7 +485,7 @@ export const withInitTransfer = async (
   }
   transaction.add(
     initTransfer(connection, wallet, {
-      target: target,
+      to: to,
       transferId: transferId,
       tokenManagerId: tokenManagerId,
       holderTokenAccountId: holderTokenAccountId,

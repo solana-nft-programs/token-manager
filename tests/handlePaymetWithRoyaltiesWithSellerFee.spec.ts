@@ -35,14 +35,14 @@ describe("Handle payment with royalties with seller fee", () => {
   const MAKER_FEE = new BN(500);
   const TAKER_FEE = new BN(300);
   const BASIS_POINTS_DIVISOR = new BN(10000);
-  const FEE_SPLIT = new BN(50);
   const paymentAmount = new BN(1000);
-  const royaltyFeeShare = new BN(4000);
+  const royaltyFeeShare = new BN(4500);
   const sellerFeeBasisPoints = 100;
   const RECIPIENT_START_PAYMENT_AMOUNT = new BN(10000000000);
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
   const feeCollector = Keypair.generate();
 
+  const totalNumberOfCreators = 3;
   const creator1 = Keypair.generate();
   const creator1Share = new BN(15);
   const creator2 = Keypair.generate();
@@ -50,6 +50,7 @@ describe("Handle payment with royalties with seller fee", () => {
   const creator3 = Keypair.generate();
   const creator3Share = new BN(55);
   const tokenCreator = Keypair.generate();
+  const paymentReceiver = Keypair.generate();
   let paymentMint: Token;
   let rentalMint: Token;
 
@@ -160,7 +161,7 @@ describe("Handle payment with royalties with seller fee", () => {
         makerFeeBasisPoints: MAKER_FEE.toNumber(),
         takerFeeBasisPoints: TAKER_FEE.toNumber(),
         includeSellerFeeBasisPoints: true,
-        royaltyFeeShare: new BN(4000),
+        royaltyFeeShare: royaltyFeeShare,
       }
     );
 
@@ -198,7 +199,7 @@ describe("Handle payment with royalties with seller fee", () => {
     );
   });
 
-  it("Handle payment with royalties", async () => {
+  it("Handle payment with royalties with seller fee", async () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
 
@@ -214,7 +215,7 @@ describe("Handle payment with royalties with seller fee", () => {
         provider.wallet,
         rentalMint.publicKey,
         paymentMint.publicKey,
-        provider.wallet.publicKey,
+        paymentReceiver.publicKey,
         paymentManagerId
       );
     const royaltiesRemainingAccounts: AccountMeta[] = [];
@@ -312,6 +313,23 @@ describe("Handle payment with royalties with seller fee", () => {
       ).to.be.rejectedWith(Error);
     });
 
+    let beforePaymentTokenAccountAmount = new BN(0);
+    try {
+      beforePaymentTokenAccountAmount = (
+        await paymentMintInfo.getAccountInfo(paymentTokenAccountId)
+      ).amount;
+    } catch (e) {
+      // pass
+    }
+    let beforePayerTokenAccountAmount = new BN(0);
+    try {
+      beforePayerTokenAccountAmount = (
+        await paymentMintInfo.getAccountInfo(payerTokenAccountId)
+      ).amount;
+    } catch (e) {
+      // pass
+    }
+
     transaction.add(
       await handlePaymentWithRoyalties(
         provider.connection,
@@ -338,14 +356,18 @@ describe("Handle payment with royalties with seller fee", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "Handle Payment With Royalties", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    await expectTXTable(
+      txEnvelope,
+      "Handle Payment With Royalties With Seller Fee",
+      {
+        verbosity: "error",
+        formatLogs: true,
+      }
+    ).to.be.fulfilled;
 
     const makerFee = paymentAmount.mul(MAKER_FEE).div(BASIS_POINTS_DIVISOR);
     const takerFee = paymentAmount.mul(TAKER_FEE).div(BASIS_POINTS_DIVISOR);
-    const totalFees = makerFee.add(takerFee);
+    let totalFees = makerFee.add(takerFee);
     const sellerFee = paymentAmount
       .mul(new BN(sellerFeeBasisPoints))
       .div(BASIS_POINTS_DIVISOR);
@@ -353,22 +375,42 @@ describe("Handle payment with royalties with seller fee", () => {
       .mul(royaltyFeeShare)
       .div(BASIS_POINTS_DIVISOR)
       .add(sellerFee);
+    totalFees = totalFees.add(sellerFee);
     let feesPaidOut = new BN(0);
+    let cretorsFeeRemainder =
+      [
+        totalCreatorsFee.mul(creator1Share).div(new BN(100)).toNumber(),
+        totalCreatorsFee.mul(creator2Share).div(new BN(100)).toNumber(),
+        totalCreatorsFee.mul(creator3Share).div(new BN(100)).toNumber(),
+      ].reduce((partialSum, a) => partialSum + a, 0) % totalNumberOfCreators;
+    console.log("cretorsFeeRemainder", cretorsFeeRemainder);
 
-    const creator1Funds = totalCreatorsFee.mul(creator1Share).div(new BN(100));
+    const creator1Funds = totalCreatorsFee
+      .mul(creator1Share)
+      .div(new BN(100))
+      .add(new BN(cretorsFeeRemainder > 0 ? 1 : 0));
     feesPaidOut = feesPaidOut.add(creator1Funds);
     const creator1AtaInfo = await paymentMintInfo.getAccountInfo(creator1Ata);
     expect(creator1AtaInfo.amount.toNumber()).to.eq(creator1Funds.toNumber());
+    cretorsFeeRemainder = cretorsFeeRemainder > 0 ? cretorsFeeRemainder - 1 : 0;
 
-    const creator2Funds = totalCreatorsFee.mul(creator2Share).div(new BN(100));
+    const creator2Funds = totalCreatorsFee
+      .mul(creator2Share)
+      .div(new BN(100))
+      .add(new BN(cretorsFeeRemainder > 0 ? 1 : 0));
     feesPaidOut = feesPaidOut.add(creator2Funds);
     const creator2AtaInfo = await paymentMintInfo.getAccountInfo(creator2Ata);
     expect(creator2AtaInfo.amount.toNumber()).to.eq(creator2Funds.toNumber());
+    cretorsFeeRemainder = cretorsFeeRemainder > 0 ? cretorsFeeRemainder - 1 : 0;
 
-    const creator3Funds = totalCreatorsFee.mul(creator3Share).div(new BN(100));
+    const creator3Funds = totalCreatorsFee
+      .mul(creator3Share)
+      .div(new BN(100))
+      .add(new BN(cretorsFeeRemainder > 0 ? 1 : 0));
     feesPaidOut = feesPaidOut.add(creator3Funds);
     const creator3AtaInfo = await paymentMintInfo.getAccountInfo(creator3Ata);
     expect(creator3AtaInfo.amount.toNumber()).to.eq(creator3Funds.toNumber());
+    cretorsFeeRemainder = cretorsFeeRemainder > 0 ? cretorsFeeRemainder - 1 : 0;
 
     const feeCollectorAtaInfo = await paymentMintInfo.getAccountInfo(
       feeCollectorTokenAccount
@@ -379,12 +421,21 @@ describe("Handle payment with royalties with seller fee", () => {
     const paymentAtaInfo = await paymentMintInfo.getAccountInfo(
       paymentTokenAccountId
     );
+    console.log(
+      "beforePaymentTokenAccount",
+      beforePaymentTokenAccountAmount.toNumber()
+    );
     expect(paymentAtaInfo.amount.toNumber()).to.eq(
-      paymentAmount.sub(makerFee).toNumber()
+      beforePaymentTokenAccountAmount
+        .add(paymentAmount.sub(makerFee))
+        .toNumber()
     );
 
-    expect(paymentAmount.add(takerFee).toNumber()).to.eq(
-      totalFees.add(sellerFee).toNumber()
-    );
+    const afterPayerTokenAccountAmount = (
+      await paymentMintInfo.getAccountInfo(payerTokenAccountId)
+    ).amount;
+    expect(
+      beforePayerTokenAccountAmount.sub(afterPayerTokenAccountAmount).toNumber()
+    ).to.eq(totalFees.add(paymentAmount).sub(makerFee).toNumber());
   });
 });

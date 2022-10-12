@@ -14,12 +14,14 @@ import type {
   ListingAuthorityData,
   ListingData,
   MarketplaceData,
+  TransferData,
 } from "./constants";
 import { LISTING_AUTHORITY_ADDRESS, LISTING_AUTHORITY_IDL } from "./constants";
 import {
   findListingAddress,
   findListingAuthorityAddress,
   findMarketplaceAddress,
+  findTransferAddress,
 } from "./pda";
 
 //////// LISTING AUTHORITY ////////
@@ -248,6 +250,116 @@ export const getAllListings = async (
   connection: Connection
 ): Promise<AccountData<ListingData>[]> =>
   getAllOfType<ListingData>(connection, "listing");
+
+//////// Tranfer ////////
+
+export const getTransfer = async (
+  connection: Connection,
+  mintId: PublicKey
+): Promise<AccountData<TransferData>> => {
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
+  const listingAuthorityProgram = new Program<LISTING_AUTHORITY_PROGRAM>(
+    LISTING_AUTHORITY_IDL,
+    LISTING_AUTHORITY_ADDRESS,
+    provider
+  );
+
+  const [transferId] = await findTransferAddress(mintId);
+
+  const parsed = await listingAuthorityProgram.account.transfer.fetch(
+    transferId
+  );
+  return {
+    parsed,
+    pubkey: transferId,
+  };
+};
+
+export const getTransfersFromUser = async (
+  connection: Connection,
+  from: PublicKey
+): Promise<AccountData<TransferData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    LISTING_AUTHORITY_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("transfer")
+            ),
+          },
+        },
+        { memcmp: { offset: 41, bytes: from.toBase58() } },
+      ],
+    }
+  );
+
+  const datas: AccountData<TransferData>[] = [];
+  const coder = new BorshAccountsCoder(LISTING_AUTHORITY_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const data: TransferData = coder.decode("transfer", account.account.data);
+      if (data) {
+        datas.push({
+          ...account,
+          parsed: data,
+        });
+      }
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+  });
+
+  return datas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
+};
+
+export const getTransfersToUser = async (
+  connection: Connection,
+  to: PublicKey
+): Promise<AccountData<TransferData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    LISTING_AUTHORITY_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("transfer")
+            ),
+          },
+        },
+        { memcmp: { offset: 73, bytes: to.toBase58() } },
+      ],
+    }
+  );
+
+  const datas: AccountData<TransferData>[] = [];
+  const coder = new BorshAccountsCoder(LISTING_AUTHORITY_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const data: TransferData = coder.decode("transfer", account.account.data);
+      if (data) {
+        datas.push({
+          ...account,
+          parsed: data,
+        });
+      }
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+  });
+
+  return datas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
+};
 
 //////// utils ////////
 export const getAllOfType = async <T>(

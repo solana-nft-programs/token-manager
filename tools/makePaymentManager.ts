@@ -17,6 +17,8 @@ export type PaymentManagerParams = {
   authority?: PublicKey;
   makerFeeBasisPoints: number;
   takerFeeBasisPoints: number;
+  includeSellerFeeBasisPoints: boolean;
+  royaltyFeeShare?: anchor.BN;
 };
 
 const main = async (
@@ -65,6 +67,7 @@ const params: PaymentManagerParams = {
   authority: new PublicKey("7KJ322BQnje7oPN315dRNK7Arioom7d8mAPhAJFME2MA"),
   makerFeeBasisPoints: 600,
   takerFeeBasisPoints: 0,
+  includeSellerFeeBasisPoints: false,
 };
 
 main(paymentManagerName, params).catch((e) => console.log(e));

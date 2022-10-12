@@ -259,6 +259,7 @@ export const acceptListing = (
   tokenManagerId: PublicKey,
   mintMetadataId: PublicKey,
   transferReceiptId: PublicKey,
+  transferId: PublicKey,
   paymentManagerId: PublicKey,
   paymentMintId: PublicKey,
   feeCollectorTokenAccountId: PublicKey,
@@ -277,6 +278,7 @@ export const acceptListing = (
     accounts: {
       listingAuthority: listingAuthorityId,
       transferReceipt: transferReceiptId,
+      transfer: transferId,
       listing: listingId,
       listerPaymentTokenAccount: listerPaymentTokenAccountId,
       listerMintTokenAccount: listerMintTokenAccountId,
@@ -403,6 +405,7 @@ export const acceptTransfer = (
     recipientTokenAccountId: PublicKey;
     mintId: PublicKey;
     transferReceiptId: PublicKey;
+    listingId: PublicKey;
     listingAuthorityId: PublicKey;
     remainingAccounts: AccountMeta[];
   }
@@ -421,6 +424,7 @@ export const acceptTransfer = (
       transfer: params.transferId,
       listingAuthority: params.listingAuthorityId,
       transferReceipt: params.transferReceiptId,
+      listing: params.listingId,
       tokenManager: params.tokenManagerId,
       mint: params.mintId,
       recipientTokenAccount: params.recipientTokenAccountId,

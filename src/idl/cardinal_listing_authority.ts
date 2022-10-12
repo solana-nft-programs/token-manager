@@ -217,6 +217,11 @@ export type CardinalListingAuthority = {
           isSigner: false;
         },
         {
+          name: "transfer";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "listing";
           isMut: true;
           isSigner: false;
@@ -469,6 +474,11 @@ export type CardinalListingAuthority = {
           isSigner: false;
         },
         {
+          name: "listing";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "tokenManager";
           isMut: true;
           isSigner: false;
@@ -653,6 +663,12 @@ export type CardinalListingAuthority = {
           },
           {
             name: "transferReceipt";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "transfer";
             type: {
               defined: "UncheckedAccount<'info>";
             };
@@ -1051,6 +1067,11 @@ export type CardinalListingAuthority = {
       code: 6021;
       name: "InvalidTransferAuthority";
       msg: "Invalid transfer authority";
+    },
+    {
+      code: 6022;
+      name: "InvalidDerivation";
+      msg: "Invalid derivation";
     }
   ];
 };
@@ -1270,6 +1291,11 @@ export const IDL: CardinalListingAuthority = {
         },
         {
           name: "transferReceipt",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "transfer",
           isMut: true,
           isSigner: false,
         },
@@ -1526,6 +1552,11 @@ export const IDL: CardinalListingAuthority = {
           isSigner: false,
         },
         {
+          name: "listing",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "tokenManager",
           isMut: true,
           isSigner: false,
@@ -1710,6 +1741,12 @@ export const IDL: CardinalListingAuthority = {
           },
           {
             name: "transferReceipt",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "transfer",
             type: {
               defined: "UncheckedAccount<'info>",
             },
@@ -2108,6 +2145,11 @@ export const IDL: CardinalListingAuthority = {
       code: 6021,
       name: "InvalidTransferAuthority",
       msg: "Invalid transfer authority",
+    },
+    {
+      code: 6022,
+      name: "InvalidDerivation",
+      msg: "Invalid derivation",
     },
   ],
 };

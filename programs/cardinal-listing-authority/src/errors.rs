@@ -46,4 +46,6 @@ pub enum ErrorCode {
     InvalidRecipientMintTokenAccount,
     #[msg("Invalid transfer authority")]
     InvalidTransferAuthority,
+    #[msg("Invalid derivation")]
+    InvalidDerivation,
 }

@@ -394,6 +394,7 @@ export const withAcceptListing = async (
     tokenManagerId,
     buyer
   );
+  const [transferId] = await findTransferAddress(mintId);
 
   const remainingAccountsForHandlePaymentWithRoyalties =
     await withRemainingAccountsForHandlePaymentWithRoyalties(
@@ -436,6 +437,7 @@ export const withAcceptListing = async (
       tokenManagerId,
       mintMetadataId,
       transferReceiptId,
+      transferId,
       marketplaceData.parsed.paymentManager,
       listingData.parsed.paymentMint,
       feeCollectorTokenAccountId,
@@ -549,6 +551,7 @@ export const withAcceptTransfer = async (
     tokenManagerId,
     recipient
   );
+  const [listingId] = await findListingAddress(mintId);
   const tokenManagerData = await tryGetAccount(() =>
     getTokenManager(connection, tokenManagerId)
   );
@@ -582,6 +585,7 @@ export const withAcceptTransfer = async (
       recipientTokenAccountId: recipientTokenAccountId,
       mintId: mintId,
       transferReceiptId: transferReceiptId,
+      listingId: listingId,
       listingAuthorityId: tokenManagerData.parsed.transferAuthority,
       remainingAccounts: remainingAccountsForTransfer,
     })

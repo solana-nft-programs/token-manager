@@ -11,11 +11,14 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 pub struct AcceptListingCtx<'info> {
-    #[account(mut, constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
+    #[account(mut, close = lister, constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
     listing_authority: Box<Account<'info, ListingAuthority>>,
     /// CHECK: This is not dangerous because this is the receipt getting initialized
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because this is the receipt getting initialized
+    #[account(mut)]
+    transfer: UncheckedAccount<'info>,
 
     #[account(mut)]
     listing: Box<Account<'info, Listing>>,
@@ -131,8 +134,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_remaining_accounts(transfer_remaining_accounts);
     cardinal_token_manager::cpi::transfer(cpi_ctx)?;
 
-    // close listing
-    ctx.accounts.listing.close(ctx.accounts.lister.to_account_info())?;
+    // close transfer if it exists
+    assert_derivation(
+        &cardinal_token_manager::id(),
+        &ctx.accounts.transfer.to_account_info(),
+        &[TRANSFER_SEED.as_bytes(), ctx.accounts.token_manager.key().as_ref()],
+    )?;
+    let transfer_info = Account::<Transfer>::try_from(&ctx.accounts.transfer);
+    if transfer_info.is_ok() {
+        transfer_info?.close(ctx.accounts.lister.to_account_info())?;
+    }
 
     Ok(())
 }

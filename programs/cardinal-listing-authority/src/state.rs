@@ -1,3 +1,4 @@
+use crate::errors::ErrorCode;
 use anchor_lang::prelude::*;
 
 pub const LISTING_AUTHORITY_SEED: &str = "listing-authority";
@@ -43,4 +44,12 @@ pub struct Transfer {
     pub token_manager: Pubkey,
     pub from: Pubkey,
     pub to: Pubkey,
+}
+
+pub fn assert_derivation(program_id: &Pubkey, account: &AccountInfo, path: &[&[u8]]) -> Result<u8> {
+    let (key, bump) = Pubkey::find_program_address(path, program_id);
+    if key != *account.key {
+        return Err(ErrorCode::InvalidDerivation.into());
+    }
+    Ok(bump)
 }

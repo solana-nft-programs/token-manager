@@ -1,3 +1,4 @@
+use anchor_lang::AccountsClose;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 use {
@@ -17,6 +18,9 @@ pub struct AcceptTransferCtx<'info> {
     /// CHECK: This is not dangerous because this is just the pubkey that collects the closing account lamports
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because this is the receipt getting initialized
+    #[account(mut)]
+    listing: UncheckedAccount<'info>,
 
     #[account(mut, constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
@@ -72,6 +76,17 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_remaining_accounts(remaining_accs.cloned().collect::<Vec<AccountInfo<'info>>>());
     cardinal_token_manager::cpi::transfer(cpi_ctx)?;
+
+    // close listing if it exists
+    assert_derivation(
+        &cardinal_token_manager::id(),
+        &ctx.accounts.listing.to_account_info(),
+        &[LISTING_SEED.as_bytes(), ctx.accounts.token_manager.key().as_ref()],
+    )?;
+    let listing_info = Account::<Listing>::try_from(&ctx.accounts.listing);
+    if listing_info.is_ok() {
+        listing_info?.close(ctx.accounts.holder.to_account_info())?;
+    }
 
     Ok(())
 }

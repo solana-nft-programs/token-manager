@@ -3,12 +3,10 @@ import { SignerWallet } from "@saberhq/solana-contrib";
 import { PublicKey } from "@solana/web3.js";
 import * as web3Js from "@solana/web3.js";
 
-import { paymentManager } from "../src/programs";
 import { executeTransaction } from "./utils";
-import { getPaymentManager } from "../src/programs/paymentManager/accounts";
-import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
-import { tryGetAccount } from "../src";
+import { tryGetAccount, withUpdateMarketplace } from "../src";
 import { connectionFor } from "./connection";
+import { getMarketplaceByName } from "../src/programs/listingAuthority/accounts";
 
 const wallet = web3Js.Keypair.fromSecretKey(
   anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
@@ -21,21 +19,22 @@ export type PaymentManagerParams = {
 };
 
 const main = async (
+  marketplaceName: string,
+  listingAuthorityName: string,
   paymentManagerName: string,
-  params: PaymentManagerParams,
   cluster = "devnet"
 ) => {
   const connection = connectionFor(cluster);
   const transaction = new web3Js.Transaction();
-  transaction.add(
-    (
-      await paymentManager.instruction.update(
-        connection,
-        new SignerWallet(wallet),
-        paymentManagerName,
-        params
-      )
-    )[0]
+  await withUpdateMarketplace(
+    transaction,
+    connection,
+    new SignerWallet(wallet),
+    marketplaceName,
+    listingAuthorityName,
+    paymentManagerName,
+    new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
+    []
   );
   try {
     await executeTransaction(
@@ -47,25 +46,20 @@ const main = async (
   } catch (e) {
     console.log(`Transactionn failed: ${e}`);
   }
-  const [paymentManagerId] = await findPaymentManagerAddress(
-    paymentManagerName
+  const marketplaceData = await tryGetAccount(() =>
+    getMarketplaceByName(connection, marketplaceName)
   );
-  const paymentManagerData = await tryGetAccount(() =>
-    getPaymentManager(connection, paymentManagerId)
-  );
-  if (!paymentManagerData) {
+  if (!marketplaceData) {
     console.log("Error: Failed to create payment manager");
   } else {
     console.log(`Created payment manager ${paymentManagerName}`);
   }
 };
 
+const marketplaceName = "cardinal";
+const listingAuthorityName = "global";
 const paymentManagerName = "cardinal-marketplace";
-const params: PaymentManagerParams = {
-  authority: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
-  feeCollector: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
-  makerFeeBasisPoints: 100,
-  takerFeeBasisPoints: 0,
-};
 
-main(paymentManagerName, params).catch((e) => console.log(e));
+main(marketplaceName, listingAuthorityName, paymentManagerName).catch((e) =>
+  console.log(e)
+);

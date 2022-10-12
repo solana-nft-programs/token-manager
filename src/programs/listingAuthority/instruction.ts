@@ -138,7 +138,7 @@ export const updateMarketplace = (
       listingAuthority: listingAuthority,
       paymentManager: paymentManager,
       authority: authority,
-      paymentMints: paymentMints,
+      paymentMints: paymentMints ?? null,
     },
     {
       accounts: {

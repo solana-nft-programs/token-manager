@@ -14,7 +14,9 @@ export type MarketplaceParams = {
   paymentMints?: PublicKey[];
 };
 
-const wallet = Keypair.fromSecretKey(anchor.utils.bytes.bs58.decode("")); // your wallet's secret key
+const wallet = Keypair.fromSecretKey(
+  anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
+); // your wallet's secret key // your wallet's secret key
 
 const main = async (params: MarketplaceParams, cluster = "devnet") => {
   const connection = connectionFor(cluster);
@@ -53,6 +55,6 @@ const main = async (params: MarketplaceParams, cluster = "devnet") => {
 const params: MarketplaceParams = {
   name: "cardinal",
   listingAuthorityName: "global",
-  paymentManagerName: "cardinal",
+  paymentManagerName: "cardinal-marketplace",
 };
 main(params).catch((e) => console.log(e));

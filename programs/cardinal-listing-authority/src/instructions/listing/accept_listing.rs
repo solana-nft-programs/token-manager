@@ -136,7 +136,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     // close transfer if it exists
     assert_derivation(
-        &cardinal_token_manager::id(),
+        ctx.program_id,
         &ctx.accounts.transfer.to_account_info(),
         &[TRANSFER_SEED.as_bytes(), ctx.accounts.token_manager.key().as_ref()],
     )?;

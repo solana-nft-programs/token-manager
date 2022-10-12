@@ -79,7 +79,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     // close listing if it exists
     assert_derivation(
-        &cardinal_token_manager::id(),
+        ctx.program_id,
         &ctx.accounts.listing.to_account_info(),
         &[LISTING_SEED.as_bytes(), ctx.accounts.token_manager.key().as_ref()],
     )?;

@@ -3,6 +3,182 @@ export type CardinalListingAuthority = {
   name: "cardinal_listing_authority";
   instructions: [
     {
+      name: "initListingAuthority";
+      accounts: [
+        {
+          name: "listingAuthority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "InitListingAuthorityIx";
+          };
+        }
+      ];
+    },
+    {
+      name: "updateListingAuthority";
+      accounts: [
+        {
+          name: "listingAuthority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdateListingAuthorityIx";
+          };
+        }
+      ];
+    },
+    {
+      name: "whitelistMarketplaces";
+      accounts: [
+        {
+          name: "listingAuthority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "WhitelistMarketplacesIx";
+          };
+        }
+      ];
+    },
+    {
+      name: "eject";
+      accounts: [
+        {
+          name: "listingAuthority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "holderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "holder";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "createListing";
+      accounts: [
+        {
+          name: "listing";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "listingAuthority";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "marketplace";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "listerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "lister";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "CreateListingIx";
+          };
+        }
+      ];
+    },
+    {
+      name: "updateListing";
+      accounts: [
+        {
+          name: "listing";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "lister";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdateListingIx";
+          };
+        }
+      ];
+    },
+    {
       name: "acceptListing";
       accounts: [
         {
@@ -114,7 +290,7 @@ export type CardinalListingAuthority = {
       args: [];
     },
     {
-      name: "createListing";
+      name: "removeListing";
       accounts: [
         {
           name: "listing";
@@ -122,49 +298,12 @@ export type CardinalListingAuthority = {
           isSigner: false;
         },
         {
-          name: "listingAuthority";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "marketplace";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "tokenManager";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "listerTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "lister";
           isMut: true;
           isSigner: true;
-        },
-        {
-          name: "payer";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
         }
       ];
-      args: [
-        {
-          name: "ix";
-          type: {
-            defined: "CreateListingIx";
-          };
-        }
-      ];
+      args: [];
     },
     {
       name: "initMarketplace";
@@ -195,73 +334,6 @@ export type CardinalListingAuthority = {
       ];
     },
     {
-      name: "initListingAuthority";
-      accounts: [
-        {
-          name: "listingAuthority";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "payer";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "ix";
-          type: {
-            defined: "InitListingAuthorityIx";
-          };
-        }
-      ];
-    },
-    {
-      name: "removeListing";
-      accounts: [
-        {
-          name: "listing";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "lister";
-          isMut: true;
-          isSigner: true;
-        }
-      ];
-      args: [];
-    },
-    {
-      name: "updateListing";
-      accounts: [
-        {
-          name: "listing";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "lister";
-          isMut: true;
-          isSigner: true;
-        }
-      ];
-      args: [
-        {
-          name: "ix";
-          type: {
-            defined: "UpdateListingIx";
-          };
-        }
-      ];
-    },
-    {
       name: "updateMarketplace";
       accounts: [
         {
@@ -280,52 +352,6 @@ export type CardinalListingAuthority = {
           name: "ix";
           type: {
             defined: "UpdateMarketplaceIx";
-          };
-        }
-      ];
-    },
-    {
-      name: "updateListingAuthority";
-      accounts: [
-        {
-          name: "listingAuthority";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "authority";
-          isMut: true;
-          isSigner: true;
-        }
-      ];
-      args: [
-        {
-          name: "ix";
-          type: {
-            defined: "UpdateListingAuthorityIx";
-          };
-        }
-      ];
-    },
-    {
-      name: "whitelistMarketplaces";
-      accounts: [
-        {
-          name: "listingAuthority";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "authority";
-          isMut: true;
-          isSigner: true;
-        }
-      ];
-      args: [
-        {
-          name: "ix";
-          type: {
-            defined: "WhitelistMarketplacesIx";
           };
         }
       ];
@@ -1009,6 +1035,182 @@ export const IDL: CardinalListingAuthority = {
   name: "cardinal_listing_authority",
   instructions: [
     {
+      name: "initListingAuthority",
+      accounts: [
+        {
+          name: "listingAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "InitListingAuthorityIx",
+          },
+        },
+      ],
+    },
+    {
+      name: "updateListingAuthority",
+      accounts: [
+        {
+          name: "listingAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdateListingAuthorityIx",
+          },
+        },
+      ],
+    },
+    {
+      name: "whitelistMarketplaces",
+      accounts: [
+        {
+          name: "listingAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "WhitelistMarketplacesIx",
+          },
+        },
+      ],
+    },
+    {
+      name: "eject",
+      accounts: [
+        {
+          name: "listingAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "holderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "holder",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "createListing",
+      accounts: [
+        {
+          name: "listing",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "listingAuthority",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "marketplace",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "listerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "lister",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "CreateListingIx",
+          },
+        },
+      ],
+    },
+    {
+      name: "updateListing",
+      accounts: [
+        {
+          name: "listing",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "lister",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdateListingIx",
+          },
+        },
+      ],
+    },
+    {
       name: "acceptListing",
       accounts: [
         {
@@ -1120,30 +1322,10 @@ export const IDL: CardinalListingAuthority = {
       args: [],
     },
     {
-      name: "createListing",
+      name: "removeListing",
       accounts: [
         {
           name: "listing",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "listingAuthority",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "marketplace",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "tokenManager",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "listerTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -1152,25 +1334,8 @@ export const IDL: CardinalListingAuthority = {
           isMut: true,
           isSigner: true,
         },
-        {
-          name: "payer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
       ],
-      args: [
-        {
-          name: "ix",
-          type: {
-            defined: "CreateListingIx",
-          },
-        },
-      ],
+      args: [],
     },
     {
       name: "initMarketplace",
@@ -1201,73 +1366,6 @@ export const IDL: CardinalListingAuthority = {
       ],
     },
     {
-      name: "initListingAuthority",
-      accounts: [
-        {
-          name: "listingAuthority",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "payer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "ix",
-          type: {
-            defined: "InitListingAuthorityIx",
-          },
-        },
-      ],
-    },
-    {
-      name: "removeListing",
-      accounts: [
-        {
-          name: "listing",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "lister",
-          isMut: true,
-          isSigner: true,
-        },
-      ],
-      args: [],
-    },
-    {
-      name: "updateListing",
-      accounts: [
-        {
-          name: "listing",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "lister",
-          isMut: true,
-          isSigner: true,
-        },
-      ],
-      args: [
-        {
-          name: "ix",
-          type: {
-            defined: "UpdateListingIx",
-          },
-        },
-      ],
-    },
-    {
       name: "updateMarketplace",
       accounts: [
         {
@@ -1286,52 +1384,6 @@ export const IDL: CardinalListingAuthority = {
           name: "ix",
           type: {
             defined: "UpdateMarketplaceIx",
-          },
-        },
-      ],
-    },
-    {
-      name: "updateListingAuthority",
-      accounts: [
-        {
-          name: "listingAuthority",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "authority",
-          isMut: true,
-          isSigner: true,
-        },
-      ],
-      args: [
-        {
-          name: "ix",
-          type: {
-            defined: "UpdateListingAuthorityIx",
-          },
-        },
-      ],
-    },
-    {
-      name: "whitelistMarketplaces",
-      accounts: [
-        {
-          name: "listingAuthority",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "authority",
-          isMut: true,
-          isSigner: true,
-        },
-      ],
-      args: [
-        {
-          name: "ix",
-          type: {
-            defined: "WhitelistMarketplacesIx",
           },
         },
       ],

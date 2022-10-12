@@ -107,18 +107,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                             return Err(error!(ErrorCode::InvalidTokenAccount));
                         }
                         let share = u64::try_from(creator.share).expect("Could not cast u8 to u64");
+                        let creator_fee_remainder_amount = u64::from(creators_fee_remainder > 0);
                         let creator_fee_amount = total_creators_fee
                             .checked_mul(share)
                             .unwrap()
                             .checked_div(100)
                             .expect("Div error")
-                            .checked_add(u64::from(creators_fee_remainder > 0))
+                            .checked_add(creator_fee_remainder_amount)
                             .expect("Add error");
-                        creators_fee_remainder = if creators_fee_remainder > 0 {
-                            creators_fee_remainder.checked_sub(1).expect("Sub error")
-                        } else {
-                            0
-                        };
+                        creators_fee_remainder = creators_fee_remainder.checked_sub(creator_fee_remainder_amount).expect("Sub error");
 
                         if creator_fee_amount > 0 {
                             fees_paid_out = fees_paid_out.checked_add(creator_fee_amount).expect("Add error");

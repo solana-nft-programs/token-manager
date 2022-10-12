@@ -8,7 +8,7 @@ import type {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { SystemProgram } from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
@@ -430,6 +430,42 @@ export const acceptTransfer = (
       tokenProgram: TOKEN_PROGRAM_ID,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       systemProgram: SystemProgram.programId,
+    },
+  });
+};
+
+export const invalidate = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    listingAuthorityId: PublicKey;
+    tokenManagerId: PublicKey;
+    mintId: PublicKey;
+    tokenManagerTokenAccountId: PublicKey;
+    holderTokenAccountId: PublicKey;
+    holder: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+
+  const transferAuthorityProgram =
+    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
+      constants.LISTING_AUTHORITY_IDL,
+      constants.LISTING_AUTHORITY_ADDRESS,
+      provider
+    );
+
+  return transferAuthorityProgram.instruction.invalidate({
+    accounts: {
+      listingAuthority: params.listingAuthorityId,
+      tokenManager: params.tokenManagerId,
+      mint: params.mintId,
+      tokenManagerTokenAccount: params.tokenManagerTokenAccountId,
+      holderTokenAccount: params.holderTokenAccountId,
+      holder: params.holder,
+      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
     },
   });
 };

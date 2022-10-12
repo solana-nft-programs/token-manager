@@ -25,6 +25,7 @@ import {
   initListingAuthority,
   initMarketplace,
   initTransfer,
+  invalidate,
   removeListing,
   updateListing,
   updateListingAuthority,
@@ -568,6 +569,42 @@ export const withAcceptTransfer = async (
       mintId: mintId,
       transferReceiptId: transferReceiptId,
       listingAuthorityId: tokenManagerData.parsed.transferAuthority,
+    })
+  );
+  return transaction;
+};
+
+export const withInvalidate = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  listingAuthorityId: PublicKey,
+  payer = wallet.publicKey
+): Promise<Transaction> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  let holderTokenAccountId: PublicKey;
+  try {
+    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
+  } catch (e) {
+    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  }
+  const tokenManagerTokenAccount = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    mintId,
+    tokenManagerId,
+    payer,
+    true
+  );
+  transaction.add(
+    invalidate(connection, wallet, {
+      listingAuthorityId: listingAuthorityId,
+      tokenManagerId: tokenManagerId,
+      mintId: mintId,
+      tokenManagerTokenAccountId: tokenManagerTokenAccount,
+      holderTokenAccountId: holderTokenAccountId,
+      holder: wallet.publicKey,
     })
   );
   return transaction;

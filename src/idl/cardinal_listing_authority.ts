@@ -77,16 +77,26 @@ export type CardinalListingAuthority = {
       ];
     },
     {
-      name: "eject";
+      name: "invalidate";
       accounts: [
         {
           name: "listingAuthority";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
           name: "tokenManager";
-          isMut: false;
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManagerTokenAccount";
+          isMut: true;
           isSigner: false;
         },
         {
@@ -98,6 +108,21 @@ export type CardinalListingAuthority = {
           name: "holder";
           isMut: true;
           isSigner: true;
+        },
+        {
+          name: "cardinalTokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
         }
       ];
       args: [];
@@ -1109,16 +1134,26 @@ export const IDL: CardinalListingAuthority = {
       ],
     },
     {
-      name: "eject",
+      name: "invalidate",
       accounts: [
         {
           name: "listingAuthority",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
           name: "tokenManager",
-          isMut: false,
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManagerTokenAccount",
+          isMut: true,
           isSigner: false,
         },
         {
@@ -1130,6 +1165,21 @@ export const IDL: CardinalListingAuthority = {
           name: "holder",
           isMut: true,
           isSigner: true,
+        },
+        {
+          name: "cardinalTokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
         },
       ],
       args: [],

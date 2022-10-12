@@ -25,7 +25,7 @@ import {
   initListingAuthority,
   initMarketplace,
   initTransfer,
-  invalidate,
+  release,
   removeListing,
   updateListing,
   updateListingAuthority,
@@ -598,7 +598,7 @@ export const withRelease = async (
     true
   );
   transaction.add(
-    invalidate(connection, wallet, {
+    release(connection, wallet, {
       listingAuthorityId: listingAuthorityId,
       tokenManagerId: tokenManagerId,
       mintId: mintId,

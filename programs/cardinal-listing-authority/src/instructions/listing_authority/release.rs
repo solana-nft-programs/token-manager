@@ -7,7 +7,7 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct InvalidateCtx<'info> {
+pub struct ReleaseCtx<'info> {
     listing_authority: Box<Account<'info, ListingAuthority>>,
 
     #[account(mut, constraint = token_manager.invalidators.contains(&listing_authority.key()) @ ErrorCode::InvalidTokenManager)]
@@ -28,7 +28,7 @@ pub struct InvalidateCtx<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ReleaseCtx<'info>>) -> Result<()> {
     if ctx.accounts.token_manager.transfer_authority.is_none() || ctx.accounts.token_manager.transfer_authority.unwrap() != ctx.accounts.listing_authority.key() {
         return Err(error!(ErrorCode::InvalidTransferAuthority));
     }

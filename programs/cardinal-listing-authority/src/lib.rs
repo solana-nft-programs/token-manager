@@ -24,8 +24,8 @@ pub mod cardinal_listing_authority {
         listing_authority::whitelist_marketplaces::handler(ctx, ix)
     }
 
-    pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
-        listing_authority::invalidate::handler(ctx)
+    pub fn release<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ReleaseCtx<'info>>) -> Result<()> {
+        listing_authority::release::handler(ctx)
     }
 
     // listing

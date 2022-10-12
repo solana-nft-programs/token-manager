@@ -6,7 +6,7 @@ pub use listing::update_listing::*;
 
 pub mod listing_authority;
 pub use listing_authority::init_listing_authority::*;
-pub use listing_authority::invalidate::*;
+pub use listing_authority::release::*;
 pub use listing_authority::update_listing_authority::*;
 pub use listing_authority::whitelist_marketplaces::*;
 

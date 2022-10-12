@@ -434,7 +434,7 @@ export const acceptTransfer = (
   });
 };
 
-export const invalidate = (
+export const release = (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -455,7 +455,7 @@ export const invalidate = (
       provider
     );
 
-  return transferAuthorityProgram.instruction.invalidate({
+  return transferAuthorityProgram.instruction.release({
     accounts: {
       listingAuthority: params.listingAuthorityId,
       tokenManager: params.tokenManagerId,

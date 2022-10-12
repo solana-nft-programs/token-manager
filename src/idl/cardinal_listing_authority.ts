@@ -77,7 +77,7 @@ export type CardinalListingAuthority = {
       ];
     },
     {
-      name: "invalidate";
+      name: "release";
       accounts: [
         {
           name: "listingAuthority";
@@ -1134,7 +1134,7 @@ export const IDL: CardinalListingAuthority = {
       ],
     },
     {
-      name: "invalidate",
+      name: "release",
       accounts: [
         {
           name: "listingAuthority",

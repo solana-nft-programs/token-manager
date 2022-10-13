@@ -136,6 +136,7 @@ describe("Allowed markeptlaces for listing authority", () => {
           feeCollector: feeCollector.publicKey,
           makerFeeBasisPoints: MAKER_FEE.toNumber(),
           takerFeeBasisPoints: TAKER_FEE.toNumber(),
+          includeSellerFeeBasisPoints: false,
         })
       )[0]
     );

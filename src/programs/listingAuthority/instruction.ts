@@ -449,6 +449,7 @@ export const release = (
     tokenManagerTokenAccountId: PublicKey;
     holderTokenAccountId: PublicKey;
     holder: PublicKey;
+    remainingAccounts: AccountMeta[];
   }
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -472,5 +473,6 @@ export const release = (
       tokenProgram: TOKEN_PROGRAM_ID,
       rent: SYSVAR_RENT_PUBKEY,
     },
+    remainingAccounts: params.remainingAccounts,
   });
 };

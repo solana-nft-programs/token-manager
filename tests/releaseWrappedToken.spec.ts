@@ -13,56 +13,36 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import * as splToken from "@solana/spl-token";
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  Transaction,
-} from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
 
 import {
   emptyWallet,
   findAta,
-  withAcceptListing,
-  withCreateListing,
   withInitListingAuthority,
-  withInitMarketplace,
+  withRelease,
   withWrapToken,
 } from "../src";
-import {
-  getListing,
-  getListingAuthorityByName,
-  getMarketplaceByName,
-} from "../src/programs/listingAuthority/accounts";
-import {
-  findListingAuthorityAddress,
-  findMarketplaceAddress,
-} from "../src/programs/listingAuthority/pda";
+import { getListingAuthorityByName } from "../src/programs/listingAuthority/accounts";
+import { findListingAuthorityAddress } from "../src/programs/listingAuthority/pda";
 import { init } from "../src/programs/paymentManager/instruction";
-import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
+import { getTokenManager } from "../src/programs/tokenManager/accounts";
 import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Accept Listing", () => {
+describe("Release wrapped token", () => {
   const listingAuthorityName = `lst-auth-${Math.random()}`;
-  const marketplaceName = `mrkt-${Math.random()}`;
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
-  let rentalMint: Token;
-  const rentalPaymentAmount = new BN(100);
-  const rentalPaymentMint = new PublicKey(
-    "So11111111111111111111111111111111111111112"
-  );
+  let tokenMint: Token;
 
   const paymentManagerName = `pm-${Math.random()}`;
   const feeCollector = Keypair.generate();
   const MAKER_FEE = new BN(500);
   const TAKER_FEE = new BN(0);
-  const BASIS_POINTS_DIVISOR = new BN(10000);
 
   before(async () => {
     const provider = getProvider();
@@ -79,7 +59,7 @@ describe("Accept Listing", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    [, rentalMint] = await createMint(
+    [, tokenMint] = await createMint(
       provider.connection,
       lister,
       lister.publicKey,
@@ -87,7 +67,7 @@ describe("Accept Listing", () => {
       lister.publicKey
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(tokenMint.publicKey);
     const metadataTx = new CreateMetadataV2(
       { feePayer: lister.publicKey },
       {
@@ -102,19 +82,19 @@ describe("Accept Listing", () => {
           uses: null,
         }),
         updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
+        mint: tokenMint.publicKey,
         mintAuthority: lister.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(tokenMint.publicKey);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: lister.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
+        mint: tokenMint.publicKey,
         mintAuthority: lister.publicKey,
         maxSupply: new BN(1),
       }
@@ -205,7 +185,7 @@ describe("Accept Listing", () => {
       wrapTransaction,
       provider.connection,
       emptyWallet(lister.publicKey),
-      rentalMint.publicKey,
+      tokenMint.publicKey,
       listingAuthorityName
     );
 
@@ -226,87 +206,53 @@ describe("Accept Listing", () => {
 
     const checkMint = new splToken.Token(
       provider.connection,
-      rentalMint.publicKey,
+      tokenMint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       null
     );
     const mintTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      tokenMint.publicKey,
       lister.publicKey,
       true
     );
     const mintTokenAccount = await checkMint.getAccountInfo(mintTokenAccountId);
     expect(mintTokenAccount.amount.toNumber()).to.equal(1);
     expect(mintTokenAccount.isFrozen).to.be.true;
-  });
 
-  it("Create Marketplace", async () => {
-    const provider = getProvider();
-    const transaction = new Transaction();
-
-    await withInitMarketplace(
-      transaction,
+    const [tokenManagerId] = await findTokenManagerAddress(tokenMint.publicKey);
+    const tokenManagerData = await getTokenManager(
       provider.connection,
-      provider.wallet,
-      marketplaceName,
-      listingAuthorityName,
-      paymentManagerName
+      tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-    await expectTXTable(txEnvelope, "create marketplace", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const checkMarketplace = await getMarketplaceByName(
-      provider.connection,
-      marketplaceName
-    );
-
-    expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
     const [listingAuthorityId] = await findListingAuthorityAddress(
       listingAuthorityName
     );
-    expect(checkMarketplace.parsed.listingAuthority).to.eqAddress(
-      listingAuthorityId
-    );
-    const [paymentManagerId] = await findPaymentManagerAddress(
-      paymentManagerName
-    );
-    expect(checkMarketplace.parsed.paymentManager).to.eqAddress(
-      paymentManagerId
-    );
-    expect(checkMarketplace.parsed.authority).to.eqAddress(
-      provider.wallet.publicKey
-    );
-    expect(checkMarketplace.parsed.paymentMints).to.be.null;
+    expect(
+      tokenManagerData.parsed.invalidators
+        .map((inv) => inv.toString())
+        .toString()
+    ).to.eq([listingAuthorityId.toString()].toString());
   });
 
-  it("Create Listing", async () => {
+  it("Release token", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
 
-    await withCreateListing(
+    const [listingAuthorityId] = await findListingAuthorityAddress(
+      listingAuthorityName
+    );
+
+    await withRelease(
       transaction,
       provider.connection,
       emptyWallet(lister.publicKey),
-      rentalMint.publicKey,
-      marketplaceName,
-      rentalPaymentAmount,
-      rentalPaymentMint
+      tokenMint.publicKey,
+      listingAuthorityId
     );
 
-    const txEnvelope = new TransactionEnvelope(
+    const wrapTxEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
         wallet: provider.wallet,
@@ -315,112 +261,27 @@ describe("Accept Listing", () => {
       [...transaction.instructions],
       [lister]
     );
-    await expectTXTable(txEnvelope, "create listing", {
+
+    await expectTXTable(wrapTxEnvelope, "realease wrapped token", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const checkListing = await getListing(
+    const checkMint = new splToken.Token(
       provider.connection,
-      rentalMint.publicKey
-    );
-
-    expect(checkListing.parsed.lister).to.eqAddress(lister.publicKey);
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
-    expect(checkListing.parsed.tokenManager).to.eqAddress(tokenManagerId);
-    const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
-    expect(checkListing.parsed.marketplace).to.eqAddress(marketplaceId);
-    expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
-      rentalPaymentAmount.toNumber()
-    );
-    expect(checkListing.parsed.paymentMint).to.eqAddress(rentalPaymentMint);
-  });
-
-  it("Accept Listing", async () => {
-    const provider = getProvider();
-    const transaction = new Transaction();
-
-    await withAcceptListing(
-      transaction,
-      provider.connection,
-      provider.wallet,
-      buyer.publicKey,
-      rentalMint.publicKey
-    );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions],
-      [buyer]
-    );
-    await expectTXTable(txEnvelope, "create listing", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const buyerMintTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      buyer.publicKey,
-      true
-    );
-    const checkMRentalint = new splToken.Token(
-      provider.connection,
-      rentalMint.publicKey,
+      tokenMint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       null
     );
-    const buyerRentalMintTokenAccount = await checkMRentalint.getAccountInfo(
-      buyerMintTokenAccountId
-    );
-    expect(buyerRentalMintTokenAccount.amount.toNumber()).to.eq(1);
-    expect(buyerRentalMintTokenAccount.isFrozen).to.be.true;
-
-    const makerFee = rentalPaymentAmount
-      .mul(MAKER_FEE)
-      .div(BASIS_POINTS_DIVISOR);
-    const takerFee = rentalPaymentAmount
-      .mul(TAKER_FEE)
-      .div(BASIS_POINTS_DIVISOR);
-    const totalFees = makerFee.add(takerFee);
-
-    const listerMintTokenAccountId = await findAta(
-      rentalPaymentMint,
+    const mintTokenAccountId = await findAta(
+      tokenMint.publicKey,
       lister.publicKey,
       true
     );
-    const feeCollectorTokenAccountId = await findAta(
-      rentalPaymentMint,
-      feeCollector.publicKey,
-      true
-    );
-    const checkPaymentMint = new splToken.Token(
-      provider.connection,
-      rentalPaymentMint,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
-    const listerPaymentMintTokenAccount = await checkPaymentMint.getAccountInfo(
-      listerMintTokenAccountId
-    );
-    expect(listerPaymentMintTokenAccount.amount.toNumber()).to.eq(
-      rentalPaymentAmount.sub(makerFee).toNumber()
-    );
-
-    const feeCollectorTokenAccount = await checkPaymentMint.getAccountInfo(
-      feeCollectorTokenAccountId
-    );
-    expect(feeCollectorTokenAccount.amount.toNumber()).to.eq(
-      totalFees.toNumber()
-    );
+    const mintTokenAccount = await checkMint.getAccountInfo(mintTokenAccountId);
+    expect(mintTokenAccount.amount.toNumber()).to.equal(1);
+    expect(mintTokenAccount.isFrozen).to.be.false;
   });
 });

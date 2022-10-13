@@ -94,7 +94,8 @@ export const withIssueToken = async (
       ? 2
       : useInvalidation || timeInvalidation
       ? 1
-      : 0);
+      : 0) +
+    (listingAuthorityName ? 1 : 0);
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
@@ -117,6 +118,14 @@ export const withIssueToken = async (
     }
     transaction.add(
       setTransferAuthority(
+        connection,
+        wallet,
+        tokenManagerId,
+        checkListingAuthority.pubkey
+      )
+    );
+    transaction.add(
+      tokenManager.instruction.addInvalidator(
         connection,
         wallet,
         tokenManagerId,

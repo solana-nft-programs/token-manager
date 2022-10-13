@@ -45,6 +45,7 @@ import {
   InvalidationType,
   TokenManagerKind,
   withRemainingAccountsForHandlePaymentWithRoyalties,
+  withRemainingAccountsForReturn,
 } from "./programs/tokenManager";
 import { getTokenManager } from "./programs/tokenManager/accounts";
 import { claim } from "./programs/tokenManager/instruction";
@@ -617,6 +618,17 @@ export const withRelease = async (
     payer,
     true
   );
+  const tokenManagerData = await getTokenManager(connection, tokenManagerId);
+  const remainingAccountsForKind = await getRemainingAccountsForKind(
+    mintId,
+    tokenManagerData.parsed.kind
+  );
+  const remainingAccountsForReturn = await withRemainingAccountsForReturn(
+    transaction,
+    connection,
+    wallet,
+    tokenManagerData
+  );
   transaction.add(
     release(connection, wallet, {
       listingAuthorityId: listingAuthorityId,
@@ -625,6 +637,10 @@ export const withRelease = async (
       tokenManagerTokenAccountId: tokenManagerTokenAccount,
       holderTokenAccountId: holderTokenAccountId,
       holder: wallet.publicKey,
+      remainingAccounts: [
+        ...remainingAccountsForKind,
+        ...remainingAccountsForReturn,
+      ],
     })
   );
   return transaction;

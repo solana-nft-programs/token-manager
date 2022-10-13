@@ -1,5 +1,5 @@
-# fixed-price-claim-approver
+# payment-manager
 
-Program for a fixed price claim approver that approves token managers if someone pays funds
+Program that defines splits for payments between the target payment amount and a specified fee collector that takes a cut according to the splits.
 
 More in-depth documentation pending.

@@ -402,7 +402,8 @@ export const withAcceptListing = async (
       connection,
       wallet,
       mintId,
-      listingData.parsed.paymentMint
+      listingData.parsed.paymentMint,
+      [listingData.parsed.lister.toString()]
     );
 
   let kind = TokenManagerKind.Edition;

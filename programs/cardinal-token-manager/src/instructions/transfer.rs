@@ -9,7 +9,7 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct  TransferCtx<'info> {
+pub struct TransferCtx<'info> {
     #[account(mut, constraint =
         token_manager.state == TokenManagerState::Claimed as u8
     )]

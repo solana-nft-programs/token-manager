@@ -119,6 +119,7 @@ describe("Create Listing", () => {
           feeCollector: feeCollector.publicKey,
           makerFeeBasisPoints: MAKER_FEE,
           takerFeeBasisPoints: TAKER_FEE,
+          includeSellerFeeBasisPoints: false,
         })
       )[0]
     );

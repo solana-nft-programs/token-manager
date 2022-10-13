@@ -8,9 +8,9 @@ use {
 
 #[derive(Accounts)]
 pub struct ReleaseCtx<'info> {
-    listing_authority: Box<Account<'info, ListingAuthority>>,
+    transfer_authority: Box<Account<'info, TransferAuthority>>,
 
-    #[account(mut, constraint = token_manager.invalidators.contains(&listing_authority.key()) @ ErrorCode::InvalidTokenManager)]
+    #[account(mut, constraint = token_manager.invalidators.contains(&transfer_authority.key()) @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
@@ -29,14 +29,14 @@ pub struct ReleaseCtx<'info> {
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ReleaseCtx<'info>>) -> Result<()> {
-    if ctx.accounts.token_manager.transfer_authority.is_none() || ctx.accounts.token_manager.transfer_authority.unwrap() != ctx.accounts.listing_authority.key() {
+    if ctx.accounts.token_manager.transfer_authority.is_none() || ctx.accounts.token_manager.transfer_authority.unwrap() != ctx.accounts.transfer_authority.key() {
         return Err(error!(ErrorCode::InvalidTransferAuthority));
     }
 
     let transfer_authority_seeds = &[
-        LISTING_AUTHORITY_SEED.as_bytes(),
-        ctx.accounts.listing_authority.name.as_bytes(),
-        &[ctx.accounts.listing_authority.bump],
+        TRANSFER_AUTHORITY_SEED.as_bytes(),
+        ctx.accounts.transfer_authority.name.as_bytes(),
+        &[ctx.accounts.transfer_authority.bump],
     ];
     let transfer_authority_signer = &[&transfer_authority_seeds[..]];
 
@@ -46,7 +46,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_manager_token_account: ctx.accounts.token_manager_token_account.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
         recipient_token_account: ctx.accounts.holder_token_account.to_account_info(),
-        invalidator: ctx.accounts.listing_authority.to_account_info(),
+        invalidator: ctx.accounts.transfer_authority.to_account_info(),
         collector: ctx.accounts.holder.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
         rent: ctx.accounts.rent.to_account_info(),

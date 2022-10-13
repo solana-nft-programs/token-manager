@@ -734,7 +734,7 @@ export type CardinalTokenManager = {
       };
     },
     {
-      name: "tranferReceipt";
+      name: "transferReceipt";
       type: {
         kind: "struct";
         fields: [
@@ -1747,7 +1747,7 @@ export const IDL: CardinalTokenManager = {
       },
     },
     {
-      name: "tranferReceipt",
+      name: "transferReceipt",
       type: {
         kind: "struct",
         fields: [

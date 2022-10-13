@@ -18,18 +18,18 @@ import { expect } from "chai";
 
 import {
   withCreateListing,
-  withInitListingAuthority,
   withInitMarketplace,
+  withInitTransferAuthority,
   withWrapToken,
 } from "../src";
 import {
   getListing,
-  getListingAuthorityByName,
   getMarketplaceByName,
+  getTransferAuthorityByName,
 } from "../src/programs/listingAuthority/accounts";
 import {
-  findListingAuthorityAddress,
   findMarketplaceAddress,
+  findTransferAuthorityAddress,
 } from "../src/programs/listingAuthority/pda";
 import { init } from "../src/programs/paymentManager/instruction";
 import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
@@ -38,7 +38,7 @@ import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create Listing", () => {
-  const listingAuthorityName = `lst-auth-${Math.random()}`;
+  const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
   const tokenCreator = Keypair.generate();
@@ -139,15 +139,15 @@ describe("Create Listing", () => {
     }).to.be.fulfilled;
   });
 
-  it("Create Listing Authority", async () => {
+  it("Create Transfer Authority", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
 
-    await withInitListingAuthority(
+    await withInitTransferAuthority(
       transaction,
       provider.connection,
       provider.wallet,
-      listingAuthorityName
+      transferAuthorityName
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -158,21 +158,21 @@ describe("Create Listing", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "Create listing authority", {
+    await expectTXTable(txEnvelope, "Create transfer authority", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const checkListingAuthority = await getListingAuthorityByName(
+    const checkTransferAuthority = await getTransferAuthorityByName(
       provider.connection,
-      listingAuthorityName
+      transferAuthorityName
     );
 
-    expect(checkListingAuthority.parsed.name).to.eq(listingAuthorityName);
-    expect(checkListingAuthority.parsed.authority).to.eqAddress(
+    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority).to.eqAddress(
       provider.wallet.publicKey
     );
-    expect(checkListingAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
   });
 
   it("Wrap Token", async () => {
@@ -184,7 +184,7 @@ describe("Create Listing", () => {
       provider.connection,
       provider.wallet,
       rentalMint.publicKey,
-      listingAuthorityName
+      transferAuthorityName
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(
@@ -211,7 +211,7 @@ describe("Create Listing", () => {
       provider.connection,
       provider.wallet,
       marketplaceName,
-      listingAuthorityName,
+      transferAuthorityName,
       paymentManagerName
     );
 
@@ -234,11 +234,11 @@ describe("Create Listing", () => {
     );
 
     expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
-    const [listingAuthorityId] = await findListingAuthorityAddress(
-      listingAuthorityName
+    const [transferAuthorityId] = await findTransferAuthorityAddress(
+      transferAuthorityName
     );
-    expect(checkMarketplace.parsed.listingAuthority).to.eqAddress(
-      listingAuthorityId
+    expect(checkMarketplace.parsed.transferAuthority).to.eqAddress(
+      transferAuthorityId
     );
     const [paymentManagerId] = await findPaymentManagerAddress(
       paymentManagerName

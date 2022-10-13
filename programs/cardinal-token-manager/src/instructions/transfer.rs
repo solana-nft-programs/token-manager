@@ -163,7 +163,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     // verify transfer receipt
     if token_manager.transfer_authority.is_some() {
         let transfer_receipt_info = next_account_info(remaining_accs)?;
-        let transfer_receipt = Account::<TranferReceipt>::try_from(transfer_receipt_info)?;
+        let transfer_receipt = Account::<TransferReceipt>::try_from(transfer_receipt_info)?;
         if transfer_receipt.mint_count != token_manager.count {
             return Err(error!(ErrorCode::InvalidTransferReceipt));
         }

@@ -11,25 +11,25 @@ import { Keypair } from "@solana/web3.js";
 import type { AccountData } from "../../utils";
 import type {
   LISTING_AUTHORITY_PROGRAM,
-  ListingAuthorityData,
   ListingData,
   MarketplaceData,
+  TransferAuthorityData,
   TransferData,
 } from "./constants";
 import { LISTING_AUTHORITY_ADDRESS, LISTING_AUTHORITY_IDL } from "./constants";
 import {
   findListingAddress,
-  findListingAuthorityAddress,
   findMarketplaceAddress,
   findTransferAddress,
+  findTransferAuthorityAddress,
 } from "./pda";
 
-//////// LISTING AUTHORITY ////////
+//////// TRANSFER AUTHORITY ////////
 
-export const getListingAuthority = async (
+export const getTransferAuthority = async (
   connection: Connection,
-  listingAuthorityId: PublicKey
-): Promise<AccountData<ListingAuthorityData>> => {
+  transferAuthorityId: PublicKey
+): Promise<AccountData<TransferAuthorityData>> => {
   const provider = new AnchorProvider(
     connection,
     new SignerWallet(Keypair.generate()),
@@ -41,19 +41,19 @@ export const getListingAuthority = async (
     provider
   );
 
-  const parsed = await listingAuthorityProgram.account.listingAuthority.fetch(
-    listingAuthorityId
+  const parsed = await listingAuthorityProgram.account.transferAuthority.fetch(
+    transferAuthorityId
   );
   return {
     parsed,
-    pubkey: listingAuthorityId,
+    pubkey: transferAuthorityId,
   };
 };
 
-export const getListingAuthorityByName = async (
+export const getTransferAuthorityByName = async (
   connection: Connection,
   name: string
-): Promise<AccountData<ListingAuthorityData>> => {
+): Promise<AccountData<TransferAuthorityData>> => {
   const provider = new AnchorProvider(
     connection,
     new SignerWallet(Keypair.generate()),
@@ -65,21 +65,21 @@ export const getListingAuthorityByName = async (
     provider
   );
 
-  const [listingAuthorityId] = await findListingAuthorityAddress(name);
+  const [transferAuthorityId] = await findTransferAuthorityAddress(name);
 
-  const parsed = await listingAuthorityProgram.account.listingAuthority.fetch(
-    listingAuthorityId
+  const parsed = await listingAuthorityProgram.account.transferAuthority.fetch(
+    transferAuthorityId
   );
   return {
     parsed,
-    pubkey: listingAuthorityId,
+    pubkey: transferAuthorityId,
   };
 };
 
-export const getAllListingAuthorities = async (
+export const getAllTransferAuthorities = async (
   connection: Connection
-): Promise<AccountData<ListingAuthorityData>[]> =>
-  getAllOfType<ListingAuthorityData>(connection, "listingAuthority");
+): Promise<AccountData<TransferAuthorityData>[]> =>
+  getAllOfType<TransferAuthorityData>(connection, "transferAuthority");
 
 //////// MARKETPLACE ////////
 
@@ -136,7 +136,7 @@ export const getMarketplaceByName = async (
 export const getAllMarketplaces = async (
   connection: Connection
 ): Promise<AccountData<MarketplaceData>[]> =>
-  getAllOfType<ListingAuthorityData>(connection, "marketplace");
+  getAllOfType<TransferAuthorityData>(connection, "marketplace");
 
 //////// LISTING ////////
 
@@ -251,7 +251,7 @@ export const getAllListings = async (
 ): Promise<AccountData<ListingData>[]> =>
   getAllOfType<ListingData>(connection, "listing");
 
-//////// Tranfer ////////
+//////// Transfer ////////
 
 export const getTransfer = async (
   connection: Connection,

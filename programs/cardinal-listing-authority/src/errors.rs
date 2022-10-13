@@ -30,9 +30,9 @@ pub enum ErrorCode {
     InvalidMarketplaceAuthority,
     #[msg("Invalid transfer authority authority")]
     InvalidTransferAuthorityAuthority,
-    #[msg("Invalid listing authority")]
-    InvalidListingAuthority,
-    #[msg("Marketplace place not allowed by listing authority")]
+    #[msg("Invalid transfer authority")]
+    InvalidTransferAuthority,
+    #[msg("Marketplace place not allowed by transfer authority")]
     MarketplaceNotAllowed,
     #[msg("Invalid token holder")]
     InvalidHolder,
@@ -44,8 +44,6 @@ pub enum ErrorCode {
     InvalidRecipient,
     #[msg("Invalid recipient mint token account")]
     InvalidRecipientMintTokenAccount,
-    #[msg("Invalid transfer authority")]
-    InvalidTransferAuthority,
     #[msg("Invalid derivation")]
     InvalidDerivation,
 }

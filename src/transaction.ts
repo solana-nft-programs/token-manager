@@ -16,7 +16,7 @@ import {
   useInvalidator,
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
-import { getListingAuthorityByName } from "./programs/listingAuthority/accounts";
+import { getTransferAuthorityByName } from "./programs/listingAuthority/accounts";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
 import type { TokenManagerData } from "./programs/tokenManager";
@@ -44,7 +44,7 @@ export type IssueParameters = {
   claimPayment?: ClaimApproverParams;
   timeInvalidation?: TimeInvalidationParams;
   useInvalidation?: UseInvalidationParams;
-  listingAuthorityName?: string;
+  transferAuthorityName?: string;
   mint: PublicKey;
   amount?: BN;
   issuerTokenAccountId: PublicKey;
@@ -77,7 +77,7 @@ export const withIssueToken = async (
     mint,
     issuerTokenAccountId,
     amount = new BN(1),
-    listingAuthorityName,
+    transferAuthorityName,
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
@@ -95,7 +95,7 @@ export const withIssueToken = async (
       : useInvalidation || timeInvalidation
       ? 1
       : 0) +
-    (listingAuthorityName ? 1 : 0);
+    (transferAuthorityName ? 1 : 0);
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
@@ -109,19 +109,19 @@ export const withIssueToken = async (
   );
   transaction.add(tokenManagerIx);
 
-  if (listingAuthorityName) {
-    const checkListingAuthority = await tryGetAccount(() =>
-      getListingAuthorityByName(connection, listingAuthorityName)
+  if (transferAuthorityName) {
+    const checkTransferAuthority = await tryGetAccount(() =>
+      getTransferAuthorityByName(connection, transferAuthorityName)
     );
-    if (!checkListingAuthority?.parsed) {
-      throw `No listing authority with name ${listingAuthorityName} found`;
+    if (!checkTransferAuthority?.parsed) {
+      throw `No transfer authority with name ${transferAuthorityName} found`;
     }
     transaction.add(
       setTransferAuthority(
         connection,
         wallet,
         tokenManagerId,
-        checkListingAuthority.pubkey
+        checkTransferAuthority.pubkey
       )
     );
     transaction.add(
@@ -129,7 +129,7 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        checkListingAuthority.pubkey
+        checkTransferAuthority.pubkey
       )
     );
   }

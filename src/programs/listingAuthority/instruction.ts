@@ -14,11 +14,11 @@ import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import * as constants from "./constants";
 
-export const initListingAuthority = (
+export const inittransferAuthority = (
   connection: Connection,
   wallet: Wallet,
   name: string,
-  listingAuthorityId: PublicKey,
+  transferAuthorityId: PublicKey,
   authorityId: PublicKey,
   payer = wallet.publicKey,
   allowedMarketplaces?: PublicKey[]
@@ -32,7 +32,7 @@ export const initListingAuthority = (
       provider
     );
 
-  return transferAuthorityProgram.instruction.initListingAuthority(
+  return transferAuthorityProgram.instruction.initTransferAuthority(
     {
       name: name,
       authority: authorityId,
@@ -40,7 +40,7 @@ export const initListingAuthority = (
     },
     {
       accounts: {
-        listingAuthority: listingAuthorityId,
+        transferAuthority: transferAuthorityId,
         payer: payer,
         systemProgram: SystemProgram.programId,
       },
@@ -48,10 +48,10 @@ export const initListingAuthority = (
   );
 };
 
-export const updateListingAuthority = (
+export const updatetransferAuthority = (
   connection: Connection,
   wallet: Wallet,
-  listingAuthorityId: PublicKey,
+  transferAuthorityId: PublicKey,
   authority: PublicKey,
   allowedMarketplaces: PublicKey[]
 ): TransactionInstruction => {
@@ -64,14 +64,14 @@ export const updateListingAuthority = (
       provider
     );
 
-  return transferAuthorityProgram.instruction.updateListingAuthority(
+  return transferAuthorityProgram.instruction.updateTransferAuthority(
     {
       authority: wallet.publicKey,
       allowedMarketplaces: allowedMarketplaces,
     },
     {
       accounts: {
-        listingAuthority: listingAuthorityId,
+        transferAuthority: transferAuthorityId,
         authority: authority,
       },
     }
@@ -83,7 +83,7 @@ export const initMarketplace = (
   wallet: Wallet,
   name: string,
   marketplaceId: PublicKey,
-  listingAuthority: PublicKey,
+  transferAuthority: PublicKey,
   paymentManager: PublicKey,
   paymentMints: PublicKey[] | undefined,
   payer = wallet.publicKey
@@ -103,7 +103,7 @@ export const initMarketplace = (
       paymentManager: paymentManager,
       authority: provider.wallet.publicKey,
       paymentMints: paymentMints || null,
-      listingAuthority: listingAuthority,
+      transferAuthority: transferAuthority,
     },
     {
       accounts: {
@@ -119,7 +119,7 @@ export const updateMarketplace = (
   connection: Connection,
   wallet: Wallet,
   marketplace: PublicKey,
-  listingAuthority: PublicKey,
+  transferAuthority: PublicKey,
   paymentManager: PublicKey,
   authority: PublicKey,
   paymentMints: PublicKey[] | undefined
@@ -135,7 +135,7 @@ export const updateMarketplace = (
 
   return transferAuthorityProgram.instruction.updateMarketplace(
     {
-      listingAuthority: listingAuthority,
+      transferAuthority: transferAuthority,
       paymentManager: paymentManager,
       authority: authority,
       paymentMints: paymentMints ?? null,
@@ -153,7 +153,7 @@ export const createListing = (
   connection: Connection,
   wallet: Wallet,
   listingId: PublicKey,
-  listingAuthorityId: PublicKey,
+  transferAuthorityId: PublicKey,
   tokenManagerId: PublicKey,
   marketplaceId: PublicKey,
   listerTokenAccount: PublicKey,
@@ -178,7 +178,7 @@ export const createListing = (
       accounts: {
         listing: listingId,
         tokenManager: tokenManagerId,
-        listingAuthority: listingAuthorityId,
+        transferAuthority: transferAuthorityId,
         marketplace: marketplaceId,
         listerTokenAccount: listerTokenAccount,
         lister: wallet.publicKey,
@@ -246,7 +246,7 @@ export const removeListing = (
 export const acceptListing = (
   connection: Connection,
   wallet: Wallet,
-  listingAuthorityId: PublicKey,
+  transferAuthorityId: PublicKey,
   listerPaymentTokenAccountId: PublicKey,
   listerMintTokenAccountId: PublicKey,
   lister: PublicKey,
@@ -276,7 +276,7 @@ export const acceptListing = (
     );
   return transferAuthorityProgram.instruction.acceptListing({
     accounts: {
-      listingAuthority: listingAuthorityId,
+      transferAuthority: transferAuthorityId,
       transferReceipt: transferReceiptId,
       transfer: transferId,
       listing: listingId,
@@ -306,7 +306,7 @@ export const acceptListing = (
 export const whitelistMarkeplaces = (
   connection: Connection,
   wallet: Wallet,
-  listingAuthorityId: PublicKey,
+  transferAuthorityId: PublicKey,
   whitelistMarketplaces: PublicKey[]
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -322,7 +322,7 @@ export const whitelistMarkeplaces = (
     { allowedMarketplaces: whitelistMarketplaces },
     {
       accounts: {
-        listingAuthority: listingAuthorityId,
+        transferAuthority: transferAuthorityId,
         authority: wallet.publicKey,
       },
     }
@@ -406,7 +406,7 @@ export const acceptTransfer = (
     mintId: PublicKey;
     transferReceiptId: PublicKey;
     listingId: PublicKey;
-    listingAuthorityId: PublicKey;
+    transferAuthorityId: PublicKey;
     remainingAccounts: AccountMeta[];
   }
 ): TransactionInstruction => {
@@ -422,7 +422,7 @@ export const acceptTransfer = (
   return transferAuthorityProgram.instruction.acceptTransfer({
     accounts: {
       transfer: params.transferId,
-      listingAuthority: params.listingAuthorityId,
+      transferAuthority: params.transferAuthorityId,
       transferReceipt: params.transferReceiptId,
       listing: params.listingId,
       tokenManager: params.tokenManagerId,
@@ -443,7 +443,7 @@ export const release = (
   connection: Connection,
   wallet: Wallet,
   params: {
-    listingAuthorityId: PublicKey;
+    transferAuthorityId: PublicKey;
     tokenManagerId: PublicKey;
     mintId: PublicKey;
     tokenManagerTokenAccountId: PublicKey;
@@ -463,7 +463,7 @@ export const release = (
 
   return transferAuthorityProgram.instruction.release({
     accounts: {
-      listingAuthority: params.listingAuthorityId,
+      transferAuthority: params.transferAuthorityId,
       tokenManager: params.tokenManagerId,
       mint: params.mintId,
       tokenManagerTokenAccount: params.tokenManagerTokenAccountId,

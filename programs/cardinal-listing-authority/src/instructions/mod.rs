@@ -4,11 +4,11 @@ pub use listing::create_listing::*;
 pub use listing::remove_listing::*;
 pub use listing::update_listing::*;
 
-pub mod listing_authority;
-pub use listing_authority::init_listing_authority::*;
-pub use listing_authority::release::*;
-pub use listing_authority::update_listing_authority::*;
-pub use listing_authority::whitelist_marketplaces::*;
+pub mod transfer_authority;
+pub use transfer_authority::init_transfer_authority::*;
+pub use transfer_authority::release::*;
+pub use transfer_authority::update_transfer_authority::*;
+pub use transfer_authority::whitelist_marketplaces::*;
 
 pub mod marketplace;
 pub use marketplace::init_marketplace::*;

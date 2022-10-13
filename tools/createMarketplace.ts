@@ -9,7 +9,7 @@ import { getMarketplaceByName } from "../src/programs/listingAuthority/accounts"
 
 export type MarketplaceParams = {
   name: string;
-  listingAuthorityName: string;
+  transferAuthorityName: string;
   paymentManagerName: string;
   paymentMints?: PublicKey[];
 };
@@ -27,7 +27,7 @@ const main = async (params: MarketplaceParams, cluster = "devnet") => {
     connection,
     new SignerWallet(wallet),
     params.name,
-    params.listingAuthorityName,
+    params.transferAuthorityName,
     params.paymentManagerName
   );
 
@@ -54,7 +54,7 @@ const main = async (params: MarketplaceParams, cluster = "devnet") => {
 
 const params: MarketplaceParams = {
   name: "cardinal",
-  listingAuthorityName: "global",
+  transferAuthorityName: "global",
   paymentManagerName: "cardinal-marketplace",
 };
 main(params).catch((e) => console.log(e));

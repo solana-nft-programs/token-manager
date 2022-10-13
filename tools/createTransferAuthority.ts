@@ -1,25 +1,25 @@
 import * as anchor from "@project-serum/anchor";
 
-import { tryGetAccount, withInitListingAuthority } from "../src";
+import { tryGetAccount, withInitTransferAuthority } from "../src";
 import { connectionFor } from "./connection";
 import { executeTransaction } from "./utils";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Keypair, Transaction } from "@solana/web3.js";
-import { getListingAuthorityByName } from "../src/programs/listingAuthority/accounts";
+import { getTransferAuthorityByName } from "../src/programs/listingAuthority/accounts";
 
 const wallet = Keypair.fromSecretKey(
   anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
 ); // your wallet's secret key
 
-const main = async (listingAuthorityName: string, cluster = "devnet") => {
+const main = async (transferAuthorityName: string, cluster = "devnet") => {
   const connection = connectionFor(cluster);
   const transaction = new Transaction();
 
-  await withInitListingAuthority(
+  await withInitTransferAuthority(
     transaction,
     connection,
     new SignerWallet(wallet),
-    listingAuthorityName
+    transferAuthorityName
   );
 
   console.log(transaction.instructions.map((ix) => ix.programId.toString()));
@@ -39,15 +39,15 @@ const main = async (listingAuthorityName: string, cluster = "devnet") => {
     console.log(`Transactionn failed: ${e}`);
   }
 
-  const listingAuthorityData = await tryGetAccount(() =>
-    getListingAuthorityByName(connection, listingAuthorityName)
+  const transferAuthorityData = await tryGetAccount(() =>
+    getTransferAuthorityByName(connection, transferAuthorityName)
   );
-  if (!listingAuthorityData) {
-    console.log("Error: Failed to create listing authority");
+  if (!transferAuthorityData) {
+    console.log("Error: Failed to create transfer authority");
   } else {
-    console.log(`Created listing authority ${listingAuthorityName}`);
+    console.log(`Created transfer authority ${transferAuthorityName}`);
   }
 };
 
-const listingAuthorityName = "global";
-main(listingAuthorityName).catch((e) => console.log(e));
+const transferAuthorityName = "global";
+main(transferAuthorityName).catch((e) => console.log(e));

@@ -14,7 +14,7 @@ use {
 pub struct AcceptTransferCtx<'info> {
     #[account(mut, close = holder, constraint = transfer.token_manager == token_manager.key() @ ErrorCode::InvalidTransfer)]
     transfer: Box<Account<'info, Transfer>>,
-    listing_authority: Box<Account<'info, ListingAuthority>>,
+    transfer_authority: Box<Account<'info, TransferAuthority>>,
     /// CHECK: This is not dangerous because this is just the pubkey that collects the closing account lamports
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
@@ -45,20 +45,20 @@ pub struct AcceptTransferCtx<'info> {
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptTransferCtx<'info>>) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.iter();
     let transfer_authority_seeds = &[
-        LISTING_AUTHORITY_SEED.as_bytes(),
-        ctx.accounts.listing_authority.name.as_bytes(),
-        &[ctx.accounts.listing_authority.bump],
+        TRANSFER_AUTHORITY_SEED.as_bytes(),
+        ctx.accounts.transfer_authority.name.as_bytes(),
+        &[ctx.accounts.transfer_authority.bump],
     ];
     let transfer_authority_signer = &[&transfer_authority_seeds[..]];
 
-    if ctx.accounts.token_manager.transfer_authority.is_none() || ctx.accounts.token_manager.transfer_authority.unwrap() != ctx.accounts.listing_authority.key() {
+    if ctx.accounts.token_manager.transfer_authority.is_none() || ctx.accounts.token_manager.transfer_authority.unwrap() != ctx.accounts.transfer_authority.key() {
         return Err(error!(ErrorCode::InvalidTransferAuthority));
     }
 
     // approve
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateTransferReceiptCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
-        transfer_authority: ctx.accounts.listing_authority.to_account_info(),
+        transfer_authority: ctx.accounts.transfer_authority.to_account_info(),
         transfer_receipt: ctx.accounts.transfer_receipt.to_account_info(),
         payer: ctx.accounts.recipient.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),

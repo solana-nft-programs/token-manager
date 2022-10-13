@@ -4,9 +4,9 @@ import { PublicKey } from "@solana/web3.js";
 import { findTokenManagerAddress } from "../tokenManager/pda";
 import {
   LISTING_AUTHORITY_ADDRESS,
-  LISTING_AUTHORITY_SEED,
   LISTING_SEED,
   MARKETPLACE_SEED,
+  TRANSFER_AUTHORITY_SEED,
   TRANSFER_SEED,
 } from "./constants";
 
@@ -14,12 +14,12 @@ import {
  * Finds the address of the transfer authority.
  * @returns
  */
-export const findListingAuthorityAddress = async (
+export const findTransferAuthorityAddress = async (
   name: string
 ): Promise<[PublicKey, number]> => {
   return await PublicKey.findProgramAddress(
     [
-      utils.bytes.utf8.encode(LISTING_AUTHORITY_SEED),
+      utils.bytes.utf8.encode(TRANSFER_AUTHORITY_SEED),
       utils.bytes.utf8.encode(name),
     ],
     LISTING_AUTHORITY_ADDRESS

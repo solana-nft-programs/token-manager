@@ -34,14 +34,14 @@ export const release = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  listingAuthorityId: PublicKey
+  transferAuthorityId: PublicKey
 ): Promise<Transaction> =>
   withRelease(
     new Transaction(),
     connection,
     wallet,
     mintId,
-    listingAuthorityId
+    transferAuthorityId
   );
 
 export const issueToken = async (

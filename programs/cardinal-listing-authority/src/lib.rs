@@ -11,21 +11,21 @@ pub mod cardinal_listing_authority {
 
     use super::*;
 
-    // listing authority
-    pub fn init_listing_authority(ctx: Context<InitTransferAuthorityCtx>, ix: InitListingAuthorityIx) -> Result<()> {
-        listing_authority::init_listing_authority::handler(ctx, ix)
+    // transfer authority
+    pub fn init_transfer_authority(ctx: Context<InitTransferAuthorityCtx>, ix: InitTransferAuthorityIx) -> Result<()> {
+        transfer_authority::init_transfer_authority::handler(ctx, ix)
     }
 
-    pub fn update_listing_authority(ctx: Context<UpdateListingAuthorityCtx>, ix: UpdateListingAuthorityIx) -> Result<()> {
-        listing_authority::update_listing_authority::handler(ctx, ix)
+    pub fn update_transfer_authority(ctx: Context<UpdateTransferAuthorityCtx>, ix: UpdateTransferAuthorityIx) -> Result<()> {
+        transfer_authority::update_transfer_authority::handler(ctx, ix)
     }
 
     pub fn whitelist_marketplaces(ctx: Context<WhitelistMarketplacesCtx>, ix: WhitelistMarketplacesIx) -> Result<()> {
-        listing_authority::whitelist_marketplaces::handler(ctx, ix)
+        transfer_authority::whitelist_marketplaces::handler(ctx, ix)
     }
 
     pub fn release<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ReleaseCtx<'info>>) -> Result<()> {
-        listing_authority::release::handler(ctx)
+        transfer_authority::release::handler(ctx)
     }
 
     // listing

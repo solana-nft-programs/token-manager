@@ -22,21 +22,21 @@ import {
   acceptTransfer,
   cancelTransfer,
   createListing,
-  initListingAuthority,
   initMarketplace,
   initTransfer,
+  inittransferAuthority,
   release,
   removeListing,
   updateListing,
-  updateListingAuthority,
   updateMarketplace,
+  updatetransferAuthority,
   whitelistMarkeplaces,
 } from "./programs/listingAuthority/instruction";
 import {
   findListingAddress,
-  findListingAuthorityAddress,
   findMarketplaceAddress,
   findTransferAddress,
+  findTransferAuthorityAddress,
 } from "./programs/listingAuthority/pda";
 import { getPaymentManager } from "./programs/paymentManager/accounts";
 import { findPaymentManagerAddress } from "./programs/paymentManager/pda";
@@ -67,7 +67,7 @@ export const withWrapToken = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  listingAuthorityName?: string,
+  transferAuthorityName?: string,
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
@@ -94,7 +94,7 @@ export const withWrapToken = async (
       invalidationType: InvalidationType.Release,
       issuerTokenAccountId: issuerTokenAccountId,
       kind: kind,
-      listingAuthorityName: listingAuthorityName,
+      transferAuthorityName: transferAuthorityName,
     },
     payer
   );
@@ -129,7 +129,7 @@ export const withWrapToken = async (
   return [transaction, tokenManagerId];
 };
 
-export const withInitListingAuthority = async (
+export const withInitTransferAuthority = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
@@ -138,22 +138,22 @@ export const withInitListingAuthority = async (
   payer = wallet.publicKey,
   allowedMarketplaces?: PublicKey[]
 ): Promise<[Transaction, PublicKey]> => {
-  const [listingAuthorityId] = await findListingAuthorityAddress(name);
+  const [transferAuthority] = await findTransferAuthorityAddress(name);
   transaction.add(
-    initListingAuthority(
+    inittransferAuthority(
       connection,
       wallet,
       name,
-      listingAuthorityId,
+      transferAuthority,
       authority,
       payer,
       allowedMarketplaces
     )
   );
-  return [transaction, listingAuthorityId];
+  return [transaction, transferAuthority];
 };
 
-export const withUpdateListingAuthority = async (
+export const withUpdateTransferAuthority = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
@@ -161,12 +161,12 @@ export const withUpdateListingAuthority = async (
   authority: PublicKey,
   allowedMarketplaces: PublicKey[]
 ): Promise<Transaction> => {
-  const [listingAuthorityId] = await findListingAuthorityAddress(name);
+  const [transferAuthority] = await findTransferAuthorityAddress(name);
   transaction.add(
-    updateListingAuthority(
+    updatetransferAuthority(
       connection,
       wallet,
-      listingAuthorityId,
+      transferAuthority,
       authority,
       allowedMarketplaces
     )
@@ -179,13 +179,13 @@ export const withInitMarketplace = async (
   connection: Connection,
   wallet: Wallet,
   name: string,
-  listingAuthorityName: string,
+  transferAuthorityName: string,
   paymentManagerName: string,
   paymentMints?: PublicKey[],
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
-  const [listingAuthorityId] = await findListingAuthorityAddress(
-    listingAuthorityName
+  const [transferAuthority] = await findTransferAuthorityAddress(
+    transferAuthorityName
   );
   const [marketplaceId] = await findMarketplaceAddress(name);
   const [paymentManagerId] = await findPaymentManagerAddress(
@@ -197,7 +197,7 @@ export const withInitMarketplace = async (
       wallet,
       name,
       marketplaceId,
-      listingAuthorityId,
+      transferAuthority,
       paymentManagerId,
       paymentMints,
       payer
@@ -211,13 +211,13 @@ export const withUpdateMarketplace = async (
   connection: Connection,
   wallet: Wallet,
   name: string,
-  listingAuthorityName: string,
+  transferAuthorityName: string,
   paymentManagerName: string,
   authority: PublicKey,
   paymentMints: PublicKey[]
 ): Promise<Transaction> => {
-  const [listingAuthorityId] = await findListingAuthorityAddress(
-    listingAuthorityName
+  const [transferAuthority] = await findTransferAuthorityAddress(
+    transferAuthorityName
   );
   const [marketplaceId] = await findMarketplaceAddress(name);
   const [paymentManagerId] = await findPaymentManagerAddress(
@@ -228,7 +228,7 @@ export const withUpdateMarketplace = async (
       connection,
       wallet,
       marketplaceId,
-      listingAuthorityId,
+      transferAuthority,
       paymentManagerId,
       authority,
       paymentMints.length !== 0 ? paymentMints : undefined
@@ -263,7 +263,7 @@ export const withCreateListing = async (
       connection,
       wallet,
       listingId,
-      markeptlaceData.parsed.listingAuthority,
+      markeptlaceData.parsed.transferAuthority,
       tokenManagerId,
       marketplaceId,
       listerTokenAccountId,
@@ -426,7 +426,7 @@ export const withAcceptListing = async (
     acceptListing(
       connection,
       wallet,
-      marketplaceData.parsed.listingAuthority,
+      marketplaceData.parsed.transferAuthority,
       listerPaymentTokenAccountId,
       listerMintTokenAccountId,
       listingData.parsed.lister,
@@ -453,11 +453,11 @@ export const withWhitelistMarektplaces = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  listingAuthorityName: string,
+  transferAuthorityName: string,
   marketplaceNames: string[]
 ): Promise<Transaction> => {
-  const [listingAuthorityId] = await findListingAuthorityAddress(
-    listingAuthorityName
+  const [transferAuthority] = await findTransferAuthorityAddress(
+    transferAuthorityName
   );
 
   const marketplaceIds = (
@@ -466,7 +466,7 @@ export const withWhitelistMarektplaces = async (
     )
   ).map((el) => el[0]);
   transaction.add(
-    whitelistMarkeplaces(connection, wallet, listingAuthorityId, marketplaceIds)
+    whitelistMarkeplaces(connection, wallet, transferAuthority, marketplaceIds)
   );
   return transaction;
 };
@@ -588,7 +588,7 @@ export const withAcceptTransfer = async (
       mintId: mintId,
       transferReceiptId: transferReceiptId,
       listingId: listingId,
-      listingAuthorityId: tokenManagerData.parsed.transferAuthority,
+      transferAuthorityId: tokenManagerData.parsed.transferAuthority,
       remainingAccounts: remainingAccountsForTransfer,
     })
   );
@@ -600,7 +600,7 @@ export const withRelease = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  listingAuthorityId: PublicKey,
+  transferAuthorityId: PublicKey,
   payer = wallet.publicKey
 ): Promise<Transaction> => {
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
@@ -631,7 +631,7 @@ export const withRelease = async (
   );
   transaction.add(
     release(connection, wallet, {
-      listingAuthorityId: listingAuthorityId,
+      transferAuthorityId: transferAuthorityId,
       tokenManagerId: tokenManagerId,
       mintId: mintId,
       tokenManagerTokenAccountId: tokenManagerTokenAccount,

@@ -12,19 +12,19 @@ pub struct WhitelistMarketplacesIx {
 #[instruction(ix: WhitelistMarketplacesIx)]
 pub struct WhitelistMarketplacesCtx<'info> {
     #[account(mut)]
-    listing_authority: Box<Account<'info, ListingAuthority>>,
+    transfer_authority: Box<Account<'info, TransferAuthority>>,
 
-    #[account(mut, constraint = authority.key() == listing_authority.authority @ ErrorCode::InvalidListingAuthority)]
+    #[account(mut, constraint = authority.key() == transfer_authority.authority @ ErrorCode::InvalidTransferAuthority)]
     authority: Signer<'info>,
 }
 
 pub fn handler(ctx: Context<WhitelistMarketplacesCtx>, ix: WhitelistMarketplacesIx) -> Result<()> {
-    let listing_authority = &mut ctx.accounts.listing_authority;
+    let transfer_authority = &mut ctx.accounts.transfer_authority;
 
     if ix.allowed_marketplaces.is_empty() {
-        listing_authority.allowed_marketplaces = None;
+        transfer_authority.allowed_marketplaces = None;
     } else {
-        listing_authority.allowed_marketplaces = Some(ix.allowed_marketplaces);
+        transfer_authority.allowed_marketplaces = Some(ix.allowed_marketplaces);
     }
 
     Ok(())

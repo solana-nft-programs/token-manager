@@ -20,12 +20,12 @@ import { expect } from "chai";
 import {
   emptyWallet,
   findAta,
-  withInitListingAuthority,
+  withInitTransferAuthority,
   withRelease,
   withWrapToken,
 } from "../src";
-import { getListingAuthorityByName } from "../src/programs/listingAuthority/accounts";
-import { findListingAuthorityAddress } from "../src/programs/listingAuthority/pda";
+import { getTransferAuthorityByName } from "../src/programs/listingAuthority/accounts";
+import { findTransferAuthorityAddress } from "../src/programs/listingAuthority/pda";
 import { init } from "../src/programs/paymentManager/instruction";
 import { getTokenManager } from "../src/programs/tokenManager/accounts";
 import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
@@ -33,7 +33,7 @@ import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Release wrapped token", () => {
-  const listingAuthorityName = `lst-auth-${Math.random()}`;
+  const transferAuthorityName = `lst-auth-${Math.random()}`;
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
@@ -141,15 +141,15 @@ describe("Release wrapped token", () => {
     }).to.be.fulfilled;
   });
 
-  it("Create Listing Authority", async () => {
+  it("Create Transfer Authority", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
 
-    await withInitListingAuthority(
+    await withInitTransferAuthority(
       transaction,
       provider.connection,
       provider.wallet,
-      listingAuthorityName
+      transferAuthorityName
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -160,21 +160,21 @@ describe("Release wrapped token", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "Create listing authority", {
+    await expectTXTable(txEnvelope, "Create transfer authority", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const checkListingAuthority = await getListingAuthorityByName(
+    const checkTransferAuthority = await getTransferAuthorityByName(
       provider.connection,
-      listingAuthorityName
+      transferAuthorityName
     );
 
-    expect(checkListingAuthority.parsed.name).to.eq(listingAuthorityName);
-    expect(checkListingAuthority.parsed.authority).to.eqAddress(
+    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority).to.eqAddress(
       provider.wallet.publicKey
     );
-    expect(checkListingAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
   });
 
   it("Wrap Token", async () => {
@@ -186,7 +186,7 @@ describe("Release wrapped token", () => {
       provider.connection,
       emptyWallet(lister.publicKey),
       tokenMint.publicKey,
-      listingAuthorityName
+      transferAuthorityName
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(
@@ -226,22 +226,22 @@ describe("Release wrapped token", () => {
       provider.connection,
       tokenManagerId
     );
-    const [listingAuthorityId] = await findListingAuthorityAddress(
-      listingAuthorityName
+    const [transferAuthorityId] = await findTransferAuthorityAddress(
+      transferAuthorityName
     );
     expect(
       tokenManagerData.parsed.invalidators
         .map((inv) => inv.toString())
         .toString()
-    ).to.eq([listingAuthorityId.toString()].toString());
+    ).to.eq([transferAuthorityId.toString()].toString());
   });
 
   it("Release token", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
 
-    const [listingAuthorityId] = await findListingAuthorityAddress(
-      listingAuthorityName
+    const [transferAuthorityId] = await findTransferAuthorityAddress(
+      transferAuthorityName
     );
 
     await withRelease(
@@ -249,7 +249,7 @@ describe("Release wrapped token", () => {
       provider.connection,
       emptyWallet(lister.publicKey),
       tokenMint.publicKey,
-      listingAuthorityId
+      transferAuthorityId
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(

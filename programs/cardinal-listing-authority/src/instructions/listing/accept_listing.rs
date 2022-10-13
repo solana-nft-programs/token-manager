@@ -11,7 +11,7 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 pub struct AcceptListingCtx<'info> {
-    #[account(mut, close = lister, constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
+    #[account(mut, constraint = listing_authority.key() == marketplace.listing_authority @ ErrorCode::InvalidListingAuthority)]
     listing_authority: Box<Account<'info, ListingAuthority>>,
     /// CHECK: This is not dangerous because this is the receipt getting initialized
     #[account(mut)]
@@ -20,7 +20,7 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut)]
     transfer: UncheckedAccount<'info>,
 
-    #[account(mut)]
+    #[account(mut, close = lister)]
     listing: Box<Account<'info, Listing>>,
     #[account(mut, constraint =
         lister_payment_token_account.mint == listing.payment_mint &&

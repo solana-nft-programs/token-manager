@@ -7,7 +7,9 @@ import { SignerWallet } from "@saberhq/solana-contrib";
 import { Keypair, Transaction } from "@solana/web3.js";
 import { getListingAuthorityByName } from "../src/programs/listingAuthority/accounts";
 
-const wallet = Keypair.fromSecretKey(anchor.utils.bytes.bs58.decode("")); // your wallet's secret key
+const wallet = Keypair.fromSecretKey(
+  anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
+); // your wallet's secret key
 
 const main = async (listingAuthorityName: string, cluster = "devnet") => {
   const connection = connectionFor(cluster);

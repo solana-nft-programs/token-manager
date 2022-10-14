@@ -10,8 +10,9 @@ import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
 import { tryGetAccount } from "../src";
 import { connectionFor } from "./connection";
 
-const wallet = web3Js.Keypair.fromSecretKey(anchor.utils.bytes.bs58.decode("")); // your wallet's secret key
-
+const wallet = web3Js.Keypair.fromSecretKey(
+  anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
+); // your wallet's secret key
 export type PaymentManagerParams = {
   feeCollector: PublicKey;
   authority: PublicKey;
@@ -59,12 +60,12 @@ const main = async (
   }
 };
 
-const paymentManagerName = "cardinal";
+const paymentManagerName = "cardinal-marketplace";
 const params: PaymentManagerParams = {
   authority: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
   feeCollector: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
-  makerFeeBasisPoints: 300,
-  takerFeeBasisPoints: 300,
+  makerFeeBasisPoints: 100,
+  takerFeeBasisPoints: 0,
 };
 
 main(paymentManagerName, params).catch((e) => console.log(e));

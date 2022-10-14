@@ -9,8 +9,11 @@ import { getPaymentManager } from "../src/programs/paymentManager/accounts";
 import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
 import { tryGetAccount } from "../src";
 import { connectionFor } from "./connection";
+import { BN } from "bn.js";
 
-const wallet = web3Js.Keypair.fromSecretKey(anchor.utils.bytes.bs58.decode("")); // your wallet's secret key
+const wallet = web3Js.Keypair.fromSecretKey(
+  anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
+); // your wallet's secret key
 
 export type PaymentManagerParams = {
   feeCollector: PublicKey;
@@ -61,13 +64,14 @@ const main = async (
   }
 };
 
-const paymentManagerName = "mainnet-cardinal-mini-royale";
+const paymentManagerName = "cardinal-marketplace";
 const params: PaymentManagerParams = {
-  feeCollector: new PublicKey("rG8DYcfoNCqJaQRZE5c9m8ynXycuJxZaF65VZVorB8L"),
-  authority: new PublicKey("7KJ322BQnje7oPN315dRNK7Arioom7d8mAPhAJFME2MA"),
-  makerFeeBasisPoints: 600,
+  feeCollector: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
+  authority: new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
+  makerFeeBasisPoints: 100,
   takerFeeBasisPoints: 0,
-  includeSellerFeeBasisPoints: false,
+  includeSellerFeeBasisPoints: true,
+  royaltyFeeShare: new BN(0),
 };
 
 main(paymentManagerName, params).catch((e) => console.log(e));

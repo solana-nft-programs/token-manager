@@ -1,3 +1,4 @@
+import type { Wallet } from "@saberhq/solana-contrib";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Token,
@@ -18,6 +19,12 @@ export async function tryGetAccount<T>(fn: AccountFn<T>) {
     return null;
   }
 }
+
+export const emptyWallet = (publicKey: PublicKey): Wallet => ({
+  signTransaction: async (tx: Transaction) => new Promise(() => tx),
+  signAllTransactions: async (txs: Transaction[]) => new Promise(() => txs),
+  publicKey: publicKey,
+});
 
 export async function findAta(
   mint: PublicKey,

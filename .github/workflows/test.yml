@@ -15,7 +15,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.9.13
+  SOLANA_VERSION: 1.10.30
   RUST_TOOLCHAIN: nightly
   SOTERIA_VERSION: 0.0.0
   ANCHOR_GIT: https://github.com/project-serum/anchor
@@ -121,6 +121,7 @@ jobs:
       - run: find . -type f -name "*" -exec sed -i'' -e "s/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/g" {} +
       - run: find . -type f -name "*" -exec sed -i'' -e "s/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)/g" {} +
       - run: find . -type f -name "*" -exec sed -i'' -e "s/pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn/$(solana-keygen pubkey tests/test-keypairs/cardinal_payment_manager-keypair.json)/g" {} +
+      - run: find . -type f -name "*" -exec sed -i'' -e "s/trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW/$(solana-keygen pubkey tests/test-keypairs/cardinal_listing_authority-keypair.json)/g" {} +
       - run: find . -type f -name "Anchor.toml" -exec sed -i'' -e "s/tests\/\*.spec.ts/tests\/\*.spec.ts --reporter mocha-junit-reporter --reporter-options mochaFile=.\/tests\/out.xml/g" {} +
 
       - name: Run tests

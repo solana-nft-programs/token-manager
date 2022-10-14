@@ -16,6 +16,7 @@ import {
   useInvalidator,
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
+import { getTransferAuthorityByName } from "./programs/listingAuthority/accounts";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
 import type { TokenManagerData } from "./programs/tokenManager";
@@ -24,8 +25,14 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "./programs/tokenManager";
-import { tokenManagerAddressFromMint } from "./programs/tokenManager/pda";
+import { getTokenManager } from "./programs/tokenManager/accounts";
+import { setTransferAuthority } from "./programs/tokenManager/instruction";
 import {
+  findTokenManagerAddress,
+  tokenManagerAddressFromMint,
+} from "./programs/tokenManager/pda";
+import {
+  getRemainingAccountsForTransfer,
   withRemainingAccountsForPayment,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager/utils";
@@ -37,6 +44,7 @@ export type IssueParameters = {
   claimPayment?: ClaimApproverParams;
   timeInvalidation?: TimeInvalidationParams;
   useInvalidation?: UseInvalidationParams;
+  transferAuthorityName?: string;
   mint: PublicKey;
   amount?: BN;
   issuerTokenAccountId: PublicKey;
@@ -67,15 +75,17 @@ export const withIssueToken = async (
     timeInvalidation,
     useInvalidation,
     mint,
-    amount = new BN(1),
     issuerTokenAccountId,
+    amount = new BN(1),
+    transferAuthorityName,
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
     permissionedClaimApprover,
     receiptOptions = undefined,
     customInvalidators = undefined,
-  }: IssueParameters
+  }: IssueParameters,
+  payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   // init token manager
   const numInvalidator =
@@ -84,7 +94,8 @@ export const withIssueToken = async (
       ? 2
       : useInvalidation || timeInvalidation
       ? 1
-      : 0);
+      : 0) +
+    (transferAuthorityName ? 1 : 0);
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
@@ -93,9 +104,35 @@ export const withIssueToken = async (
     amount,
     kind,
     invalidationType,
-    numInvalidator
+    numInvalidator,
+    payer
   );
   transaction.add(tokenManagerIx);
+
+  if (transferAuthorityName) {
+    const checkTransferAuthority = await tryGetAccount(() =>
+      getTransferAuthorityByName(connection, transferAuthorityName)
+    );
+    if (!checkTransferAuthority?.parsed) {
+      throw `No transfer authority with name ${transferAuthorityName} found`;
+    }
+    transaction.add(
+      setTransferAuthority(
+        connection,
+        wallet,
+        tokenManagerId,
+        checkTransferAuthority.pubkey
+      )
+    );
+    transaction.add(
+      tokenManager.instruction.addInvalidator(
+        connection,
+        wallet,
+        tokenManagerId,
+        checkTransferAuthority.pubkey
+      )
+    );
+  }
 
   //////////////////////////////
   /////// claim approver ///////
@@ -110,7 +147,8 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        claimPayment
+        claimPayment,
+        payer
       );
     transaction.add(paidClaimApproverIx);
     transaction.add(
@@ -154,7 +192,8 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        timeInvalidation
+        timeInvalidation,
+        payer
       );
     transaction.add(timeInvalidatorIx);
     transaction.add(
@@ -193,7 +232,8 @@ export const withIssueToken = async (
         connection,
         wallet,
         tokenManagerId,
-        useInvalidation
+        useInvalidation,
+        payer
       );
     transaction.add(useInvalidatorIx);
     transaction.add(
@@ -241,7 +281,12 @@ export const withIssueToken = async (
 
   if (kind === TokenManagerKind.Managed) {
     const [mintManagerIx, mintManagerId] =
-      await tokenManager.instruction.creatMintManager(connection, wallet, mint);
+      await tokenManager.instruction.creatMintManager(
+        connection,
+        wallet,
+        mint,
+        payer
+      );
 
     const mintManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getMintManager(connection, mintManagerId)
@@ -257,7 +302,7 @@ export const withIssueToken = async (
     connection,
     mint,
     tokenManagerId,
-    wallet.publicKey,
+    payer,
     true
   );
 
@@ -267,7 +312,8 @@ export const withIssueToken = async (
       wallet,
       tokenManagerId,
       tokenManagerTokenAccountId,
-      issuerTokenAccountId
+      issuerTokenAccountId,
+      payer
     )
   );
 
@@ -282,7 +328,8 @@ export const withIssueToken = async (
         wallet,
         "receipt",
         tokenManagerId,
-        receiptMintKeypair.publicKey
+        receiptMintKeypair.publicKey,
+        payer
       )
     );
   }
@@ -864,6 +911,49 @@ export const withUpdateMaxExpiration = async (
   } else {
     console.log("Token Manager not in state issued to update max expiration");
   }
+  return transaction;
+};
+
+export const withTransfer = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  recipient: PublicKey
+): Promise<Transaction> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!tokenManagerData?.parsed) {
+    throw "No token manager found";
+  }
+
+  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    mintId,
+    recipient,
+    wallet.publicKey,
+    true
+  );
+
+  const remainingAccountsForTransfer = await getRemainingAccountsForTransfer(
+    tokenManagerData.parsed.transferAuthority,
+    tokenManagerId,
+    recipient
+  );
+
+  tokenManager.instruction.transfer(
+    connection,
+    wallet,
+    tokenManagerId,
+    mintId,
+    tokenManagerData.parsed.recipientTokenAccount,
+    recipient,
+    recipientTokenAccountId,
+    remainingAccountsForTransfer
+  );
 
   return transaction;
 };

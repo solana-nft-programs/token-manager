@@ -5,21 +5,24 @@ import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { SystemProgram, TransactionInstruction } from "@solana/web3.js";
 
 import { withFindOrInitAssociatedTokenAccount } from ".";
+import { findAta } from "./utils";
 
 export async function withWrapSol(
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  lamports: number
+  lamports: number,
+  skipInitTokenAccount = false
 ): Promise<Transaction> {
-  const nativeAssociatedTokenAccountId =
-    await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      splToken.NATIVE_MINT,
-      wallet.publicKey,
-      wallet.publicKey
-    );
+  const nativeAssociatedTokenAccountId = skipInitTokenAccount
+    ? await findAta(splToken.NATIVE_MINT, wallet.publicKey, true)
+    : await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        splToken.NATIVE_MINT,
+        wallet.publicKey,
+        wallet.publicKey
+      );
   transaction.add(
     SystemProgram.transfer({
       fromPubkey: wallet.publicKey,

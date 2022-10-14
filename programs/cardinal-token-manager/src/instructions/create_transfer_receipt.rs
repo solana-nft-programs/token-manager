@@ -9,7 +9,7 @@ pub struct CreateTransferReceiptCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    #[account(mut, constraint =
+    #[account(constraint =
         token_manager.transfer_authority.expect("No transfer authority") == transfer_authority.key()
         @ ErrorCode::InvalidTransferAuthority
     )]
@@ -21,7 +21,7 @@ pub struct CreateTransferReceiptCtx<'info> {
         seeds = [TRANSFER_RECEIPT_SEED.as_bytes(), token_manager.key().as_ref(), target.as_ref()], bump,
         space = TRANSFER_RECEIPT_SIZE,
     )]
-    transfer_receipt: Box<Account<'info, TranferReceipt>>,
+    transfer_receipt: Box<Account<'info, TransferReceipt>>,
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,

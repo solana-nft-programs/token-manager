@@ -422,7 +422,7 @@ describe("Handle payment with royalties with seller fee", () => {
     );
     expect(paymentAtaInfo.amount.toNumber()).to.eq(
       beforePaymentTokenAccountAmount
-        .add(paymentAmount.sub(makerFee))
+        .add(paymentAmount.sub(totalFees).add(takerFee))
         .toNumber()
     );
 
@@ -431,6 +431,6 @@ describe("Handle payment with royalties with seller fee", () => {
     ).amount;
     expect(
       beforePayerTokenAccountAmount.sub(afterPayerTokenAccountAmount).toNumber()
-    ).to.eq(totalFees.add(paymentAmount).sub(makerFee).toNumber());
+    ).to.eq(paymentAmount.add(takerFee).toNumber());
   });
 });

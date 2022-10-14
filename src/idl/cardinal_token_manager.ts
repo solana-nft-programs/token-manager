@@ -211,7 +211,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "transferAuthority";
-          isMut: true;
+          isMut: false;
           isSigner: true;
         },
         {
@@ -734,7 +734,7 @@ export type CardinalTokenManager = {
       };
     },
     {
-      name: "tranferReceipt";
+      name: "transferReceipt";
       type: {
         kind: "struct";
         fields: [
@@ -1224,7 +1224,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "transferAuthority",
-          isMut: true,
+          isMut: false,
           isSigner: true,
         },
         {
@@ -1747,7 +1747,7 @@ export const IDL: CardinalTokenManager = {
       },
     },
     {
-      name: "tranferReceipt",
+      name: "transferReceipt",
       type: {
         kind: "struct",
         fields: [

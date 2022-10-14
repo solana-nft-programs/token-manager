@@ -121,9 +121,9 @@ pub struct ClaimReceipt {
 }
 
 pub const TRANSFER_RECEIPT_SEED: &str = "transfer-receipt";
-pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TranferReceipt>() + 8;
+pub const TRANSFER_RECEIPT_SIZE: usize = 8 + std::mem::size_of::<TransferReceipt>() + 8;
 #[account]
-pub struct TranferReceipt {
+pub struct TransferReceipt {
     // Count of this mint
     pub mint_count: u64,
     // Token manager this claim receipt is for

@@ -154,7 +154,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, payment_amount.checked_sub(maker_fee).expect("Sub error"))?;
+    token::transfer(cpi_context, payment_amount.checked_sub(total_fees).expect("Sub error").checked_add(taker_fee).expect("Sub error"))?;
 
     Ok(())
 }

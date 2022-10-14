@@ -9,6 +9,7 @@ import {
   withExtendUsages,
   withInvalidate,
   withIssueToken,
+  withRelease,
   withUnissueToken,
   withUse,
 } from ".";
@@ -28,6 +29,20 @@ export const invalidate = async (
   mintId: PublicKey
 ): Promise<Transaction> =>
   withInvalidate(new Transaction(), connection, wallet, mintId);
+
+export const release = async (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  transferAuthorityId: PublicKey
+): Promise<Transaction> =>
+  withRelease(
+    new Transaction(),
+    connection,
+    wallet,
+    mintId,
+    transferAuthorityId
+  );
 
 export const issueToken = async (
   connection: Connection,

@@ -147,6 +147,36 @@ export const setTransferAuthority = (
   );
 };
 
+export const transfer = (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  mint: PublicKey,
+  currentHolderTokenAccountId: PublicKey,
+  recipient: PublicKey,
+  recipientTokenAccountId: PublicKey,
+  remainingAcounts?: AccountMeta[]
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.transfer({
+    accounts: {
+      tokenManager: tokenManagerId,
+      mint: mint,
+      currentHolderTokenAccount: currentHolderTokenAccountId,
+      recipient: recipient,
+      recipientTokenAccount: recipientTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    },
+    remainingAccounts: remainingAcounts ? remainingAcounts : [],
+  });
+};
+
 export const addInvalidator = (
   connection: Connection,
   wallet: Wallet,
@@ -173,7 +203,8 @@ export const issue = (
   wallet: Wallet,
   tokenManagerId: PublicKey,
   tokenManagerTokenAccountId: PublicKey,
-  issuerTokenAccountId: PublicKey
+  issuerTokenAccountId: PublicKey,
+  payer = wallet.publicKey
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -188,7 +219,7 @@ export const issue = (
       tokenManagerTokenAccount: tokenManagerTokenAccountId,
       issuer: wallet.publicKey,
       issuerTokenAccount: issuerTokenAccountId,
-      payer: wallet.publicKey,
+      payer: payer,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     },
@@ -299,10 +330,7 @@ export const createClaimReceipt = async (
     provider
   );
 
-  const [claimReceiptId, _claimReceiptBump] = await findClaimReceiptId(
-    tokenManagerId,
-    target
-  );
+  const [claimReceiptId] = await findClaimReceiptId(tokenManagerId, target);
 
   return [
     tokenManagerProgram.instruction.createClaimReceipt(target, {
@@ -318,10 +346,42 @@ export const createClaimReceipt = async (
   ];
 };
 
+export const createTransferReceipt = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  transferAuthority: PublicKey,
+  payer = wallet.publicKey,
+  target = wallet.publicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [transferReceiptId] = await findClaimReceiptId(tokenManagerId, target);
+
+  return [
+    tokenManagerProgram.instruction.createTransferReceipt({
+      accounts: {
+        tokenManager: tokenManagerId,
+        transferAuthority: transferAuthority,
+        transferReceipt: transferReceiptId,
+        payer: payer,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
+    transferReceiptId,
+  ];
+};
+
 export const creatMintManager = async (
   connection: Connection,
   wallet: Wallet,
-  mintId: PublicKey
+  mintId: PublicKey,
+  payer = wallet.publicKey
 ): Promise<[TransactionInstruction, PublicKey]> => {
   const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -338,7 +398,7 @@ export const creatMintManager = async (
         mintManager: mintManagerId,
         mint: mintId,
         freezeAuthority: wallet.publicKey,
-        payer: wallet.publicKey,
+        payer: payer,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       },
@@ -380,7 +440,8 @@ export const claimReceiptMint = async (
   wallet: Wallet,
   name: string,
   tokenManagerId: PublicKey,
-  receiptMintId: PublicKey
+  receiptMintId: PublicKey,
+  payer = wallet.publicKey
 ): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -406,7 +467,7 @@ export const claimReceiptMint = async (
       receiptMintMetadata: receiptMintMetadataId,
       recipientTokenAccount: recipientTokenAccountId,
       issuer: wallet.publicKey,
-      payer: wallet.publicKey,
+      payer: payer,
       receiptMintManager: receiptMintManagerId,
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,

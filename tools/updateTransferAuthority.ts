@@ -1,51 +1,45 @@
 import * as anchor from "@project-serum/anchor";
-
-import { tryGetAccount, withInitTransferAuthority } from "../src";
-import { connectionFor } from "./connection";
-import { executeTransaction } from "./utils";
 import { SignerWallet } from "@saberhq/solana-contrib";
+import { PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
-import { getTransferAuthorityByName } from "../src/programs/listingAuthority/accounts";
+
+import { executeTransaction } from "./utils";
+import { withUpdateTransferAuthority } from "../src";
+import { connectionFor } from "./connection";
 
 const wallet = Keypair.fromSecretKey(
   anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
 ); // your wallet's secret key
+export type PaymentManagerParams = {
+  feeCollector: PublicKey;
+  authority: PublicKey;
+  makerFeeBasisPoints: number;
+  takerFeeBasisPoints: number;
+};
 
 const main = async (transferAuthorityName: string, cluster = "devnet") => {
+  console.log(wallet.publicKey.toString());
   const connection = connectionFor(cluster);
   const transaction = new Transaction();
-
-  await withInitTransferAuthority(
+  await withUpdateTransferAuthority(
     transaction,
     connection,
     new SignerWallet(wallet),
-    transferAuthorityName
+    transferAuthorityName,
+    new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX")
   );
-
   try {
     await executeTransaction(
       connection,
       new SignerWallet(wallet),
       transaction,
-      {
-        confirmOptions: {
-          skipPreflight: true,
-        },
-      }
+      {}
     );
   } catch (e) {
     console.log(`Transactionn failed: ${e}`);
   }
-
-  const transferAuthorityData = await tryGetAccount(() =>
-    getTransferAuthorityByName(connection, transferAuthorityName)
-  );
-  if (!transferAuthorityData) {
-    console.log("Error: Failed to create transfer authority");
-  } else {
-    console.log(`Created transfer authority ${transferAuthorityName}`);
-  }
 };
 
 const transferAuthorityName = "cardinal";
+
 main(transferAuthorityName).catch((e) => console.log(e));

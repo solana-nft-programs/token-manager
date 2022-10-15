@@ -29,7 +29,7 @@ import {
   removeListing,
   updateListing,
   updateMarketplace,
-  updatetransferAuthority,
+  updateTransferAuthority,
   whitelistMarkeplaces,
 } from "./programs/listingAuthority/instruction";
 import {
@@ -159,11 +159,11 @@ export const withUpdateTransferAuthority = async (
   wallet: Wallet,
   name: string,
   authority: PublicKey,
-  allowedMarketplaces: PublicKey[]
+  allowedMarketplaces?: PublicKey[] | null
 ): Promise<Transaction> => {
   const [transferAuthority] = await findTransferAuthorityAddress(name);
   transaction.add(
-    updatetransferAuthority(
+    updateTransferAuthority(
       connection,
       wallet,
       transferAuthority,

@@ -48,12 +48,12 @@ export const initTransferAuthority = (
   );
 };
 
-export const updatetransferAuthority = (
+export const updateTransferAuthority = (
   connection: Connection,
   wallet: Wallet,
   transferAuthorityId: PublicKey,
   authority: PublicKey,
-  allowedMarketplaces: PublicKey[]
+  allowedMarketplaces?: PublicKey[] | null
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
@@ -66,13 +66,13 @@ export const updatetransferAuthority = (
 
   return transferAuthorityProgram.instruction.updateTransferAuthority(
     {
-      authority: wallet.publicKey,
-      allowedMarketplaces: allowedMarketplaces,
+      authority: authority,
+      allowedMarketplaces: allowedMarketplaces ?? null,
     },
     {
       accounts: {
         transferAuthority: transferAuthorityId,
-        authority: authority,
+        authority: wallet.publicKey,
       },
     }
   );

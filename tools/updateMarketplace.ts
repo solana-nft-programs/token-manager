@@ -24,6 +24,7 @@ const main = async (
   paymentManagerName: string,
   cluster = "devnet"
 ) => {
+  console.log(wallet.publicKey.toString());
   const connection = connectionFor(cluster);
   const transaction = new web3Js.Transaction();
   await withUpdateMarketplace(
@@ -57,7 +58,7 @@ const main = async (
 };
 
 const marketplaceName = "cardinal";
-const transferAuthorityName = "global";
+const transferAuthorityName = "cardinal";
 const paymentManagerName = "cardinal-marketplace";
 
 main(marketplaceName, transferAuthorityName, paymentManagerName).catch((e) =>

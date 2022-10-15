@@ -12,7 +12,11 @@ import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
-import * as constants from "./constants";
+import type { TRANSFER_AUTHORITY_PROGRAM } from "./constants";
+import {
+  TRANSFER_AUTHORITY_ADDRESS,
+  TRANSFER_AUTHORITY_IDL,
+} from "./constants";
 
 export const initTransferAuthority = (
   connection: Connection,
@@ -25,12 +29,11 @@ export const initTransferAuthority = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.initTransferAuthority(
     {
@@ -57,12 +60,11 @@ export const updatetransferAuthority = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.updateTransferAuthority(
     {
@@ -90,12 +92,11 @@ export const initMarketplace = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.initMarketplace(
     {
@@ -126,12 +127,11 @@ export const updateMarketplace = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.updateMarketplace(
     {
@@ -163,12 +163,11 @@ export const createListing = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
   return transferAuthorityProgram.instruction.createListing(
     {
       paymentAmount: paymentAmount,
@@ -199,12 +198,11 @@ export const updateListing = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.updateListing(
     {
@@ -228,12 +226,11 @@ export const removeListing = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.removeListing({
     accounts: {
@@ -268,12 +265,11 @@ export const acceptListing = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
   return transferAuthorityProgram.instruction.acceptListing({
     accounts: {
       transferAuthority: transferAuthorityId,
@@ -311,12 +307,11 @@ export const whitelistMarkeplaces = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.whitelistMarketplaces(
     { allowedMarketplaces: whitelistMarketplaces },
@@ -343,12 +338,11 @@ export const initTransfer = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
   return transferAuthorityProgram.instruction.initTransfer(
     { to: params.to },
     {
@@ -376,12 +370,11 @@ export const cancelTransfer = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.cancelTransfer({
     accounts: {
@@ -412,12 +405,11 @@ export const acceptTransfer = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.acceptTransfer({
     accounts: {
@@ -454,12 +446,11 @@ export const release = (
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
-  const transferAuthorityProgram =
-    new Program<constants.LISTING_AUTHORITY_PROGRAM>(
-      constants.LISTING_AUTHORITY_IDL,
-      constants.LISTING_AUTHORITY_ADDRESS,
-      provider
-    );
+  const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    provider
+  );
 
   return transferAuthorityProgram.instruction.release({
     accounts: {

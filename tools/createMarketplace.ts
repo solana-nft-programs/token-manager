@@ -2,10 +2,10 @@ import * as anchor from "@project-serum/anchor";
 
 import { tryGetAccount, withInitMarketplace } from "../src";
 import { connectionFor } from "./connection";
-import { executeTransaction } from "./utils";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { getMarketplaceByName } from "../src/programs/listingAuthority/accounts";
+import { getMarketplaceByName } from "../src/programs/transferAuthority/accounts";
+import { executeTransaction } from "./utils";
 
 export type MarketplaceParams = {
   name: string;
@@ -53,7 +53,7 @@ const main = async (params: MarketplaceParams, cluster = "devnet") => {
 };
 
 const params: MarketplaceParams = {
-  name: "cardinal",
+  name: "marketplace-cardinal",
   transferAuthorityName: "global",
   paymentManagerName: "cardinal-marketplace",
 };

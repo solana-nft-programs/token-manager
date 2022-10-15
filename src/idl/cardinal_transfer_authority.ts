@@ -1,6 +1,6 @@
-export type CardinalListingAuthority = {
-  version: "1.5.12";
-  name: "cardinal_listing_authority";
+export type CardinalTransferAuthority = {
+  version: "1.6.3";
+  name: "cardinal_transfer_authority";
   instructions: [
     {
       name: "initTransferAuthority";
@@ -1071,9 +1071,9 @@ export type CardinalListingAuthority = {
   ];
 };
 
-export const IDL: CardinalListingAuthority = {
-  version: "1.5.12",
-  name: "cardinal_listing_authority",
+export const IDL: CardinalTransferAuthority = {
+  version: "1.6.3",
+  name: "cardinal_transfer_authority",
   instructions: [
     {
       name: "initTransferAuthority",

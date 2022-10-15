@@ -52,3 +52,5 @@ site/
 !.yarn/versions
 
 .vscode
+
+.env

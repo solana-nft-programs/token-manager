@@ -26,19 +26,19 @@ import {
   withInitTransferAuthority,
   withWrapToken,
 } from "../src";
-import { WSOL_MINT } from "../src/programs/listingAuthority";
+import { init } from "../src/programs/paymentManager/instruction";
+import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
+import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
+import { WSOL_MINT } from "../src/programs/transferAuthority";
 import {
   getListing,
   getMarketplaceByName,
   getTransferAuthorityByName,
-} from "../src/programs/listingAuthority/accounts";
+} from "../src/programs/transferAuthority/accounts";
 import {
   findMarketplaceAddress,
   findTransferAuthorityAddress,
-} from "../src/programs/listingAuthority/pda";
-import { init } from "../src/programs/paymentManager/instruction";
-import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
-import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
+} from "../src/programs/transferAuthority/pda";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 

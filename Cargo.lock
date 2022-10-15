@@ -411,21 +411,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
-name = "cardinal-listing-authority"
-version = "1.5.12"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "cardinal-payment-manager",
- "cardinal-token-manager",
- "mpl-token-metadata",
- "proptest",
- "solana-program",
- "spl-associated-token-account",
- "spl-token",
-]
-
-[[package]]
 name = "cardinal-paid-claim-approver"
 version = "1.6.3"
 dependencies = [
@@ -472,6 +457,21 @@ version = "1.6.3"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "mpl-token-metadata",
+ "proptest",
+ "solana-program",
+ "spl-associated-token-account",
+ "spl-token",
+]
+
+[[package]]
+name = "cardinal-transfer-authority"
+version = "1.6.3"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "cardinal-payment-manager",
+ "cardinal-token-manager",
  "mpl-token-metadata",
  "proptest",
  "solana-program",

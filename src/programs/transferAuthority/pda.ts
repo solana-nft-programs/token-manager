@@ -3,9 +3,9 @@ import { PublicKey } from "@solana/web3.js";
 
 import { findTokenManagerAddress } from "../tokenManager/pda";
 import {
-  LISTING_AUTHORITY_ADDRESS,
   LISTING_SEED,
   MARKETPLACE_SEED,
+  TRANSFER_AUTHORITY_ADDRESS,
   TRANSFER_AUTHORITY_SEED,
   TRANSFER_SEED,
 } from "./constants";
@@ -22,7 +22,7 @@ export const findTransferAuthorityAddress = async (
       utils.bytes.utf8.encode(TRANSFER_AUTHORITY_SEED),
       utils.bytes.utf8.encode(name),
     ],
-    LISTING_AUTHORITY_ADDRESS
+    TRANSFER_AUTHORITY_ADDRESS
   );
 };
 
@@ -35,7 +35,7 @@ export const findMarketplaceAddress = async (
 ): Promise<[PublicKey, number]> => {
   return await PublicKey.findProgramAddress(
     [utils.bytes.utf8.encode(MARKETPLACE_SEED), utils.bytes.utf8.encode(name)],
-    LISTING_AUTHORITY_ADDRESS
+    TRANSFER_AUTHORITY_ADDRESS
   );
 };
 
@@ -49,7 +49,7 @@ export const findListingAddress = async (
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
   return await PublicKey.findProgramAddress(
     [utils.bytes.utf8.encode(LISTING_SEED), tokenManagerId.toBytes()],
-    LISTING_AUTHORITY_ADDRESS
+    TRANSFER_AUTHORITY_ADDRESS
   );
 };
 
@@ -63,6 +63,6 @@ export const findTransferAddress = async (
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
   return await PublicKey.findProgramAddress(
     [utils.bytes.utf8.encode(TRANSFER_SEED), tokenManagerId.toBytes()],
-    LISTING_AUTHORITY_ADDRESS
+    TRANSFER_AUTHORITY_ADDRESS
   );
 };

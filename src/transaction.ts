@@ -16,7 +16,6 @@ import {
   useInvalidator,
 } from "./programs";
 import type { ClaimApproverParams } from "./programs/claimApprover/instruction";
-import { getTransferAuthorityByName } from "./programs/listingAuthority/accounts";
 import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruction";
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
 import type { TokenManagerData } from "./programs/tokenManager";
@@ -36,6 +35,7 @@ import {
   withRemainingAccountsForPayment,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager/utils";
+import { getTransferAuthorityByName } from "./programs/transferAuthority/accounts";
 import type { UseInvalidationParams } from "./programs/useInvalidator/instruction";
 import type { AccountData } from "./utils";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";

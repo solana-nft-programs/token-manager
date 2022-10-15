@@ -6,7 +6,7 @@ import * as web3Js from "@solana/web3.js";
 import { executeTransaction } from "./utils";
 import { tryGetAccount, withUpdateMarketplace } from "../src";
 import { connectionFor } from "./connection";
-import { getMarketplaceByName } from "../src/programs/listingAuthority/accounts";
+import { getMarketplaceByName } from "../src/programs/transferAuthority/accounts";
 
 const wallet = web3Js.Keypair.fromSecretKey(
   anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
@@ -56,7 +56,7 @@ const main = async (
   }
 };
 
-const marketplaceName = "cardinal";
+const marketplaceName = "marketplace-cardinal";
 const transferAuthorityName = "global";
 const paymentManagerName = "cardinal-marketplace";
 

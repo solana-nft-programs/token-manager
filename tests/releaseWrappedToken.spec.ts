@@ -24,11 +24,11 @@ import {
   withRelease,
   withWrapToken,
 } from "../src";
-import { getTransferAuthorityByName } from "../src/programs/listingAuthority/accounts";
-import { findTransferAuthorityAddress } from "../src/programs/listingAuthority/pda";
 import { init } from "../src/programs/paymentManager/instruction";
 import { getTokenManager } from "../src/programs/tokenManager/accounts";
 import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
+import { getTransferAuthorityByName } from "../src/programs/transferAuthority/accounts";
+import { findTransferAuthorityAddress } from "../src/programs/transferAuthority/pda";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 

@@ -5,7 +5,7 @@ import { connectionFor } from "./connection";
 import { executeTransaction } from "./utils";
 import { SignerWallet } from "@saberhq/solana-contrib";
 import { Keypair, Transaction } from "@solana/web3.js";
-import { getTransferAuthorityByName } from "../src/programs/listingAuthority/accounts";
+import { getTransferAuthorityByName } from "../src/programs/transferAuthority/accounts";
 
 const wallet = Keypair.fromSecretKey(
   anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))

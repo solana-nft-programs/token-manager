@@ -22,8 +22,6 @@ const main = async (transferAuthorityName: string, cluster = "devnet") => {
     transferAuthorityName
   );
 
-  console.log(transaction.instructions.map((ix) => ix.programId.toString()));
-
   try {
     await executeTransaction(
       connection,

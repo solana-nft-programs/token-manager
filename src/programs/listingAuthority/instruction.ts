@@ -14,7 +14,7 @@ import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import * as constants from "./constants";
 
-export const inittransferAuthority = (
+export const initTransferAuthority = (
   connection: Connection,
   wallet: Wallet,
   name: string,

@@ -24,7 +24,7 @@ import {
   createListing,
   initMarketplace,
   initTransfer,
-  inittransferAuthority,
+  initTransferAuthority,
   release,
   removeListing,
   updateListing,
@@ -140,7 +140,7 @@ export const withInitTransferAuthority = async (
 ): Promise<[Transaction, PublicKey]> => {
   const [transferAuthority] = await findTransferAuthorityAddress(name);
   transaction.add(
-    inittransferAuthority(
+    initTransferAuthority(
       connection,
       wallet,
       name,

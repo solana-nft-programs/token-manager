@@ -18,6 +18,8 @@ pub struct ReleaseCtx<'info> {
     #[account(mut)]
     token_manager_token_account: UncheckedAccount<'info>,
 
+    // listing: Account
+
     #[account(mut, constraint = holder_token_account.mint == token_manager.mint && holder_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidHolderMintTokenAccount)]
     holder_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = holder.key() == token_manager.issuer @ ErrorCode::InvalidHolder)]

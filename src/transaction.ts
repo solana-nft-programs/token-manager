@@ -44,7 +44,10 @@ export type IssueParameters = {
   claimPayment?: ClaimApproverParams;
   timeInvalidation?: TimeInvalidationParams;
   useInvalidation?: UseInvalidationParams;
-  transferAuthorityName?: string;
+  transferAuthorityInfo?: {
+    transferAuthorityName: string;
+    setInvalidator?: boolean;
+  };
   mint: PublicKey;
   amount?: BN;
   issuerTokenAccountId: PublicKey;
@@ -77,7 +80,7 @@ export const withIssueToken = async (
     mint,
     issuerTokenAccountId,
     amount = new BN(1),
-    transferAuthorityName,
+    transferAuthorityInfo,
     kind = TokenManagerKind.Managed,
     invalidationType = InvalidationType.Return,
     visibility = "public",
@@ -95,7 +98,7 @@ export const withIssueToken = async (
       : useInvalidation || timeInvalidation
       ? 1
       : 0) +
-    (transferAuthorityName ? 1 : 0);
+    (transferAuthorityInfo?.setInvalidator ? 1 : 0);
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
@@ -109,12 +112,15 @@ export const withIssueToken = async (
   );
   transaction.add(tokenManagerIx);
 
-  if (transferAuthorityName) {
+  if (transferAuthorityInfo) {
     const checkTransferAuthority = await tryGetAccount(() =>
-      getTransferAuthorityByName(connection, transferAuthorityName)
+      getTransferAuthorityByName(
+        connection,
+        transferAuthorityInfo.transferAuthorityName
+      )
     );
     if (!checkTransferAuthority?.parsed) {
-      throw `No transfer authority with name ${transferAuthorityName} found`;
+      throw `No transfer authority with name ${transferAuthorityInfo.transferAuthorityName} found`;
     }
     transaction.add(
       setTransferAuthority(
@@ -124,14 +130,16 @@ export const withIssueToken = async (
         checkTransferAuthority.pubkey
       )
     );
-    transaction.add(
-      tokenManager.instruction.addInvalidator(
-        connection,
-        wallet,
-        tokenManagerId,
-        checkTransferAuthority.pubkey
-      )
-    );
+    if (transferAuthorityInfo.setInvalidator) {
+      transaction.add(
+        tokenManager.instruction.addInvalidator(
+          connection,
+          wallet,
+          tokenManagerId,
+          checkTransferAuthority.pubkey
+        )
+      );
+    }
   }
 
   //////////////////////////////

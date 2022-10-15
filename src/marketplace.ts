@@ -67,7 +67,10 @@ export const withWrapToken = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  transferAuthorityName?: string,
+  transferAuthorityInfo?: {
+    transferAuthorityName: string;
+    setInvalidator?: boolean;
+  },
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
@@ -94,7 +97,12 @@ export const withWrapToken = async (
       invalidationType: InvalidationType.Release,
       issuerTokenAccountId: issuerTokenAccountId,
       kind: kind,
-      transferAuthorityName: transferAuthorityName,
+      transferAuthorityInfo: transferAuthorityInfo
+        ? {
+            transferAuthorityName: transferAuthorityInfo.transferAuthorityName,
+            setInvalidator: transferAuthorityInfo.setInvalidator ?? true,
+          }
+        : undefined,
     },
     payer
   );
@@ -161,12 +169,12 @@ export const withUpdateTransferAuthority = async (
   authority: PublicKey,
   allowedMarketplaces?: PublicKey[] | null
 ): Promise<Transaction> => {
-  const [transferAuthority] = await findTransferAuthorityAddress(name);
+  const [transferAuthorityId] = await findTransferAuthorityAddress(name);
   transaction.add(
     updateTransferAuthority(
       connection,
       wallet,
-      transferAuthority,
+      transferAuthorityId,
       authority,
       allowedMarketplaces
     )

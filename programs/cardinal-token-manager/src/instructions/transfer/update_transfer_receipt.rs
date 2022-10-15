@@ -4,8 +4,7 @@ use {
 };
 
 #[derive(Accounts)]
-#[instruction(target: Pubkey)]
-pub struct CreateTransferReceiptCtx<'info> {
+pub struct UpdateTransferReceiptCtx<'info> {
     #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
@@ -15,22 +14,15 @@ pub struct CreateTransferReceiptCtx<'info> {
     )]
     transfer_authority: Signer<'info>,
 
-    #[account(
-        init,
-        payer = payer,
-        seeds = [TRANSFER_RECEIPT_SEED.as_bytes(), token_manager.key().as_ref(), target.as_ref()], bump,
-        space = TRANSFER_RECEIPT_SIZE,
-    )]
+    #[account(mut, constraint = transfer_receipt.token_manager == token_manager.key() @ ErrorCode::InvalidTransferReceipt)]
     transfer_receipt: Box<Account<'info, TransferReceipt>>,
-    #[account(mut)]
-    payer: Signer<'info>,
-    system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
+pub fn handler(ctx: Context<UpdateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
     let transfer_receipt = &mut ctx.accounts.transfer_receipt;
     transfer_receipt.mint_count = ctx.accounts.token_manager.count;
     transfer_receipt.token_manager = ctx.accounts.token_manager.key();
     transfer_receipt.target = target;
+
     Ok(())
 }

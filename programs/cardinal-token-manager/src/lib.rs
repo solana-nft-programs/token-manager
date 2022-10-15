@@ -40,7 +40,7 @@ pub mod cardinal_token_manager {
     }
 
     pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
-        create_transfer_receipt::handler(ctx, target)
+        transfer::create_transfer_receipt::handler(ctx, target)
     }
 
     pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
@@ -60,7 +60,7 @@ pub mod cardinal_token_manager {
     }
 
     pub fn transfer<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, TransferCtx<'info>>) -> Result<()> {
-        transfer::handler(ctx)
+        transfer::transfer::handler(ctx)
     }
 
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {

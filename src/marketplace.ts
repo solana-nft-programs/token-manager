@@ -399,10 +399,7 @@ export const withAcceptListing = async (
 
   const mintMetadataId = await Metadata.getPDA(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  const [transferReceiptId] = await findTransferReceiptId(
-    tokenManagerId,
-    buyer
-  );
+  const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
   const [transferId] = await findTransferAddress(mintId);
 
   const remainingAccountsForHandlePaymentWithRoyalties =
@@ -557,10 +554,7 @@ export const withAcceptTransfer = async (
     wallet.publicKey,
     true
   );
-  const [transferReceiptId] = await findTransferReceiptId(
-    tokenManagerId,
-    recipient
-  );
+  const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
   const [listingId] = await findListingAddress(mintId);
   const tokenManagerData = await tryGetAccount(() =>
     getTokenManager(connection, tokenManagerId)

@@ -321,14 +321,10 @@ export const withRemainingAccountsForHandlePaymentWithRoyalties = async (
 
 export const getRemainingAccountsForTransfer = async (
   transferAuthority: PublicKey | null,
-  tokenManagerId: PublicKey,
-  recipient: PublicKey
+  tokenManagerId: PublicKey
 ): Promise<AccountMeta[]> => {
   if (transferAuthority) {
-    const [transferReceiptId] = await findTransferReceiptId(
-      tokenManagerId,
-      recipient
-    );
+    const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
     return [
       {
         pubkey: transferReceiptId,

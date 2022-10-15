@@ -948,8 +948,7 @@ export const withTransfer = async (
 
   const remainingAccountsForTransfer = await getRemainingAccountsForTransfer(
     tokenManagerData.parsed.transferAuthority,
-    tokenManagerId,
-    recipient
+    tokenManagerId
   );
 
   tokenManager.instruction.transfer(

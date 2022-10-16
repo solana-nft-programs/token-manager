@@ -16,6 +16,7 @@ import type {
   MintManagerData,
   TOKEN_MANAGER_PROGRAM,
   TokenManagerData,
+  TransferReceiptData,
 } from "./constants";
 import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
 
@@ -224,4 +225,28 @@ export const getTokenManagersForIssuer = async (
   return tokenManagerDatas.sort((a, b) =>
     a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
   );
+};
+
+export const getTransferReceipt = async (
+  connection: Connection,
+  transferReceiptId: PublicKey
+): Promise<AccountData<TransferReceiptData>> => {
+  const provider = new AnchorProvider(
+    connection,
+    new SignerWallet(Keypair.generate()),
+    {}
+  );
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const parsed = await tokenManagerProgram.account.transferReceipt.fetch(
+    transferReceiptId
+  );
+  return {
+    parsed,
+    pubkey: transferReceiptId,
+  };
 };

@@ -39,6 +39,8 @@ export type MintManagerData = Accounts["mintManager"];
 
 export type MintCounterData = Accounts["mintCounter"];
 
+export type TransferReceiptData = Accounts["transferReceipt"];
+
 export enum TokenManagerKind {
   Managed = 1,
   Unmanaged = 2,

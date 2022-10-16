@@ -407,5 +407,15 @@ describe("Accept Listing", () => {
     expect(feeCollectorTokenAccount.amount.toNumber()).to.eq(
       totalFees.toNumber()
     );
+
+    const checkBuyerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      buyer.publicKey,
+      true
+    );
+    const checkBuyerTokenAccount = await rentalMint.getAccountInfo(
+      checkBuyerTokenAccountId
+    );
+    expect(checkBuyerTokenAccount.delegate).to.be.null;
   });
 });

@@ -53,7 +53,7 @@ import {
   findTransferAddress,
   findTransferAuthorityAddress,
 } from "./programs/transferAuthority/pda";
-import { withDelegate, withIssueToken, withUndelegate } from "./transaction";
+import { withDelegate, withIssueToken } from "./transaction";
 import {
   emptyWallet,
   findAta,
@@ -450,8 +450,6 @@ export const withAcceptListing = async (
       remainingAccounts
     )
   );
-  // undelegate token
-  await withUndelegate(transaction, connection, wallet, mintId, buyer);
 
   return transaction;
 };

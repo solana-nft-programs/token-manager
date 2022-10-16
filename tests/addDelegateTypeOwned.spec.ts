@@ -197,7 +197,7 @@ describe("Add and Remove Delegate for Type Owned", () => {
       claimerTokenAccountId
     );
     expect(checkClaimerTokenAccount.amount.toNumber()).to.eq(1);
-    expect(checkClaimerTokenAccount.delegate?.toString()).to.be.undefined;
+    expect(checkClaimerTokenAccount.delegate).to.be.null;
     expect(checkClaimerTokenAccount.isFrozen).to.be.true;
   });
 
@@ -249,7 +249,6 @@ describe("Add and Remove Delegate for Type Owned", () => {
       provider.wallet.publicKey,
       true
     );
-    console.log("claimerTokenAccountId", claimerTokenAccountId.toString());
     const transaction = new Transaction();
     await withUndelegate(
       transaction,

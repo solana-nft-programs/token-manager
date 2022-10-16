@@ -167,7 +167,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         k if k == TokenManagerKind::Owned as u8 => {
             let mint_manager_info = next_account_info(remaining_accs)?;
             let mint = ctx.accounts.mint.key();
-        let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
+            let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
             let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;
             let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];
             let mint_manager_signer = &[&mint_manager_seeds[..]];

@@ -31,6 +31,7 @@ import {
   tokenManagerAddressFromMint,
 } from "./programs/tokenManager/pda";
 import {
+  getRemainingAccountsForKind,
   getRemainingAccountsForTransfer,
   withRemainingAccountsForPayment,
   withRemainingAccountsForReturn,
@@ -927,7 +928,7 @@ export const withTransfer = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  recipient: PublicKey
+  recipient = wallet.publicKey
 ): Promise<Transaction> => {
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const tokenManagerData = await tryGetAccount(() =>
@@ -946,21 +947,27 @@ export const withTransfer = async (
     true
   );
 
-  const remainingAccountsForTransfer = await getRemainingAccountsForTransfer(
-    tokenManagerData.parsed.transferAuthority,
-    tokenManagerId,
-    recipient
+  const remainingAccountsForKind = await getRemainingAccountsForKind(
+    mintId,
+    tokenManagerData.parsed.kind
   );
 
-  tokenManager.instruction.transfer(
-    connection,
-    wallet,
-    tokenManagerId,
-    mintId,
-    tokenManagerData.parsed.recipientTokenAccount,
-    recipient,
-    recipientTokenAccountId,
-    remainingAccountsForTransfer
+  const remainingAccountsForTransfer = await getRemainingAccountsForTransfer(
+    tokenManagerData.parsed.transferAuthority,
+    tokenManagerId
+  );
+
+  transaction.add(
+    tokenManager.instruction.transfer(
+      connection,
+      wallet,
+      tokenManagerId,
+      mintId,
+      tokenManagerData.parsed.recipientTokenAccount,
+      recipient,
+      recipientTokenAccountId,
+      [...remainingAccountsForKind, ...remainingAccountsForTransfer]
+    )
   );
 
   return transaction;

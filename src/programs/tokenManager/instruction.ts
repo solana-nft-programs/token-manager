@@ -31,6 +31,7 @@ import {
   findMintManagerId,
   findReceiptMintManagerId,
   findTokenManagerAddress,
+  findTransferReceiptId,
 } from "./pda";
 import { getRemainingAccountsForKind } from "./utils";
 
@@ -346,37 +347,6 @@ export const createClaimReceipt = async (
   ];
 };
 
-export const createTransferReceipt = async (
-  connection: Connection,
-  wallet: Wallet,
-  tokenManagerId: PublicKey,
-  transferAuthority: PublicKey,
-  payer = wallet.publicKey,
-  target = wallet.publicKey
-): Promise<[TransactionInstruction, PublicKey]> => {
-  const provider = new AnchorProvider(connection, wallet, {});
-  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
-    TOKEN_MANAGER_IDL,
-    TOKEN_MANAGER_ADDRESS,
-    provider
-  );
-
-  const [transferReceiptId] = await findClaimReceiptId(tokenManagerId, target);
-
-  return [
-    tokenManagerProgram.instruction.createTransferReceipt({
-      accounts: {
-        tokenManager: tokenManagerId,
-        transferAuthority: transferAuthority,
-        transferReceipt: transferReceiptId,
-        payer: payer,
-        systemProgram: SystemProgram.programId,
-      },
-    }),
-    transferReceiptId,
-  ];
-};
-
 export const creatMintManager = async (
   connection: Connection,
   wallet: Wallet,
@@ -519,4 +489,87 @@ export const invalidate = async (
       ...returnAccounts,
     ],
   });
+};
+
+export const createTransferReceipt = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  target: PublicKey,
+  payer?: PublicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
+  return [
+    tokenManagerProgram.instruction.createTransferReceipt(target, {
+      accounts: {
+        tokenManager: tokenManagerId,
+        transferAuthority: wallet.publicKey,
+        transferReceipt: transferReceiptId,
+        payer: payer ?? wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }),
+    transferReceiptId,
+  ];
+};
+
+export const updateTransferReceipt = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  target: PublicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
+  return [
+    tokenManagerProgram.instruction.updateTransferReceipt(target, {
+      accounts: {
+        tokenManager: tokenManagerId,
+        transferAuthority: wallet.publicKey,
+        transferReceipt: transferReceiptId,
+      },
+    }),
+    transferReceiptId,
+  ];
+};
+
+export const closeTransferReceipt = async (
+  connection: Connection,
+  wallet: Wallet,
+  tokenManagerId: PublicKey,
+  reipient?: PublicKey
+): Promise<[TransactionInstruction, PublicKey]> => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
+
+  return [
+    tokenManagerProgram.instruction.closeTransferReceipt({
+      accounts: {
+        tokenManager: tokenManagerId,
+        transferAuthority: wallet.publicKey,
+        transferReceipt: transferReceiptId,
+        recipient: reipient ?? wallet.publicKey,
+      },
+    }),
+    transferReceiptId,
+  ];
 };

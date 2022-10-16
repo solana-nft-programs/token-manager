@@ -39,10 +39,6 @@ pub mod cardinal_token_manager {
         create_claim_receipt::handler(ctx, target)
     }
 
-    pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
-        create_transfer_receipt::handler(ctx, target)
-    }
-
     pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
         claim_receipt_mint::handler(ctx, name)
     }
@@ -59,10 +55,6 @@ pub mod cardinal_token_manager {
         claim::handler(ctx)
     }
 
-    pub fn transfer<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, TransferCtx<'info>>) -> Result<()> {
-        transfer::handler(ctx)
-    }
-
     pub fn invalidate<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
         invalidate::handler(ctx)
     }
@@ -77,5 +69,22 @@ pub mod cardinal_token_manager {
 
     pub fn close_mint_manager(ctx: Context<CloseMintManagerCtx>) -> Result<()> {
         close_mint_manager::handler(ctx)
+    }
+
+    // transfers
+    pub fn create_transfer_receipt(ctx: Context<CreateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
+        transfers::create_transfer_receipt::handler(ctx, target)
+    }
+
+    pub fn update_transfer_receipt(ctx: Context<UpdateTransferReceiptCtx>, target: Pubkey) -> Result<()> {
+        transfers::update_transfer_receipt::handler(ctx, target)
+    }
+
+    pub fn close_transfer_receipt(ctx: Context<CloseTransferReceiptCtx>) -> Result<()> {
+        transfers::close_transfer_receipt::handler(ctx)
+    }
+
+    pub fn transfer<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, TransferCtx<'info>>) -> Result<()> {
+        transfers::transfer::handler(ctx)
     }
 }

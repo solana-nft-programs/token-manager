@@ -658,7 +658,7 @@ export type CardinalTransferAuthority = {
           {
             name: "transferAuthority";
             type: {
-              defined: "Account<'info,TransferAuthority>";
+              defined: "Box<Account<'info,TransferAuthority>>";
             };
           },
           {
@@ -676,19 +676,19 @@ export type CardinalTransferAuthority = {
           {
             name: "listing";
             type: {
-              defined: "Account<'info,Listing>";
+              defined: "Box<Account<'info,Listing>>";
             };
           },
           {
             name: "listerPaymentTokenAccount";
             type: {
-              defined: "Account<'info,TokenAccount>";
+              defined: "Box<Account<'info,TokenAccount>>";
             };
           },
           {
             name: "listerMintTokenAccount";
             type: {
-              defined: "Account<'info,TokenAccount>";
+              defined: "Box<Account<'info,TokenAccount>>";
             };
           },
           {
@@ -700,13 +700,13 @@ export type CardinalTransferAuthority = {
           {
             name: "buyerPaymentTokenAccount";
             type: {
-              defined: "Account<'info,TokenAccount>";
+              defined: "Box<Account<'info,TokenAccount>>";
             };
           },
           {
             name: "buyerMintTokenAccount";
             type: {
-              defined: "Account<'info,TokenAccount>";
+              defined: "Box<Account<'info,TokenAccount>>";
             };
           },
           {
@@ -718,13 +718,13 @@ export type CardinalTransferAuthority = {
           {
             name: "marketplace";
             type: {
-              defined: "Account<'info,Marketplace>";
+              defined: "Box<Account<'info,Marketplace>>";
             };
           },
           {
             name: "tokenManager";
             type: {
-              defined: "Account<'info,TokenManager>";
+              defined: "Box<Account<'info,TokenManager>>";
             };
           },
           {
@@ -1731,7 +1731,7 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "transferAuthority",
             type: {
-              defined: "Account<'info,TransferAuthority>",
+              defined: "Box<Account<'info,TransferAuthority>>",
             },
           },
           {
@@ -1749,19 +1749,19 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "listing",
             type: {
-              defined: "Account<'info,Listing>",
+              defined: "Box<Account<'info,Listing>>",
             },
           },
           {
             name: "listerPaymentTokenAccount",
             type: {
-              defined: "Account<'info,TokenAccount>",
+              defined: "Box<Account<'info,TokenAccount>>",
             },
           },
           {
             name: "listerMintTokenAccount",
             type: {
-              defined: "Account<'info,TokenAccount>",
+              defined: "Box<Account<'info,TokenAccount>>",
             },
           },
           {
@@ -1773,13 +1773,13 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "buyerPaymentTokenAccount",
             type: {
-              defined: "Account<'info,TokenAccount>",
+              defined: "Box<Account<'info,TokenAccount>>",
             },
           },
           {
             name: "buyerMintTokenAccount",
             type: {
-              defined: "Account<'info,TokenAccount>",
+              defined: "Box<Account<'info,TokenAccount>>",
             },
           },
           {
@@ -1791,13 +1791,13 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "marketplace",
             type: {
-              defined: "Account<'info,Marketplace>",
+              defined: "Box<Account<'info,Marketplace>>",
             },
           },
           {
             name: "tokenManager",
             type: {
-              defined: "Account<'info,TokenManager>",
+              defined: "Box<Account<'info,TokenManager>>",
             },
           },
           {

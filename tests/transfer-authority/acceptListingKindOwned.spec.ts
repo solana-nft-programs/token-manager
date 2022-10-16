@@ -1,8 +1,6 @@
 import {
-  CreateMasterEditionV3,
   CreateMetadataV2,
   DataV2,
-  MasterEdition,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { expectTXTable } from "@saberhq/chai-solana";
@@ -107,26 +105,13 @@ describe("Accept Listing", () => {
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
-    const masterEditionTx = new CreateMasterEditionV3(
-      { feePayer: lister.publicKey },
-      {
-        edition: masterEditionId,
-        metadata: metadataId,
-        updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
-        mintAuthority: lister.publicKey,
-        maxSupply: new BN(1),
-      }
-    );
-
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
         wallet: new SignerWallet(lister),
         opts: provider.opts,
       }),
-      [...metadataTx.instructions, ...masterEditionTx.instructions]
+      [...metadataTx.instructions]
     );
 
     await expectTXTable(txEnvelope, "Create Token", {

@@ -53,7 +53,7 @@ import {
   findTransferAddress,
   findTransferAuthorityAddress,
 } from "./programs/transferAuthority/pda";
-import { withIssueToken } from "./transaction";
+import { withDelegate, withIssueToken, withUndelegate } from "./transaction";
 import {
   emptyWallet,
   findAta,
@@ -85,7 +85,7 @@ export const withWrapToken = async (
   try {
     await MasterEdition.getPDA(mintId);
   } catch (e) {
-    kind = TokenManagerKind.Managed;
+    kind = TokenManagerKind.Owned;
   }
 
   await withIssueToken(
@@ -265,6 +265,9 @@ export const withCreateListing = async (
   if (!markeptlaceData?.parsed) {
     throw `No marketplace with name ${markeptlaceName} found`;
   }
+
+  // delegate token
+  await withDelegate(transaction, connection, wallet, mintId);
 
   transaction.add(
     createListing(
@@ -451,6 +454,9 @@ export const withAcceptListing = async (
       remainingAccounts
     )
   );
+  // undelegate token
+  await withUndelegate(transaction, connection, wallet, mintId, buyer);
+
   return transaction;
 };
 
@@ -562,7 +568,7 @@ export const withAcceptTransfer = async (
   try {
     await MasterEdition.getPDA(mintId);
   } catch (e) {
-    kind = TokenManagerKind.Managed;
+    kind = TokenManagerKind.Owned;
   }
   const remainingAccountsForTransfer = [
     ...(await getRemainingAccountsForKind(mintId, kind)),

@@ -21,6 +21,7 @@ pub struct UndelegateCtx<'info> {
         recipient_token_account.owner == recipient.key()
         && recipient_token_account.mint == token_manager.mint
         && recipient_token_account.key() == token_manager.recipient_token_account.key()
+        && recipient_token_account.delegate.is_some()
         @ ErrorCode::InvalidRecipientTokenAccount
     )]
     recipient_token_account: Box<Account<'info, TokenAccount>>,
@@ -44,7 +45,7 @@ pub fn handler(ctx: Context<UndelegateCtx>) -> Result<()> {
     token::thaw_account(cpi_context)?;
 
     let cpi_accounts = Revoke {
-        source: ctx.accounts.token_manager.to_account_info(),
+        source: ctx.accounts.recipient_token_account.to_account_info(),
         authority: ctx.accounts.recipient.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();

@@ -21,6 +21,7 @@ pub struct DelegateCtx<'info> {
         recipient_token_account.owner == recipient.key()
         && recipient_token_account.mint == token_manager.mint
         && recipient_token_account.key() == token_manager.recipient_token_account.key()
+        && recipient_token_account.delegate.is_none()
         @ ErrorCode::InvalidRecipientTokenAccount
     )]
     recipient_token_account: Box<Account<'info, TokenAccount>>,

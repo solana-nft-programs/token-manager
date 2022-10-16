@@ -573,3 +573,59 @@ export const closeTransferReceipt = async (
     transferReceiptId,
   ];
 };
+
+export const delegate = (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  tokenManagerId: PublicKey,
+  mintManagerId: PublicKey,
+  recipient: PublicKey,
+  recipientTokenAccountId: PublicKey
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.delegate({
+    accounts: {
+      tokenManager: tokenManagerId,
+      mint: mintId,
+      mintManager: mintManagerId,
+      recipient: recipient,
+      recipientTokenAccount: recipientTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    },
+  });
+};
+
+export const undelegate = (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  tokenManagerId: PublicKey,
+  mintManagerId: PublicKey,
+  recipient: PublicKey,
+  recipientTokenAccountId: PublicKey
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+
+  return tokenManagerProgram.instruction.undelegate({
+    accounts: {
+      tokenManager: tokenManagerId,
+      mint: mintId,
+      mintManager: mintManagerId,
+      recipient: recipient,
+      recipientTokenAccount: recipientTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    },
+  });
+};

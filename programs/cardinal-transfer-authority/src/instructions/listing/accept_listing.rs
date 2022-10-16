@@ -1,4 +1,4 @@
-use anchor_spl::token::TokenAccount;
+use anchor_spl::{associated_token::AssociatedToken, token::TokenAccount};
 use cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager};
 
 use {
@@ -8,6 +8,8 @@ use {
     cardinal_payment_manager::program::CardinalPaymentManager,
     mpl_token_metadata,
 };
+
+use solana_program::sysvar::{self};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 pub struct AcceptListingCtx<'info> {
@@ -70,10 +72,15 @@ pub struct AcceptListingCtx<'info> {
 
     #[account(mut)]
     payer: Signer<'info>,
-    token_program: Program<'info, Token>,
     cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
+    associated_token_program: Program<'info, AssociatedToken>,
+    token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
+    rent: Sysvar<'info, Rent>,
+    /// CHECK: This is not dangerous because the ID is checked with instructions sysvar
+    #[account(address = sysvar::instructions::id())]
+    instructions: UncheckedAccount<'info>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {

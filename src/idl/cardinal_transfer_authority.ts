@@ -169,6 +169,11 @@ export type CardinalTransferAuthority = {
           name: "systemProgram";
           isMut: false;
           isSigner: false;
+        },
+        {
+          name: "instructions";
+          isMut: false;
+          isSigner: false;
         }
       ];
       args: [
@@ -297,11 +302,6 @@ export type CardinalTransferAuthority = {
           isSigner: true;
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "cardinalPaymentManager";
           isMut: false;
           isSigner: false;
@@ -312,7 +312,27 @@ export type CardinalTransferAuthority = {
           isSigner: false;
         },
         {
+          name: "associatedTokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "instructions";
           isMut: false;
           isSigner: false;
         }
@@ -499,6 +519,11 @@ export type CardinalTransferAuthority = {
           isSigner: true;
         },
         {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
           name: "holderTokenAccount";
           isMut: true;
           isSigner: false;
@@ -509,17 +534,32 @@ export type CardinalTransferAuthority = {
           isSigner: false;
         },
         {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "cardinalTokenManager";
           isMut: false;
           isSigner: false;
         },
         {
+          name: "associatedTokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "instructions";
           isMut: false;
           isSigner: false;
         }
@@ -764,12 +804,6 @@ export type CardinalTransferAuthority = {
             };
           },
           {
-            name: "tokenProgram";
-            type: {
-              defined: "Program<'info,Token>";
-            };
-          },
-          {
             name: "cardinalPaymentManager";
             type: {
               defined: "Program<'info,CardinalPaymentManager>";
@@ -782,9 +816,33 @@ export type CardinalTransferAuthority = {
             };
           },
           {
+            name: "associatedTokenProgram";
+            type: {
+              defined: "Program<'info,AssociatedToken>";
+            };
+          },
+          {
+            name: "tokenProgram";
+            type: {
+              defined: "Program<'info,Token>";
+            };
+          },
+          {
             name: "systemProgram";
             type: {
               defined: "Program<'info,System>";
+            };
+          },
+          {
+            name: "rent";
+            type: {
+              defined: "Sysvar<'info,Rent>";
+            };
+          },
+          {
+            name: "instructions";
+            type: {
+              defined: "UncheckedAccount<'info>";
             };
           }
         ];
@@ -1067,6 +1125,11 @@ export type CardinalTransferAuthority = {
       code: 6021;
       name: "InvalidDerivation";
       msg: "Invalid derivation";
+    },
+    {
+      code: 6022;
+      name: "InstructionsDisallowed";
+      msg: "Transaction included disallowed";
     }
   ];
 };
@@ -1243,6 +1306,11 @@ export const IDL: CardinalTransferAuthority = {
           isMut: false,
           isSigner: false,
         },
+        {
+          name: "instructions",
+          isMut: false,
+          isSigner: false,
+        },
       ],
       args: [
         {
@@ -1370,11 +1438,6 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: true,
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "cardinalPaymentManager",
           isMut: false,
           isSigner: false,
@@ -1385,7 +1448,27 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: false,
         },
         {
+          name: "associatedTokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "instructions",
           isMut: false,
           isSigner: false,
         },
@@ -1572,6 +1655,11 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: true,
         },
         {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: "holderTokenAccount",
           isMut: true,
           isSigner: false,
@@ -1582,17 +1670,32 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: false,
         },
         {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "cardinalTokenManager",
           isMut: false,
           isSigner: false,
         },
         {
+          name: "associatedTokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "instructions",
           isMut: false,
           isSigner: false,
         },
@@ -1837,12 +1940,6 @@ export const IDL: CardinalTransferAuthority = {
             },
           },
           {
-            name: "tokenProgram",
-            type: {
-              defined: "Program<'info,Token>",
-            },
-          },
-          {
             name: "cardinalPaymentManager",
             type: {
               defined: "Program<'info,CardinalPaymentManager>",
@@ -1855,9 +1952,33 @@ export const IDL: CardinalTransferAuthority = {
             },
           },
           {
+            name: "associatedTokenProgram",
+            type: {
+              defined: "Program<'info,AssociatedToken>",
+            },
+          },
+          {
+            name: "tokenProgram",
+            type: {
+              defined: "Program<'info,Token>",
+            },
+          },
+          {
             name: "systemProgram",
             type: {
               defined: "Program<'info,System>",
+            },
+          },
+          {
+            name: "rent",
+            type: {
+              defined: "Sysvar<'info,Rent>",
+            },
+          },
+          {
+            name: "instructions",
+            type: {
+              defined: "UncheckedAccount<'info>",
             },
           },
         ],
@@ -2140,6 +2261,11 @@ export const IDL: CardinalTransferAuthority = {
       code: 6021,
       name: "InvalidDerivation",
       msg: "Invalid derivation",
+    },
+    {
+      code: 6022,
+      name: "InstructionsDisallowed",
+      msg: "Transaction included disallowed",
     },
   ],
 };

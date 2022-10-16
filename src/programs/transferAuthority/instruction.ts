@@ -1,14 +1,21 @@
 import type { BN } from "@project-serum/anchor";
 import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import type {
   AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import {
+  SystemProgram,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 
 import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
@@ -183,6 +190,7 @@ export const createListing = (
         lister: wallet.publicKey,
         payer: payer,
         systemProgram: SystemProgram.programId,
+        instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
       },
     }
   );
@@ -290,10 +298,13 @@ export const acceptListing = (
       paymentMint: paymentMintId,
       feeCollectorTokenAccount: feeCollectorTokenAccountId,
       payer: payer,
-      tokenProgram: TOKEN_PROGRAM_ID,
       cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+      instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
     },
     remainingAccounts: remainingAccounts,
   });
@@ -421,11 +432,15 @@ export const acceptTransfer = (
       mint: params.mintId,
       recipientTokenAccount: params.recipientTokenAccountId,
       recipient: params.recipient,
+      payer: params.recipient,
       holderTokenAccount: params.holderTokenAccountId,
       holder: params.holder,
-      tokenProgram: TOKEN_PROGRAM_ID,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+      instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
     },
     remainingAccounts: params.remainingAccounts,
   });

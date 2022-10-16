@@ -6,6 +6,8 @@ use {
     cardinal_token_manager::state::{TokenManager, TokenManagerState},
 };
 
+use solana_program::sysvar::{self};
+
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct CreateListingIx {
     pub payment_amount: u64,
@@ -38,6 +40,9 @@ pub struct CreateListingCtx<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
+    /// CHECK: This is not dangerous because the ID is checked with instructions sysvar
+    #[account(address = sysvar::instructions::id())]
+    instructions: UncheckedAccount<'info>,
 }
 
 pub fn handler(ctx: Context<CreateListingCtx>, ix: CreateListingIx) -> Result<()> {

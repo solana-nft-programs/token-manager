@@ -23,7 +23,7 @@ export const getRemainingAccountsForKind = async (
 ): Promise<AccountMeta[]> => {
   if (
     tokenManagerKind === TokenManagerKind.Managed ||
-    tokenManagerKind === TokenManagerKind.Owned
+    tokenManagerKind === TokenManagerKind.Permissioned
   ) {
     const [mintManagerId] = await findMintManagerId(mintId);
     return [

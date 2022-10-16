@@ -84,7 +84,7 @@ export const withWrapToken = async (
   let kind = TokenManagerKind.Edition;
   const masterEditionId = await MasterEdition.getPDA(mintId);
   const accountInfo = await connection.getAccountInfo(masterEditionId);
-  if (!accountInfo) kind = TokenManagerKind.Owned;
+  if (!accountInfo) kind = TokenManagerKind.Permissioned;
 
   await withIssueToken(
     transaction,

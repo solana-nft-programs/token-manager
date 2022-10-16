@@ -1016,7 +1016,7 @@ export type CardinalTokenManager = {
             name: "Edition";
           },
           {
-            name: "Owned";
+            name: "Permissioned";
           }
         ];
       };
@@ -2232,7 +2232,7 @@ export const IDL: CardinalTokenManager = {
             name: "Edition",
           },
           {
-            name: "Owned",
+            name: "Permissioned",
           },
         ],
       },

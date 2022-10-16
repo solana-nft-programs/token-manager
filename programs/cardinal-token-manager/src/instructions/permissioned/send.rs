@@ -16,7 +16,7 @@ use {
 
 #[derive(Accounts)]
 pub struct SendCtx<'info> {
-    #[account(mut, constraint = token_manager.kind == TokenManagerKind::Owned as u8 && token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManagerState)]
+    #[account(mut, constraint = token_manager.kind == TokenManagerKind::Permissioned as u8 && token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,

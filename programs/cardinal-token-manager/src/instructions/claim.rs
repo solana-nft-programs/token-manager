@@ -134,7 +134,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             )?;
         }
 
-        k if k == TokenManagerKind::Owned as u8 => {
+        k if k == TokenManagerKind::Permissioned as u8 => {
             let mint_manager_info = next_account_info(remaining_accs)?;
             let mint = ctx.accounts.mint.key();
             let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];

@@ -289,7 +289,10 @@ export const withIssueToken = async (
     }
   }
 
-  if (kind === TokenManagerKind.Managed || kind === TokenManagerKind.Owned) {
+  if (
+    kind === TokenManagerKind.Managed ||
+    kind === TokenManagerKind.Permissioned
+  ) {
     const [mintManagerIx, mintManagerId] =
       await tokenManager.instruction.creatMintManager(
         connection,

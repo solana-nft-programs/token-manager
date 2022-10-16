@@ -36,7 +36,7 @@ pub use transfers::create_transfer_receipt::*;
 pub use transfers::transfer::*;
 pub use transfers::update_transfer_receipt::*;
 
-pub mod owned;
-pub use owned::delegate::*;
-pub use owned::send::*;
-pub use owned::undelegate::*;
+pub mod permissioned;
+pub use permissioned::delegate::*;
+pub use permissioned::send::*;
+pub use permissioned::undelegate::*;

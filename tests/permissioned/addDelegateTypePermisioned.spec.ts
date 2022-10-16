@@ -19,17 +19,17 @@ import {
   withDelegate,
   withIssueToken,
   withUndelegate,
-} from "../src";
-import { tokenManager } from "../src/programs";
+} from "../../src";
+import { tokenManager } from "../../src/programs";
 import {
   TokenManagerKind,
   TokenManagerState,
-} from "../src/programs/tokenManager";
-import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
-import { createMint } from "./utils";
-import { getProvider } from "./workspace";
+} from "../../src/programs/tokenManager";
+import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
+import { createMint } from "../utils";
+import { getProvider } from "../workspace";
 
-describe("Add and Remove Delegate for Type Owned", () => {
+describe("Add and Remove Delegate for Type Permissioned", () => {
   const tokenCreator = Keypair.generate();
   let rentalMint: Token;
 
@@ -98,7 +98,7 @@ describe("Add and Remove Delegate for Type Owned", () => {
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
-        kind: TokenManagerKind.Owned,
+        kind: TokenManagerKind.Permissioned,
       }
     );
 

@@ -44,7 +44,7 @@ import {
 import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
-describe("Accept Listing", () => {
+describe("Accept Listing Permissioned", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 

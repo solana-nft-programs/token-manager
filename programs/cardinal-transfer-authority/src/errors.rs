@@ -46,4 +46,6 @@ pub enum ErrorCode {
     InvalidRecipientMintTokenAccount,
     #[msg("Invalid derivation")]
     InvalidDerivation,
+    #[msg("Transaction included disallowed")]
+    InstructionsDisallowed,
 }

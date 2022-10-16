@@ -546,14 +546,7 @@ export const withAcceptTransfer = async (
   } catch (e) {
     throw `Holder is not the owner of mint ${mintId.toString()}`;
   }
-  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    mintId,
-    recipient,
-    wallet.publicKey,
-    true
-  );
+  const recipientTokenAccountId = await findAta(mintId, recipient, true);
   const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
   const [listingId] = await findListingAddress(mintId);
   const tokenManagerData = await tryGetAccount(() =>

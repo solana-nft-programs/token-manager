@@ -178,12 +178,10 @@ describe("Time invalidation release", () => {
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
-    console.log(checkIssuerTokenAccount);
 
     const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
       await findAta(rentalMint.publicKey, recipient.publicKey)
     );
-    console.log(checkRecipientTokenAccount);
     expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
     expect(checkRecipientTokenAccount.isFrozen).to.eq(false);
     expect(checkRecipientTokenAccount.delegatedAmount.toNumber()).to.eq(0);

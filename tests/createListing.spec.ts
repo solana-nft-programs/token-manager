@@ -184,7 +184,7 @@ describe("Create Listing", () => {
       provider.connection,
       provider.wallet,
       rentalMint.publicKey,
-      transferAuthorityName
+      { transferAuthorityName: transferAuthorityName }
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(

@@ -201,7 +201,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
       provider.connection,
       emptyWallet(lister.publicKey),
       rentalMint.publicKey,
-      transferAuthorityName
+      { transferAuthorityName: transferAuthorityName }
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(

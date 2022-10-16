@@ -186,7 +186,7 @@ describe("Release wrapped token", () => {
       provider.connection,
       emptyWallet(lister.publicKey),
       tokenMint.publicKey,
-      transferAuthorityName
+      { transferAuthorityName: transferAuthorityName }
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(

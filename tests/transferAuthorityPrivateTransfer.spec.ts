@@ -198,7 +198,7 @@ describe("Private Transfer", () => {
       provider.connection,
       emptyWallet(from.publicKey),
       tokenMint.publicKey,
-      transferAuthorityName
+      { transferAuthorityName: transferAuthorityName }
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(

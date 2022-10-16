@@ -30,8 +30,8 @@ pub use uninit::*;
 pub use unissue::*;
 pub use update_invalidation_type::*;
 
-pub mod transfer;
-pub use transfer::close_transfer_receipt::*;
-pub use transfer::create_transfer_receipt::*;
-pub use transfer::transfer::*;
-pub use transfer::update_transfer_receipt::*;
+pub mod transfers;
+pub use transfers::close_transfer_receipt::*;
+pub use transfers::create_transfer_receipt::*;
+pub use transfers::transfer::*;
+pub use transfers::update_transfer_receipt::*;

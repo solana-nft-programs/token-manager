@@ -202,42 +202,6 @@ export type CardinalTokenManager = {
       ];
     },
     {
-      name: "createTransferReceipt";
-      accounts: [
-        {
-          name: "tokenManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "transferAuthority";
-          isMut: false;
-          isSigner: true;
-        },
-        {
-          name: "transferReceipt";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "payer";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [
-        {
-          name: "target";
-          type: "publicKey";
-        }
-      ];
-    },
-    {
       name: "claimReceiptMint";
       accounts: [
         {
@@ -422,42 +386,6 @@ export type CardinalTokenManager = {
       args: [];
     },
     {
-      name: "transfer";
-      accounts: [
-        {
-          name: "tokenManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "mint";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "currentHolderTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "recipient";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "recipientTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [];
-    },
-    {
       name: "invalidate";
       accounts: [
         {
@@ -582,6 +510,130 @@ export type CardinalTokenManager = {
           name: "payer";
           isMut: false;
           isSigner: true;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "createTransferReceipt";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "transferAuthority";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "transferReceipt";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "target";
+          type: "publicKey";
+        }
+      ];
+    },
+    {
+      name: "updateTransferReceipt";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "transferAuthority";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "transferReceipt";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "target";
+          type: "publicKey";
+        }
+      ];
+    },
+    {
+      name: "closeTransferReceipt";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "transferAuthority";
+          isMut: false;
+          isSigner: true;
+        },
+        {
+          name: "transferReceipt";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipient";
+          isMut: true;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "transfer";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "currentHolderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipient";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "recipientTokenAccount";
+          isMut: true;
+          isSigner: false;
         },
         {
           name: "tokenProgram";
@@ -1215,42 +1267,6 @@ export const IDL: CardinalTokenManager = {
       ],
     },
     {
-      name: "createTransferReceipt",
-      accounts: [
-        {
-          name: "tokenManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "transferAuthority",
-          isMut: false,
-          isSigner: true,
-        },
-        {
-          name: "transferReceipt",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "payer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [
-        {
-          name: "target",
-          type: "publicKey",
-        },
-      ],
-    },
-    {
       name: "claimReceiptMint",
       accounts: [
         {
@@ -1435,42 +1451,6 @@ export const IDL: CardinalTokenManager = {
       args: [],
     },
     {
-      name: "transfer",
-      accounts: [
-        {
-          name: "tokenManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "mint",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "currentHolderTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "recipient",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "recipientTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [],
-    },
-    {
       name: "invalidate",
       accounts: [
         {
@@ -1595,6 +1575,130 @@ export const IDL: CardinalTokenManager = {
           name: "payer",
           isMut: false,
           isSigner: true,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "createTransferReceipt",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "transferAuthority",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "transferReceipt",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "target",
+          type: "publicKey",
+        },
+      ],
+    },
+    {
+      name: "updateTransferReceipt",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "transferAuthority",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "transferReceipt",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "target",
+          type: "publicKey",
+        },
+      ],
+    },
+    {
+      name: "closeTransferReceipt",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "transferAuthority",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "transferReceipt",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipient",
+          isMut: true,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "transfer",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "currentHolderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipient",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: true,
+          isSigner: false,
         },
         {
           name: "tokenProgram",

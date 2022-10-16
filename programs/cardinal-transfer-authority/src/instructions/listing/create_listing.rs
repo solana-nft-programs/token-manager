@@ -63,5 +63,11 @@ pub fn handler(ctx: Context<CreateListingCtx>, ix: CreateListingIx) -> Result<()
         return Err(error!(ErrorCode::MarketplaceNotAllowed));
     }
 
+    if ctx.accounts.lister_token_account.delegate.expect("Invalid delegate").key() != ctx.accounts.token_manager.key()
+        || ctx.accounts.lister_token_account.delegated_amount != ctx.accounts.token_manager.amount
+    {
+        return Err(error!(ErrorCode::MarketplaceNotAllowed));
+    }
+
     Ok(())
 }

@@ -23,6 +23,8 @@ pub enum TokenManagerKind {
     Unmanaged = 2,
     /// Token is a metaplex edition and so it uses metaplex program to freeze
     Edition = 3,
+    /// Token is owned by the user and they can choose to delegate or not allowing transfers
+    Owned = 4,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]

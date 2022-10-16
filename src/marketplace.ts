@@ -82,11 +82,9 @@ export const withWrapToken = async (
   }
   const issuerTokenAccountId = await findAta(mintId, wallet.publicKey, true);
   let kind = TokenManagerKind.Edition;
-  try {
-    await MasterEdition.getPDA(mintId);
-  } catch (e) {
-    kind = TokenManagerKind.Owned;
-  }
+  const masterEditionId = await MasterEdition.getPDA(mintId);
+  const accountInfo = await connection.getAccountInfo(masterEditionId);
+  if (!accountInfo) kind = TokenManagerKind.Owned;
 
   await withIssueToken(
     transaction,
@@ -415,15 +413,13 @@ export const withAcceptListing = async (
       [listingData.parsed.lister.toString()]
     );
 
-  let kind = TokenManagerKind.Edition;
-  try {
-    await MasterEdition.getPDA(mintId);
-  } catch (e) {
-    kind = TokenManagerKind.Managed;
+  const tokenManagerData = await getTokenManager(connection, tokenManagerId);
+  if (!tokenManagerData) {
+    throw `No token manager found for ${mintId.toString()}`;
   }
   const remainingAccountsForKind = await getRemainingAccountsForKind(
     mintId,
-    kind
+    tokenManagerData.parsed.kind
   );
   const remainingAccounts: AccountMeta[] = [
     ...remainingAccountsForHandlePaymentWithRoyalties,
@@ -564,14 +560,11 @@ export const withAcceptTransfer = async (
   if (!tokenManagerData.parsed.transferAuthority) {
     throw `No transfer autority found for mint id ${mintId.toString()}`;
   }
-  let kind = TokenManagerKind.Edition;
-  try {
-    await MasterEdition.getPDA(mintId);
-  } catch (e) {
-    kind = TokenManagerKind.Owned;
-  }
   const remainingAccountsForTransfer = [
-    ...(await getRemainingAccountsForKind(mintId, kind)),
+    ...(await getRemainingAccountsForKind(
+      mintId,
+      tokenManagerData.parsed.kind
+    )),
     {
       pubkey: transferReceiptId,
       isSigner: false,

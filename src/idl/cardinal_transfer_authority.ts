@@ -389,7 +389,7 @@ export type CardinalTransferAuthority = {
         },
         {
           name: "tokenManager";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -1585,7 +1585,7 @@ export const IDL: CardinalTransferAuthority = {
         },
         {
           name: "tokenManager",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {

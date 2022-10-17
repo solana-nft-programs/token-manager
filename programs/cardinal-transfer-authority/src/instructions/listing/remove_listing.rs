@@ -22,7 +22,7 @@ pub struct RemoveListingCtx<'info> {
     #[account(mut)]
     mint_manager: UncheckedAccount<'info>,
 
-    #[account(constraint = listing.token_manager == token_manager.key() @ ErrorCode::InvalidTokenManager)]
+    #[account(mut, constraint = listing.token_manager == token_manager.key() @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint = lister_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
     lister_token_account: Box<Account<'info, TokenAccount>>,

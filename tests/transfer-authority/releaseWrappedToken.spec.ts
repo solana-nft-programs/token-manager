@@ -13,6 +13,7 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import * as splToken from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
@@ -38,6 +39,7 @@ describe("Release wrapped token", () => {
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
   let tokenMint: Token;
+  let listerTokenAccountId: PublicKey;
 
   const paymentManagerName = `pm-${Math.random()}`;
   const feeCollector = Keypair.generate();
@@ -59,7 +61,7 @@ describe("Release wrapped token", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    [, tokenMint] = await createMint(
+    [listerTokenAccountId, tokenMint] = await createMint(
       provider.connection,
       lister,
       lister.publicKey,
@@ -249,7 +251,8 @@ describe("Release wrapped token", () => {
       provider.connection,
       emptyWallet(lister.publicKey),
       tokenMint.publicKey,
-      transferAuthorityId
+      transferAuthorityId,
+      listerTokenAccountId
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(

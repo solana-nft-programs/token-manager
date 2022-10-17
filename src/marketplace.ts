@@ -593,6 +593,7 @@ export const withRelease = async (
   wallet: Wallet,
   mintId: PublicKey,
   transferAuthorityId: PublicKey,
+  holderTokenAccountId: PublicKey,
   payer = wallet.publicKey
 ): Promise<Transaction> => {
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
@@ -627,7 +628,7 @@ export const withRelease = async (
       tokenManagerId: tokenManagerId,
       mintId: mintId,
       tokenManagerTokenAccountId: tokenManagerTokenAccount,
-      holderTokenAccountId: checkTokenManager.parsed.recipientTokenAccount,
+      holderTokenAccountId: holderTokenAccountId,
       holder: wallet.publicKey,
       remainingAccounts: [
         ...remainingAccountsForKind,

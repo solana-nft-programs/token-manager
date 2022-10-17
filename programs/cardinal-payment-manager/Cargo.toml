@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-payment-manager"
-version = "1.6.3"
+version = "1.7.0"
 description = "Cardinal payment manager"
 edition = "2021"
 homepage = "https://cardinal.so"

@@ -70,7 +70,7 @@ pub fn handler(ctx: Context<SendCtx>) -> Result<()> {
         let cpi_accounts = associated_token::Create {
             payer: ctx.accounts.payer.to_account_info(),
             associated_token: ctx.accounts.target_token_account.to_account_info(),
-            authority: ctx.accounts.recipient.to_account_info(),
+            authority: ctx.accounts.target.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
             system_program: ctx.accounts.system_program.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),

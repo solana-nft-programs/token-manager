@@ -1043,3 +1043,36 @@ export const withUndelegate = async (
 
   return transaction;
 };
+
+export const withSend = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  senderTokenAccountId: PublicKey,
+  target: PublicKey
+): Promise<Transaction> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!tokenManagerData?.parsed) {
+    throw "No token manager found";
+  }
+  const [mintManagerId] = await findMintManagerId(mintId);
+
+  const targetTokenAccountId = await findAta(mintId, target, true);
+  transaction.add(
+    tokenManager.instruction.send(
+      connection,
+      wallet,
+      mintId,
+      tokenManagerId,
+      mintManagerId,
+      wallet.publicKey,
+      senderTokenAccountId,
+      targetTokenAccountId
+    )
+  );
+  return transaction;
+};

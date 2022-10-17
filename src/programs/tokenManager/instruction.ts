@@ -15,7 +15,11 @@ import type {
   PublicKey,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import {
+  SystemProgram,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 
 import { findAta } from "../..";
 import { CRANK_KEY, TokenManagerState } from ".";
@@ -626,6 +630,40 @@ export const undelegate = (
       recipient: recipient,
       recipientTokenAccount: recipientTokenAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,
+    },
+  });
+};
+
+export const send = (
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  tokenManagerId: PublicKey,
+  mintManagerId: PublicKey,
+  recipient: PublicKey,
+  recipientTokenAccountId: PublicKey,
+  targetTokenAccountId: PublicKey
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+  return tokenManagerProgram.instruction.send({
+    accounts: {
+      tokenManager: tokenManagerId,
+      mint: mintId,
+      mintManager: mintManagerId,
+      recipient: recipient,
+      recipientTokenAccount: recipientTokenAccountId,
+      targetTokenAccount: targetTokenAccountId,
+      payer: wallet.publicKey,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      rent: SYSVAR_RENT_PUBKEY,
+      instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
     },
   });
 };

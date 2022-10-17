@@ -315,11 +315,10 @@ export const withRemoveListing = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  mintId: PublicKey
+  mintId: PublicKey,
+  listingTokenAccountId: PublicKey
 ): Promise<Transaction> => {
   const [listingId] = await findListingAddress(mintId);
-  const listingTokenAccountId = await findAta(mintId, wallet.publicKey, true);
-
   transaction.add(
     await removeListing(
       connection,

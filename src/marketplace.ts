@@ -290,14 +290,12 @@ export const withUpdateListing = async (
   paymentAmount: BN,
   paymentMint: PublicKey
 ): Promise<Transaction> => {
-  const [listingId] = await findListingAddress(mintId);
-  const listingData = await tryGetAccount(() =>
-    getListing(connection, listingId)
-  );
+  const listingData = await tryGetAccount(() => getListing(connection, mintId));
   if (!listingData?.parsed) {
     throw `No listing found for mint address ${mintId.toString()}`;
   }
 
+  const [listingId] = await findListingAddress(mintId);
   transaction.add(
     updateListing(
       connection,
@@ -319,6 +317,7 @@ export const withRemoveListing = async (
   listingTokenAccountId: PublicKey
 ): Promise<Transaction> => {
   const [listingId] = await findListingAddress(mintId);
+
   transaction.add(
     await removeListing(
       connection,
@@ -494,16 +493,11 @@ export const withInitTransfer = async (
   wallet: Wallet,
   to: PublicKey,
   mintId: PublicKey,
+  holderTokenAccountId: PublicKey,
   payer = wallet.publicKey
 ): Promise<Transaction> => {
   const [transferId] = await findTransferAddress(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
-  } catch (e) {
-    throw `Wallet is not the holder of mint ${mintId.toString()}`;
-  }
   transaction.add(
     initTransfer(connection, wallet, {
       to: to,
@@ -525,17 +519,17 @@ export const withCancelTransfer = async (
 ): Promise<Transaction> => {
   const [transferId] = await findTransferAddress(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
-  } catch (e) {
-    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  const checkTokenManager = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!checkTokenManager) {
+    throw `No token manager found for mint id ${mintId.toString()}`;
   }
   transaction.add(
     cancelTransfer(connection, wallet, {
       transferId: transferId,
       tokenManagerId: tokenManagerId,
-      holderTokenAccountId: holderTokenAccountId,
+      holderTokenAccountId: checkTokenManager.parsed.recipientTokenAccount,
       holder: wallet.publicKey,
     })
   );
@@ -548,17 +542,11 @@ export const withAcceptTransfer = async (
   wallet: Wallet,
   mintId: PublicKey,
   recipient: PublicKey,
-  holder: PublicKey
+  holder: PublicKey,
+  recipientTokenAccountId: PublicKey
 ): Promise<Transaction> => {
   const [transferId] = await findTransferAddress(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, holder, true);
-  } catch (e) {
-    throw `Holder is not the owner of mint ${mintId.toString()}`;
-  }
-  const recipientTokenAccountId = await findAta(mintId, recipient, true);
   const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
   const [listingId] = await findListingAddress(mintId);
   const tokenManagerData = await tryGetAccount(() =>
@@ -585,7 +573,7 @@ export const withAcceptTransfer = async (
     acceptTransfer(connection, wallet, {
       transferId: transferId,
       tokenManagerId: tokenManagerId,
-      holderTokenAccountId: holderTokenAccountId,
+      holderTokenAccountId: tokenManagerData.parsed.recipientTokenAccount,
       holder: holder,
       recipient: recipient,
       recipientTokenAccountId: recipientTokenAccountId,
@@ -608,11 +596,11 @@ export const withRelease = async (
   payer = wallet.publicKey
 ): Promise<Transaction> => {
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
-  } catch (e) {
-    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  const checkTokenManager = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!checkTokenManager) {
+    throw `No token manager found for mint id ${mintId.toString()}`;
   }
   const tokenManagerTokenAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
@@ -639,7 +627,7 @@ export const withRelease = async (
       tokenManagerId: tokenManagerId,
       mintId: mintId,
       tokenManagerTokenAccountId: tokenManagerTokenAccount,
-      holderTokenAccountId: holderTokenAccountId,
+      holderTokenAccountId: checkTokenManager.parsed.recipientTokenAccount,
       holder: wallet.publicKey,
       remainingAccounts: [
         ...remainingAccountsForKind,

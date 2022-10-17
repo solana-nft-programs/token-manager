@@ -20,7 +20,7 @@ pub struct ReleaseCtx<'info> {
 
     #[account(mut, constraint = holder_token_account.mint == token_manager.mint && holder_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidHolderMintTokenAccount)]
     holder_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = holder.key() == token_manager.issuer @ ErrorCode::InvalidHolder)]
+    #[account(mut, constraint = holder.key() == holder_token_account.owner @ ErrorCode::InvalidHolder)]
     holder: Signer<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]

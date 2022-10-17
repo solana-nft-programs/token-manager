@@ -371,13 +371,16 @@ export const withAcceptListing = async (
     true
   );
 
-  const buyerPaymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    listingData.parsed.paymentMint,
-    buyer,
-    wallet.publicKey
-  );
+  const buyerPaymentTokenAccountId =
+    listingData.parsed.lister.toString() === buyer.toString()
+      ? await findAta(listingData.parsed.paymentMint, buyer, true)
+      : await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          listingData.parsed.paymentMint,
+          buyer,
+          wallet.publicKey
+        );
 
   if (listingData.parsed.paymentMint.toString() === WSOL_MINT.toString()) {
     await withWrapSol(
@@ -389,13 +392,16 @@ export const withAcceptListing = async (
     );
   }
 
-  const buyerMintTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    mintId,
-    buyer,
-    wallet.publicKey
-  );
+  const buyerMintTokenAccountId =
+    listingData.parsed.lister.toString() === buyer.toString()
+      ? await findAta(mintId, buyer, true)
+      : await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mintId,
+          buyer,
+          wallet.publicKey
+        );
 
   const feeCollectorTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,
@@ -417,7 +423,7 @@ export const withAcceptListing = async (
       wallet,
       mintId,
       listingData.parsed.paymentMint,
-      [listingData.parsed.lister.toString()]
+      [listingData.parsed.lister.toString(), buyer.toString()]
     );
 
   const tokenManagerData = await getTokenManager(connection, tokenManagerId);

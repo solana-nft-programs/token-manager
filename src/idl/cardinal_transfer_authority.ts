@@ -110,6 +110,11 @@ export type CardinalTransferAuthority = {
           isSigner: true;
         },
         {
+          name: "collector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "cardinalTokenManager";
           isMut: false;
           isSigner: false;
@@ -147,7 +152,17 @@ export type CardinalTransferAuthority = {
         },
         {
           name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
           isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mintManager";
+          isMut: true;
           isSigner: false;
         },
         {
@@ -164,6 +179,16 @@ export type CardinalTransferAuthority = {
           name: "payer";
           isMut: true;
           isSigner: true;
+        },
+        {
+          name: "cardinalTokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
         },
         {
           name: "systemProgram";
@@ -273,7 +298,7 @@ export type CardinalTransferAuthority = {
         },
         {
           name: "mint";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -351,6 +376,36 @@ export type CardinalTransferAuthority = {
           name: "lister";
           isMut: true;
           isSigner: true;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "listerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "cardinalTokenManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
         }
       ];
       args: [];
@@ -505,7 +560,7 @@ export type CardinalTransferAuthority = {
         },
         {
           name: "mint";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -1251,6 +1306,11 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: true,
         },
         {
+          name: "collector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "cardinalTokenManager",
           isMut: false,
           isSigner: false,
@@ -1288,7 +1348,17 @@ export const IDL: CardinalTransferAuthority = {
         },
         {
           name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
           isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mintManager",
+          isMut: true,
           isSigner: false,
         },
         {
@@ -1305,6 +1375,16 @@ export const IDL: CardinalTransferAuthority = {
           name: "payer",
           isMut: true,
           isSigner: true,
+        },
+        {
+          name: "cardinalTokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
         },
         {
           name: "systemProgram",
@@ -1414,7 +1494,7 @@ export const IDL: CardinalTransferAuthority = {
         },
         {
           name: "mint",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -1492,6 +1572,36 @@ export const IDL: CardinalTransferAuthority = {
           name: "lister",
           isMut: true,
           isSigner: true,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "listerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "cardinalTokenManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
         },
       ],
       args: [],
@@ -1646,7 +1756,7 @@ export const IDL: CardinalTransferAuthority = {
         },
         {
           name: "mint",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {

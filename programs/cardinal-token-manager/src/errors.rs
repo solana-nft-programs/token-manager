@@ -68,4 +68,6 @@ pub enum ErrorCode {
     InvalidTargetTokenAccount,
     #[msg("Transaction included disallowed")]
     InstructionsDisallowed,
+    #[msg("Invalidation type is not allowed with this token manager kind")]
+    InvalidInvalidationTypeKindMatch,
 }

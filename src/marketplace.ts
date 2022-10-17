@@ -53,7 +53,7 @@ import {
   findTransferAddress,
   findTransferAuthorityAddress,
 } from "./programs/transferAuthority/pda";
-import { withDelegate, withIssueToken } from "./transaction";
+import { withIssueToken } from "./transaction";
 import {
   emptyWallet,
   findAta,
@@ -264,14 +264,12 @@ export const withCreateListing = async (
     throw `No marketplace with name ${markeptlaceName} found`;
   }
 
-  // delegate token
-  await withDelegate(transaction, connection, wallet, mintId);
-
   transaction.add(
-    createListing(
+    await createListing(
       connection,
       wallet,
       listingId,
+      mintId,
       markeptlaceData.parsed.transferAuthority,
       tokenManagerId,
       marketplaceId,
@@ -317,11 +315,20 @@ export const withRemoveListing = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  mintId: PublicKey
+  mintId: PublicKey,
+  listingTokenAccountId: PublicKey
 ): Promise<Transaction> => {
   const [listingId] = await findListingAddress(mintId);
 
-  transaction.add(removeListing(connection, wallet, listingId));
+  transaction.add(
+    await removeListing(
+      connection,
+      wallet,
+      listingId,
+      mintId,
+      listingTokenAccountId
+    )
+  );
   return transaction;
 };
 

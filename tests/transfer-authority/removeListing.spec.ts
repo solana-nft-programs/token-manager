@@ -1,3 +1,4 @@
+import { findAta } from "@cardinal/common";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -302,12 +303,17 @@ describe("Remove Listing", () => {
   it("Remove Listing", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
+    const listingTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      provider.wallet.publicKey
+    );
 
     await withRemoveListing(
       transaction,
       provider.connection,
       provider.wallet,
-      rentalMint.publicKey
+      rentalMint.publicKey,
+      listingTokenAccountId
     );
 
     const txEnvelope = new TransactionEnvelope(

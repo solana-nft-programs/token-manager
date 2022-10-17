@@ -10,7 +10,7 @@ use {
 pub struct UndelegateCtx<'info> {
     #[account(mut, constraint = token_manager.kind == TokenManagerKind::Permissioned as u8 && token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManagerState)]
     token_manager: Box<Account<'info, TokenManager>>,
-    #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
+    #[account(constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [MINT_MANAGER_SEED.as_bytes(), mint.key().as_ref()], bump)]
     mint_manager: Account<'info, MintManager>,

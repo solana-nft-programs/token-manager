@@ -22,6 +22,7 @@ const main = async (cluster = "devnet") => {
     transaction,
     connection,
     new SignerWallet(wallet),
+    new PublicKey("HWzZz7dXETthwGxNg6JPdF6qy22SboVzaoHtLa5MZ6vq"),
     new PublicKey("HWzZz7dXETthwGxNg6JPdF6qy22SboVzaoHtLa5MZ6vq")
   );
   try {

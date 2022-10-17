@@ -50,7 +50,7 @@ describe("Accept Listing Permissioned", () => {
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
-  let rentalMint: Token;
+  let mint: Token;
   const rentalPaymentAmount = new BN(100);
   const rentalPaymentMint = new PublicKey(
     "So11111111111111111111111111111111111111112"
@@ -77,7 +77,7 @@ describe("Accept Listing Permissioned", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    [, rentalMint] = await createMint(
+    [, mint] = await createMint(
       provider.connection,
       lister,
       lister.publicKey,
@@ -85,7 +85,7 @@ describe("Accept Listing Permissioned", () => {
       lister.publicKey
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(mint.publicKey);
     const metadataTx = new CreateMetadataV2(
       { feePayer: lister.publicKey },
       {
@@ -100,7 +100,7 @@ describe("Accept Listing Permissioned", () => {
           uses: null,
         }),
         updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
+        mint: mint.publicKey,
         mintAuthority: lister.publicKey,
       }
     );
@@ -190,7 +190,7 @@ describe("Accept Listing Permissioned", () => {
       wrapTransaction,
       provider.connection,
       emptyWallet(lister.publicKey),
-      rentalMint.publicKey,
+      mint.publicKey,
       { transferAuthorityName: transferAuthorityName }
     );
 
@@ -211,14 +211,14 @@ describe("Accept Listing Permissioned", () => {
 
     const checkMint = new splToken.Token(
       provider.connection,
-      rentalMint.publicKey,
+      mint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       null
     );
     const mintTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      mint.publicKey,
       lister.publicKey,
       true
     );
@@ -285,7 +285,7 @@ describe("Accept Listing Permissioned", () => {
       transaction,
       provider.connection,
       emptyWallet(lister.publicKey),
-      rentalMint.publicKey,
+      mint.publicKey,
       marketplaceName,
       rentalPaymentAmount,
       rentalPaymentMint
@@ -305,15 +305,9 @@ describe("Accept Listing Permissioned", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const checkListing = await getListing(
-      provider.connection,
-      rentalMint.publicKey
-    );
-
+    const checkListing = await getListing(provider.connection, mint.publicKey);
     expect(checkListing.parsed.lister).to.eqAddress(lister.publicKey);
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const [tokenManagerId] = await findTokenManagerAddress(mint.publicKey);
     expect(checkListing.parsed.tokenManager).to.eqAddress(tokenManagerId);
     const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
     expect(checkListing.parsed.marketplace).to.eqAddress(marketplaceId);
@@ -321,6 +315,15 @@ describe("Accept Listing Permissioned", () => {
       rentalPaymentAmount.toNumber()
     );
     expect(checkListing.parsed.paymentMint).to.eqAddress(rentalPaymentMint);
+
+    const issuerTokenAccountId = await findAta(
+      mint.publicKey,
+      lister.publicKey,
+      true
+    );
+    const issuerTokenAccount = await mint.getAccountInfo(issuerTokenAccountId);
+    expect(issuerTokenAccount.delegate).to.eqAddress(tokenManagerId);
+    expect(issuerTokenAccount.amount.toNumber()).to.eq(1);
   });
 
   it("Accept Listing", async () => {
@@ -332,7 +335,7 @@ describe("Accept Listing Permissioned", () => {
       provider.connection,
       provider.wallet,
       buyer.publicKey,
-      rentalMint.publicKey
+      mint.publicKey
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -350,23 +353,21 @@ describe("Accept Listing Permissioned", () => {
     }).to.be.fulfilled;
 
     const buyerMintTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      mint.publicKey,
       buyer.publicKey,
       true
     );
-    const checkMRentalint = new splToken.Token(
+    const checkMint = new splToken.Token(
       provider.connection,
-      rentalMint.publicKey,
+      mint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
+      Keypair.generate()
     );
-    const buyerRentalMintTokenAccount = await checkMRentalint.getAccountInfo(
+    const buyermintTokenAccount = await checkMint.getAccountInfo(
       buyerMintTokenAccountId
     );
-    expect(buyerRentalMintTokenAccount.amount.toNumber()).to.eq(1);
-    expect(buyerRentalMintTokenAccount.isFrozen).to.be.true;
+    expect(buyermintTokenAccount.amount.toNumber()).to.eq(1);
+    expect(buyermintTokenAccount.isFrozen).to.be.true;
 
     const makerFee = rentalPaymentAmount
       .mul(MAKER_FEE)
@@ -409,11 +410,11 @@ describe("Accept Listing Permissioned", () => {
     );
 
     const checkBuyerTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      mint.publicKey,
       buyer.publicKey,
       true
     );
-    const checkBuyerTokenAccount = await rentalMint.getAccountInfo(
+    const checkBuyerTokenAccount = await mint.getAccountInfo(
       checkBuyerTokenAccountId
     );
     expect(checkBuyerTokenAccount.delegate).to.be.null;

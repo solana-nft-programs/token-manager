@@ -19,6 +19,10 @@ import {
 
 import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
+import {
+  findMintManagerId,
+  findTokenManagerAddress,
+} from "../tokenManager/pda";
 import type { TRANSFER_AUTHORITY_PROGRAM } from "./constants";
 import {
   TRANSFER_AUTHORITY_ADDRESS,
@@ -156,10 +160,11 @@ export const updateMarketplace = (
   );
 };
 
-export const createListing = (
+export const createListing = async (
   connection: Connection,
   wallet: Wallet,
   listingId: PublicKey,
+  mintId: PublicKey,
   transferAuthorityId: PublicKey,
   tokenManagerId: PublicKey,
   marketplaceId: PublicKey,
@@ -167,7 +172,7 @@ export const createListing = (
   paymentAmount: BN,
   paymentMint: PublicKey,
   payer = wallet.publicKey
-): TransactionInstruction => {
+): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
@@ -175,6 +180,8 @@ export const createListing = (
     TRANSFER_AUTHORITY_ADDRESS,
     provider
   );
+  const [mintManagerId] = await findMintManagerId(mintId);
+
   return transferAuthorityProgram.instruction.createListing(
     {
       paymentAmount: paymentAmount,
@@ -188,7 +195,11 @@ export const createListing = (
         marketplace: marketplaceId,
         listerTokenAccount: listerTokenAccount,
         lister: wallet.publicKey,
+        mint: mintId,
+        mintManager: mintManagerId,
         payer: payer,
+        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
         instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
       },
@@ -227,11 +238,13 @@ export const updateListing = (
   );
 };
 
-export const removeListing = (
+export const removeListing = async (
   connection: Connection,
   wallet: Wallet,
-  listingId: PublicKey
-): TransactionInstruction => {
+  listingId: PublicKey,
+  mintId: PublicKey,
+  listerTokenAccountId: PublicKey
+): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
 
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
@@ -240,10 +253,18 @@ export const removeListing = (
     provider
   );
 
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const [mintManagerId] = await findMintManagerId(mintId);
   return transferAuthorityProgram.instruction.removeListing({
     accounts: {
       listing: listingId,
       lister: wallet.publicKey,
+      mint: mintId,
+      mintManager: mintManagerId,
+      tokenManager: tokenManagerId,
+      listerTokenAccount: listerTokenAccountId,
+      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      tokenProgram: TOKEN_PROGRAM_ID,
     },
   });
 };
@@ -475,6 +496,7 @@ export const release = (
       tokenManagerTokenAccount: params.tokenManagerTokenAccountId,
       holderTokenAccount: params.holderTokenAccountId,
       holder: params.holder,
+      collector: params.holder,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
       rent: SYSVAR_RENT_PUBKEY,

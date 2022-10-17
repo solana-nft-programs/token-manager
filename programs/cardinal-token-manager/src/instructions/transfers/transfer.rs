@@ -14,7 +14,7 @@ pub struct TransferCtx<'info> {
         token_manager.state == TokenManagerState::Claimed as u8
     )]
     token_manager: Box<Account<'info, TokenManager>>,
-    #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
+    #[account(constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
 
     // current

@@ -22,6 +22,7 @@ import {
 } from "../../src";
 import { tokenManager } from "../../src/programs";
 import {
+  InvalidationType,
   TokenManagerKind,
   TokenManagerState,
 } from "../../src/programs/tokenManager";
@@ -99,6 +100,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
         kind: TokenManagerKind.Permissioned,
+        invalidationType: InvalidationType.Release,
       }
     );
 

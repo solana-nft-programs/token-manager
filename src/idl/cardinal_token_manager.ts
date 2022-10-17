@@ -617,7 +617,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "mint";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -719,7 +719,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "mint";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -755,7 +755,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "mint";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -1210,6 +1210,11 @@ export type CardinalTokenManager = {
       code: 6032;
       name: "InstructionsDisallowed";
       msg: "Transaction included disallowed";
+    },
+    {
+      code: 6033;
+      name: "InvalidInvalidationTypeKindMatch";
+      msg: "Invalidation type is not allowed with this token manager kind";
     }
   ];
 };
@@ -1833,7 +1838,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "mint",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -1935,7 +1940,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "mint",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -1971,7 +1976,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "mint",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -2426,6 +2431,11 @@ export const IDL: CardinalTokenManager = {
       code: 6032,
       name: "InstructionsDisallowed",
       msg: "Transaction included disallowed",
+    },
+    {
+      code: 6033,
+      name: "InvalidInvalidationTypeKindMatch",
+      msg: "Invalidation type is not allowed with this token manager kind",
     },
   ],
 };

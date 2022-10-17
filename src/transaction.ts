@@ -1071,6 +1071,7 @@ export const withSend = async (
       mintManagerId,
       wallet.publicKey,
       senderTokenAccountId,
+      target,
       targetTokenAccountId
     )
   );

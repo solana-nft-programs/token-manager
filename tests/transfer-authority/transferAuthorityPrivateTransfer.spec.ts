@@ -13,6 +13,7 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import * as splToken from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
@@ -49,6 +50,7 @@ describe("Private Transfer", () => {
 
   const from = Keypair.generate();
   const to = Keypair.generate();
+  let fromTokenAccountId: PublicKey;
   let tokenMint: Token;
 
   const paymentManagerName = `pm-${Math.random()}`;
@@ -71,7 +73,7 @@ describe("Private Transfer", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    [, tokenMint] = await createMint(
+    [fromTokenAccountId, tokenMint] = await createMint(
       provider.connection,
       from,
       from.publicKey,
@@ -220,9 +222,7 @@ describe("Private Transfer", () => {
       provider.connection,
       tokenMint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
+      Keypair.generate()
     );
     const mintTokenAccountId = await findAta(
       tokenMint.publicKey,
@@ -293,7 +293,8 @@ describe("Private Transfer", () => {
       provider.connection,
       emptyWallet(from.publicKey),
       to.publicKey,
-      tokenMint.publicKey
+      tokenMint.publicKey,
+      fromTokenAccountId
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -361,7 +362,8 @@ describe("Private Transfer", () => {
       provider.connection,
       emptyWallet(from.publicKey),
       to.publicKey,
-      tokenMint.publicKey
+      tokenMint.publicKey,
+      fromTokenAccountId
     );
 
     const txEnvelope = new TransactionEnvelope(

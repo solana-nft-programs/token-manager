@@ -672,6 +672,11 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
+          name: "target";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "targetTokenAccount";
           isMut: true;
           isSigner: false;
@@ -1890,6 +1895,11 @@ export const IDL: CardinalTokenManager = {
         {
           name: "recipientTokenAccount",
           isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "target",
+          isMut: false,
           isSigner: false,
         },
         {

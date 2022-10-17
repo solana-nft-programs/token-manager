@@ -542,8 +542,7 @@ export const withAcceptTransfer = async (
   wallet: Wallet,
   mintId: PublicKey,
   recipient: PublicKey,
-  holder: PublicKey,
-  recipientTokenAccountId: PublicKey
+  holder: PublicKey
 ): Promise<Transaction> => {
   const [transferId] = await findTransferAddress(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
@@ -558,6 +557,7 @@ export const withAcceptTransfer = async (
   if (!tokenManagerData.parsed.transferAuthority) {
     throw `No transfer autority found for mint id ${mintId.toString()}`;
   }
+  const recipientTokenAccountId = await findAta(mintId, recipient, true);
   const remainingAccountsForTransfer = [
     ...(await getRemainingAccountsForKind(
       mintId,

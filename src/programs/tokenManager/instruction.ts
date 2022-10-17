@@ -642,6 +642,7 @@ export const send = (
   mintManagerId: PublicKey,
   recipient: PublicKey,
   recipientTokenAccountId: PublicKey,
+  target: PublicKey,
   targetTokenAccountId: PublicKey
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -657,6 +658,7 @@ export const send = (
       mintManager: mintManagerId,
       recipient: recipient,
       recipientTokenAccount: recipientTokenAccountId,
+      target: target,
       targetTokenAccount: targetTokenAccountId,
       payer: wallet.publicKey,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,

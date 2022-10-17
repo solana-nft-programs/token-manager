@@ -34,6 +34,8 @@ pub struct SendCtx<'info> {
     recipient_token_account: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: This is not dangerous because the account is checked in the instruction handler
+    target: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because the account is checked in the instruction handler
     #[account(mut)]
     target_token_account: UncheckedAccount<'info>,
     #[account(mut)]
@@ -60,7 +62,7 @@ pub fn handler(ctx: Context<SendCtx>) -> Result<()> {
     }
 
     // Check ATA
-    let associated_token_account = get_associated_token_address(&ctx.accounts.recipient.key(), &ctx.accounts.mint.key());
+    let associated_token_account = get_associated_token_address(&ctx.accounts.target.key(), &ctx.accounts.mint.key());
     if associated_token_account != ctx.accounts.target_token_account.key() {
         return Err(error!(ErrorCode::InvalidTargetTokenAccount));
     }

@@ -32,6 +32,9 @@ pub fn handler(ctx: Context<IssueCtx>) -> Result<()> {
     if token_manager.invalidation_type == InvalidationType::Vest as u8 && token_manager.claim_approver.is_none() {
         return Err(error!(ErrorCode::ClaimApproverMustBeSet));
     }
+    if token_manager.kind == TokenManagerKind::Permissioned as u8 && token_manager.invalidation_type != InvalidationType::Release as u8 {
+        return Err(error!(ErrorCode::InvalidInvalidationTypeKindMatch));
+    }
 
     token_manager.issuer = ctx.accounts.issuer.key();
     token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();

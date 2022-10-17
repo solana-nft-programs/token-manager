@@ -60,7 +60,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     if ctx.accounts.mint.supply > 1 {
         return Err(error!(ErrorCode::InvalidMintSupply));
     }
-    if ix.kind != TokenManagerKind::Managed as u8 && ix.kind != TokenManagerKind::Unmanaged as u8 && ix.kind != TokenManagerKind::Edition as u8 {
+    if ix.kind != TokenManagerKind::Managed as u8 && ix.kind != TokenManagerKind::Unmanaged as u8 && ix.kind != TokenManagerKind::Edition as u8 && ix.kind != TokenManagerKind::Permissioned as u8 {
         return Err(error!(ErrorCode::InvalidTokenManagerKind));
     }
     if ix.invalidation_type != InvalidationType::Return as u8

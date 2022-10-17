@@ -617,11 +617,154 @@ export type CardinalTokenManager = {
         },
         {
           name: "mint";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
           name: "currentHolderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipient";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "recipientTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "send";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipient";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "recipientTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "target";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "targetTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "associatedTokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "instructions";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "delegate";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "recipient";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "recipientTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "undelegate";
+      accounts: [
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "mintManager";
           isMut: true;
           isSigner: false;
         },
@@ -876,6 +1019,9 @@ export type CardinalTokenManager = {
           },
           {
             name: "Edition";
+          },
+          {
+            name: "Permissioned";
           }
         ];
       };
@@ -1059,6 +1205,21 @@ export type CardinalTokenManager = {
       code: 6030;
       name: "ClaimApproverMustBeSet";
       msg: "Claim approver must be set to use vesting invalidation type";
+    },
+    {
+      code: 6031;
+      name: "InvalidTargetTokenAccount";
+      msg: "Target token account is incorrect";
+    },
+    {
+      code: 6032;
+      name: "InstructionsDisallowed";
+      msg: "Transaction included disallowed";
+    },
+    {
+      code: 6033;
+      name: "InvalidInvalidationTypeKindMatch";
+      msg: "Invalidation type is not allowed with this token manager kind";
     }
   ];
 };
@@ -1682,11 +1843,154 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "mint",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
           name: "currentHolderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipient",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "send",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipient",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "target",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "targetTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "associatedTokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "instructions",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "delegate",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "recipient",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "recipientTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "undelegate",
+      accounts: [
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "mintManager",
           isMut: true,
           isSigner: false,
         },
@@ -1942,6 +2246,9 @@ export const IDL: CardinalTokenManager = {
           {
             name: "Edition",
           },
+          {
+            name: "Permissioned",
+          },
         ],
       },
     },
@@ -2124,6 +2431,21 @@ export const IDL: CardinalTokenManager = {
       code: 6030,
       name: "ClaimApproverMustBeSet",
       msg: "Claim approver must be set to use vesting invalidation type",
+    },
+    {
+      code: 6031,
+      name: "InvalidTargetTokenAccount",
+      msg: "Target token account is incorrect",
+    },
+    {
+      code: 6032,
+      name: "InstructionsDisallowed",
+      msg: "Transaction included disallowed",
+    },
+    {
+      code: 6033,
+      name: "InvalidInvalidationTypeKindMatch",
+      msg: "Invalidation type is not allowed with this token manager kind",
     },
   ],
 };

@@ -359,7 +359,7 @@ describe("Accept Listing", () => {
       [...transaction.instructions],
       [buyer]
     );
-    await expectTXTable(txEnvelope, "create listing", {
+    await expectTXTable(txEnvelope, "accept listing", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;

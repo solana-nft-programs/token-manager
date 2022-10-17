@@ -64,4 +64,10 @@ pub enum ErrorCode {
     InvalidationTypeUpdateDisallowed,
     #[msg("Claim approver must be set to use vesting invalidation type")]
     ClaimApproverMustBeSet,
+    #[msg("Target token account is incorrect")]
+    InvalidTargetTokenAccount,
+    #[msg("Transaction included disallowed")]
+    InstructionsDisallowed,
+    #[msg("Invalidation type is not allowed with this token manager kind")]
+    InvalidInvalidationTypeKindMatch,
 }

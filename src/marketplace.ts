@@ -82,11 +82,9 @@ export const withWrapToken = async (
   }
   const issuerTokenAccountId = await findAta(mintId, wallet.publicKey, true);
   let kind = TokenManagerKind.Edition;
-  try {
-    await MasterEdition.getPDA(mintId);
-  } catch (e) {
-    kind = TokenManagerKind.Managed;
-  }
+  const masterEditionId = await MasterEdition.getPDA(mintId);
+  const accountInfo = await connection.getAccountInfo(masterEditionId);
+  if (!accountInfo) kind = TokenManagerKind.Permissioned;
 
   await withIssueToken(
     transaction,
@@ -267,10 +265,11 @@ export const withCreateListing = async (
   }
 
   transaction.add(
-    createListing(
+    await createListing(
       connection,
       wallet,
       listingId,
+      mintId,
       markeptlaceData.parsed.transferAuthority,
       tokenManagerId,
       marketplaceId,
@@ -291,14 +290,12 @@ export const withUpdateListing = async (
   paymentAmount: BN,
   paymentMint: PublicKey
 ): Promise<Transaction> => {
-  const [listingId] = await findListingAddress(mintId);
-  const listingData = await tryGetAccount(() =>
-    getListing(connection, listingId)
-  );
+  const listingData = await tryGetAccount(() => getListing(connection, mintId));
   if (!listingData?.parsed) {
     throw `No listing found for mint address ${mintId.toString()}`;
   }
 
+  const [listingId] = await findListingAddress(mintId);
   transaction.add(
     updateListing(
       connection,
@@ -316,11 +313,20 @@ export const withRemoveListing = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
-  mintId: PublicKey
+  mintId: PublicKey,
+  listingTokenAccountId: PublicKey
 ): Promise<Transaction> => {
   const [listingId] = await findListingAddress(mintId);
 
-  transaction.add(removeListing(connection, wallet, listingId));
+  transaction.add(
+    await removeListing(
+      connection,
+      wallet,
+      listingId,
+      mintId,
+      listingTokenAccountId
+    )
+  );
   return transaction;
 };
 
@@ -363,13 +369,16 @@ export const withAcceptListing = async (
     true
   );
 
-  const buyerPaymentTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    listingData.parsed.paymentMint,
-    buyer,
-    wallet.publicKey
-  );
+  const buyerPaymentTokenAccountId =
+    listingData.parsed.lister.toString() === buyer.toString()
+      ? await findAta(listingData.parsed.paymentMint, buyer, true)
+      : await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          listingData.parsed.paymentMint,
+          buyer,
+          wallet.publicKey
+        );
 
   if (listingData.parsed.paymentMint.toString() === WSOL_MINT.toString()) {
     await withWrapSol(
@@ -381,13 +390,16 @@ export const withAcceptListing = async (
     );
   }
 
-  const buyerMintTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    mintId,
-    buyer,
-    wallet.publicKey
-  );
+  const buyerMintTokenAccountId =
+    listingData.parsed.lister.toString() === buyer.toString()
+      ? await findAta(mintId, buyer, true)
+      : await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mintId,
+          buyer,
+          wallet.publicKey
+        );
 
   const feeCollectorTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,
@@ -409,18 +421,16 @@ export const withAcceptListing = async (
       wallet,
       mintId,
       listingData.parsed.paymentMint,
-      [listingData.parsed.lister.toString()]
+      [listingData.parsed.lister.toString(), buyer.toString()]
     );
 
-  let kind = TokenManagerKind.Edition;
-  try {
-    await MasterEdition.getPDA(mintId);
-  } catch (e) {
-    kind = TokenManagerKind.Managed;
+  const tokenManagerData = await getTokenManager(connection, tokenManagerId);
+  if (!tokenManagerData) {
+    throw `No token manager found for ${mintId.toString()}`;
   }
   const remainingAccountsForKind = await getRemainingAccountsForKind(
     mintId,
-    kind
+    tokenManagerData.parsed.kind
   );
   const remainingAccounts: AccountMeta[] = [
     ...remainingAccountsForHandlePaymentWithRoyalties,
@@ -451,6 +461,7 @@ export const withAcceptListing = async (
       remainingAccounts
     )
   );
+
   return transaction;
 };
 
@@ -482,16 +493,11 @@ export const withInitTransfer = async (
   wallet: Wallet,
   to: PublicKey,
   mintId: PublicKey,
+  holderTokenAccountId: PublicKey,
   payer = wallet.publicKey
 ): Promise<Transaction> => {
   const [transferId] = await findTransferAddress(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
-  } catch (e) {
-    throw `Wallet is not the holder of mint ${mintId.toString()}`;
-  }
   transaction.add(
     initTransfer(connection, wallet, {
       to: to,
@@ -513,17 +519,17 @@ export const withCancelTransfer = async (
 ): Promise<Transaction> => {
   const [transferId] = await findTransferAddress(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
-  } catch (e) {
-    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  const checkTokenManager = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!checkTokenManager) {
+    throw `No token manager found for mint id ${mintId.toString()}`;
   }
   transaction.add(
     cancelTransfer(connection, wallet, {
       transferId: transferId,
       tokenManagerId: tokenManagerId,
-      holderTokenAccountId: holderTokenAccountId,
+      holderTokenAccountId: checkTokenManager.parsed.recipientTokenAccount,
       holder: wallet.publicKey,
     })
   );
@@ -540,13 +546,6 @@ export const withAcceptTransfer = async (
 ): Promise<Transaction> => {
   const [transferId] = await findTransferAddress(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, holder, true);
-  } catch (e) {
-    throw `Holder is not the owner of mint ${mintId.toString()}`;
-  }
-  const recipientTokenAccountId = await findAta(mintId, recipient, true);
   const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
   const [listingId] = await findListingAddress(mintId);
   const tokenManagerData = await tryGetAccount(() =>
@@ -558,14 +557,12 @@ export const withAcceptTransfer = async (
   if (!tokenManagerData.parsed.transferAuthority) {
     throw `No transfer autority found for mint id ${mintId.toString()}`;
   }
-  let kind = TokenManagerKind.Edition;
-  try {
-    await MasterEdition.getPDA(mintId);
-  } catch (e) {
-    kind = TokenManagerKind.Managed;
-  }
+  const recipientTokenAccountId = await findAta(mintId, recipient, true);
   const remainingAccountsForTransfer = [
-    ...(await getRemainingAccountsForKind(mintId, kind)),
+    ...(await getRemainingAccountsForKind(
+      mintId,
+      tokenManagerData.parsed.kind
+    )),
     {
       pubkey: transferReceiptId,
       isSigner: false,
@@ -576,7 +573,7 @@ export const withAcceptTransfer = async (
     acceptTransfer(connection, wallet, {
       transferId: transferId,
       tokenManagerId: tokenManagerId,
-      holderTokenAccountId: holderTokenAccountId,
+      holderTokenAccountId: tokenManagerData.parsed.recipientTokenAccount,
       holder: holder,
       recipient: recipient,
       recipientTokenAccountId: recipientTokenAccountId,
@@ -599,11 +596,11 @@ export const withRelease = async (
   payer = wallet.publicKey
 ): Promise<Transaction> => {
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  let holderTokenAccountId: PublicKey;
-  try {
-    holderTokenAccountId = await findAta(mintId, wallet.publicKey, true);
-  } catch (e) {
-    throw `Wallet is not the holder of mint ${mintId.toString()}`;
+  const checkTokenManager = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!checkTokenManager) {
+    throw `No token manager found for mint id ${mintId.toString()}`;
   }
   const tokenManagerTokenAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
@@ -630,7 +627,7 @@ export const withRelease = async (
       tokenManagerId: tokenManagerId,
       mintId: mintId,
       tokenManagerTokenAccountId: tokenManagerTokenAccount,
-      holderTokenAccountId: holderTokenAccountId,
+      holderTokenAccountId: checkTokenManager.parsed.recipientTokenAccount,
       holder: wallet.publicKey,
       remainingAccounts: [
         ...remainingAccountsForKind,

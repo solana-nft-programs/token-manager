@@ -42,5 +42,11 @@ pub fn handler(ctx: Context<InitTransferCtx>, ix: InitTransferIx) -> Result<()> 
     transfer.from = ctx.accounts.holder.key();
     transfer.to = ix.to;
 
+    if ctx.accounts.holder_token_account.delegate.expect("Invalid delegate").key() != ctx.accounts.token_manager.key()
+        || ctx.accounts.holder_token_account.delegated_amount != ctx.accounts.token_manager.amount
+    {
+        return Err(error!(ErrorCode::TokenNotDelegated));
+    }
+
     Ok(())
 }

@@ -33,7 +33,7 @@ pub struct AcceptTransferCtx<'info> {
 
     #[account(mut, constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
-    #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
+    #[account(constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: Box<Account<'info, Mint>>,
 
     /// CHECK: This is not dangerous because the account is checked in the instruction handler

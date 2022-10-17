@@ -54,7 +54,7 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = token_manager.key() == listing.token_manager @ ErrorCode::InvalidTokenManager)]
     token_manager: Box<Account<'info, TokenManager>>,
     /// CHECK: This is not dangerous because of the token_manager.mint check
-    #[account(mut, constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
+    #[account(constraint = mint.key() == token_manager.mint @ ErrorCode::InvalidMint)]
     mint: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because it is check in the handler
     mint_metadata_info: UncheckedAccount<'info>,

@@ -27,6 +27,7 @@ import {
 import { getTokenManager } from "./programs/tokenManager/accounts";
 import { setTransferAuthority } from "./programs/tokenManager/instruction";
 import {
+  findMintManagerId,
   findTokenManagerAddress,
   tokenManagerAddressFromMint,
 } from "./programs/tokenManager/pda";
@@ -288,7 +289,10 @@ export const withIssueToken = async (
     }
   }
 
-  if (kind === TokenManagerKind.Managed) {
+  if (
+    kind === TokenManagerKind.Managed ||
+    kind === TokenManagerKind.Permissioned
+  ) {
     const [mintManagerIx, mintManagerId] =
       await tokenManager.instruction.creatMintManager(
         connection,
@@ -970,5 +974,106 @@ export const withTransfer = async (
     )
   );
 
+  return transaction;
+};
+
+export const withDelegate = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  recipient = wallet.publicKey
+): Promise<Transaction> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!tokenManagerData?.parsed) {
+    throw "No token manager found";
+  }
+  const [mintManagerId] = await findMintManagerId(mintId);
+
+  transaction.add(
+    tokenManager.instruction.delegate(
+      connection,
+      wallet,
+      mintId,
+      tokenManagerId,
+      mintManagerId,
+      recipient,
+      tokenManagerData.parsed.recipientTokenAccount
+    )
+  );
+
+  return transaction;
+};
+
+export const withUndelegate = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  recipient?: PublicKey
+): Promise<Transaction> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!tokenManagerData?.parsed) {
+    throw "No token manager found";
+  }
+  const [mintManagerId] = await findMintManagerId(mintId);
+
+  const recipientTokenAccountId = await findAta(
+    mintId,
+    recipient ?? wallet.publicKey,
+    true
+  );
+  transaction.add(
+    tokenManager.instruction.undelegate(
+      connection,
+      wallet,
+      mintId,
+      tokenManagerId,
+      mintManagerId,
+      recipient ?? wallet.publicKey,
+      recipientTokenAccountId
+    )
+  );
+
+  return transaction;
+};
+
+export const withSend = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  senderTokenAccountId: PublicKey,
+  target: PublicKey
+): Promise<Transaction> => {
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
+  );
+  if (!tokenManagerData?.parsed) {
+    throw "No token manager found";
+  }
+  const [mintManagerId] = await findMintManagerId(mintId);
+
+  const targetTokenAccountId = await findAta(mintId, target, true);
+  transaction.add(
+    tokenManager.instruction.send(
+      connection,
+      wallet,
+      mintId,
+      tokenManagerId,
+      mintManagerId,
+      wallet.publicKey,
+      senderTokenAccountId,
+      target,
+      targetTokenAccountId
+    )
+  );
   return transaction;
 };

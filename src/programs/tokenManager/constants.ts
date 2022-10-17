@@ -45,6 +45,7 @@ export enum TokenManagerKind {
   Managed = 1,
   Unmanaged = 2,
   Edition = 3,
+  Permissioned = 4,
 }
 
 export enum InvalidationType {

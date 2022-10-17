@@ -48,4 +48,6 @@ pub enum ErrorCode {
     InvalidDerivation,
     #[msg("Transaction included disallowed")]
     InstructionsDisallowed,
+    #[msg("Token must be delegated")]
+    TokenNotDelegated,
 }

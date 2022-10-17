@@ -87,4 +87,17 @@ pub mod cardinal_token_manager {
     pub fn transfer<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, TransferCtx<'info>>) -> Result<()> {
         transfers::transfer::handler(ctx)
     }
+
+    // permissioned token instructions
+    pub fn send(ctx: Context<SendCtx>) -> Result<()> {
+        permissioned::send::handler(ctx)
+    }
+
+    pub fn delegate(ctx: Context<DelegateCtx>) -> Result<()> {
+        permissioned::delegate::handler(ctx)
+    }
+
+    pub fn undelegate(ctx: Context<UndelegateCtx>) -> Result<()> {
+        permissioned::undelegate::handler(ctx)
+    }
 }

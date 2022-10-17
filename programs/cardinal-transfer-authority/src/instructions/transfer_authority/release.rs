@@ -20,8 +20,11 @@ pub struct ReleaseCtx<'info> {
 
     #[account(mut, constraint = holder_token_account.mint == token_manager.mint && holder_token_account.key() == token_manager.recipient_token_account @ ErrorCode::InvalidHolderMintTokenAccount)]
     holder_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = holder.key() == token_manager.issuer @ ErrorCode::InvalidHolder)]
+    #[account(mut, constraint = holder.key() == holder_token_account.owner @ ErrorCode::InvalidHolder)]
     holder: Signer<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    collector: UncheckedAccount<'info>,
 
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
     token_program: Program<'info, Token>,
@@ -47,7 +50,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         mint: ctx.accounts.mint.to_account_info(),
         recipient_token_account: ctx.accounts.holder_token_account.to_account_info(),
         invalidator: ctx.accounts.transfer_authority.to_account_info(),
-        collector: ctx.accounts.holder.to_account_info(),
+        collector: ctx.accounts.collector.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
         rent: ctx.accounts.rent.to_account_info(),
     };

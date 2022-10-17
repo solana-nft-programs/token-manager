@@ -58,9 +58,12 @@ const main = async (
 };
 
 const marketplaceName = "cardinal";
-const transferAuthorityName = "cardinal";
+const transferAuthorityName = "global";
 const paymentManagerName = "cardinal-marketplace";
 
-main(marketplaceName, transferAuthorityName, paymentManagerName).catch((e) =>
-  console.log(e)
-);
+main(
+  marketplaceName,
+  transferAuthorityName,
+  paymentManagerName,
+  "devnet"
+).catch((e) => console.log(e));

@@ -61,6 +61,9 @@ pub fn handler(ctx: Context<SendCtx>) -> Result<()> {
         return Err(error!(ErrorCode::InstructionsDisallowed));
     }
 
+    // update token manager recipient token account
+    ctx.accounts.token_manager.recipient_token_account = ctx.accounts.target_token_account.key();
+
     // Check ATA
     let associated_token_account = get_associated_token_address(&ctx.accounts.target.key(), &ctx.accounts.mint.key());
     if associated_token_account != ctx.accounts.target_token_account.key() {

@@ -753,7 +753,7 @@ export type CardinalTransferAuthority = {
           {
             name: "transferAuthority";
             type: {
-              defined: "Box<Account<'info,TransferAuthority>>";
+              defined: "Account<'info,TransferAuthority>";
             };
           },
           {
@@ -771,19 +771,19 @@ export type CardinalTransferAuthority = {
           {
             name: "listing";
             type: {
-              defined: "Box<Account<'info,Listing>>";
+              defined: "Account<'info,Listing>";
             };
           },
           {
             name: "listerPaymentTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
             name: "listerMintTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
@@ -795,13 +795,13 @@ export type CardinalTransferAuthority = {
           {
             name: "buyerPaymentTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
             name: "buyerMintTokenAccount";
             type: {
-              defined: "Box<Account<'info,TokenAccount>>";
+              defined: "Account<'info,TokenAccount>";
             };
           },
           {
@@ -813,13 +813,13 @@ export type CardinalTransferAuthority = {
           {
             name: "marketplace";
             type: {
-              defined: "Box<Account<'info,Marketplace>>";
+              defined: "Account<'info,Marketplace>";
             };
           },
           {
             name: "tokenManager";
             type: {
-              defined: "Box<Account<'info,TokenManager>>";
+              defined: "Account<'info,TokenManager>";
             };
           },
           {
@@ -1949,7 +1949,7 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "transferAuthority",
             type: {
-              defined: "Box<Account<'info,TransferAuthority>>",
+              defined: "Account<'info,TransferAuthority>",
             },
           },
           {
@@ -1967,19 +1967,19 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "listing",
             type: {
-              defined: "Box<Account<'info,Listing>>",
+              defined: "Account<'info,Listing>",
             },
           },
           {
             name: "listerPaymentTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
             name: "listerMintTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
@@ -1991,13 +1991,13 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "buyerPaymentTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
             name: "buyerMintTokenAccount",
             type: {
-              defined: "Box<Account<'info,TokenAccount>>",
+              defined: "Account<'info,TokenAccount>",
             },
           },
           {
@@ -2009,13 +2009,13 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "marketplace",
             type: {
-              defined: "Box<Account<'info,Marketplace>>",
+              defined: "Account<'info,Marketplace>",
             },
           },
           {
             name: "tokenManager",
             type: {
-              defined: "Box<Account<'info,TokenManager>>",
+              defined: "Account<'info,TokenManager>",
             },
           },
           {

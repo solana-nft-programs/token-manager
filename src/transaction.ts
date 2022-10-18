@@ -5,6 +5,7 @@ import {
   Token,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import * as splToken from "@solana/spl-token";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
@@ -92,6 +93,68 @@ export const withIssueToken = async (
   }: IssueParameters,
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
+  // create mint manager
+  if (
+    kind === TokenManagerKind.Managed ||
+    kind === TokenManagerKind.Permissioned
+  ) {
+    const [mintManagerIx, mintManagerId] =
+      await tokenManager.instruction.creatMintManager(
+        connection,
+        wallet,
+        mint,
+        payer
+      );
+
+    const mintManagerData = await tryGetAccount(() =>
+      tokenManager.accounts.getMintManager(connection, mintManagerId)
+    );
+    if (!mintManagerData) {
+      transaction.add(mintManagerIx);
+    }
+
+    if (kind === TokenManagerKind.Permissioned) {
+      let mintData: Token | undefined;
+      let mintInfo: splToken.MintInfo | undefined;
+      try {
+        mintData = new splToken.Token(
+          connection,
+          mint,
+          splToken.TOKEN_PROGRAM_ID,
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          null
+        );
+        mintInfo = await mintData.getMintInfo();
+      } catch (e) {
+        // pass
+      }
+
+      if (
+        mintInfo &&
+        (!mintInfo.mintAuthority ||
+          mintInfo.mintAuthority.toString() !== wallet.publicKey.toString())
+      )
+        throw "Permissioned token cannot be issued because either wallet is not the mint authority or mint has no mint authority";
+      if (
+        !mintInfo ||
+        (mintInfo &&
+          mintInfo.mintAuthority?.toString() !== mintManagerId.toString())
+      ) {
+        transaction.add(
+          splToken.Token.createSetAuthorityInstruction(
+            TOKEN_PROGRAM_ID,
+            mint,
+            mintManagerId,
+            "MintTokens",
+            wallet.publicKey,
+            []
+          )
+        );
+      }
+    }
+  }
+
   // init token manager
   const numInvalidator =
     (customInvalidators ? customInvalidators.length : 0) +
@@ -286,26 +349,6 @@ export const withIssueToken = async (
           invalidator
         )
       );
-    }
-  }
-
-  if (
-    kind === TokenManagerKind.Managed ||
-    kind === TokenManagerKind.Permissioned
-  ) {
-    const [mintManagerIx, mintManagerId] =
-      await tokenManager.instruction.creatMintManager(
-        connection,
-        wallet,
-        mint,
-        payer
-      );
-
-    const mintManagerData = await tryGetAccount(() =>
-      tokenManager.accounts.getMintManager(connection, mintManagerId)
-    );
-    if (!mintManagerData) {
-      transaction.add(mintManagerIx);
     }
   }
 

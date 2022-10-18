@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]

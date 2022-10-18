@@ -134,17 +134,6 @@ pub struct TransferReceipt {
     pub target: Pubkey,
 }
 
-pub const FEE_SCALE: u64 = 10000;
-pub const PROVIDER_FEE: u64 = 0;
-pub const RECIPIENT_FEE: u64 = 0;
-pub fn assert_payment_manager(key: &Pubkey) -> bool {
-    let allowed_payment_managers = [
-        Pubkey::from_str("crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr").unwrap(),
-        Pubkey::from_str("cprtEVpR3uPs38USVq1MYrPMW7exZTnq2kRNSuvjvYM").unwrap(),
-    ];
-    allowed_payment_managers.contains(key)
-}
-
 pub const RECEIPT_MINT_MANAGER_SEED: &str = "receipt-mint-manager";
 pub const RECEIPT_MINT_MANAGER_SIZE: usize = 8 + std::mem::size_of::<ReceiptMintManager>() + 8;
 #[account]

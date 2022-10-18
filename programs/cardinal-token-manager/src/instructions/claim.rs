@@ -140,6 +140,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
             assert_derivation(ctx.program_id, mint_manager_info, path)?;
 
+            if ctx.accounts.mint.mint_authority.is_none() || ctx.accounts.mint.mint_authority.unwrap() != mint_manager_info.key() {
+                return Err(error!(ErrorCode::InvalidMintAuthority));
+            }
+
             // update mint manager
             let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
             mint_manager.token_managers = mint_manager.token_managers.checked_add(1).expect("Addition error");

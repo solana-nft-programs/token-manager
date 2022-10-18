@@ -1220,6 +1220,11 @@ export type CardinalTokenManager = {
       code: 6033;
       name: "InvalidInvalidationTypeKindMatch";
       msg: "Invalidation type is not allowed with this token manager kind";
+    },
+    {
+      code: 6034;
+      name: "InvalidMintAuthority";
+      msg: "Invalid Mint Authority";
     }
   ];
 };
@@ -2446,6 +2451,11 @@ export const IDL: CardinalTokenManager = {
       code: 6033,
       name: "InvalidInvalidationTypeKindMatch",
       msg: "Invalidation type is not allowed with this token manager kind",
+    },
+    {
+      code: 6034,
+      name: "InvalidMintAuthority",
+      msg: "Invalid Mint Authority",
     },
   ],
 };

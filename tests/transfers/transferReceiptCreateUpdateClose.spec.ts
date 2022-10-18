@@ -32,7 +32,7 @@ describe("Transfer receipt create update close", () => {
   const closer = Keypair.generate();
   const target = Keypair.generate();
   const target2 = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   const transferAuthority = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
   let mint: Token;
@@ -40,7 +40,7 @@ describe("Transfer receipt create update close", () => {
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -60,10 +60,10 @@ describe("Transfer receipt create update close", () => {
     // create rental mint
     [issuerTokenAccountId, mint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -74,7 +74,7 @@ describe("Transfer receipt create update close", () => {
     const [tokenManagerIx, tokenManagerId] =
       await tokenManager.instruction.init(
         provider.connection,
-        provider.wallet,
+        new SignerWallet(user),
         mint.publicKey,
         issuerTokenAccountId,
         new BN(1),
@@ -86,7 +86,7 @@ describe("Transfer receipt create update close", () => {
     transaction.add(
       setTransferAuthority(
         provider.connection,
-        provider.wallet,
+        new SignerWallet(user),
         tokenManagerId,
         transferAuthority.publicKey
       )
@@ -97,7 +97,7 @@ describe("Transfer receipt create update close", () => {
         provider.connection,
         mint.publicKey,
         tokenManagerId,
-        provider.wallet.publicKey,
+        user.publicKey,
         true
       );
 
@@ -105,7 +105,7 @@ describe("Transfer receipt create update close", () => {
       (
         await tokenManager.instruction.creatMintManager(
           provider.connection,
-          provider.wallet,
+          new SignerWallet(user),
           mint.publicKey
         )
       )[0]
@@ -114,7 +114,7 @@ describe("Transfer receipt create update close", () => {
     transaction.add(
       tokenManager.instruction.issue(
         provider.connection,
-        provider.wallet,
+        new SignerWallet(user),
         tokenManagerId,
         tokenManagerTokenAccountId,
         issuerTokenAccountId
@@ -124,7 +124,7 @@ describe("Transfer receipt create update close", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -141,9 +141,7 @@ describe("Transfer receipt create update close", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(mint.publicKey);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
     expect(tokenManagerData.parsed.transferAuthority).to.eqAddress(
       transferAuthority.publicKey
     );
@@ -218,7 +216,7 @@ describe("Transfer receipt create update close", () => {
           (
             await createTransferReceipt(
               provider.connection,
-              provider.wallet,
+              new SignerWallet(user),
               tokenManagerId,
               target.publicKey
             )

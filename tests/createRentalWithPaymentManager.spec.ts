@@ -27,7 +27,7 @@ describe("Create rental with payment manager and extend", () => {
   const TAKER_FEE = 300;
   const BASIS_POINTS_DIVISOR = 10000;
   const recipient = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   const paymentManagerName = Math.random().toString(36).slice(2, 7);
   const feeCollector = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
@@ -40,7 +40,7 @@ describe("Create rental with payment manager and extend", () => {
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -54,7 +54,7 @@ describe("Create rental with payment manager and extend", () => {
     // create payment mint
     [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      tokenCreator,
+      user,
       recipient.publicKey,
       RECIPIENT_START_PAYMENT_AMOUNT
     );
@@ -62,10 +62,10 @@ describe("Create rental with payment manager and extend", () => {
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -75,7 +75,7 @@ describe("Create rental with payment manager and extend", () => {
 
     const [ix, outPaymentManagerId] = await init(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       paymentManagerName,
       {
         feeCollector: feeCollector.publicKey,
@@ -90,7 +90,7 @@ describe("Create rental with payment manager and extend", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -114,7 +114,7 @@ describe("Create rental with payment manager and extend", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
@@ -139,7 +139,7 @@ describe("Create rental with payment manager and extend", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -157,9 +157,7 @@ describe("Create rental with payment manager and extend", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const claimApproverData = await getClaimApprover(
       provider.connection,
@@ -177,7 +175,7 @@ describe("Create rental with payment manager and extend", () => {
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
-      provider.wallet.publicKey
+      user.publicKey
     );
     expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
       tokenManagerId.toString()

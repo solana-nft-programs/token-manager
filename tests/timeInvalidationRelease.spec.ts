@@ -21,14 +21,14 @@ import { getProvider } from "./workspace";
 
 describe("Time invalidation release", () => {
   const recipient = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
 
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -42,10 +42,10 @@ describe("Time invalidation release", () => {
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -53,7 +53,7 @@ describe("Time invalidation release", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         timeInvalidation: { maxExpiration: Date.now() / 1000 + 1 },
         mint: rentalMint.publicKey,
@@ -65,7 +65,7 @@ describe("Time invalidation release", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -83,9 +83,7 @@ describe("Time invalidation release", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId

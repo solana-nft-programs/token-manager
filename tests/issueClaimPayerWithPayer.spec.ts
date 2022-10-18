@@ -20,7 +20,7 @@ import { getProvider } from "./workspace";
 describe("Issue payer invalidate", () => {
   const recipient = Keypair.generate();
   const payer = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
   let claimLink: string;
@@ -28,7 +28,7 @@ describe("Issue payer invalidate", () => {
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -42,10 +42,10 @@ describe("Issue payer invalidate", () => {
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -53,7 +53,7 @@ describe("Issue payer invalidate", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId, otp] = await issueToken(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         timeInvalidation: { maxExpiration: Date.now() / 1000 },
         mint: rentalMint.publicKey,
@@ -65,7 +65,7 @@ describe("Issue payer invalidate", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -85,9 +85,7 @@ describe("Issue payer invalidate", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
@@ -97,7 +95,7 @@ describe("Issue payer invalidate", () => {
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
-      provider.wallet.publicKey
+      user.publicKey
     );
     expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
       tokenManagerId.toString()

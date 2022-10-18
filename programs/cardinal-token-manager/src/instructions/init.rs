@@ -80,6 +80,9 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
         if mint.mint_authority.is_none() || mint.mint_authority.unwrap() != mint_manager_key {
             return Err(error!(ErrorCode::InvalidMintAuthority));
         }
+        if mint.freeze_authority.is_none() || mint.freeze_authority.unwrap() != mint_manager_key {
+            return Err(error!(ErrorCode::InvalidFreezeAuthority));
+        }
     }
 
     // Unamanged must use invalidate

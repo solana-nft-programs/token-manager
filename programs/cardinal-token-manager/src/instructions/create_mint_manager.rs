@@ -39,5 +39,19 @@ pub fn handler(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
     token::set_authority(cpi_context, AuthorityType::FreezeAccount, Some(ctx.accounts.mint_manager.key()))?;
+
+    if ctx.accounts.mint.mint_authority.is_none() || ctx.accounts.mint.mint_authority.unwrap() != ctx.accounts.freeze_authority.key() {
+        return Err(error!(ErrorCode::InvalidMintAuthority));
+    }
+
+    // set freeze authority of mint to mint manager
+    let cpi_accounts = SetAuthority {
+        account_or_mint: ctx.accounts.mint.to_account_info(),
+        current_authority: ctx.accounts.freeze_authority.to_account_info(),
+    };
+    let cpi_program = ctx.accounts.token_program.to_account_info();
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+    token::set_authority(cpi_context, AuthorityType::MintTokens, Some(ctx.accounts.mint_manager.key()))?;
+
     Ok(())
 }

@@ -72,4 +72,6 @@ pub enum ErrorCode {
     InvalidInvalidationTypeKindMatch,
     #[msg("Invalid Mint Authority")]
     InvalidMintAuthority,
+    #[msg("Invalid Permissioned Reward Address")]
+    InvalidPermissionedRewardAddress,
 }

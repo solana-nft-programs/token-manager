@@ -209,7 +209,8 @@ export const issue = (
   tokenManagerId: PublicKey,
   tokenManagerTokenAccountId: PublicKey,
   issuerTokenAccountId: PublicKey,
-  payer = wallet.publicKey
+  payer = wallet.publicKey,
+  remainingAccounts?: AccountMeta[]
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -217,7 +218,6 @@ export const issue = (
     TOKEN_MANAGER_ADDRESS,
     provider
   );
-
   return tokenManagerProgram.instruction.issue({
     accounts: {
       tokenManager: tokenManagerId,
@@ -228,6 +228,7 @@ export const issue = (
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     },
+    remainingAccounts: remainingAccounts ?? [],
   });
 };
 

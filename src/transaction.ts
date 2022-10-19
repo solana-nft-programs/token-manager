@@ -20,6 +20,7 @@ import type { TimeInvalidationParams } from "./programs/timeInvalidator/instruct
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
 import type { TokenManagerData } from "./programs/tokenManager";
 import {
+  CRANK_KEY,
   InvalidationType,
   TokenManagerKind,
   TokenManagerState,
@@ -327,7 +328,16 @@ export const withIssueToken = async (
       tokenManagerId,
       tokenManagerTokenAccountId,
       issuerTokenAccountId,
-      payer
+      payer,
+      kind === TokenManagerKind.Permissioned
+        ? [
+            {
+              pubkey: CRANK_KEY,
+              isSigner: false,
+              isWritable: true,
+            },
+          ]
+        : []
     )
   );
 

@@ -65,7 +65,7 @@ describe("Time invalidation vest issued", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]

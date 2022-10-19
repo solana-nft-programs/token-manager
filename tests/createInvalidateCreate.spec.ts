@@ -24,7 +24,7 @@ describe("Invalidate rentals", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   const collector = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
@@ -34,7 +34,7 @@ describe("Invalidate rentals", () => {
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -48,7 +48,7 @@ describe("Invalidate rentals", () => {
     // create payment mint
     [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      tokenCreator,
+      user,
       recipient.publicKey,
       RECIPIENT_START_PAYMENT_AMOUNT
     );
@@ -56,10 +56,10 @@ describe("Invalidate rentals", () => {
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -67,7 +67,7 @@ describe("Invalidate rentals", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
@@ -79,11 +79,11 @@ describe("Invalidate rentals", () => {
         amount: new BN(1),
       }
     );
-    transaction.feePayer = provider.wallet.publicKey;
+    transaction.feePayer = user.publicKey;
     transaction.recentBlockhash = (
       await provider.connection.getRecentBlockhash("max")
     ).blockhash;
-    await provider.wallet.signTransaction(transaction);
+    await new SignerWallet(user).signTransaction(transaction);
     await sendAndConfirmRawTransaction(
       provider.connection,
       transaction.serialize(),
@@ -98,9 +98,7 @@ describe("Invalidate rentals", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
@@ -207,7 +205,7 @@ describe("Invalidate rentals", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
@@ -222,7 +220,7 @@ describe("Invalidate rentals", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -240,9 +238,7 @@ describe("Invalidate rentals", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId

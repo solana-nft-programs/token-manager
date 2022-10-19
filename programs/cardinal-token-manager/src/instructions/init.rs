@@ -72,6 +72,19 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
         return Err(error!(ErrorCode::InvalidInvalidationType));
     }
 
+    if ix.kind == TokenManagerKind::Permissioned as u8 {
+        let mint = &ctx.accounts.mint;
+        let mint_key = mint.key();
+        let path = &[MINT_MANAGER_SEED.as_bytes(), mint_key.as_ref()];
+        let (mint_manager_key, _bump) = Pubkey::find_program_address(path, ctx.program_id);
+        if mint.mint_authority.is_none() || mint.mint_authority.unwrap() != mint_manager_key {
+            return Err(error!(ErrorCode::InvalidMintAuthority));
+        }
+        if mint.freeze_authority.is_none() || mint.freeze_authority.unwrap() != mint_manager_key {
+            return Err(error!(ErrorCode::InvalidFreezeAuthority));
+        }
+    }
+
     // Unamanged must use invalidate
     if ix.kind == TokenManagerKind::Unmanaged as u8 && ix.invalidation_type != InvalidationType::Invalidate as u8 {
         return Err(error!(ErrorCode::InvalidInvalidationType));

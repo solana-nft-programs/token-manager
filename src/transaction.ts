@@ -92,6 +92,27 @@ export const withIssueToken = async (
   }: IssueParameters,
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
+  // create mint manager
+  if (
+    kind === TokenManagerKind.Managed ||
+    kind === TokenManagerKind.Permissioned
+  ) {
+    const [mintManagerIx, mintManagerId] =
+      await tokenManager.instruction.creatMintManager(
+        connection,
+        wallet,
+        mint,
+        payer
+      );
+
+    const mintManagerData = await tryGetAccount(() =>
+      tokenManager.accounts.getMintManager(connection, mintManagerId)
+    );
+    if (!mintManagerData) {
+      transaction.add(mintManagerIx);
+    }
+  }
+
   // init token manager
   const numInvalidator =
     (customInvalidators ? customInvalidators.length : 0) +
@@ -286,26 +307,6 @@ export const withIssueToken = async (
           invalidator
         )
       );
-    }
-  }
-
-  if (
-    kind === TokenManagerKind.Managed ||
-    kind === TokenManagerKind.Permissioned
-  ) {
-    const [mintManagerIx, mintManagerId] =
-      await tokenManager.instruction.creatMintManager(
-        connection,
-        wallet,
-        mint,
-        payer
-      );
-
-    const mintManagerData = await tryGetAccount(() =>
-      tokenManager.accounts.getMintManager(connection, mintManagerId)
-    );
-    if (!mintManagerData) {
-      transaction.add(mintManagerIx);
     }
   }
 

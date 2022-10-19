@@ -20,7 +20,7 @@ import { getProvider } from "./workspace";
 
 describe("Create rental reissue", () => {
   const recipient = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   const durationSeconds = 1;
   const maxExpiration = Math.floor(Date.now() / 1000 + 5);
   let issuerTokenAccountId: PublicKey;
@@ -29,7 +29,7 @@ describe("Create rental reissue", () => {
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -43,10 +43,10 @@ describe("Create rental reissue", () => {
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -54,7 +54,7 @@ describe("Create rental reissue", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         timeInvalidation: {
           durationSeconds,
@@ -68,7 +68,7 @@ describe("Create rental reissue", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -86,9 +86,7 @@ describe("Create rental reissue", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
@@ -223,9 +221,7 @@ describe("Create rental reissue", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
       await findAta(rentalMint.publicKey, recipient.publicKey)
@@ -338,9 +334,7 @@ describe("Create rental reissue", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
       await findAta(rentalMint.publicKey, recipient.publicKey)

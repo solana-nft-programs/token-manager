@@ -32,7 +32,7 @@ import { getProvider } from "./workspace";
 
 describe("Claim links", () => {
   const recipient = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
   let rentalMint: Token;
   let claimLink: string;
@@ -41,7 +41,7 @@ describe("Claim links", () => {
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -55,10 +55,10 @@ describe("Claim links", () => {
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -67,7 +67,7 @@ describe("Claim links", () => {
     const [transaction, tokenManagerId, otp] = await withIssueToken(
       new Transaction(),
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
@@ -80,7 +80,7 @@ describe("Claim links", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -100,9 +100,7 @@ describe("Claim links", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
     expect(tokenManagerData.parsed.claimApprover).to.eqAddress(otp!.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(

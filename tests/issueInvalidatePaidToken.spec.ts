@@ -20,7 +20,7 @@ describe("Issue Invalidate", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
-  const tokenCreator = Keypair.generate();
+  const user = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
   let paymentMint: Token;
@@ -29,7 +29,7 @@ describe("Issue Invalidate", () => {
   before(async () => {
     const provider = getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
-      tokenCreator.publicKey,
+      user.publicKey,
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropCreator);
@@ -43,7 +43,7 @@ describe("Issue Invalidate", () => {
     // create payment mint
     [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      tokenCreator,
+      user,
       recipient.publicKey,
       RECIPIENT_START_PAYMENT_AMOUNT
     );
@@ -52,10 +52,10 @@ describe("Issue Invalidate", () => {
     // create rental mint
     [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
+      user,
+      user.publicKey,
       1,
-      provider.wallet.publicKey
+      user.publicKey
     );
   });
 
@@ -63,7 +63,7 @@ describe("Issue Invalidate", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
-      provider.wallet,
+      new SignerWallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
@@ -78,7 +78,7 @@ describe("Issue Invalidate", () => {
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]
@@ -96,9 +96,7 @@ describe("Issue Invalidate", () => {
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
     expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
-    );
+    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
 
     const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
       issuerTokenAccountId
@@ -108,7 +106,7 @@ describe("Issue Invalidate", () => {
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
-      provider.wallet.publicKey
+      user.publicKey
     );
     expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
       tokenManagerId.toString()
@@ -121,14 +119,14 @@ describe("Issue Invalidate", () => {
     const provider = getProvider();
     const transaction = await invalidate(
       provider.connection,
-      new SignerWallet(tokenCreator),
+      new SignerWallet(user),
       rentalMint.publicKey
     );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: new SignerWallet(tokenCreator),
+        wallet: new SignerWallet(user),
         opts: provider.opts,
       }),
       [...transaction.instructions]

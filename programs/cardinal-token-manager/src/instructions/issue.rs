@@ -2,6 +2,7 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
+    solana_program::{program::invoke, system_instruction::transfer},
 };
 
 #[derive(Accounts)]
@@ -34,6 +35,13 @@ pub fn handler(ctx: Context<IssueCtx>) -> Result<()> {
     }
     if token_manager.kind == TokenManagerKind::Permissioned as u8 && token_manager.invalidation_type != InvalidationType::Release as u8 {
         return Err(error!(ErrorCode::InvalidInvalidationTypeKindMatch));
+    }
+
+    if token_manager.kind == TokenManagerKind::Permissioned as u8 {
+        invoke(
+            &transfer(&ctx.accounts.issuer.key(), &token_manager.key(), PERMISSIONED_REWARD_LAMPORTS),
+            &[ctx.accounts.issuer.to_account_info(), token_manager.to_account_info(), ctx.accounts.system_program.to_account_info()],
+        )?;
     }
 
     token_manager.issuer = ctx.accounts.issuer.key();

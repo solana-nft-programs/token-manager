@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
@@ -39,7 +41,7 @@ pub fn handler(ctx: Context<IssueCtx>) -> Result<()> {
 
     if token_manager.kind == TokenManagerKind::Permissioned as u8 {
         invoke(
-            &transfer(&ctx.accounts.issuer.key(), &token_manager.key(), PERMISSIONED_REWARD_LAMPORTS),
+            &transfer(&ctx.accounts.issuer.key(), &Pubkey::from_str(PERMISSIONED_REWARD_ADDRESS).unwrap(), PERMISSIONED_REWARD_LAMPORTS),
             &[ctx.accounts.issuer.to_account_info(), token_manager.to_account_info(), ctx.accounts.system_program.to_account_info()],
         )?;
     }

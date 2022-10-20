@@ -2,6 +2,7 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
+    solana_program::{program::invoke, system_instruction::transfer},
 };
 
 #[derive(Accounts)]
@@ -24,7 +25,7 @@ pub struct IssueCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<IssueCtx>) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, IssueCtx<'info>>) -> Result<()> {
     // set token manager data
     let token_manager = &mut ctx.accounts.token_manager;
 
@@ -34,6 +35,22 @@ pub fn handler(ctx: Context<IssueCtx>) -> Result<()> {
     }
     if token_manager.kind == TokenManagerKind::Permissioned as u8 && token_manager.invalidation_type != InvalidationType::Release as u8 {
         return Err(error!(ErrorCode::InvalidInvalidationTypeKindMatch));
+    }
+
+    if token_manager.kind == TokenManagerKind::Permissioned as u8 {
+        let remaining_accs = &mut ctx.remaining_accounts.iter();
+        let permisisoned_reward_info = next_account_info(remaining_accs)?;
+        if permisisoned_reward_info.key().to_string() != PERMISSIONED_REWARD_ADDRESS {
+            return Err(error!(ErrorCode::InvalidPermissionedRewardAddress));
+        }
+        invoke(
+            &transfer(&ctx.accounts.issuer.key(), &permisisoned_reward_info.key(), PERMISSIONED_REWARD_LAMPORTS),
+            &[
+                ctx.accounts.issuer.to_account_info(),
+                permisisoned_reward_info.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+        )?;
     }
 
     token_manager.issuer = ctx.accounts.issuer.key();

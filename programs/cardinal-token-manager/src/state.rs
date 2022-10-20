@@ -42,6 +42,8 @@ pub enum InvalidationType {
 }
 
 pub const INVALIDATION_REWARD_LAMPORTS: u64 = 5_000_000;
+pub const PERMISSIONED_REWARD_LAMPORTS: u64 = 100_000_000;
+pub const PERMISSIONED_REWARD_ADDRESS: &str = "crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr";
 
 pub fn token_manager_size(num_invalidators: usize) -> usize {
     (8 + 1 + 1 + 8 + 1 + 32 + 32 + 8 + 1 + 1 + 8 + 1 + 32 + 33 + 33 + 33 + num_invalidators * 32) + 8_usize

@@ -43,7 +43,7 @@ pub mod cardinal_token_manager {
         claim_receipt_mint::handler(ctx, name)
     }
 
-    pub fn issue(ctx: Context<IssueCtx>) -> Result<()> {
+    pub fn issue<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, IssueCtx<'info>>) -> Result<()> {
         issue::handler(ctx)
     }
 

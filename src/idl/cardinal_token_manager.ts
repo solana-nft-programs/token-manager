@@ -1225,6 +1225,11 @@ export type CardinalTokenManager = {
       code: 6034;
       name: "InvalidMintAuthority";
       msg: "Invalid Mint Authority";
+    },
+    {
+      code: 6035;
+      name: "InvalidPermissionedRewardAddress";
+      msg: "Invalid Permissioned Reward Address";
     }
   ];
 };
@@ -2456,6 +2461,11 @@ export const IDL: CardinalTokenManager = {
       code: 6034,
       name: "InvalidMintAuthority",
       msg: "Invalid Mint Authority",
+    },
+    {
+      code: 6035,
+      name: "InvalidPermissionedRewardAddress",
+      msg: "Invalid Permissioned Reward Address",
     },
   ],
 };

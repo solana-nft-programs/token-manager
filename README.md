@@ -34,7 +34,6 @@ Program addresses are the same on devnet, testnet, and mainnet-beta.
 - PaidClaimApprover: [`pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR`](https://explorer.solana.com/address/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR)
 - TimeInvalidator: [`tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE`](https://explorer.solana.com/address/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE)
 - UseInvalidator: [`useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp`](https://explorer.solana.com/address/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp)
-- PaymentManager: [`pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn`](https://explorer.solana.com/address/pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn)
 
 ## Plugins
 

@@ -1,3 +1,4 @@
+import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
 import type { BN } from "@project-serum/anchor";
 import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
@@ -17,7 +18,6 @@ import {
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 
-import { PAYMENT_MANAGER_ADDRESS } from "../paymentManager";
 import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import {
   findMintManagerId,

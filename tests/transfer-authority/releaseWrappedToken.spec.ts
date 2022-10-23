@@ -1,3 +1,5 @@
+import { init } from "@cardinal/payment-manager/dist/cjs/instruction";
+import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -25,7 +27,6 @@ import {
   withRelease,
   withWrapToken,
 } from "../../src";
-import { init } from "../../src/programs/paymentManager/instruction";
 import { getTokenManager } from "../../src/programs/tokenManager/accounts";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { getTransferAuthorityByName } from "../../src/programs/transferAuthority/accounts";
@@ -116,25 +117,25 @@ describe("Release wrapped token", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const pmTransaction = new Transaction();
-    pmTransaction.add(
-      (
-        await init(provider.connection, provider.wallet, paymentManagerName, {
-          feeCollector: feeCollector.publicKey,
-          makerFeeBasisPoints: MAKER_FEE.toNumber(),
-          takerFeeBasisPoints: TAKER_FEE.toNumber(),
-          includeSellerFeeBasisPoints: true,
-        })
-      )[0]
+    const [paymentManagerId] = await findPaymentManagerAddress(
+      paymentManagerName
     );
-
+    const ix = init(provider.connection, provider.wallet, paymentManagerName, {
+      paymentManagerId: paymentManagerId,
+      feeCollector: feeCollector.publicKey,
+      makerFeeBasisPoints: MAKER_FEE.toNumber(),
+      takerFeeBasisPoints: TAKER_FEE.toNumber(),
+      includeSellerFeeBasisPoints: false,
+      authority: provider.wallet.publicKey,
+      payer: provider.wallet.publicKey,
+    });
     const pmTxEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
         wallet: provider.wallet,
         opts: provider.opts,
       }),
-      [...pmTransaction.instructions]
+      [ix]
     );
 
     await expectTXTable(pmTxEnvelope, "Create Payment Manager", {

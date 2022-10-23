@@ -1,3 +1,8 @@
+import {
+  DEFAULT_PAYMENT_MANAGER_NAME,
+  PAYMENT_MANAGER_ADDRESS,
+} from "@cardinal/payment-manager";
+import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -9,11 +14,6 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import {
-  DEFAULT_PAYMENT_MANAGER_NAME,
-  PAYMENT_MANAGER_ADDRESS,
-} from "../paymentManager";
-import { findPaymentManagerAddress } from "../paymentManager/pda";
 import { CRANK_KEY, TOKEN_MANAGER_ADDRESS } from "../tokenManager";
 import { findClaimReceiptId } from "../tokenManager/pda";
 import type { CLAIM_APPROVER_PROGRAM } from "./constants";

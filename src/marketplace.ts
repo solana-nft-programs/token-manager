@@ -1,3 +1,5 @@
+import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
+import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import {
   MasterEdition,
   Metadata,
@@ -11,8 +13,6 @@ import type {
 } from "@solana/web3.js";
 import type BN from "bn.js";
 
-import { getPaymentManager } from "./programs/paymentManager/accounts";
-import { findPaymentManagerAddress } from "./programs/paymentManager/pda";
 import {
   getRemainingAccountsForKind,
   InvalidationType,

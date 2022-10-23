@@ -1,3 +1,6 @@
+import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
+import { init } from "@cardinal/payment-manager/dist/cjs/instruction";
+import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { BN, web3 } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
@@ -13,9 +16,6 @@ import { expect } from "chai";
 import { findAta, rentals, tryGetAccount } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { getClaimApprover } from "../src/programs/claimApprover/accounts";
-import { getPaymentManager } from "../src/programs/paymentManager/accounts";
-import { init } from "../src/programs/paymentManager/instruction";
-import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -73,18 +73,23 @@ describe("Create rental with payment manager and extend", () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
 
-    const [ix, outPaymentManagerId] = await init(
+    const [paymentManagerId] = await findPaymentManagerAddress(
+      paymentManagerName
+    );
+    const ix = init(
       provider.connection,
       new SignerWallet(user),
       paymentManagerName,
       {
+        paymentManagerId: paymentManagerId,
         feeCollector: feeCollector.publicKey,
         makerFeeBasisPoints: MAKER_FEE,
         takerFeeBasisPoints: TAKER_FEE,
         includeSellerFeeBasisPoints: false,
+        authority: provider.wallet.publicKey,
+        payer: provider.wallet.publicKey,
       }
     );
-    paymentManagerId = outPaymentManagerId;
 
     transaction.add(ix);
     const txEnvelope = new TransactionEnvelope(

@@ -427,11 +427,12 @@ dependencies = [
 [[package]]
 name = "cardinal-payment-manager"
 version = "1.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ac518a7e60576a17fbc1ac83801e5c36aef3a20fe6b305681e6dcd7bf346704"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
  "mpl-token-metadata",
- "proptest",
  "solana-program",
  "spl-associated-token-account",
  "spl-token",

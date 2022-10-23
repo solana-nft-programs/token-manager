@@ -1,3 +1,6 @@
+import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
+import { init } from "@cardinal/payment-manager/dist/cjs/instruction";
+import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -21,9 +24,6 @@ import { expect } from "chai";
 
 import { findAta, rentals, tryGetAccount } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
-import { getPaymentManager } from "../src/programs/paymentManager/accounts";
-import { init } from "../src/programs/paymentManager/instruction";
-import { findPaymentManagerAddress } from "../src/programs/paymentManager/pda";
 import {
   TokenManagerKind,
   TokenManagerState,
@@ -151,17 +151,18 @@ describe("Create Rental With Royalties", () => {
     const provider = getProvider();
     const transaction = new Transaction();
 
-    const [ix] = await init(
-      provider.connection,
-      provider.wallet,
-      paymentManagerName,
-      {
-        feeCollector: feeCollector.publicKey,
-        makerFeeBasisPoints: MAKER_FEE.toNumber(),
-        takerFeeBasisPoints: TAKER_FEE.toNumber(),
-        includeSellerFeeBasisPoints: false,
-      }
+    const [paymentManagerId] = await findPaymentManagerAddress(
+      paymentManagerName
     );
+    const ix = init(provider.connection, provider.wallet, paymentManagerName, {
+      paymentManagerId: paymentManagerId,
+      feeCollector: feeCollector.publicKey,
+      makerFeeBasisPoints: MAKER_FEE.toNumber(),
+      takerFeeBasisPoints: TAKER_FEE.toNumber(),
+      includeSellerFeeBasisPoints: false,
+      authority: provider.wallet.publicKey,
+      payer: provider.wallet.publicKey,
+    });
 
     transaction.add(ix);
     const txEnvelope = new TransactionEnvelope(

@@ -1,3 +1,4 @@
+import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import {
   Edition,
   Metadata,
@@ -12,7 +13,6 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import type { AccountData } from "../..";
 import { findAta, withFindOrInitAssociatedTokenAccount } from "../..";
 import { tryGetAccount } from "../../utils";
-import { getPaymentManager } from "../paymentManager/accounts";
 import type { TokenManagerData } from ".";
 import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
 import { findMintManagerId, findTransferReceiptId } from "./pda";

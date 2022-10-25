@@ -27,7 +27,6 @@ const main = async (params: MarketplaceParams, cluster = "devnet") => {
     connection,
     new SignerWallet(wallet),
     params.name,
-    params.transferAuthorityName,
     params.paymentManagerName
   );
 

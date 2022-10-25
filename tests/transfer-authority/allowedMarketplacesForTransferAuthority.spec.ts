@@ -37,10 +37,7 @@ import {
   getMarketplaceByName,
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
-import {
-  findMarketplaceAddress,
-  findTransferAuthorityAddress,
-} from "../../src/programs/transferAuthority/pda";
+import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
 import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
@@ -246,7 +243,6 @@ describe("Allowed markeptlaces for transfer authority", () => {
       provider.connection,
       provider.wallet,
       marketplaceName,
-      transferAuthorityName,
       paymentManagerName
     );
 
@@ -269,12 +265,6 @@ describe("Allowed markeptlaces for transfer authority", () => {
     );
 
     expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
-    const [transferAuthorityId] = await findTransferAuthorityAddress(
-      transferAuthorityName
-    );
-    expect(checkMarketplace.parsed.transferAuthority).to.eqAddress(
-      transferAuthorityId
-    );
     const [paymentManagerId] = await findPaymentManagerAddress(
       paymentManagerName
     );

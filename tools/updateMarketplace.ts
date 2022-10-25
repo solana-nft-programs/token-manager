@@ -20,7 +20,6 @@ export type PaymentManagerParams = {
 
 const main = async (
   marketplaceName: string,
-  transferAuthorityName: string,
   paymentManagerName: string,
   cluster = "devnet"
 ) => {
@@ -32,7 +31,6 @@ const main = async (
     connection,
     new SignerWallet(wallet),
     marketplaceName,
-    transferAuthorityName,
     paymentManagerName,
     new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
     []
@@ -58,12 +56,8 @@ const main = async (
 };
 
 const marketplaceName = "cardinal";
-const transferAuthorityName = "global";
 const paymentManagerName = "cardinal-marketplace";
 
-main(
-  marketplaceName,
-  transferAuthorityName,
-  paymentManagerName,
-  "devnet"
-).catch((e) => console.log(e));
+main(marketplaceName, paymentManagerName, "devnet").catch((e) =>
+  console.log(e)
+);

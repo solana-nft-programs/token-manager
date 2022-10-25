@@ -37,10 +37,7 @@ import {
   getTransfer,
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
-import {
-  findTransferAddress,
-  findTransferAuthorityAddress,
-} from "../../src/programs/transferAuthority/pda";
+import { findTransferAddress } from "../../src/programs/transferAuthority/pda";
 import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
@@ -243,7 +240,6 @@ describe("Private Transfer", () => {
       provider.connection,
       provider.wallet,
       marketplaceName,
-      transferAuthorityName,
       paymentManagerName
     );
 
@@ -266,12 +262,6 @@ describe("Private Transfer", () => {
     );
 
     expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
-    const [transferAuthorityId] = await findTransferAuthorityAddress(
-      transferAuthorityName
-    );
-    expect(checkMarketplace.parsed.transferAuthority).to.eqAddress(
-      transferAuthorityId
-    );
     const [paymentManagerId] = await findPaymentManagerAddress(
       paymentManagerName
     );

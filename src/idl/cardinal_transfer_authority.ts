@@ -1,5 +1,5 @@
 export type CardinalTransferAuthority = {
-  version: "1.7.4";
+  version: "1.7.5";
   name: "cardinal_transfer_authority";
   instructions: [
     {
@@ -665,10 +665,6 @@ export type CardinalTransferAuthority = {
             type: "string";
           },
           {
-            name: "transferAuthority";
-            type: "publicKey";
-          },
-          {
             name: "paymentManager";
             type: "publicKey";
           },
@@ -963,10 +959,6 @@ export type CardinalTransferAuthority = {
                 vec: "publicKey";
               };
             };
-          },
-          {
-            name: "transferAuthority";
-            type: "publicKey";
           }
         ];
       };
@@ -976,10 +968,6 @@ export type CardinalTransferAuthority = {
       type: {
         kind: "struct";
         fields: [
-          {
-            name: "transferAuthority";
-            type: "publicKey";
-          },
           {
             name: "paymentManager";
             type: "publicKey";
@@ -1195,7 +1183,7 @@ export type CardinalTransferAuthority = {
 };
 
 export const IDL: CardinalTransferAuthority = {
-  version: "1.7.4",
+  version: "1.7.5",
   name: "cardinal_transfer_authority",
   instructions: [
     {
@@ -1861,10 +1849,6 @@ export const IDL: CardinalTransferAuthority = {
             type: "string",
           },
           {
-            name: "transferAuthority",
-            type: "publicKey",
-          },
-          {
             name: "paymentManager",
             type: "publicKey",
           },
@@ -2160,10 +2144,6 @@ export const IDL: CardinalTransferAuthority = {
               },
             },
           },
-          {
-            name: "transferAuthority",
-            type: "publicKey",
-          },
         ],
       },
     },
@@ -2172,10 +2152,6 @@ export const IDL: CardinalTransferAuthority = {
       type: {
         kind: "struct",
         fields: [
-          {
-            name: "transferAuthority",
-            type: "publicKey",
-          },
           {
             name: "paymentManager",
             type: "publicKey",

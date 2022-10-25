@@ -251,7 +251,6 @@ describe("Accept Listing", () => {
       provider.connection,
       provider.wallet,
       marketplaceName,
-      transferAuthorityName,
       paymentManagerName
     );
 

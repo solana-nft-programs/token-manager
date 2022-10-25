@@ -30,7 +30,6 @@ import { WSOL_MINT } from "./programs/transferAuthority";
 import {
   getListing,
   getMarketplace,
-  getMarketplaceByName,
 } from "./programs/transferAuthority/accounts";
 import {
   acceptListing,
@@ -185,14 +184,10 @@ export const withInitMarketplace = async (
   connection: Connection,
   wallet: Wallet,
   name: string,
-  transferAuthorityName: string,
   paymentManagerName: string,
   paymentMints?: PublicKey[],
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
-  const [transferAuthority] = await findTransferAuthorityAddress(
-    transferAuthorityName
-  );
   const [marketplaceId] = await findMarketplaceAddress(name);
   const [paymentManagerId] = await findPaymentManagerAddress(
     paymentManagerName
@@ -203,7 +198,6 @@ export const withInitMarketplace = async (
       wallet,
       name,
       marketplaceId,
-      transferAuthority,
       paymentManagerId,
       paymentMints,
       payer
@@ -217,14 +211,10 @@ export const withUpdateMarketplace = async (
   connection: Connection,
   wallet: Wallet,
   name: string,
-  transferAuthorityName: string,
   paymentManagerName: string,
   authority: PublicKey,
   paymentMints: PublicKey[]
 ): Promise<Transaction> => {
-  const [transferAuthority] = await findTransferAuthorityAddress(
-    transferAuthorityName
-  );
   const [marketplaceId] = await findMarketplaceAddress(name);
   const [paymentManagerId] = await findPaymentManagerAddress(
     paymentManagerName
@@ -234,7 +224,6 @@ export const withUpdateMarketplace = async (
       connection,
       wallet,
       marketplaceId,
-      transferAuthority,
       paymentManagerId,
       authority,
       paymentMints.length !== 0 ? paymentMints : undefined
@@ -257,11 +246,14 @@ export const withCreateListing = async (
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const listerTokenAccountId = await findAta(mintId, wallet.publicKey, true);
   const [marketplaceId] = await findMarketplaceAddress(markeptlaceName);
-  const markeptlaceData = await tryGetAccount(() =>
-    getMarketplaceByName(connection, markeptlaceName)
+  const tokenManagerData = await tryGetAccount(() =>
+    getTokenManager(connection, tokenManagerId)
   );
-  if (!markeptlaceData?.parsed) {
-    throw `No marketplace with name ${markeptlaceName} found`;
+  if (!tokenManagerData?.parsed) {
+    throw `No tokenManagerData for mint id${mintId.toString()} found`;
+  }
+  if (!tokenManagerData.parsed.transferAuthority) {
+    throw `No transfer authority for token manager`;
   }
 
   transaction.add(
@@ -270,7 +262,7 @@ export const withCreateListing = async (
       wallet,
       listingId,
       mintId,
-      markeptlaceData.parsed.transferAuthority,
+      tokenManagerData.parsed.transferAuthority,
       tokenManagerId,
       marketplaceId,
       listerTokenAccountId,
@@ -428,6 +420,9 @@ export const withAcceptListing = async (
   if (!tokenManagerData) {
     throw `No token manager found for ${mintId.toString()}`;
   }
+  if (!tokenManagerData.parsed.transferAuthority) {
+    throw `No transfer authority for token manager`;
+  }
   const remainingAccountsForKind = await getRemainingAccountsForKind(
     mintId,
     tokenManagerData.parsed.kind
@@ -441,7 +436,7 @@ export const withAcceptListing = async (
     acceptListing(
       connection,
       wallet,
-      marketplaceData.parsed.transferAuthority,
+      tokenManagerData.parsed.transferAuthority,
       listerPaymentTokenAccountId,
       listerMintTokenAccountId,
       listingData.parsed.lister,

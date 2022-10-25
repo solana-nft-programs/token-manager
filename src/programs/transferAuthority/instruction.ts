@@ -96,7 +96,6 @@ export const initMarketplace = (
   wallet: Wallet,
   name: string,
   marketplaceId: PublicKey,
-  transferAuthority: PublicKey,
   paymentManager: PublicKey,
   paymentMints: PublicKey[] | undefined,
   payer = wallet.publicKey
@@ -115,7 +114,6 @@ export const initMarketplace = (
       paymentManager: paymentManager,
       authority: provider.wallet.publicKey,
       paymentMints: paymentMints || null,
-      transferAuthority: transferAuthority,
     },
     {
       accounts: {
@@ -131,7 +129,6 @@ export const updateMarketplace = (
   connection: Connection,
   wallet: Wallet,
   marketplace: PublicKey,
-  transferAuthority: PublicKey,
   paymentManager: PublicKey,
   authority: PublicKey,
   paymentMints: PublicKey[] | undefined
@@ -146,7 +143,6 @@ export const updateMarketplace = (
 
   return transferAuthorityProgram.instruction.updateMarketplace(
     {
-      transferAuthority: transferAuthority,
       paymentManager: paymentManager,
       authority: authority,
       paymentMints: paymentMints ?? null,

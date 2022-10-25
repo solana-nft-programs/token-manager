@@ -26,7 +26,7 @@ pub struct CreateListingCtx<'info> {
     )]
     listing: Box<Account<'info, Listing>>,
 
-    #[account(constraint = transfer_authority.key() == marketplace.transfer_authority @ ErrorCode::InvalidTransferAuthority)]
+    #[account(constraint = transfer_authority.key() == token_manager.transfer_authority.expect("No transfer authority for token manager") @ ErrorCode::InvalidTransferAuthority)]
     transfer_authority: Box<Account<'info, TransferAuthority>>,
     marketplace: Box<Account<'info, Marketplace>>,
 

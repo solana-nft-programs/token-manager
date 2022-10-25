@@ -17,7 +17,6 @@ pub const MARKETPLACE_SIZE: usize = 8 + 1 + 24 + 32 + 32 + 32 * 5 + 64;
 pub struct Marketplace {
     pub bump: u8,
     pub name: String,
-    pub transfer_authority: Pubkey,
     pub payment_manager: Pubkey,
     pub authority: Pubkey,
     pub payment_mints: Option<Vec<Pubkey>>,

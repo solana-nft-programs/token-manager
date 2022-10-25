@@ -13,7 +13,7 @@ use solana_program::sysvar::{self};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 pub struct AcceptListingCtx<'info> {
-    #[account(mut, constraint = transfer_authority.key() == marketplace.transfer_authority @ ErrorCode::InvalidTransferAuthority)]
+    #[account(mut, constraint = transfer_authority.key() == token_manager.transfer_authority.expect("No transfer authority for token manager") @ ErrorCode::InvalidTransferAuthority)]
     transfer_authority: Box<Account<'info, TransferAuthority>>,
     /// CHECK: This is not dangerous because this is the receipt getting initialized
     #[account(mut)]

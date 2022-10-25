@@ -73,9 +73,7 @@ describe("Create rental with payment manager and extend", () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
 
-    const [paymentManagerId] = await findPaymentManagerAddress(
-      paymentManagerName
-    );
+    [paymentManagerId] = await findPaymentManagerAddress(paymentManagerName);
     const ix = init(
       provider.connection,
       new SignerWallet(user),
@@ -86,8 +84,8 @@ describe("Create rental with payment manager and extend", () => {
         makerFeeBasisPoints: MAKER_FEE,
         takerFeeBasisPoints: TAKER_FEE,
         includeSellerFeeBasisPoints: false,
-        authority: provider.wallet.publicKey,
-        payer: provider.wallet.publicKey,
+        authority: user.publicKey,
+        payer: user.publicKey,
       }
     );
 

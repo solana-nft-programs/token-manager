@@ -1,5 +1,6 @@
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
+import { withRemainingAccountsForHandlePaymentWithRoyalties } from "@cardinal/payment-manager/dist/cjs/utils";
 import {
   MasterEdition,
   Metadata,
@@ -17,7 +18,6 @@ import {
   getRemainingAccountsForKind,
   InvalidationType,
   TokenManagerKind,
-  withRemainingAccountsForHandlePaymentWithRoyalties,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager";
 import { getTokenManager } from "./programs/tokenManager/accounts";
@@ -327,7 +327,8 @@ export const withAcceptListing = async (
   connection: Connection,
   wallet: Wallet,
   buyer: PublicKey,
-  mintId: PublicKey
+  mintId: PublicKey,
+  buySideTokenAccount?: PublicKey
 ): Promise<Transaction> => {
   const listingData = await tryGetAccount(() => getListing(connection, mintId));
   if (!listingData?.parsed) {
@@ -413,6 +414,7 @@ export const withAcceptListing = async (
       wallet,
       mintId,
       listingData.parsed.paymentMint,
+      buySideTokenAccount,
       [listingData.parsed.lister.toString(), buyer.toString()]
     );
 

@@ -462,29 +462,6 @@ export type CardinalTransferAuthority = {
       ];
     },
     {
-      name: "closeMarketplace";
-      accounts: [
-        {
-          name: "marketplace";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "authority";
-          isMut: true;
-          isSigner: true;
-        }
-      ];
-      args: [
-        {
-          name: "ix";
-          type: {
-            defined: "UpdateMarketplaceIx";
-          };
-        }
-      ];
-    },
-    {
       name: "initTransfer";
       accounts: [
         {
@@ -1647,29 +1624,6 @@ export const IDL: CardinalTransferAuthority = {
     },
     {
       name: "updateMarketplace",
-      accounts: [
-        {
-          name: "marketplace",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "authority",
-          isMut: true,
-          isSigner: true,
-        },
-      ],
-      args: [
-        {
-          name: "ix",
-          type: {
-            defined: "UpdateMarketplaceIx",
-          },
-        },
-      ],
-    },
-    {
-      name: "closeMarketplace",
       accounts: [
         {
           name: "marketplace",

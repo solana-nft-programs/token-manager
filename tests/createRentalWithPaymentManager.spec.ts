@@ -1,3 +1,4 @@
+import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { init } from "@cardinal/payment-manager/dist/cjs/instruction";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
@@ -84,6 +85,7 @@ describe("Create rental with payment manager and extend", () => {
         makerFeeBasisPoints: MAKER_FEE,
         takerFeeBasisPoints: TAKER_FEE,
         includeSellerFeeBasisPoints: false,
+        royaltyFeeShare: new BN(0),
         authority: user.publicKey,
         payer: user.publicKey,
       }
@@ -244,10 +246,13 @@ describe("Create rental with payment manager and extend", () => {
       await findAta(paymentMint.publicKey, feeCollector.publicKey)
     );
 
+    const buySideFee =
+      (RENTAL_PAYMENT_AMONT * DEFAULT_BUY_SIDE_FEE_SHARE) /
+      BASIS_POINTS_DIVISOR;
     expect(feeCollectorTokenAccountAfter.amount.toNumber()).to.eq(
       Math.floor(
         new BN(RENTAL_PAYMENT_AMONT)
-          .mul(new BN(MAKER_FEE).add(new BN(TAKER_FEE)))
+          .mul(new BN(MAKER_FEE).add(new BN(TAKER_FEE).add(new BN(buySideFee))))
           .div(new BN(BASIS_POINTS_DIVISOR))
           .toNumber()
       )

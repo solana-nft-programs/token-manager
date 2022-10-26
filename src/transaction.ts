@@ -1,3 +1,4 @@
+import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import {
@@ -35,7 +36,6 @@ import {
 import {
   getRemainingAccountsForKind,
   getRemainingAccountsForTransfer,
-  withRemainingAccountsForPayment,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager/utils";
 import { getTransferAuthorityByName } from "./programs/transferAuthority/accounts";
@@ -377,7 +377,8 @@ export const withClaimToken = async (
   tokenManagerId: PublicKey,
   additionalOptions?: {
     payer?: PublicKey;
-  }
+  },
+  buySideTokenAccountId?: PublicKey
 ): Promise<Transaction> => {
   const [tokenManagerData, claimApproverData] = await Promise.all([
     tokenManager.accounts.getTokenManager(connection, tokenManagerId),
@@ -412,6 +413,7 @@ export const withClaimToken = async (
       claimApproverData.parsed.paymentMint,
       tokenManagerData.parsed.issuer,
       claimApproverData.parsed.paymentManager,
+      buySideTokenAccountId,
       {
         receiptMint: tokenManagerData.parsed.receiptMint,
         payer: additionalOptions?.payer,
@@ -775,7 +777,8 @@ export const withExtendExpiration = async (
   secondsToAdd: number,
   options?: {
     payer?: PublicKey;
-  }
+  },
+  buySideTokenAccountId?: PublicKey
 ): Promise<Transaction> => {
   const [timeInvalidatorId] =
     await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
@@ -798,6 +801,7 @@ export const withExtendExpiration = async (
       timeInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
       timeInvalidatorData.parsed.paymentManager,
+      buySideTokenAccountId,
       {
         receiptMint: tokenManagerData.parsed.receiptMint,
         payer: options?.payer,
@@ -831,7 +835,8 @@ export const withExtendUsages = async (
   usagesToAdd: number,
   options?: {
     payer?: PublicKey;
-  }
+  },
+  buySideTokenAccountId?: PublicKey
 ): Promise<Transaction> => {
   const [useInvalidatorId] = await useInvalidator.pda.findUseInvalidatorAddress(
     tokenManagerId
@@ -858,6 +863,7 @@ export const withExtendUsages = async (
       useInvalidatorData.parsed.extensionPaymentMint,
       tokenManagerData.parsed.issuer,
       useInvalidatorData.parsed.paymentManager,
+      buySideTokenAccountId,
       {
         receiptMint: tokenManagerData.parsed.receiptMint,
         payer: options?.payer,

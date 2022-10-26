@@ -1,6 +1,6 @@
 {
   "name": "@cardinal/token-manager",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "description": "Cardinal token manager SDK",
   "keywords": [
     "solana",
@@ -85,7 +85,7 @@
   },
   "dependencies": {
     "@cardinal/common": "^2.0.12",
-    "@cardinal/payment-manager": "^1.7.5",
+    "@cardinal/payment-manager": "^1.7.7",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/buffer-layout-utils": "^0.2.0",

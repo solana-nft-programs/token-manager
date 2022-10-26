@@ -1,5 +1,5 @@
 export type CardinalTransferAuthority = {
-  version: "1.7.5";
+  version: "1.7.6";
   name: "cardinal_transfer_authority";
   instructions: [
     {
@@ -440,6 +440,29 @@ export type CardinalTransferAuthority = {
     },
     {
       name: "updateMarketplace";
+      accounts: [
+        {
+          name: "marketplace";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdateMarketplaceIx";
+          };
+        }
+      ];
+    },
+    {
+      name: "closeMarketplace";
       accounts: [
         {
           name: "marketplace";
@@ -1183,7 +1206,7 @@ export type CardinalTransferAuthority = {
 };
 
 export const IDL: CardinalTransferAuthority = {
-  version: "1.7.5",
+  version: "1.7.6",
   name: "cardinal_transfer_authority",
   instructions: [
     {
@@ -1624,6 +1647,29 @@ export const IDL: CardinalTransferAuthority = {
     },
     {
       name: "updateMarketplace",
+      accounts: [
+        {
+          name: "marketplace",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdateMarketplaceIx",
+          },
+        },
+      ],
+    },
+    {
+      name: "closeMarketplace",
       accounts: [
         {
           name: "marketplace",

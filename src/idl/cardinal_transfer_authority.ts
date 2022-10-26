@@ -352,11 +352,6 @@ export type CardinalTransferAuthority = {
           isSigner: false;
         },
         {
-          name: "rent";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "instructions";
           isMut: false;
           isSigner: false;
@@ -756,10 +751,6 @@ export type CardinalTransferAuthority = {
           {
             name: "paymentAmount";
             type: "u64";
-          },
-          {
-            name: "paymentMint";
-            type: "publicKey";
           }
         ];
       };
@@ -905,12 +896,6 @@ export type CardinalTransferAuthority = {
             name: "systemProgram";
             type: {
               defined: "Program<'info,System>";
-            };
-          },
-          {
-            name: "rent";
-            type: {
-              defined: "Sysvar<'info,Rent>";
             };
           },
           {
@@ -1564,11 +1549,6 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: false,
         },
         {
-          name: "rent",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "instructions",
           isMut: false,
           isSigner: false,
@@ -1969,10 +1949,6 @@ export const IDL: CardinalTransferAuthority = {
             name: "paymentAmount",
             type: "u64",
           },
-          {
-            name: "paymentMint",
-            type: "publicKey",
-          },
         ],
       },
     },
@@ -2117,12 +2093,6 @@ export const IDL: CardinalTransferAuthority = {
             name: "systemProgram",
             type: {
               defined: "Program<'info,System>",
-            },
-          },
-          {
-            name: "rent",
-            type: {
-              defined: "Sysvar<'info,Rent>",
             },
           },
           {

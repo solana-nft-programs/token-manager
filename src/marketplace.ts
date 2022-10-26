@@ -462,7 +462,7 @@ export const withAcceptListing = async (
       transferReceiptId,
       transferId,
       marketplaceData.parsed.paymentManager,
-      listingData.parsed.paymentMint,
+      paymentMint,
       feeCollectorTokenAccountId,
       remainingAccounts,
       listingData.parsed.paymentAmount

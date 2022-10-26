@@ -297,7 +297,7 @@ export const acceptListing = (
     provider
   );
   return transferAuthorityProgram.instruction.acceptListing(
-    { paymentAmount: paymentAmount, paymentMint: paymentMintId },
+    { paymentAmount: paymentAmount },
     {
       accounts: {
         transferAuthority: transferAuthorityId,
@@ -323,7 +323,6 @@ export const acceptListing = (
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
-        rent: SYSVAR_RENT_PUBKEY,
         instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
       },
       remainingAccounts: remainingAccounts,

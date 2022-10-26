@@ -14,7 +14,6 @@ use solana_program::sysvar::{self};
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct AcceptListingIx {
     pub payment_amount: u64,
-    pub payment_mint: Pubkey,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
@@ -83,7 +82,6 @@ pub struct AcceptListingCtx<'info> {
     associated_token_program: Program<'info, AssociatedToken>,
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
-    rent: Sysvar<'info, Rent>,
     /// CHECK: This is not dangerous because the ID is checked with instructions sysvar
     #[account(address = sysvar::instructions::id())]
     instructions: UncheckedAccount<'info>,
@@ -92,7 +90,7 @@ pub struct AcceptListingCtx<'info> {
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>, ix: AcceptListingIx) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.to_vec();
 
-    if ix.payment_amount != ctx.accounts.listing.payment_amount || ix.payment_mint != ctx.accounts.listing.payment_mint {
+    if ix.payment_amount != ctx.accounts.listing.payment_amount {
         return Err(error!(ErrorCode::ListingChanged));
     }
 

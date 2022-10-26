@@ -319,13 +319,16 @@ describe("Accept Listing Permissioned", () => {
   it("Accept Listing", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
+    const checkListing = await getListing(provider.connection, mint.publicKey);
 
     await withAcceptListing(
       transaction,
       provider.connection,
       provider.wallet,
       buyer.publicKey,
-      mint.publicKey
+      mint.publicKey,
+      checkListing.parsed.paymentAmount,
+      checkListing.parsed.paymentMint
     );
 
     const txEnvelope = new TransactionEnvelope(

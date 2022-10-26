@@ -328,9 +328,9 @@ export const withAcceptListing = async (
   wallet: Wallet,
   buyer: PublicKey,
   mintId: PublicKey,
-  buySideTokenAccount?: PublicKey,
-  paymentAmount?: BN,
-  paymentMint?: PublicKey
+  paymentAmount: BN,
+  paymentMint: PublicKey,
+  buySideTokenAccount?: PublicKey
 ): Promise<Transaction> => {
   const listingData = await tryGetAccount(() => getListing(connection, mintId));
   if (!listingData?.parsed) {

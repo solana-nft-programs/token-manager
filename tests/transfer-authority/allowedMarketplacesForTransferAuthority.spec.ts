@@ -429,13 +429,19 @@ describe("Allowed markeptlaces for transfer authority", () => {
   it("Accept Listing", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
+    const checkListing = await getListing(
+      provider.connection,
+      rentalMint.publicKey
+    );
 
     await withAcceptListing(
       transaction,
       provider.connection,
       provider.wallet,
       buyer.publicKey,
-      rentalMint.publicKey
+      rentalMint.publicKey,
+      checkListing.parsed.paymentAmount,
+      checkListing.parsed.paymentMint
     );
 
     const txEnvelope = new TransactionEnvelope(

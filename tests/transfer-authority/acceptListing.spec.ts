@@ -328,16 +328,57 @@ describe("Accept Listing", () => {
     expect(checkListing.parsed.paymentMint).to.eqAddress(rentalPaymentMint);
   });
 
-  it("Accept Listing", async () => {
+  it("Accept Listing Different Amount Fail", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
+    const checkListing = await getListing(
+      provider.connection,
+      rentalMint.publicKey
+    );
 
     await withAcceptListing(
       transaction,
       provider.connection,
       provider.wallet,
       buyer.publicKey,
+      rentalMint.publicKey,
+      checkListing.parsed.paymentAmount.add(new BN(1)),
+      checkListing.parsed.paymentMint
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions],
+      [buyer]
+    );
+    expect(async () => {
+      await expectTXTable(txEnvelope, "extend", {
+        verbosity: "error",
+        formatLogs: true,
+      }).to.be.rejectedWith(Error);
+    });
+  });
+
+  it("Accept Listing", async () => {
+    const provider = getProvider();
+    const transaction = new Transaction();
+    const checkListing = await getListing(
+      provider.connection,
       rentalMint.publicKey
+    );
+
+    await withAcceptListing(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      buyer.publicKey,
+      rentalMint.publicKey,
+      checkListing.parsed.paymentAmount,
+      checkListing.parsed.paymentMint
     );
 
     const txEnvelope = new TransactionEnvelope(

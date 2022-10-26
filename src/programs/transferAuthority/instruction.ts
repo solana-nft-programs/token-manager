@@ -286,6 +286,7 @@ export const acceptListing = (
   paymentMintId: PublicKey,
   feeCollectorTokenAccountId: PublicKey,
   remainingAccounts: AccountMeta[],
+  paymentAmount: BN,
   payer = wallet.publicKey
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -295,36 +296,39 @@ export const acceptListing = (
     TRANSFER_AUTHORITY_ADDRESS,
     provider
   );
-  return transferAuthorityProgram.instruction.acceptListing({
-    accounts: {
-      transferAuthority: transferAuthorityId,
-      transferReceipt: transferReceiptId,
-      transfer: transferId,
-      listing: listingId,
-      listerPaymentTokenAccount: listerPaymentTokenAccountId,
-      listerMintTokenAccount: listerMintTokenAccountId,
-      lister: lister,
-      buyerPaymentTokenAccount: buyerPaymentTokenAccountId,
-      buyerMintTokenAccount: buyerMintTokenAccountId,
-      buyer: buyer,
-      marketplace: marketplaceId,
-      tokenManager: tokenManagerId,
-      mint: mintId,
-      mintMetadataInfo: mintMetadataId,
-      paymentManager: paymentManagerId,
-      paymentMint: paymentMintId,
-      feeCollectorTokenAccount: feeCollectorTokenAccountId,
-      payer: payer,
-      cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
-      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
-      instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-    },
-    remainingAccounts: remainingAccounts,
-  });
+  return transferAuthorityProgram.instruction.acceptListing(
+    { paymentAmount: paymentAmount, paymentMint: paymentMintId },
+    {
+      accounts: {
+        transferAuthority: transferAuthorityId,
+        transferReceipt: transferReceiptId,
+        transfer: transferId,
+        listing: listingId,
+        listerPaymentTokenAccount: listerPaymentTokenAccountId,
+        listerMintTokenAccount: listerMintTokenAccountId,
+        lister: lister,
+        buyerPaymentTokenAccount: buyerPaymentTokenAccountId,
+        buyerMintTokenAccount: buyerMintTokenAccountId,
+        buyer: buyer,
+        marketplace: marketplaceId,
+        tokenManager: tokenManagerId,
+        mint: mintId,
+        mintMetadataInfo: mintMetadataId,
+        paymentManager: paymentManagerId,
+        paymentMint: paymentMintId,
+        feeCollectorTokenAccount: feeCollectorTokenAccountId,
+        payer: payer,
+        cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
+        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+        instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+      },
+      remainingAccounts: remainingAccounts,
+    }
+  );
 };
 
 export const whitelistMarkeplaces = (

@@ -11,6 +11,12 @@ use {
 
 use solana_program::sysvar::{self};
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct AcceptListingIx {
+    pub payment_amount: u64,
+    pub payment_mint: Pubkey,
+}
+
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = transfer_authority.key() == token_manager.transfer_authority.expect("No transfer authority for token manager") @ ErrorCode::InvalidTransferAuthority)]
@@ -83,8 +89,12 @@ pub struct AcceptListingCtx<'info> {
     instructions: UncheckedAccount<'info>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>, ix: AcceptListingIx) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.to_vec();
+
+    if ix.payment_amount != ctx.accounts.listing.payment_amount || ix.payment_mint != ctx.accounts.listing.payment_mint {
+        return Err(error!(ErrorCode::ListingChanged));
+    }
 
     let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
         payment_manager: ctx.accounts.payment_manager.to_account_info(),

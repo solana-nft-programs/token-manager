@@ -328,7 +328,9 @@ export const withAcceptListing = async (
   wallet: Wallet,
   buyer: PublicKey,
   mintId: PublicKey,
-  buySideTokenAccount?: PublicKey
+  buySideTokenAccount?: PublicKey,
+  paymentAmount?: BN,
+  paymentMint?: PublicKey
 ): Promise<Transaction> => {
   const listingData = await tryGetAccount(() => getListing(connection, mintId));
   if (!listingData?.parsed) {
@@ -434,6 +436,13 @@ export const withAcceptListing = async (
     ...remainingAccountsForKind,
   ];
 
+  if (
+    (paymentAmount && !paymentAmount.eq(listingData.parsed.paymentAmount)) ||
+    (paymentMint && !paymentMint.equals(listingData.parsed.paymentMint))
+  ) {
+    throw "Listing data does not match expected values";
+  }
+
   transaction.add(
     acceptListing(
       connection,
@@ -455,7 +464,8 @@ export const withAcceptListing = async (
       marketplaceData.parsed.paymentManager,
       listingData.parsed.paymentMint,
       feeCollectorTokenAccountId,
-      remainingAccounts
+      remainingAccounts,
+      listingData.parsed.paymentAmount
     )
   );
 

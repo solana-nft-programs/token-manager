@@ -37,8 +37,8 @@ pub mod cardinal_transfer_authority {
         listing::update_listing::handler(ctx, ix)
     }
 
-    pub fn accept_listing<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>) -> Result<()> {
-        listing::accept_listing::handler(ctx)
+    pub fn accept_listing<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>, ix: AcceptListingIx) -> Result<()> {
+        listing::accept_listing::handler(ctx, ix)
     }
 
     pub fn remove_listing(ctx: Context<RemoveListingCtx>) -> Result<()> {

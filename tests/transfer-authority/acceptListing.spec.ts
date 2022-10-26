@@ -371,15 +371,21 @@ describe("Accept Listing", () => {
       rentalMint.publicKey
     );
 
-    await withAcceptListing(
-      transaction,
-      provider.connection,
-      provider.wallet,
-      buyer.publicKey,
-      rentalMint.publicKey,
-      checkListing.parsed.paymentAmount,
-      checkListing.parsed.paymentMint
-    );
+    try {
+      await withAcceptListing(
+        transaction,
+        provider.connection,
+        provider.wallet,
+        buyer.publicKey,
+        rentalMint.publicKey,
+        checkListing.parsed.paymentAmount,
+        checkListing.parsed.paymentMint
+      );
+    } catch (e) {
+      if (e !== "Listing data does not match expected values") {
+        throw e;
+      }
+    }
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({

@@ -214,7 +214,17 @@ export type CardinalTransferAuthority = {
       name: "updateListing";
       accounts: [
         {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "listing";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "listerMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -1421,7 +1431,17 @@ export const IDL: CardinalTransferAuthority = {
       name: "updateListing",
       accounts: [
         {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "listing",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "listerMintTokenAccount",
           isMut: true,
           isSigner: false,
         },

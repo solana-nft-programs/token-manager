@@ -207,6 +207,8 @@ export const updateListing = (
   connection: Connection,
   wallet: Wallet,
   listingId: PublicKey,
+  listerMintTokenAccountId: PublicKey,
+  tokenManagerId: PublicKey,
   marketplaceId: PublicKey,
   paymentAmount: BN,
   paymentMint: PublicKey
@@ -227,7 +229,9 @@ export const updateListing = (
     },
     {
       accounts: {
+        tokenManager: tokenManagerId,
         listing: listingId,
+        listerMintTokenAccount: listerMintTokenAccountId,
         lister: wallet.publicKey,
       },
     }

@@ -272,21 +272,22 @@ export const acceptListing = (
   listerPaymentTokenAccountId: PublicKey,
   listerMintTokenAccountId: PublicKey,
   lister: PublicKey,
-  buyerPaymentTokenAccountId: PublicKey,
   buyerMintTokenAccountId: PublicKey,
   buyer: PublicKey,
+  payerPaymentTokenAccountId: PublicKey,
   marketplaceId: PublicKey,
   mintId: PublicKey,
   listingId: PublicKey,
   tokenManagerId: PublicKey,
   mintMetadataId: PublicKey,
   transferReceiptId: PublicKey,
-  transferId: PublicKey,
   paymentManagerId: PublicKey,
   paymentMintId: PublicKey,
   feeCollectorTokenAccountId: PublicKey,
+  feeCollectorId: PublicKey,
   remainingAccounts: AccountMeta[],
-  payer = wallet.publicKey
+  paymentAmount: BN,
+  payer = buyer
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
@@ -295,36 +296,38 @@ export const acceptListing = (
     TRANSFER_AUTHORITY_ADDRESS,
     provider
   );
-  return transferAuthorityProgram.instruction.acceptListing({
-    accounts: {
-      transferAuthority: transferAuthorityId,
-      transferReceipt: transferReceiptId,
-      transfer: transferId,
-      listing: listingId,
-      listerPaymentTokenAccount: listerPaymentTokenAccountId,
-      listerMintTokenAccount: listerMintTokenAccountId,
-      lister: lister,
-      buyerPaymentTokenAccount: buyerPaymentTokenAccountId,
-      buyerMintTokenAccount: buyerMintTokenAccountId,
-      buyer: buyer,
-      marketplace: marketplaceId,
-      tokenManager: tokenManagerId,
-      mint: mintId,
-      mintMetadataInfo: mintMetadataId,
-      paymentManager: paymentManagerId,
-      paymentMint: paymentMintId,
-      feeCollectorTokenAccount: feeCollectorTokenAccountId,
-      payer: payer,
-      cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
-      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
-      instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-    },
-    remainingAccounts: remainingAccounts,
-  });
+  return transferAuthorityProgram.instruction.acceptListing(
+    { paymentAmount: paymentAmount },
+    {
+      accounts: {
+        transferAuthority: transferAuthorityId,
+        transferReceipt: transferReceiptId,
+        listing: listingId,
+        listerPaymentTokenAccount: listerPaymentTokenAccountId,
+        listerMintTokenAccount: listerMintTokenAccountId,
+        lister: lister,
+        buyerMintTokenAccount: buyerMintTokenAccountId,
+        buyer: buyer,
+        payer: payer,
+        payerPaymentTokenAccount: payerPaymentTokenAccountId,
+        marketplace: marketplaceId,
+        tokenManager: tokenManagerId,
+        mint: mintId,
+        mintMetadataInfo: mintMetadataId,
+        paymentManager: paymentManagerId,
+        paymentMint: paymentMintId,
+        feeCollectorTokenAccount: feeCollectorTokenAccountId,
+        feeCollector: feeCollectorId,
+        cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
+        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+      },
+      remainingAccounts: remainingAccounts,
+    }
+  );
 };
 
 export const whitelistMarkeplaces = (

@@ -45,10 +45,10 @@
     polished "^4.2.2"
     tslib "^2.4.0"
 
-"@cardinal/payment-manager@^1.7.7":
-  version "1.7.7"
-  resolved "https://registry.yarnpkg.com/@cardinal/payment-manager/-/payment-manager-1.7.7.tgz#82f722cf090a9363c9eed6b388193e91e6579aef"
-  integrity sha512-Pm/obkC+Bjm98rEuPfPmqi3wSnUC3Nd3OqpRUL4xrskZRCze09PIZ8R/XrkoiUntJxe5cERq6hxgs2jpx1Lnqw==
+"@cardinal/payment-manager@^1.7.9":
+  version "1.7.9"
+  resolved "https://registry.yarnpkg.com/@cardinal/payment-manager/-/payment-manager-1.7.9.tgz#47d894ccfbce5a40d90006e243d7b31e33524a89"
+  integrity sha512-saI8EOLwDeF41uVimBIRnDmR2RtWUWatWbYR1exAOjqrQn1D6WfrUPmmz5AoVsXmsIqQQfjydyuAYwQllIA8cw==
   dependencies:
     "@cardinal/common" "^3.0.1"
     "@metaplex-foundation/mpl-token-metadata" "^1.2.5"

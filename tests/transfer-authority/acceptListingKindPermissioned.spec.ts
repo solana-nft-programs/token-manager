@@ -49,9 +49,6 @@ describe("Accept Listing Permissioned", () => {
   const buyer = Keypair.generate();
   let mint: Token;
   const rentalPaymentAmount = new BN(100);
-  const rentalPaymentMint = new PublicKey(
-    "So11111111111111111111111111111111111111112"
-  );
 
   const paymentManagerName = `pm-${Math.random()}`;
   const feeCollector = Keypair.generate();
@@ -62,6 +59,11 @@ describe("Accept Listing Permissioned", () => {
   before(async () => {
     const provider = getProvider();
 
+    const feeCollectorInfo = await provider.connection.requestAirdrop(
+      feeCollector.publicKey,
+      LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(feeCollectorInfo);
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,
       LAMPORTS_PER_SOL
@@ -278,7 +280,7 @@ describe("Accept Listing Permissioned", () => {
       mint.publicKey,
       marketplaceName,
       rentalPaymentAmount,
-      rentalPaymentMint
+      PublicKey.default
     );
 
     const txEnvelope = new TransactionEnvelope(
@@ -304,7 +306,7 @@ describe("Accept Listing Permissioned", () => {
     expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
       rentalPaymentAmount.toNumber()
     );
-    expect(checkListing.parsed.paymentMint).to.eqAddress(rentalPaymentMint);
+    expect(checkListing.parsed.paymentMint).to.eqAddress(PublicKey.default);
 
     const issuerTokenAccountId = await findAta(
       mint.publicKey,
@@ -319,23 +321,35 @@ describe("Accept Listing Permissioned", () => {
   it("Accept Listing", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
+    const checkListing = await getListing(provider.connection, mint.publicKey);
+
+    const listingInfo = await provider.connection.getAccountInfo(
+      checkListing.pubkey
+    );
+    const beforeListerAmount =
+      (await provider.connection.getAccountInfo(lister.publicKey))?.lamports ||
+      0;
+    const beforeFeeCollectorAmount =
+      (await provider.connection.getAccountInfo(feeCollector.publicKey))
+        ?.lamports || 0;
 
     await withAcceptListing(
       transaction,
       provider.connection,
-      provider.wallet,
+      new SignerWallet(buyer),
       buyer.publicKey,
-      mint.publicKey
+      mint.publicKey,
+      checkListing.parsed.paymentAmount,
+      checkListing.parsed.paymentMint
     );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(buyer),
         opts: provider.opts,
       }),
-      [...transaction.instructions],
-      [buyer]
+      [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "accept listing", {
       verbosity: "error",
@@ -367,36 +381,20 @@ describe("Accept Listing Permissioned", () => {
       .div(BASIS_POINTS_DIVISOR);
     const totalFees = makerFee.add(takerFee);
 
-    const listerMintTokenAccountId = await findAta(
-      rentalPaymentMint,
-      lister.publicKey,
-      true
+    const listerInfo = await provider.connection.getAccountInfo(
+      lister.publicKey
     );
-    const feeCollectorTokenAccountId = await findAta(
-      rentalPaymentMint,
-      feeCollector.publicKey,
-      true
-    );
-    const checkPaymentMint = new splToken.Token(
-      provider.connection,
-      rentalPaymentMint,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
-    const listerPaymentMintTokenAccount = await checkPaymentMint.getAccountInfo(
-      listerMintTokenAccountId
-    );
-    expect(listerPaymentMintTokenAccount.amount.toNumber()).to.eq(
-      rentalPaymentAmount.sub(makerFee).toNumber()
+    expect(listerInfo?.lamports).to.eq(
+      beforeListerAmount +
+        rentalPaymentAmount.sub(makerFee).toNumber() +
+        (listingInfo?.lamports || 0)
     );
 
-    const feeCollectorTokenAccount = await checkPaymentMint.getAccountInfo(
-      feeCollectorTokenAccountId
+    const feeCollectorInfo = await provider.connection.getAccountInfo(
+      feeCollector.publicKey
     );
-    expect(feeCollectorTokenAccount.amount.toNumber()).to.eq(
-      totalFees.toNumber()
+    expect(feeCollectorInfo?.lamports).to.eq(
+      beforeFeeCollectorAmount + totalFees.toNumber()
     );
 
     const checkBuyerTokenAccountId = await findAta(

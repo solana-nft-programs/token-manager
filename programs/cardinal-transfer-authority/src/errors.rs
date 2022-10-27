@@ -50,4 +50,10 @@ pub enum ErrorCode {
     InstructionsDisallowed,
     #[msg("Token must be delegated")]
     TokenNotDelegated,
+    #[msg("Listing payment amount or mint has changed")]
+    ListingChanged,
+    #[msg("Invalid remaining accounts size")]
+    InvalidRemainingAccountsSize,
+    #[msg("Invalid payer payment token account")]
+    InvalidPayerPaymentTokenAccount,
 }

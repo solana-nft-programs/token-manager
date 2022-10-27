@@ -15,8 +15,12 @@ import {
 } from "@saberhq/solana-contrib";
 import type { Token } from "@solana/spl-token";
 import * as splToken from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  Transaction,
+} from "@solana/web3.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
 
@@ -31,7 +35,6 @@ import {
   withWrapToken,
 } from "../../src";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
-import { WSOL_MINT } from "../../src/programs/transferAuthority";
 import {
   getListing,
   getMarketplaceByName,
@@ -47,6 +50,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
+
   let rentalMint: Token;
   const rentalPaymentAmount = new BN(100);
 
@@ -59,6 +63,11 @@ describe("Allowed markeptlaces for transfer authority", () => {
   before(async () => {
     const provider = getProvider();
 
+    const feeCollectorInfo = await provider.connection.requestAirdrop(
+      feeCollector.publicKey,
+      LAMPORTS_PER_SOL
+    );
+    await provider.connection.confirmTransaction(feeCollectorInfo);
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,
       LAMPORTS_PER_SOL
@@ -423,29 +432,44 @@ describe("Allowed markeptlaces for transfer authority", () => {
     expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
       rentalPaymentAmount.toNumber()
     );
-    expect(checkListing.parsed.paymentMint).to.eqAddress(WSOL_MINT);
+    expect(checkListing.parsed.paymentMint).to.eqAddress(PublicKey.default);
   });
 
   it("Accept Listing", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
+    const checkListing = await getListing(
+      provider.connection,
+      rentalMint.publicKey
+    );
+    const listingInfo = await provider.connection.getAccountInfo(
+      checkListing.pubkey
+    );
+
+    const beforeListerAmount =
+      (await provider.connection.getAccountInfo(lister.publicKey))?.lamports ||
+      0;
+    const beforeFeeCollectorAmount =
+      (await provider.connection.getAccountInfo(feeCollector.publicKey))
+        ?.lamports || 0;
 
     await withAcceptListing(
       transaction,
       provider.connection,
-      provider.wallet,
+      new SignerWallet(buyer),
       buyer.publicKey,
-      rentalMint.publicKey
+      rentalMint.publicKey,
+      checkListing.parsed.paymentAmount,
+      checkListing.parsed.paymentMint
     );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
-        wallet: provider.wallet,
+        wallet: new SignerWallet(buyer),
         opts: provider.opts,
       }),
-      [...transaction.instructions],
-      [buyer]
+      [...transaction.instructions]
     );
     await expectTXTable(txEnvelope, "create listing", {
       verbosity: "error",
@@ -457,7 +481,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
       buyer.publicKey,
       true
     );
-    const checkMRentalint = new splToken.Token(
+    const checkMRentalMint = new splToken.Token(
       provider.connection,
       rentalMint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
@@ -465,7 +489,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
       // @ts-ignore
       null
     );
-    const buyerRentalMintTokenAccount = await checkMRentalint.getAccountInfo(
+    const buyerRentalMintTokenAccount = await checkMRentalMint.getAccountInfo(
       buyerMintTokenAccountId
     );
     expect(buyerRentalMintTokenAccount.amount.toNumber()).to.eq(1);
@@ -479,36 +503,20 @@ describe("Allowed markeptlaces for transfer authority", () => {
       .div(BASIS_POINTS_DIVISOR);
     const totalFees = makerFee.add(takerFee);
 
-    const listerMintTokenAccountId = await findAta(
-      WSOL_MINT,
-      lister.publicKey,
-      true
+    const listerInfo = await provider.connection.getAccountInfo(
+      lister.publicKey
     );
-    const feeCollectorTokenAccountId = await findAta(
-      WSOL_MINT,
-      feeCollector.publicKey,
-      true
-    );
-    const checkPaymentMint = new splToken.Token(
-      provider.connection,
-      WSOL_MINT,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
-    const listerPaymentMintTokenAccount = await checkPaymentMint.getAccountInfo(
-      listerMintTokenAccountId
-    );
-    expect(listerPaymentMintTokenAccount.amount.toNumber()).to.eq(
-      rentalPaymentAmount.sub(makerFee).toNumber()
+    expect(listerInfo?.lamports).to.eq(
+      beforeListerAmount +
+        rentalPaymentAmount.sub(makerFee).toNumber() +
+        (listingInfo?.lamports || 0)
     );
 
-    const feeCollectorTokenAccount = await checkPaymentMint.getAccountInfo(
-      feeCollectorTokenAccountId
+    const feeCollectorInfo = await provider.connection.getAccountInfo(
+      feeCollector.publicKey
     );
-    expect(feeCollectorTokenAccount.amount.toNumber()).to.eq(
-      totalFees.toNumber()
+    expect(feeCollectorInfo?.lamports).to.eq(
+      beforeFeeCollectorAmount + totalFees.toNumber()
     );
   });
 });

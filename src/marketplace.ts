@@ -6,12 +6,8 @@ import {
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import type { Wallet } from "@saberhq/solana-contrib";
-import type {
-  AccountMeta,
-  Connection,
-  PublicKey,
-  Transaction,
-} from "@solana/web3.js";
+import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import type BN from "bn.js";
 
 import {
@@ -239,7 +235,7 @@ export const withCreateListing = async (
   mintId: PublicKey,
   markeptlaceName: string,
   paymentAmount: BN,
-  paymentMint = WSOL_MINT,
+  paymentMint = PublicKey.default,
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
   const [listingId] = await findListingAddress(mintId);
@@ -328,7 +324,10 @@ export const withAcceptListing = async (
   wallet: Wallet,
   buyer: PublicKey,
   mintId: PublicKey,
-  buySideTokenAccount?: PublicKey
+  paymentAmount: BN,
+  paymentMint: PublicKey,
+  buySideReceiver?: PublicKey,
+  payer = buyer
 ): Promise<Transaction> => {
   const listingData = await tryGetAccount(() => getListing(connection, mintId));
   if (!listingData?.parsed) {
@@ -346,15 +345,17 @@ export const withAcceptListing = async (
   if (!paymentManagerData?.parsed) {
     throw `No payment manager found for marketplace with name ${marketplaceData.parsed.name}`;
   }
+  const nativePayment = paymentMint.toString() === PublicKey.default.toString();
 
-  const listerPaymentTokenAccountId =
-    await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      listingData.parsed.paymentMint,
-      listingData.parsed.lister,
-      wallet.publicKey
-    );
+  const listerPaymentTokenAccountId = nativePayment
+    ? listingData.parsed.lister
+    : await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        listingData.parsed.paymentMint,
+        listingData.parsed.lister,
+        wallet.publicKey
+      );
 
   const listerMintTokenAccountId = await findAta(
     mintId,
@@ -362,16 +363,17 @@ export const withAcceptListing = async (
     true
   );
 
-  const buyerPaymentTokenAccountId =
-    listingData.parsed.lister.toString() === buyer.toString()
-      ? await findAta(listingData.parsed.paymentMint, buyer, true)
-      : await withFindOrInitAssociatedTokenAccount(
-          transaction,
-          connection,
-          listingData.parsed.paymentMint,
-          buyer,
-          wallet.publicKey
-        );
+  const payerPaymentTokenAccountId = nativePayment
+    ? payer
+    : listingData.parsed.lister.toString() !== payer.toString()
+    ? await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        listingData.parsed.paymentMint,
+        payer,
+        wallet.publicKey
+      )
+    : listerPaymentTokenAccountId;
 
   if (listingData.parsed.paymentMint.toString() === WSOL_MINT.toString()) {
     await withWrapSol(
@@ -391,21 +393,24 @@ export const withAcceptListing = async (
           connection,
           mintId,
           buyer,
-          wallet.publicKey
+          wallet.publicKey,
+          true
         );
 
-  const feeCollectorTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    listingData.parsed.paymentMint,
-    paymentManagerData?.parsed.feeCollector,
-    wallet.publicKey
-  );
+  const feeCollectorTokenAccountId = nativePayment
+    ? paymentManagerData?.parsed.feeCollector
+    : await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        listingData.parsed.paymentMint,
+        paymentManagerData?.parsed.feeCollector,
+        wallet.publicKey,
+        true
+      );
 
   const mintMetadataId = await Metadata.getPDA(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
-  const [transferId] = await findTransferAddress(mintId);
 
   const remainingAccountsForHandlePaymentWithRoyalties =
     await withRemainingAccountsForHandlePaymentWithRoyalties(
@@ -414,7 +419,7 @@ export const withAcceptListing = async (
       wallet,
       mintId,
       listingData.parsed.paymentMint,
-      buySideTokenAccount,
+      buySideReceiver,
       [listingData.parsed.lister.toString(), buyer.toString()]
     );
 
@@ -434,6 +439,13 @@ export const withAcceptListing = async (
     ...remainingAccountsForKind,
   ];
 
+  if (
+    (paymentAmount && !paymentAmount.eq(listingData.parsed.paymentAmount)) ||
+    (paymentMint && !paymentMint.equals(listingData.parsed.paymentMint))
+  ) {
+    throw "Listing data does not match expected values";
+  }
+
   transaction.add(
     acceptListing(
       connection,
@@ -442,20 +454,22 @@ export const withAcceptListing = async (
       listerPaymentTokenAccountId,
       listerMintTokenAccountId,
       listingData.parsed.lister,
-      buyerPaymentTokenAccountId,
       buyerMintTokenAccountId,
       buyer,
+      payerPaymentTokenAccountId,
       marketplaceData.pubkey,
       mintId,
       listingData.pubkey,
       tokenManagerId,
       mintMetadataId,
       transferReceiptId,
-      transferId,
       marketplaceData.parsed.paymentManager,
-      listingData.parsed.paymentMint,
+      paymentMint,
       feeCollectorTokenAccountId,
-      remainingAccounts
+      paymentManagerData?.parsed.feeCollector,
+      remainingAccounts,
+      listingData.parsed.paymentAmount,
+      payer
     )
   );
 

@@ -93,7 +93,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         return Err(error!(ErrorCode::ListingChanged));
     }
 
-    if remaining_accs.len() == 0 {
+    if remaining_accs.is_empty() {
         return Err(error!(ErrorCode::InvalidRemainingAccountsSize));
     }
     let payment_remaining_accounts = if ctx.accounts.token_manager.kind == TokenManagerKind::Permissioned as u8 {

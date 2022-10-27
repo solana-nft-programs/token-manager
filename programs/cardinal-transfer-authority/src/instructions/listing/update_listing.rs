@@ -26,7 +26,7 @@ pub struct UpdateListingCtx<'info> {
         lister_mint_token_account.mint == token_manager.mint &&
         lister_mint_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
     lister_mint_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
+    #[account(mut)]
     lister: Signer<'info>,
 }
 

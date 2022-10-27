@@ -12,8 +12,12 @@ use {
 pub struct RemoveListingCtx<'info> {
     #[account(mut, close = lister)]
     listing: Box<Account<'info, Listing>>,
-
-    #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
+    #[account(mut, constraint =
+        lister_mint_token_account.amount == 1 &&
+        lister_mint_token_account.mint == token_manager.mint &&
+        lister_mint_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
+    lister_mint_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
     lister: Signer<'info>,
 
     /// CHECK: This is not dangerous because this account is not read in this instruction

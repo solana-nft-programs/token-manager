@@ -54,4 +54,6 @@ pub enum ErrorCode {
     ListingChanged,
     #[msg("Invalid remaining accounts size")]
     InvalidRemainingAccountsSize,
+    #[msg("Invalid payer payment token account")]
+    InvalidPayerPaymentTokenAccount,
 }

@@ -326,7 +326,8 @@ export const withAcceptListing = async (
   mintId: PublicKey,
   paymentAmount: BN,
   paymentMint: PublicKey,
-  buySideReceiver?: PublicKey
+  buySideReceiver?: PublicKey,
+  payer = buyer
 ): Promise<Transaction> => {
   const listingData = await tryGetAccount(() => getListing(connection, mintId));
   if (!listingData?.parsed) {
@@ -362,14 +363,14 @@ export const withAcceptListing = async (
     true
   );
 
-  const buyerPaymentTokenAccountId = nativePayment
-    ? buyer
-    : listingData.parsed.lister.toString() !== buyer.toString()
+  const payerPaymentTokenAccountId = nativePayment
+    ? payer
+    : listingData.parsed.lister.toString() !== payer.toString()
     ? await withFindOrInitAssociatedTokenAccount(
         transaction,
         connection,
         listingData.parsed.paymentMint,
-        buyer,
+        payer,
         wallet.publicKey
       )
     : listerPaymentTokenAccountId;
@@ -451,7 +452,7 @@ export const withAcceptListing = async (
       listerPaymentTokenAccountId,
       listerMintTokenAccountId,
       listingData.parsed.lister,
-      buyerPaymentTokenAccountId,
+      payerPaymentTokenAccountId,
       buyerMintTokenAccountId,
       buyer,
       marketplaceData.pubkey,
@@ -465,7 +466,8 @@ export const withAcceptListing = async (
       feeCollectorTokenAccountId,
       paymentManagerData?.parsed.feeCollector,
       remainingAccounts,
-      listingData.parsed.paymentAmount
+      listingData.parsed.paymentAmount,
+      payer
     )
   );
 

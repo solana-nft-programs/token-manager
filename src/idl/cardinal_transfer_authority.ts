@@ -267,11 +267,6 @@ export type CardinalTransferAuthority = {
           isSigner: false;
         },
         {
-          name: "buyerPaymentTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "buyerMintTokenAccount";
           isMut: true;
           isSigner: false;
@@ -280,6 +275,16 @@ export type CardinalTransferAuthority = {
           name: "buyer";
           isMut: true;
           isSigner: true;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "payerPaymentTokenAccount";
+          isMut: true;
+          isSigner: false;
         },
         {
           name: "marketplace";
@@ -792,12 +797,6 @@ export type CardinalTransferAuthority = {
             };
           },
           {
-            name: "buyerPaymentTokenAccount";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
             name: "buyerMintTokenAccount";
             type: {
               defined: "Account<'info,TokenAccount>";
@@ -807,6 +806,18 @@ export type CardinalTransferAuthority = {
             name: "buyer";
             type: {
               defined: "Signer<'info>";
+            };
+          },
+          {
+            name: "payer";
+            type: {
+              defined: "Signer<'info>";
+            };
+          },
+          {
+            name: "payerPaymentTokenAccount";
+            type: {
+              defined: "UncheckedAccount<'info>";
             };
           },
           {
@@ -1185,6 +1196,11 @@ export type CardinalTransferAuthority = {
       code: 6025;
       name: "InvalidRemainingAccountsSize";
       msg: "Invalid remaining accounts size";
+    },
+    {
+      code: 6026;
+      name: "InvalidPayerPaymentTokenAccount";
+      msg: "Invalid payer payment token account";
     }
   ];
 };
@@ -1458,11 +1474,6 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: false,
         },
         {
-          name: "buyerPaymentTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "buyerMintTokenAccount",
           isMut: true,
           isSigner: false,
@@ -1471,6 +1482,16 @@ export const IDL: CardinalTransferAuthority = {
           name: "buyer",
           isMut: true,
           isSigner: true,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "payerPaymentTokenAccount",
+          isMut: true,
+          isSigner: false,
         },
         {
           name: "marketplace",
@@ -1983,12 +2004,6 @@ export const IDL: CardinalTransferAuthority = {
             },
           },
           {
-            name: "buyerPaymentTokenAccount",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
             name: "buyerMintTokenAccount",
             type: {
               defined: "Account<'info,TokenAccount>",
@@ -1998,6 +2013,18 @@ export const IDL: CardinalTransferAuthority = {
             name: "buyer",
             type: {
               defined: "Signer<'info>",
+            },
+          },
+          {
+            name: "payer",
+            type: {
+              defined: "Signer<'info>",
+            },
+          },
+          {
+            name: "payerPaymentTokenAccount",
+            type: {
+              defined: "UncheckedAccount<'info>",
             },
           },
           {
@@ -2376,6 +2403,11 @@ export const IDL: CardinalTransferAuthority = {
       code: 6025,
       name: "InvalidRemainingAccountsSize",
       msg: "Invalid remaining accounts size",
+    },
+    {
+      code: 6026,
+      name: "InvalidPayerPaymentTokenAccount",
+      msg: "Invalid payer payment token account",
     },
   ],
 };

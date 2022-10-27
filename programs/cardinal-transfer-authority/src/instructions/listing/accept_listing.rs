@@ -43,15 +43,18 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
     lister: UncheckedAccount<'info>,
 
-    /// CHECK: This is not dangerous because account is checked below
-    #[account(mut)]
-    buyer_payment_token_account: UncheckedAccount<'info>,
     #[account(mut, constraint =
         buyer_mint_token_account.mint == token_manager.mint &&
         buyer_mint_token_account.owner == buyer.key() @ ErrorCode::InvalidBuyerMintTokenAccount)]
     buyer_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     buyer: Signer<'info>,
+
+    #[account(mut)]
+    payer: Signer<'info>,
+    /// CHECK: This is not dangerous because account is checked below
+    #[account(mut)]
+    payer_payment_token_account: UncheckedAccount<'info>,
 
     #[account(mut, constraint = marketplace.key() == listing.marketplace @ ErrorCode::InvalidMarketplace)]
     marketplace: Box<Account<'info, Marketplace>>,
@@ -108,7 +111,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             payment_manager: ctx.accounts.payment_manager.to_account_info(),
             fee_collector: ctx.accounts.fee_collector.to_account_info(),
             payment_target: ctx.accounts.lister.to_account_info(),
-            payer: ctx.accounts.buyer.to_account_info(),
+            payer: ctx.accounts.payer.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
             mint_metadata: ctx.accounts.mint_metadata_info.to_account_info(),
             system_program: ctx.accounts.system_program.to_account_info(),
@@ -124,23 +127,23 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             return Err(error!(ErrorCode::InvalidListerPaymentTokenAccount));
         }
         // check on buyer token account
-        let buyer_payment_token_account = Account::<TokenAccount>::try_from(&ctx.accounts.buyer_payment_token_account)?;
-        if buyer_payment_token_account.mint != ctx.accounts.listing.payment_mint
-            || buyer_payment_token_account.amount < ctx.accounts.listing.payment_amount
-            || buyer_payment_token_account.owner != ctx.accounts.buyer.key()
+        let payer_payment_token_account = Account::<TokenAccount>::try_from(&ctx.accounts.payer_payment_token_account)?;
+        if payer_payment_token_account.mint != ctx.accounts.listing.payment_mint
+            || payer_payment_token_account.amount < ctx.accounts.listing.payment_amount
+            || payer_payment_token_account.owner != ctx.accounts.payer.key()
         {
-            return Err(error!(ErrorCode::InvalidBuyerPaymentTokenAccount));
+            return Err(error!(ErrorCode::InvalidPayerPaymentTokenAccount));
         }
 
         let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
             payment_manager: ctx.accounts.payment_manager.to_account_info(),
-            payer_token_account: ctx.accounts.buyer_payment_token_account.to_account_info(),
+            payer_token_account: ctx.accounts.payer_payment_token_account.to_account_info(),
             fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
             payment_token_account: ctx.accounts.lister_payment_token_account.to_account_info(),
             payment_mint: ctx.accounts.payment_mint.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
             mint_metadata: ctx.accounts.mint_metadata_info.to_account_info(),
-            payer: ctx.accounts.buyer.to_account_info(),
+            payer: ctx.accounts.payer.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(ctx.remaining_accounts.to_vec());
@@ -159,7 +162,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_manager: ctx.accounts.token_manager.to_account_info(),
         transfer_authority: ctx.accounts.transfer_authority.to_account_info(),
         transfer_receipt: ctx.accounts.transfer_receipt.to_account_info(),
-        payer: ctx.accounts.buyer.to_account_info(),
+        payer: ctx.accounts.payer.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(transfer_authority_signer);

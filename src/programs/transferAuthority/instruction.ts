@@ -243,7 +243,7 @@ export const removeListing = async (
   wallet: Wallet,
   listingId: PublicKey,
   mintId: PublicKey,
-  listerTokenAccountId: PublicKey
+  listerMintTokenAccount: PublicKey
 ): Promise<TransactionInstruction> => {
   const provider = new AnchorProvider(connection, wallet, {});
 
@@ -257,12 +257,12 @@ export const removeListing = async (
   const [mintManagerId] = await findMintManagerId(mintId);
   return transferAuthorityProgram.instruction.removeListing({
     accounts: {
+      tokenManager: tokenManagerId,
       listing: listingId,
       lister: wallet.publicKey,
+      listerMintTokenAccount: listerMintTokenAccount,
       mint: mintId,
       mintManager: mintManagerId,
-      tokenManager: tokenManagerId,
-      listerTokenAccount: listerTokenAccountId,
       cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
     },

@@ -380,7 +380,17 @@ export type CardinalTransferAuthority = {
       name: "removeListing";
       accounts: [
         {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "listing";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "listerMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -396,16 +406,6 @@ export type CardinalTransferAuthority = {
         },
         {
           name: "mintManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "tokenManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "listerTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -1597,7 +1597,17 @@ export const IDL: CardinalTransferAuthority = {
       name: "removeListing",
       accounts: [
         {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "listing",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "listerMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -1613,16 +1623,6 @@ export const IDL: CardinalTransferAuthority = {
         },
         {
           name: "mintManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "tokenManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "listerTokenAccount",
           isMut: true,
           isSigner: false,
         },

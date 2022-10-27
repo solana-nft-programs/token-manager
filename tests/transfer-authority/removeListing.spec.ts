@@ -293,7 +293,7 @@ describe("Remove Listing", () => {
   it("Remove Listing", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
-    const listingTokenAccountId = await findAta(
+    const listerTokenAccountId = await findAta(
       rentalMint.publicKey,
       provider.wallet.publicKey
     );
@@ -303,7 +303,7 @@ describe("Remove Listing", () => {
       provider.connection,
       provider.wallet,
       rentalMint.publicKey,
-      listingTokenAccountId
+      listerTokenAccountId
     );
 
     const txEnvelope = new TransactionEnvelope(

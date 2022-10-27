@@ -281,13 +281,12 @@ export const acceptListing = (
   tokenManagerId: PublicKey,
   mintMetadataId: PublicKey,
   transferReceiptId: PublicKey,
-  transferId: PublicKey,
   paymentManagerId: PublicKey,
   paymentMintId: PublicKey,
   feeCollectorTokenAccountId: PublicKey,
+  feeCollectorId: PublicKey,
   remainingAccounts: AccountMeta[],
-  paymentAmount: BN,
-  payer = wallet.publicKey
+  paymentAmount: BN
 ): TransactionInstruction => {
   const provider = new AnchorProvider(connection, wallet, {});
 
@@ -302,7 +301,6 @@ export const acceptListing = (
       accounts: {
         transferAuthority: transferAuthorityId,
         transferReceipt: transferReceiptId,
-        transfer: transferId,
         listing: listingId,
         listerPaymentTokenAccount: listerPaymentTokenAccountId,
         listerMintTokenAccount: listerMintTokenAccountId,
@@ -317,7 +315,7 @@ export const acceptListing = (
         paymentManager: paymentManagerId,
         paymentMint: paymentMintId,
         feeCollectorTokenAccount: feeCollectorTokenAccountId,
-        payer: payer,
+        feeCollector: feeCollectorId,
         cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
         cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,

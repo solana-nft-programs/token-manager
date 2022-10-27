@@ -1,12 +1,14 @@
 use anchor_spl::{associated_token::AssociatedToken, token::TokenAccount};
-use cardinal_token_manager::{program::CardinalTokenManager, state::TokenManager};
+use cardinal_token_manager::{
+    program::CardinalTokenManager,
+    state::{TokenManager, TokenManagerKind},
+};
 
 use {
     crate::{errors::ErrorCode, state::*},
-    anchor_lang::{prelude::*, AccountsClose},
+    anchor_lang::prelude::*,
     anchor_spl::token::Token,
     cardinal_payment_manager::program::CardinalPaymentManager,
-    mpl_token_metadata,
 };
 
 use solana_program::sysvar::{self};
@@ -24,15 +26,14 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut)]
     transfer_receipt: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because this is the receipt getting initialized
-    #[account(mut)]
-    transfer: UncheckedAccount<'info>,
+    // #[account(mut)]
+    // transfer: UncheckedAccount<'info>,
 
     #[account(mut, close = lister)]
     listing: Box<Account<'info, Listing>>,
-    #[account(mut, constraint =
-        lister_payment_token_account.mint == listing.payment_mint &&
-        lister_payment_token_account.owner == listing.lister @ ErrorCode::InvalidListerPaymentTokenAccount)]
-    lister_payment_token_account: Box<Account<'info, TokenAccount>>,
+    /// CHECK: This is not dangerous because account is checked below
+    #[account(mut)]
+    lister_payment_token_account: UncheckedAccount<'info>,
     #[account(mut, constraint =
         lister_mint_token_account.amount == 1 &&
         lister_mint_token_account.mint == token_manager.mint &&
@@ -42,11 +43,9 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
     lister: UncheckedAccount<'info>,
 
-    #[account(mut, constraint =
-        buyer_payment_token_account.mint == listing.payment_mint &&
-        buyer_payment_token_account.amount >= listing.payment_amount &&
-        buyer_payment_token_account.owner == buyer.key() @ ErrorCode::InvalidBuyerPaymentTokenAccount)]
-    buyer_payment_token_account: Box<Account<'info, TokenAccount>>,
+    /// CHECK: This is not dangerous because account is checked below
+    #[account(mut)]
+    buyer_payment_token_account: UncheckedAccount<'info>,
     #[account(mut, constraint =
         buyer_mint_token_account.mint == token_manager.mint &&
         buyer_mint_token_account.owner == buyer.key() @ ErrorCode::InvalidBuyerMintTokenAccount)]
@@ -69,14 +68,15 @@ pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = payment_manager.key() == marketplace.payment_manager @ ErrorCode::InvalidPaymentManager)]
     payment_manager: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because of the listing.payment_mint check
-    #[account(mut, constraint = payment_mint.key() == listing.payment_mint @ ErrorCode::InvalidPaymentMint)]
+    #[account(constraint = payment_mint.key() == listing.payment_mint @ ErrorCode::InvalidPaymentMint)]
     payment_mint: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because it is checked in the payment manager handle payment with royalties instruction
     #[account(mut)]
     fee_collector_token_account: UncheckedAccount<'info>,
-
+    /// CHECK: This is not dangerous because it is checked in the payment manager handle payment with royalties instruction
     #[account(mut)]
-    payer: Signer<'info>,
+    fee_collector: UncheckedAccount<'info>,
+
     cardinal_payment_manager: Program<'info, CardinalPaymentManager>,
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
     associated_token_program: Program<'info, AssociatedToken>,
@@ -89,24 +89,63 @@ pub struct AcceptListingCtx<'info> {
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, AcceptListingCtx<'info>>, ix: AcceptListingIx) -> Result<()> {
     let remaining_accs = &mut ctx.remaining_accounts.to_vec();
-
     if ix.payment_amount != ctx.accounts.listing.payment_amount {
         return Err(error!(ErrorCode::ListingChanged));
     }
 
-    let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
-        payment_manager: ctx.accounts.payment_manager.to_account_info(),
-        payer_token_account: ctx.accounts.buyer_payment_token_account.to_account_info(),
-        fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
-        payment_token_account: ctx.accounts.lister_payment_token_account.to_account_info(),
-        payment_mint: ctx.accounts.payment_mint.to_account_info(),
-        mint: ctx.accounts.mint.to_account_info(),
-        mint_metadata: ctx.accounts.mint_metadata_info.to_account_info(),
-        payer: ctx.accounts.buyer.to_account_info(),
-        token_program: ctx.accounts.token_program.to_account_info(),
+    if remaining_accs.len() == 0 {
+        return Err(error!(ErrorCode::InvalidRemainingAccountsSize));
+    }
+    let payment_remaining_accounts = if ctx.accounts.token_manager.kind == TokenManagerKind::Permissioned as u8 {
+        &remaining_accs[..remaining_accs.len() - 1]
+    } else {
+        &remaining_accs[..remaining_accs.len() - 2]
     };
-    let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(ctx.remaining_accounts.to_vec());
-    cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, ctx.accounts.listing.payment_amount)?;
+
+    // native SOL
+    if ctx.accounts.payment_mint.key() == Pubkey::default() {
+        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandleNativePaymentWithRoyaltiesCtx {
+            payment_manager: ctx.accounts.payment_manager.to_account_info(),
+            fee_collector: ctx.accounts.fee_collector.to_account_info(),
+            payment_target: ctx.accounts.lister.to_account_info(),
+            payer: ctx.accounts.buyer.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            mint_metadata: ctx.accounts.mint_metadata_info.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(payment_remaining_accounts.to_vec());
+        cardinal_payment_manager::cpi::handle_native_payment_with_royalties(cpi_ctx, ctx.accounts.listing.payment_amount)?;
+    } else {
+        // any SPL token
+
+        // check on lister token account
+        let lister_payment_token_account = Account::<TokenAccount>::try_from(&ctx.accounts.lister_payment_token_account)?;
+        if lister_payment_token_account.mint != ctx.accounts.listing.payment_mint || ctx.accounts.lister_payment_token_account.owner != &ctx.accounts.lister.key() {
+            return Err(error!(ErrorCode::InvalidListerPaymentTokenAccount));
+        }
+        // check on buyer token account
+        let buyer_payment_token_account = Account::<TokenAccount>::try_from(&ctx.accounts.buyer_payment_token_account)?;
+        if buyer_payment_token_account.mint != ctx.accounts.listing.payment_mint
+            || buyer_payment_token_account.amount < ctx.accounts.listing.payment_amount
+            || buyer_payment_token_account.owner != ctx.accounts.buyer.key()
+        {
+            return Err(error!(ErrorCode::InvalidBuyerPaymentTokenAccount));
+        }
+
+        let cpi_accounts = cardinal_payment_manager::cpi::accounts::HandlePaymentWithRoyaltiesCtx {
+            payment_manager: ctx.accounts.payment_manager.to_account_info(),
+            payer_token_account: ctx.accounts.buyer_payment_token_account.to_account_info(),
+            fee_collector_token_account: ctx.accounts.fee_collector_token_account.to_account_info(),
+            payment_token_account: ctx.accounts.lister_payment_token_account.to_account_info(),
+            payment_mint: ctx.accounts.payment_mint.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            mint_metadata: ctx.accounts.mint_metadata_info.to_account_info(),
+            payer: ctx.accounts.buyer.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_payment_manager.to_account_info(), cpi_accounts).with_remaining_accounts(ctx.remaining_accounts.to_vec());
+        cardinal_payment_manager::cpi::handle_payment_with_royalties(cpi_ctx, ctx.accounts.listing.payment_amount)?;
+    }
 
     let transfer_authority_seeds = &[
         TRANSFER_AUTHORITY_SEED.as_bytes(),
@@ -120,7 +159,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_manager: ctx.accounts.token_manager.to_account_info(),
         transfer_authority: ctx.accounts.transfer_authority.to_account_info(),
         transfer_receipt: ctx.accounts.transfer_receipt.to_account_info(),
-        payer: ctx.accounts.payer.to_account_info(),
+        payer: ctx.accounts.buyer.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts).with_signer(transfer_authority_signer);
@@ -128,13 +167,13 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     let remaining_accounts_length = remaining_accs.len();
     let mut transfer_remaining_accounts = Vec::new();
-    if remaining_accs[remaining_accounts_length - 1].key() == mpl_token_metadata::id() {
-        // kind Edition
-        transfer_remaining_accounts.push(remaining_accs[remaining_accounts_length - 2].to_account_info());
+    if ctx.accounts.token_manager.kind == TokenManagerKind::Permissioned as u8 {
+        // kind Managed
         transfer_remaining_accounts.push(remaining_accs[remaining_accounts_length - 1].to_account_info());
         transfer_remaining_accounts.push(ctx.accounts.transfer_receipt.to_account_info());
     } else {
-        // kind Managed
+        // kind Edition
+        transfer_remaining_accounts.push(remaining_accs[remaining_accounts_length - 2].to_account_info());
         transfer_remaining_accounts.push(remaining_accs[remaining_accounts_length - 1].to_account_info());
         transfer_remaining_accounts.push(ctx.accounts.transfer_receipt.to_account_info());
     }
@@ -150,15 +189,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     cardinal_token_manager::cpi::transfer(cpi_ctx)?;
 
     // close transfer if it exists
-    assert_derivation(
-        ctx.program_id,
-        &ctx.accounts.transfer.to_account_info(),
-        &[TRANSFER_SEED.as_bytes(), ctx.accounts.token_manager.key().as_ref()],
-    )?;
-    let transfer_info = Account::<Transfer>::try_from(&ctx.accounts.transfer);
-    if transfer_info.is_ok() {
-        transfer_info?.close(ctx.accounts.lister.to_account_info())?;
-    }
+    // assert_derivation(
+    //     ctx.program_id,
+    //     &ctx.accounts.transfer.to_account_info(),
+    //     &[TRANSFER_SEED.as_bytes(), ctx.accounts.token_manager.key().as_ref()],
+    // )?;
+    // let transfer_info = Account::<Transfer>::try_from(&ctx.accounts.transfer);
+    // if transfer_info.is_ok() {
+    //     transfer_info?.close(ctx.accounts.lister.to_account_info())?;
+    // }
 
     Ok(())
 }

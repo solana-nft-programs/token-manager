@@ -52,4 +52,6 @@ pub enum ErrorCode {
     TokenNotDelegated,
     #[msg("Listing payment amount or mint has changed")]
     ListingChanged,
+    #[msg("Invalid remaining accounts size")]
+    InvalidRemainingAccountsSize,
 }

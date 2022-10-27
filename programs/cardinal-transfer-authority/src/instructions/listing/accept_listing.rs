@@ -123,7 +123,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
         // check on lister token account
         let lister_payment_token_account = Account::<TokenAccount>::try_from(&ctx.accounts.lister_payment_token_account)?;
-        if lister_payment_token_account.mint != ctx.accounts.listing.payment_mint || ctx.accounts.lister_payment_token_account.owner != &ctx.accounts.lister.key() {
+        if lister_payment_token_account.mint != ctx.accounts.listing.payment_mint || lister_payment_token_account.owner != ctx.accounts.lister.key() {
             return Err(error!(ErrorCode::InvalidListerPaymentTokenAccount));
         }
         // check on buyer token account

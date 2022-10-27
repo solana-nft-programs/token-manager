@@ -393,7 +393,8 @@ export const withAcceptListing = async (
           connection,
           mintId,
           buyer,
-          wallet.publicKey
+          wallet.publicKey,
+          true
         );
 
   const feeCollectorTokenAccountId = nativePayment
@@ -403,7 +404,8 @@ export const withAcceptListing = async (
         connection,
         listingData.parsed.paymentMint,
         paymentManagerData?.parsed.feeCollector,
-        wallet.publicKey
+        wallet.publicKey,
+        true
       );
 
   const mintMetadataId = await Metadata.getPDA(mintId);
@@ -452,9 +454,9 @@ export const withAcceptListing = async (
       listerPaymentTokenAccountId,
       listerMintTokenAccountId,
       listingData.parsed.lister,
-      payerPaymentTokenAccountId,
       buyerMintTokenAccountId,
       buyer,
+      payerPaymentTokenAccountId,
       marketplaceData.pubkey,
       mintId,
       listingData.pubkey,

@@ -38,7 +38,11 @@ import {
   getRemainingAccountsForTransfer,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager/utils";
-import { getTransferAuthorityByName } from "./programs/transferAuthority/accounts";
+import {
+  getListing,
+  getTransferAuthorityByName,
+} from "./programs/transferAuthority/accounts";
+import { findListingAddress } from "./programs/transferAuthority/pda";
 import type { UseInvalidationParams } from "./programs/useInvalidator/instruction";
 import type { AccountData } from "./utils";
 import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
@@ -1077,6 +1081,13 @@ export const withSend = async (
     throw "No token manager found";
   }
   const [mintManagerId] = await findMintManagerId(mintId);
+  const [listingId] = await findListingAddress(mintId);
+  const checkListing = await tryGetAccount(() =>
+    getListing(connection, listingId)
+  );
+  if (checkListing) {
+    throw "Token is already listed. You need to delist the token first before sending it.";
+  }
 
   const targetTokenAccountId = await findAta(mintId, target, true);
   transaction.add(

@@ -251,22 +251,39 @@ export const withCreateListing = async (
   if (!tokenManagerData.parsed.transferAuthority) {
     throw `No transfer authority for token manager`;
   }
-
-  transaction.add(
-    await createListing(
-      connection,
-      wallet,
-      listingId,
-      mintId,
-      tokenManagerData.parsed.transferAuthority,
-      tokenManagerId,
-      marketplaceId,
-      listerTokenAccountId,
-      paymentAmount,
-      paymentMint,
-      payer
-    )
+  const checkListing = await tryGetAccount(() =>
+    getListing(connection, listingId)
   );
+  if (checkListing) {
+    transaction.add(
+      await withUpdateListing(
+        transaction,
+        connection,
+        wallet,
+        mintId,
+        marketplaceId,
+        paymentAmount,
+        paymentMint
+      )
+    );
+  } else {
+    transaction.add(
+      await createListing(
+        connection,
+        wallet,
+        listingId,
+        mintId,
+        tokenManagerData.parsed.transferAuthority,
+        tokenManagerId,
+        marketplaceId,
+        listerTokenAccountId,
+        paymentAmount,
+        paymentMint,
+        payer
+      )
+    );
+  }
+
   return [transaction, marketplaceId];
 };
 
@@ -275,6 +292,7 @@ export const withUpdateListing = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
+  marketplaceId: PublicKey,
   paymentAmount: BN,
   paymentMint: PublicKey
 ): Promise<Transaction> => {
@@ -282,6 +300,11 @@ export const withUpdateListing = async (
   if (!listingData?.parsed) {
     throw `No listing found for mint address ${mintId.toString()}`;
   }
+  const listerMintTokenAccountId = await findAta(
+    mintId,
+    wallet.publicKey,
+    true
+  );
 
   const [listingId] = await findListingAddress(mintId);
   transaction.add(
@@ -289,7 +312,9 @@ export const withUpdateListing = async (
       connection,
       wallet,
       listingId,
-      listingData.parsed.marketplace,
+      listerMintTokenAccountId,
+      listingData.parsed.tokenManager,
+      marketplaceId,
       paymentAmount,
       paymentMint
     )
@@ -302,7 +327,7 @@ export const withRemoveListing = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  listingTokenAccountId: PublicKey
+  listerMintTokenAccountId: PublicKey
 ): Promise<Transaction> => {
   const [listingId] = await findListingAddress(mintId);
 
@@ -312,7 +337,7 @@ export const withRemoveListing = async (
       wallet,
       listingId,
       mintId,
-      listingTokenAccountId
+      listerMintTokenAccountId
     )
   );
   return transaction;

@@ -10,10 +10,17 @@ use {
 
 #[derive(Accounts)]
 pub struct RemoveListingCtx<'info> {
+    #[account(mut, constraint = listing.token_manager == token_manager.key() @ErrorCode::InvalidTokenManager)]
+    token_manager: Box<Account<'info, TokenManager>>,
+
     #[account(mut, close = lister)]
     listing: Box<Account<'info, Listing>>,
-
-    #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
+    #[account(mut, constraint =
+        lister_mint_token_account.amount == 1 &&
+        lister_mint_token_account.mint == token_manager.mint &&
+        lister_mint_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
+    lister_mint_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
     lister: Signer<'info>,
 
     /// CHECK: This is not dangerous because this account is not read in this instruction
@@ -22,17 +29,13 @@ pub struct RemoveListingCtx<'info> {
     #[account(mut)]
     mint_manager: UncheckedAccount<'info>,
 
-    #[account(mut, constraint = listing.token_manager == token_manager.key() @ ErrorCode::InvalidTokenManager)]
-    token_manager: Box<Account<'info, TokenManager>>,
-    #[account(mut, constraint = lister_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
-    lister_token_account: Box<Account<'info, TokenAccount>>,
     cardinal_token_manager: Program<'info, CardinalTokenManager>,
     token_program: Program<'info, Token>,
 }
 
 pub fn handler(ctx: Context<RemoveListingCtx>) -> Result<()> {
-    if ctx.accounts.lister_token_account.delegate.is_some()
-        && ctx.accounts.lister_token_account.delegate.expect("Invalid delegate") == ctx.accounts.token_manager.key()
+    if ctx.accounts.lister_mint_token_account.delegate.is_some()
+        && ctx.accounts.lister_mint_token_account.delegate.expect("Invalid delegate") == ctx.accounts.token_manager.key()
         && ctx.accounts.token_manager.kind == TokenManagerKind::Permissioned as u8
     {
         let cpi_accounts = cardinal_token_manager::cpi::accounts::UndelegateCtx {
@@ -40,7 +43,7 @@ pub fn handler(ctx: Context<RemoveListingCtx>) -> Result<()> {
             mint: ctx.accounts.mint.to_account_info(),
             mint_manager: ctx.accounts.mint_manager.to_account_info(),
             recipient: ctx.accounts.lister.to_account_info(),
-            recipient_token_account: ctx.accounts.lister_token_account.to_account_info(),
+            recipient_token_account: ctx.accounts.lister_mint_token_account.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(ctx.accounts.cardinal_token_manager.to_account_info(), cpi_accounts);

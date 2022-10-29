@@ -1,9 +1,39 @@
 {
-  "extends": "@saberhq/tsconfig/tsconfig.lib.json",
   "compilerOptions": {
+    "outDir": "./lib",
+
+    // target
+    "target": "ES2019",
     "module": "CommonJS",
-    "noEmit": true,
-    "types": ["mocha"]
+    "moduleResolution": "node",
+    "lib": ["ES2019"],
+
+    // build
+    // "types": [],
+    "esModuleInterop": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+    "importHelpers": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": true,
+
+    // linting
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "noErrorTruncation": true,
+    "noImplicitAny": true,
+
+    // sources
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": true
   },
   "include": ["src/", "tests/", "tools/"]
 }

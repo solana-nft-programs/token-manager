@@ -74,4 +74,6 @@ pub enum ErrorCode {
     InvalidMintAuthority,
     #[msg("Invalid Permissioned Reward Address")]
     InvalidPermissionedRewardAddress,
+    #[msg("No CPI allowed for the instruction")]
+    NoCPIAllowed,
 }

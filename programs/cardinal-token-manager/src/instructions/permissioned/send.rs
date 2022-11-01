@@ -52,10 +52,17 @@ pub struct SendCtx<'info> {
 
 pub fn handler(ctx: Context<SendCtx>) -> Result<()> {
     let instructions_account_info = ctx.accounts.instructions.to_account_info();
-    let current_ix = load_current_index_checked(&instructions_account_info).expect("Error computing current index");
-    if current_ix != 0_u16 {
+    // check instruction is first
+    let current_ix_index = load_current_index_checked(&instructions_account_info).expect("Error computing current index");
+    if current_ix_index != 0_u16 {
         return Err(error!(ErrorCode::InstructionsDisallowed));
     }
+    // check no cpi
+    let current_ix = get_instruction_relative(0, &instructions_account_info);
+    if current_ix.is_ok() && current_ix?.program_id != *ctx.program_id {
+        return Err(error!(ErrorCode::NoCPIAllowed));
+    }
+    // check no next instruction
     let next_ix = get_instruction_relative(1, &instructions_account_info);
     if next_ix.is_ok() {
         return Err(error!(ErrorCode::InstructionsDisallowed));

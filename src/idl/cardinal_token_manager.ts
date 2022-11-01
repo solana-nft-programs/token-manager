@@ -1230,6 +1230,11 @@ export type CardinalTokenManager = {
       code: 6035;
       name: "InvalidPermissionedRewardAddress";
       msg: "Invalid Permissioned Reward Address";
+    },
+    {
+      code: 6036;
+      name: "NoCPIAllowed";
+      msg: "No CPI allowed for the instruction";
     }
   ];
 };
@@ -2466,6 +2471,11 @@ export const IDL: CardinalTokenManager = {
       code: 6035,
       name: "InvalidPermissionedRewardAddress",
       msg: "Invalid Permissioned Reward Address",
+    },
+    {
+      code: 6036,
+      name: "NoCPIAllowed",
+      msg: "No CPI allowed for the instruction",
     },
   ],
 };

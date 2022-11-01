@@ -37,5 +37,7 @@ pub fn handler(ctx: Context<UpdateListingCtx>, ix: UpdateListingIx) -> Result<()
     listing.payment_amount = ix.payment_amount;
     listing.payment_mint = ix.payment_mint;
 
+    msg!("Mint: {}", ctx.accounts.token_manager.mint.key());
+
     Ok(())
 }

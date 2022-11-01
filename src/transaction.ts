@@ -53,7 +53,7 @@ export type IssueParameters = {
   useInvalidation?: UseInvalidationParams;
   transferAuthorityInfo?: {
     transferAuthorityName: string;
-    setInvalidator?: boolean;
+    creator?: PublicKey;
   };
   mint: PublicKey;
   amount?: BN;
@@ -126,7 +126,7 @@ export const withIssueToken = async (
       : useInvalidation || timeInvalidation
       ? 1
       : 0) +
-    (transferAuthorityInfo?.setInvalidator ? 1 : 0);
+    (transferAuthorityInfo?.creator ? 1 : 0);
   const [tokenManagerIx, tokenManagerId] = await tokenManager.instruction.init(
     connection,
     wallet,
@@ -158,13 +158,13 @@ export const withIssueToken = async (
         checkTransferAuthority.pubkey
       )
     );
-    if (transferAuthorityInfo.setInvalidator) {
+    if (transferAuthorityInfo.creator) {
       transaction.add(
         tokenManager.instruction.addInvalidator(
           connection,
           wallet,
           tokenManagerId,
-          checkTransferAuthority.pubkey
+          transferAuthorityInfo.creator
         )
       );
     }

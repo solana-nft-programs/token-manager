@@ -64,7 +64,7 @@ export const withWrapToken = async (
   mintId: PublicKey,
   transferAuthorityInfo?: {
     transferAuthorityName: string;
-    setInvalidator?: boolean;
+    creator?: PublicKey;
   },
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
@@ -93,7 +93,7 @@ export const withWrapToken = async (
       transferAuthorityInfo: transferAuthorityInfo
         ? {
             transferAuthorityName: transferAuthorityInfo.transferAuthorityName,
-            setInvalidator: transferAuthorityInfo.setInvalidator ?? true,
+            creator: transferAuthorityInfo.creator,
           }
         : undefined,
     },

@@ -183,13 +183,19 @@ describe("Release wrapped token", () => {
   it("Wrap Token", async () => {
     const provider = getProvider();
     const wrapTransaction = new Transaction();
+    const [transferAuthorityId] = await findTransferAuthorityAddress(
+      transferAuthorityName
+    );
 
     await withWrapToken(
       wrapTransaction,
       provider.connection,
       emptyWallet(lister.publicKey),
       tokenMint.publicKey,
-      { transferAuthorityName: transferAuthorityName }
+      {
+        transferAuthorityName: transferAuthorityName,
+        creator: transferAuthorityId,
+      }
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(
@@ -228,9 +234,6 @@ describe("Release wrapped token", () => {
     const tokenManagerData = await getTokenManager(
       provider.connection,
       tokenManagerId
-    );
-    const [transferAuthorityId] = await findTransferAuthorityAddress(
-      transferAuthorityName
     );
     expect(
       tokenManagerData.parsed.invalidators

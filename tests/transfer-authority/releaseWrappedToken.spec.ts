@@ -30,7 +30,6 @@ import {
 import { getTokenManager } from "../../src/programs/tokenManager/accounts";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { getTransferAuthorityByName } from "../../src/programs/transferAuthority/accounts";
-import { findTransferAuthorityAddress } from "../../src/programs/transferAuthority/pda";
 import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
@@ -189,7 +188,10 @@ describe("Release wrapped token", () => {
       provider.connection,
       emptyWallet(lister.publicKey),
       tokenMint.publicKey,
-      { transferAuthorityName: transferAuthorityName }
+      {
+        transferAuthorityName: transferAuthorityName,
+        creator: lister.publicKey,
+      }
     );
 
     const wrapTxEnvelope = new TransactionEnvelope(
@@ -229,30 +231,25 @@ describe("Release wrapped token", () => {
       provider.connection,
       tokenManagerId
     );
-    const [transferAuthorityId] = await findTransferAuthorityAddress(
-      transferAuthorityName
-    );
     expect(
       tokenManagerData.parsed.invalidators
         .map((inv) => inv.toString())
         .toString()
-    ).to.eq([transferAuthorityId.toString()].toString());
+    ).to.eq([lister.publicKey.toString()].toString());
   });
 
   it("Release token", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
 
-    const [transferAuthorityId] = await findTransferAuthorityAddress(
-      transferAuthorityName
-    );
+    const invalidator = lister.publicKey;
 
     await withRelease(
       transaction,
       provider.connection,
       emptyWallet(lister.publicKey),
       tokenMint.publicKey,
-      transferAuthorityId,
+      invalidator,
       listerTokenAccountId
     );
 

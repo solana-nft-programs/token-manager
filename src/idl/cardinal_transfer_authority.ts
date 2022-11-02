@@ -80,9 +80,9 @@ export type CardinalTransferAuthority = {
       name: "release";
       accounts: [
         {
-          name: "transferAuthority";
-          isMut: false;
-          isSigner: false;
+          name: "invalidator";
+          isMut: true;
+          isSigner: true;
         },
         {
           name: "tokenManager";
@@ -1297,9 +1297,9 @@ export const IDL: CardinalTransferAuthority = {
       name: "release",
       accounts: [
         {
-          name: "transferAuthority",
-          isMut: false,
-          isSigner: false,
+          name: "invalidator",
+          isMut: true,
+          isSigner: true,
         },
         {
           name: "tokenManager",

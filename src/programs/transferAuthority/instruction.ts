@@ -474,7 +474,7 @@ export const release = (
   connection: Connection,
   wallet: Wallet,
   params: {
-    transferAuthorityId: PublicKey;
+    invalidator: PublicKey;
     tokenManagerId: PublicKey;
     mintId: PublicKey;
     tokenManagerTokenAccountId: PublicKey;
@@ -493,7 +493,7 @@ export const release = (
 
   return transferAuthorityProgram.instruction.release({
     accounts: {
-      transferAuthority: params.transferAuthorityId,
+      invalidator: params.invalidator,
       tokenManager: params.tokenManagerId,
       mint: params.mintId,
       tokenManagerTokenAccount: params.tokenManagerTokenAccountId,

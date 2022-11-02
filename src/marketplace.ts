@@ -628,7 +628,7 @@ export const withRelease = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  transferAuthorityId: PublicKey,
+  invalidatorId: PublicKey,
   holderTokenAccountId: PublicKey,
   payer = wallet.publicKey
 ): Promise<Transaction> => {
@@ -660,7 +660,7 @@ export const withRelease = async (
   );
   transaction.add(
     release(connection, wallet, {
-      transferAuthorityId: transferAuthorityId,
+      invalidator: invalidatorId,
       tokenManagerId: tokenManagerId,
       mintId: mintId,
       tokenManagerTokenAccountId: tokenManagerTokenAccount,

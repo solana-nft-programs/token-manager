@@ -34,7 +34,7 @@ export const release = async (
   connection: Connection,
   wallet: Wallet,
   mintId: PublicKey,
-  transferAuthorityId: PublicKey,
+  invalidator: PublicKey,
   listerTokenAccountId: PublicKey
 ): Promise<Transaction> =>
   withRelease(
@@ -42,7 +42,7 @@ export const release = async (
     connection,
     wallet,
     mintId,
-    transferAuthorityId,
+    invalidator,
     listerTokenAccountId
   );
 

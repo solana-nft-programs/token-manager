@@ -431,6 +431,11 @@ export type CardinalTransferAuthority = {
           isSigner: false;
         },
         {
+          name: "paymentManager";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -961,10 +966,6 @@ export type CardinalTransferAuthority = {
           {
             name: "name";
             type: "string";
-          },
-          {
-            name: "paymentManager";
-            type: "publicKey";
           },
           {
             name: "authority";
@@ -1648,6 +1649,11 @@ export const IDL: CardinalTransferAuthority = {
           isSigner: false,
         },
         {
+          name: "paymentManager",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "payer",
           isMut: true,
           isSigner: true,
@@ -2178,10 +2184,6 @@ export const IDL: CardinalTransferAuthority = {
           {
             name: "name",
             type: "string",
-          },
-          {
-            name: "paymentManager",
-            type: "publicKey",
           },
           {
             name: "authority",

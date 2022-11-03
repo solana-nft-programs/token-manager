@@ -111,13 +111,13 @@ export const initMarketplace = (
   return transferAuthorityProgram.instruction.initMarketplace(
     {
       name: name,
-      paymentManager: paymentManager,
       authority: provider.wallet.publicKey,
       paymentMints: paymentMints || null,
     },
     {
       accounts: {
         marketplace: marketplaceId,
+        paymentManager: paymentManager,
         payer: payer,
         systemProgram: SystemProgram.programId,
       },

@@ -143,7 +143,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
       feeCollector: feeCollector.publicKey,
       makerFeeBasisPoints: MAKER_FEE.toNumber(),
       takerFeeBasisPoints: TAKER_FEE.toNumber(),
-      includeSellerFeeBasisPoints: false,
+      includeSellerFeeBasisPoints: true,
       authority: provider.wallet.publicKey,
       payer: provider.wallet.publicKey,
     });

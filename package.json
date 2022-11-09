@@ -1,6 +1,6 @@
 {
   "name": "@cardinal/token-manager",
-  "version": "1.7.12",
+  "version": "2.0.0",
   "description": "Cardinal token manager SDK",
   "keywords": [
     "solana",
@@ -22,7 +22,7 @@
     "clean": "rm -fr dist/",
     "idl:generate": "./scripts/generate-idls-types.sh",
     "typecheck": "tsc",
-    "lint": "eslint . --cache",
+    "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
     "lint:ci": "eslint . --max-warnings=0",
     "test:e2e": "anchor test --skip-build 'tests/**/*.ts'",
     "docs:generate": "typedoc --excludePrivate --includeVersion --out site/ src/index.ts",

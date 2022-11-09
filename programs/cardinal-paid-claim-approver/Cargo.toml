@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-paid-claim-approver"
-version = "1.7.11"
+version = "2.0.0"
 description = "Cardinal paid claim approver"
 edition = "2021"
 homepage = "https://cardinal.so"
@@ -20,13 +20,13 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = { version = "0.24.2", features = ["init-if-needed"] }
-anchor-spl = "0.24.2"
-spl-associated-token-account = "1.0.3"
-spl-token = { version = "3.2.0", features = ["no-entrypoint"] }
-solana-program = "1.9.28"
-cardinal-token-manager = { version = "^1.7.11", path = "../cardinal-token-manager", features = ["cpi"] }
-cardinal-payment-manager = { version = "^1.7.9", features = ["cpi"] }
+anchor-lang = { version = "0.25.0", features = ["init-if-needed"] }
+anchor-spl = "0.25.0"
+spl-associated-token-account = "1.0.5"
+spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
+solana-program = "1.10.29"
+cardinal-token-manager = { version = "^2.0.0", path = "../cardinal-token-manager", features = ["cpi"] }
+cardinal-payment-manager = { version = "^2.0.0", features = ["cpi"] }
 
 [dev-dependencies]
 proptest = { version = "1.0" }

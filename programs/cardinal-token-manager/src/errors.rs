@@ -76,4 +76,6 @@ pub enum ErrorCode {
     InvalidPermissionedRewardAddress,
     #[msg("No CPI allowed for the instruction")]
     NoCPIAllowed,
+    #[msg("Invalid migrate authority")]
+    InvalidMigrateAuthority,
 }

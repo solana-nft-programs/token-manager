@@ -785,6 +785,82 @@ export type CardinalTokenManager = {
         }
       ];
       args: [];
+    },
+    {
+      name: "migrate";
+      accounts: [
+        {
+          name: "currentMintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mintManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "ruleset";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "holderTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenAuthority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "rulesetCollector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "collector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "cardinalCreatorStandard";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -982,6 +1058,98 @@ export type CardinalTokenManager = {
           {
             name: "numInvalidators";
             type: "u8";
+          }
+        ];
+      };
+    },
+    {
+      name: "MigrateCtx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "currentMintManager";
+            type: {
+              defined: "Account<'info,MintManager>";
+            };
+          },
+          {
+            name: "mintManager";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "mint";
+            type: {
+              defined: "Account<'info,Mint>";
+            };
+          },
+          {
+            name: "ruleset";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "holderTokenAccount";
+            type: {
+              defined: "Account<'info,TokenAccount>";
+            };
+          },
+          {
+            name: "tokenAuthority";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "rulesetCollector";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "collector";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "authority";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "payer";
+            type: {
+              defined: "Signer<'info>";
+            };
+          },
+          {
+            name: "rent";
+            type: {
+              defined: "Sysvar<'info,Rent>";
+            };
+          },
+          {
+            name: "tokenProgram";
+            type: {
+              defined: "Program<'info,Token>";
+            };
+          },
+          {
+            name: "systemProgram";
+            type: {
+              defined: "Program<'info,System>";
+            };
+          },
+          {
+            name: "cardinalCreatorStandard";
+            type: {
+              defined: "UncheckedAccount<'info>";
+            };
           }
         ];
       };
@@ -1235,6 +1403,11 @@ export type CardinalTokenManager = {
       code: 6036;
       name: "NoCPIAllowed";
       msg: "No CPI allowed for the instruction";
+    },
+    {
+      code: 6037;
+      name: "InvalidMigrateAuthority";
+      msg: "Invalid migrate authority";
     }
   ];
 };
@@ -2027,6 +2200,82 @@ export const IDL: CardinalTokenManager = {
       ],
       args: [],
     },
+    {
+      name: "migrate",
+      accounts: [
+        {
+          name: "currentMintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mintManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "ruleset",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "holderTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenAuthority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "rulesetCollector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "collector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "cardinalCreatorStandard",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
   ],
   accounts: [
     {
@@ -2223,6 +2472,98 @@ export const IDL: CardinalTokenManager = {
           {
             name: "numInvalidators",
             type: "u8",
+          },
+        ],
+      },
+    },
+    {
+      name: "MigrateCtx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "currentMintManager",
+            type: {
+              defined: "Account<'info,MintManager>",
+            },
+          },
+          {
+            name: "mintManager",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "mint",
+            type: {
+              defined: "Account<'info,Mint>",
+            },
+          },
+          {
+            name: "ruleset",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "holderTokenAccount",
+            type: {
+              defined: "Account<'info,TokenAccount>",
+            },
+          },
+          {
+            name: "tokenAuthority",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "rulesetCollector",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "collector",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "authority",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "payer",
+            type: {
+              defined: "Signer<'info>",
+            },
+          },
+          {
+            name: "rent",
+            type: {
+              defined: "Sysvar<'info,Rent>",
+            },
+          },
+          {
+            name: "tokenProgram",
+            type: {
+              defined: "Program<'info,Token>",
+            },
+          },
+          {
+            name: "systemProgram",
+            type: {
+              defined: "Program<'info,System>",
+            },
+          },
+          {
+            name: "cardinalCreatorStandard",
+            type: {
+              defined: "UncheckedAccount<'info>",
+            },
           },
         ],
       },
@@ -2476,6 +2817,11 @@ export const IDL: CardinalTokenManager = {
       code: 6036,
       name: "NoCPIAllowed",
       msg: "No CPI allowed for the instruction",
+    },
+    {
+      code: 6037,
+      name: "InvalidMigrateAuthority",
+      msg: "Invalid migrate authority",
     },
   ],
 };

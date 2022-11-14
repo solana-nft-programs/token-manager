@@ -1,3 +1,8 @@
+import {
+  findMintManagerId as findCCSMintManagerId,
+  findRulesetId,
+  Ruleset,
+} from "@cardinal/creator-standard";
 import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
@@ -27,7 +32,10 @@ import {
   TokenManagerState,
 } from "./programs/tokenManager";
 import { getTokenManager } from "./programs/tokenManager/accounts";
-import { setTransferAuthority } from "./programs/tokenManager/instruction";
+import {
+  migrate,
+  setTransferAuthority,
+} from "./programs/tokenManager/instruction";
 import {
   findMintManagerId,
   findTokenManagerAddress,
@@ -1103,5 +1111,38 @@ export const withSend = async (
       targetTokenAccountId
     )
   );
+  return transaction;
+};
+
+export const withMigrate = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  rulesetName: string,
+  holderTokenAccountId: PublicKey,
+  collector: PublicKey,
+  authority: PublicKey
+): Promise<Transaction> => {
+  const [currentMintManagerId] = await findMintManagerId(mintId);
+  const mintManagerId = findCCSMintManagerId(mintId);
+  const rulesetId = findRulesetId(rulesetName);
+  const rulesetData = await Ruleset.fromAccountAddress(connection, rulesetId);
+
+  transaction.add(
+    migrate(connection, wallet, {
+      currentMintManager: currentMintManagerId,
+      mintManager: mintManagerId,
+      mint: mintId,
+      ruleset: rulesetId,
+      holderTokenAccount: holderTokenAccountId,
+      tokenAuthority: currentMintManagerId,
+      rulesetCollector: rulesetData.collector,
+      collector: collector,
+      authority: authority,
+      payer: wallet.publicKey,
+    })
+  );
+
   return transaction;
 };

@@ -1,3 +1,4 @@
+import { PROGRAM_ID } from "@cardinal/creator-standard";
 import {
   Metadata,
   MetadataProgram,
@@ -667,6 +668,48 @@ export const send = (
       systemProgram: SystemProgram.programId,
       rent: SYSVAR_RENT_PUBKEY,
       instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+    },
+  });
+};
+
+export const migrate = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    currentMintManager: PublicKey;
+    mintManager: PublicKey;
+    mint: PublicKey;
+    ruleset: PublicKey;
+    holderTokenAccount: PublicKey;
+    tokenAuthority: PublicKey;
+    rulesetCollector: PublicKey;
+    collector: PublicKey;
+    authority: PublicKey;
+    payer: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    provider
+  );
+  return tokenManagerProgram.instruction.migrate({
+    accounts: {
+      currentMintManager: params.currentMintManager,
+      mintManager: params.mintManager,
+      mint: params.mint,
+      ruleset: params.ruleset,
+      holderTokenAccount: params.holderTokenAccount,
+      tokenAuthority: params.tokenAuthority,
+      rulesetCollector: params.rulesetCollector,
+      collector: params.collector,
+      authority: params.authority,
+      payer: wallet.publicKey,
+      rent: SYSVAR_RENT_PUBKEY,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      cardinalCreatorStandard: PROGRAM_ID,
     },
   });
 };

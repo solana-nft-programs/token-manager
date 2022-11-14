@@ -100,4 +100,8 @@ pub mod cardinal_token_manager {
     pub fn undelegate(ctx: Context<UndelegateCtx>) -> Result<()> {
         permissioned::undelegate::handler(ctx)
     }
+
+    pub fn migrate(ctx: Context<MigrateCtx>) -> Result<()> {
+        permissioned::migrate::handler(ctx)
+    }
 }

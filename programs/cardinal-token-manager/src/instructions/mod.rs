@@ -38,5 +38,6 @@ pub use transfers::update_transfer_receipt::*;
 
 pub mod permissioned;
 pub use permissioned::delegate::*;
+pub use permissioned::migrate::*;
 pub use permissioned::send::*;
 pub use permissioned::undelegate::*;

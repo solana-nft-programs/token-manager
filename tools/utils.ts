@@ -126,7 +126,6 @@ export const executeTransaction = async (
       config.confirmOptions
     );
     config.callback && config.callback(true);
-    console.log("Successful tx", txid);
   } catch (e: unknown) {
     console.log(
       "Failed transaction: ",

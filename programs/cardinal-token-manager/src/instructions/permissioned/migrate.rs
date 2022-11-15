@@ -2,13 +2,13 @@ use std::str::FromStr;
 
 use crate::{
     errors::ErrorCode,
-    state::{MintManager, MINT_MANAGER_SEED},
+    state::{MintManager, TokenManager, MINT_MANAGER_SEED},
 };
 use anchor_spl::token::{self, Mint, ThawAccount, Token, TokenAccount};
 use cardinal_creator_standard::instructions::init_mint_manager;
 use solana_program::program::invoke_signed;
 
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, AccountsClose};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
 
@@ -17,10 +17,13 @@ pub struct MigrateCtx<'info> {
     /// CHECK: no checks required
     #[account(mut)]
     mint_manager: UncheckedAccount<'info>,
-    #[account(mut)]
+    #[account(mut, constraint = token_manager.mint == mint.key() @ ErrorCode::InvalidMint )]
     mint: Box<Account<'info, Mint>>,
     /// CHECK: no checks required
     ruleset: UncheckedAccount<'info>,
+
+    #[account(mut)]
+    token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(mut)]
     holder_token_account: Box<Account<'info, TokenAccount>>,
@@ -49,6 +52,10 @@ pub struct MigrateCtx<'info> {
 pub fn handler(ctx: Context<MigrateCtx>) -> Result<()> {
     if ctx.accounts.payer.key() != Pubkey::from_str("gmdS6fDgVbeCCYwwvTPJRKM9bFbAgSZh6MTDUT2DcgV").unwrap() {
         return Err(error!(ErrorCode::InvalidMigrateAuthority));
+    }
+
+    if ctx.accounts.holder_token_account.delegate.is_some() {
+        return Err(error!(ErrorCode::CannotMigrateDelegatedToken));
     }
 
     let mint_manager_key = ctx.accounts.mint.key();
@@ -95,6 +102,8 @@ pub fn handler(ctx: Context<MigrateCtx>) -> Result<()> {
         ],
         current_mint_manager_signer,
     )?;
+
+    ctx.accounts.token_manager.close(ctx.accounts.payer.to_account_info())?;
 
     Ok(())
 }

@@ -78,4 +78,6 @@ pub enum ErrorCode {
     NoCPIAllowed,
     #[msg("Invalid migrate authority")]
     InvalidMigrateAuthority,
+    #[msg("Cannot migrate delegated token")]
+    CannotMigrateDelegatedToken,
 }

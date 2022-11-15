@@ -791,7 +791,7 @@ export type CardinalTokenManager = {
       accounts: [
         {
           name: "currentMintManager";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -806,6 +806,11 @@ export type CardinalTokenManager = {
         },
         {
           name: "ruleset";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
           isMut: true;
           isSigner: false;
         },
@@ -816,7 +821,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "tokenAuthority";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -831,7 +836,7 @@ export type CardinalTokenManager = {
         },
         {
           name: "authority";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
@@ -1089,6 +1094,12 @@ export type CardinalTokenManager = {
             name: "ruleset";
             type: {
               defined: "UncheckedAccount<'info>";
+            };
+          },
+          {
+            name: "tokenManager";
+            type: {
+              defined: "Account<'info,TokenManager>";
             };
           },
           {
@@ -1408,6 +1419,11 @@ export type CardinalTokenManager = {
       code: 6037;
       name: "InvalidMigrateAuthority";
       msg: "Invalid migrate authority";
+    },
+    {
+      code: 6038;
+      name: "CannotMigrateDelegatedToken";
+      msg: "Cannot migrate delegated token";
     }
   ];
 };
@@ -2205,7 +2221,7 @@ export const IDL: CardinalTokenManager = {
       accounts: [
         {
           name: "currentMintManager",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -2220,6 +2236,11 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "ruleset",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
           isMut: true,
           isSigner: false,
         },
@@ -2230,7 +2251,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "tokenAuthority",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -2245,7 +2266,7 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "authority",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
@@ -2503,6 +2524,12 @@ export const IDL: CardinalTokenManager = {
             name: "ruleset",
             type: {
               defined: "UncheckedAccount<'info>",
+            },
+          },
+          {
+            name: "tokenManager",
+            type: {
+              defined: "Account<'info,TokenManager>",
             },
           },
           {
@@ -2822,6 +2849,11 @@ export const IDL: CardinalTokenManager = {
       code: 6037,
       name: "InvalidMigrateAuthority",
       msg: "Invalid migrate authority",
+    },
+    {
+      code: 6038,
+      name: "CannotMigrateDelegatedToken",
+      msg: "Cannot migrate delegated token",
     },
   ],
 };

@@ -21,7 +21,7 @@ const main = async (cluster = "devnet") => {
   const transaction = new Transaction();
 
   // TODO replace with get all token managers of kind Permissioned
-  const mintId = new PublicKey("HLxVvnipML1tobc2CByAwNzG6PR9DVKQTjWN3bSEaLZh");
+  const mintId = new PublicKey("pubkey");
   const accounts = (
     await connection.getTokenLargestAccounts(mintId)
   ).value.filter((account) => account.uiAmount && account.uiAmount > 0);

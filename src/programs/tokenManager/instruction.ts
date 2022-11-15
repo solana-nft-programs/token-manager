@@ -680,6 +680,7 @@ export const migrate = (
     mintManager: PublicKey;
     mint: PublicKey;
     ruleset: PublicKey;
+    tokenManager: PublicKey;
     holderTokenAccount: PublicKey;
     tokenAuthority: PublicKey;
     rulesetCollector: PublicKey;
@@ -700,6 +701,7 @@ export const migrate = (
       mintManager: params.mintManager,
       mint: params.mint,
       ruleset: params.ruleset,
+      tokenManager: params.tokenManager,
       holderTokenAccount: params.holderTokenAccount,
       tokenAuthority: params.tokenAuthority,
       rulesetCollector: params.rulesetCollector,

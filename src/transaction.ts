@@ -1126,6 +1126,7 @@ export const withMigrate = async (
 ): Promise<Transaction> => {
   const [currentMintManagerId] = await findMintManagerId(mintId);
   const mintManagerId = findCCSMintManagerId(mintId);
+  const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const rulesetId = findRulesetId(rulesetName);
   const rulesetData = await Ruleset.fromAccountAddress(connection, rulesetId);
 
@@ -1135,6 +1136,7 @@ export const withMigrate = async (
       mintManager: mintManagerId,
       mint: mintId,
       ruleset: rulesetId,
+      tokenManager: tokenManagerId,
       holderTokenAccount: holderTokenAccountId,
       tokenAuthority: currentMintManagerId,
       rulesetCollector: rulesetData.collector,

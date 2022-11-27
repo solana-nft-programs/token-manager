@@ -87,7 +87,7 @@
     "@cardinal/common": "^4.0.1",
     "@cardinal/creator-standard": "^2.1.7",
     "@cardinal/payment-manager": "^2.1.1",
-    "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
+    "@metaplex-foundation/mpl-token-metadata": "^2.5.1",
     "@solana/buffer-layout": "^4.0.0",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-token": "^0.1.8",

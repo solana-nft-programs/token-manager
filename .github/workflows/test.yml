@@ -116,15 +116,11 @@ jobs:
       - name: Setup
         run: mkdir -p target/deploy
       - run: cp -r tests/test-keypairs/* target/deploy
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM/$(solana-keygen pubkey tests/test-keypairs/cardinal_token_manager-keypair.json)/g" {} +
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR/$(solana-keygen pubkey tests/test-keypairs/cardinal_paid_claim_approver-keypair.json)/g" {} +
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE/$(solana-keygen pubkey tests/test-keypairs/cardinal_time_invalidator-keypair.json)/g" {} +
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp/$(solana-keygen pubkey tests/test-keypairs/cardinal_use_invalidator-keypair.json)/g" {} +
-      - run: find . -type f -name "*" -exec sed -i'' -e "s/trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW/$(solana-keygen pubkey tests/test-keypairs/cardinal_transfer_authority-keypair.json)/g" {} +
+      - run: anchor build
       - run: find . -type f -name "Anchor.toml" -exec sed -i'' -e "s/tests\/\*.spec.ts/tests\/\*.spec.ts --reporter mocha-junit-reporter --reporter-options mochaFile=.\/tests\/out.xml/g" {} +
 
       - name: Run tests
-        run: solana-test-validator --url https://api.devnet.solana.com --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --clone pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn --clone 355AtuHH98Jy9XFg5kWodfmvSfrhcxYUKGoJe8qziFNY --clone crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr --reset & echo $$! > validator.PID
+        run: solana-test-validator --url https://api.devnet.solana.com --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --clone pmvYY6Wgvpe3DEj3UX1FcRpMx43sMLYLJrFTVGcqpdn --clone 355AtuHH98Jy9XFg5kWodfmvSfrhcxYUKGoJe8qziFNY --clone crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr --bpf-program mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM ./target/deploy/cardinal_token_manager.so --bpf-program pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR ./target/deploy/cardinal_paid_claim_approver.so --bpf-program tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE ./target/deploy/cardinal_time_invalidator.so --bpf-program useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp ./target/deploy/cardinal_use_invalidator.so --bpf-program trsMRg3GzFSNgC3tdhbuKUES8YvGtUBbzp5fjxLtVQW ./target/deploy/cardinal_transfer_authority.so --reset & echo $$! > validator.PID
       - run: sleep 6
       - run: solana airdrop 1000 $(solana-keygen pubkey tests/test-key.json) --url http://localhost:8899
       - run: anchor test --skip-local-validator --provider.cluster localnet

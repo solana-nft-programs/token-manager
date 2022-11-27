@@ -1,7 +1,6 @@
 import {
   findMintManagerId as findCCSMintManagerId,
   findRulesetId,
-  Ruleset,
 } from "@cardinal/creator-standard";
 import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
 import { BN } from "@project-serum/anchor";
@@ -1128,8 +1127,6 @@ export const withMigrate = async (
   const mintManagerId = findCCSMintManagerId(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const rulesetId = findRulesetId(rulesetName);
-  const rulesetData = await Ruleset.fromAccountAddress(connection, rulesetId);
-
   transaction.add(
     migrate(connection, wallet, {
       currentMintManager: currentMintManagerId,
@@ -1139,7 +1136,7 @@ export const withMigrate = async (
       tokenManager: tokenManagerId,
       holderTokenAccount: holderTokenAccountId,
       tokenAuthority: currentMintManagerId,
-      rulesetCollector: rulesetData.collector,
+      rulesetCollector: wallet.publicKey,
       collector: collector,
       authority: authority,
       payer: wallet.publicKey,

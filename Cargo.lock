@@ -403,15 +403,18 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "cardinal-creator-standard"
-version = "1.1.14"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b1f19049f875fe5938bf0a41b86ea46aaec5b7108cf078fd9c2f1b049d38ca9"
+checksum = "46d9ee37bb771028487bd9c7874203e98765a2cd63aba88466e5bbb080747978"
 dependencies = [
  "arrayref",
  "borsh",
+ "bs58 0.3.1",
+ "lazy_format",
  "mpl-token-metadata",
  "num-derive",
  "num-traits",
+ "sha2 0.9.9",
  "shank 0.0.5",
  "solana-program",
  "solana-security-txt",
@@ -820,6 +823,12 @@ name = "keccak"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9b7d56ba4a8344d6be9729995e6b06f928af29998cdf79fe390cbf6b1fee838"
+
+[[package]]
+name = "lazy_format"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c20af27ff47d964ba51ed586b8e84695261ff364922ad40bcf5a8080e99954d"
 
 [[package]]
 name = "lazy_static"

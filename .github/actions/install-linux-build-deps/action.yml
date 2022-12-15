@@ -9,12 +9,6 @@ runs:
         sudo apt-get update
       shell: bash
 
-    - name: apt-get install clang
-      run: |
-        sudo apt-get install -y clang-7 --allow-unauthenticated
-        clang-7 --version
-      shell: bash
-
     - name: apt-get install ssl libs
       run: |
         sudo apt-get install -y openssl --allow-unauthenticated

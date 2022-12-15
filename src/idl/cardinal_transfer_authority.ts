@@ -1,5 +1,5 @@
 export type CardinalTransferAuthority = {
-  version: "2.0.0";
+  version: "2.1.0";
   name: "cardinal_transfer_authority";
   instructions: [
     {
@@ -1217,7 +1217,7 @@ export type CardinalTransferAuthority = {
 };
 
 export const IDL: CardinalTransferAuthority = {
-  version: "2.0.0",
+  version: "2.1.0",
   name: "cardinal_transfer_authority",
   instructions: [
     {

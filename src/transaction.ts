@@ -3,6 +3,7 @@ import {
   findRulesetId,
 } from "@cardinal/creator-standard";
 import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
+import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import {
@@ -1127,11 +1128,13 @@ export const withMigrate = async (
   const mintManagerId = findCCSMintManagerId(mintId);
   const [tokenManagerId] = await findTokenManagerAddress(mintId);
   const rulesetId = findRulesetId(rulesetName);
+  const mintMetadataId = await Metadata.getPDA(mintId);
   transaction.add(
     migrate(connection, wallet, {
       currentMintManager: currentMintManagerId,
       mintManager: mintManagerId,
       mint: mintId,
+      mintMetadataId: mintMetadataId,
       ruleset: rulesetId,
       tokenManager: tokenManagerId,
       holderTokenAccount: holderTokenAccountId,

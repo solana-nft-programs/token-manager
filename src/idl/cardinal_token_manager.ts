@@ -805,6 +805,11 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
+          name: "mintMetadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "ruleset";
           isMut: false;
           isSigner: false;
@@ -1088,6 +1093,12 @@ export type CardinalTokenManager = {
             name: "mint";
             type: {
               defined: "Account<'info,Mint>";
+            };
+          },
+          {
+            name: "mintMetadata";
+            type: {
+              defined: "UncheckedAccount<'info>";
             };
           },
           {
@@ -2235,6 +2246,11 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
         {
+          name: "mintMetadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "ruleset",
           isMut: false,
           isSigner: false,
@@ -2518,6 +2534,12 @@ export const IDL: CardinalTokenManager = {
             name: "mint",
             type: {
               defined: "Account<'info,Mint>",
+            },
+          },
+          {
+            name: "mintMetadata",
+            type: {
+              defined: "UncheckedAccount<'info>",
             },
           },
           {

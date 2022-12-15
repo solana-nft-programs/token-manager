@@ -20,6 +20,9 @@ pub struct MigrateCtx<'info> {
     #[account(mut, constraint = token_manager.mint == mint.key() @ ErrorCode::InvalidMint )]
     mint: Box<Account<'info, Mint>>,
     /// CHECK: no checks required
+    mint_metadata: UncheckedAccount<'info>,
+
+    /// CHECK: no checks required
     ruleset: UncheckedAccount<'info>,
 
     #[account(mut)]
@@ -77,22 +80,20 @@ pub fn handler(ctx: Context<MigrateCtx>) -> Result<()> {
             ctx.accounts.cardinal_creator_standard.key(),
             ctx.accounts.mint_manager.key(),
             ctx.accounts.mint.key(),
+            ctx.accounts.mint_metadata.key(),
             ctx.accounts.ruleset.key(),
             ctx.accounts.holder_token_account.key(),
             ctx.accounts.token_authority.key(),
-            ctx.accounts.ruleset_collector.key(),
-            ctx.accounts.collector.key(),
             ctx.accounts.authority.key(),
             ctx.accounts.payer.key(),
-        ),
+        )?,
         &[
             ctx.accounts.mint_manager.to_account_info(),
             ctx.accounts.mint.to_account_info(),
+            ctx.accounts.mint_metadata.to_account_info(),
             ctx.accounts.ruleset.to_account_info(),
             ctx.accounts.holder_token_account.to_account_info(),
             ctx.accounts.token_authority.to_account_info(),
-            ctx.accounts.ruleset_collector.to_account_info(),
-            ctx.accounts.collector.to_account_info(),
             ctx.accounts.authority.to_account_info(),
             ctx.accounts.payer.to_account_info(),
             ctx.accounts.rent.to_account_info(),

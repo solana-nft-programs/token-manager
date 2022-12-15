@@ -39,7 +39,7 @@
     "*.{js,json,jsx,html,css,md}": "prettier --write"
   },
   "dependencies": {
-    "@project-serum/anchor": "^0.24.2",
+    "@project-serum/anchor": "^0.25.0",
     "@cardinal/common": "^4.0.1",
     "@cardinal/creator-standard": "^2.1.7",
     "@cardinal/payment-manager": "^2.1.1",

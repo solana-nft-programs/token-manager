@@ -1,19 +1,17 @@
-import { expectTXTable } from "@saberhq/chai-solana";
-import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import { Wallet } from "@project-serum/anchor";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { issueToken } from "../src";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Issue no mint manager", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  let rentalMint: Token;
+  const rentalMint: Keypair = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
@@ -30,13 +28,19 @@ describe("Issue no mint manager", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
-      1,
-      tokenCreator.publicKey
+      rentalMint.publicKey,
+      provider.wallet.publicKey
     );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(provider.connection, transaction, provider.wallet);
   });
 
   it("Issue failure", async () => {
@@ -50,14 +54,12 @@ describe("Issue no mint manager", () => {
         issuerTokenAccountId: issuerTokenAccountId,
       }
     );
-    expect(async () => {
-      await expectTXTable(
-        new TransactionEnvelope(SolanaProvider.init(provider), [
-          ...transaction.instructions,
-        ]),
-        "Fail to init",
-        { verbosity: "error" }
-      ).to.be.rejectedWith(Error);
-    });
+    expect(
+      executeTransaction(
+        provider.connection,
+        transaction,
+        new Wallet(recipient)
+      )
+    ).to.throw();
   });
 });

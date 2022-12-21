@@ -1,14 +1,14 @@
+import type { AccountData } from "@cardinal/common";
 import {
   AnchorProvider,
   BorshAccountsCoder,
   Program,
   utils,
+  Wallet,
 } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type {
   ListingData,
   MarketplaceData,
@@ -35,7 +35,7 @@ export const getTransferAuthority = async (
 ): Promise<AccountData<TransferAuthorityData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
@@ -59,7 +59,7 @@ export const getTransferAuthorityByName = async (
 ): Promise<AccountData<TransferAuthorityData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
@@ -92,7 +92,7 @@ export const getMarketplace = async (
 ): Promise<AccountData<MarketplaceData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
@@ -116,7 +116,7 @@ export const getMarketplaceByName = async (
 ): Promise<AccountData<MarketplaceData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
@@ -149,7 +149,7 @@ export const getListing = async (
 ): Promise<AccountData<ListingData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(
@@ -264,7 +264,7 @@ export const getTransfer = async (
 ): Promise<AccountData<TransferData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const transferAuthorityProgram = new Program<TRANSFER_AUTHORITY_PROGRAM>(

@@ -1,10 +1,6 @@
-import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import { Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
@@ -14,27 +10,20 @@ import {
 } from "@solana/web3.js";
 import { expect } from "chai";
 
-import {
-  claimLinks,
-  claimToken,
-  findAta,
-  useTransaction,
-  withIssueToken,
-} from "../src";
+import { claimLinks, claimToken, useTransaction, withIssueToken } from "../src";
 import { fromLink } from "../src/claimLinks";
 import { tokenManager, useInvalidator } from "../src/programs";
 import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Claim links", () => {
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  let rentalMint: Token;
+  const rentalMint: Keypair = Keypair.generate();
   let claimLink: string;
   let serializedUsage: string;
 
@@ -53,12 +42,22 @@ describe("Claim links", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
+      rentalMint.publicKey,
       user.publicKey
+    );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      user.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
   });
 
@@ -67,7 +66,7 @@ describe("Claim links", () => {
     const [transaction, tokenManagerId, otp] = await withIssueToken(
       new Transaction(),
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
@@ -77,18 +76,11 @@ describe("Claim links", () => {
       }
     );
 
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     claimLink = claimLinks.getLink(tokenManagerId, otp);
 
@@ -98,15 +90,22 @@ describe("Claim links", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
+    );
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
-    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(otp!.publicKey);
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      user.publicKey.toString()
+    );
+    expect(tokenManagerData.parsed.claimApprover?.toString()).to.eq(
+      otp!.publicKey.toString()
+    );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
     console.log("Link created: ", claimLink);
   });
@@ -118,23 +117,16 @@ describe("Claim links", () => {
 
     const transaction = await claimToken(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
 
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions],
-      [otpKeypair]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient),
+      { signers: [otpKeypair] }
     );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -143,15 +135,22 @@ describe("Claim links", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientTokenAccountId
+    );
+
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
   });
 
@@ -159,7 +158,7 @@ describe("Claim links", () => {
     const provider = getProvider();
     const transaction = await useTransaction(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       rentalMint.publicKey,
       1
     );
@@ -167,7 +166,7 @@ describe("Claim links", () => {
     transaction.recentBlockhash = (
       await provider.connection.getRecentBlockhash("max")
     ).blockhash;
-    await new SignerWallet(recipient).signTransaction(transaction);
+    await new Wallet(recipient).signTransaction(transaction);
     serializedUsage = transaction.serialize().toString("base64");
   });
 
@@ -196,7 +195,7 @@ describe("Claim links", () => {
     const provider = getProvider();
     const transaction = await useTransaction(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       rentalMint.publicKey,
       2
     );
@@ -204,7 +203,7 @@ describe("Claim links", () => {
     transaction.recentBlockhash = (
       await provider.connection.getRecentBlockhash("max")
     ).blockhash;
-    await new SignerWallet(recipient).signTransaction(transaction);
+    await new Wallet(recipient).signTransaction(transaction);
     serializedUsage = transaction.serialize().toString("base64");
   });
 

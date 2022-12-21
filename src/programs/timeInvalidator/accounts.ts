@@ -1,14 +1,14 @@
+import type { AccountData } from "@cardinal/common";
 import {
   AnchorProvider,
   BN,
   BorshAccountsCoder,
   Program,
+  Wallet,
 } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type {
   TIME_INVALIDATOR_PROGRAM,
   TimeInvalidatorData,
@@ -21,7 +21,7 @@ export const getTimeInvalidator = async (
 ): Promise<AccountData<TimeInvalidatorData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
@@ -45,7 +45,7 @@ export const getTimeInvalidators = async (
 ): Promise<AccountData<TimeInvalidatorData>[]> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(

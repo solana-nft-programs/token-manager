@@ -1,3 +1,4 @@
+import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -8,14 +9,9 @@ import {
   Metadata,
   MintNewEditionFromMasterEditionViaToken,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { BN } from "@project-serum/anchor";
-import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+import { BN, Wallet } from "@project-serum/anchor";
+import { SignerWallet } from "@saberhq/solana-contrib";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
@@ -25,7 +21,7 @@ import {
 } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimLinks, claimToken, findAta, useTransaction } from "../src";
+import { claimLinks, claimToken, useTransaction } from "../src";
 import { fromLink } from "../src/claimLinks";
 import { tokenManager, useInvalidator } from "../src/programs";
 import {
@@ -33,16 +29,14 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Claim links master editions invalidate", () => {
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  let editionIssuerTokenAccount: PublicKey;
-  let rentalMint: Token;
-  let editionMint: Token;
+  const rentalMint: Keypair = Keypair.generate();
+  const editionMint: Keypair = Keypair.generate();
   let claimLink: string;
   let serializedUsage: string;
 
@@ -61,12 +55,22 @@ describe("Claim links master editions invalidate", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      tokenCreator,
-      tokenCreator.publicKey,
-      1,
+      rentalMint.publicKey,
       tokenCreator.publicKey
+    );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      tokenCreator.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(tokenCreator)
     );
 
     const metadataId = await Metadata.getPDA(rentalMint.publicKey);
@@ -103,14 +107,18 @@ describe("Claim links master editions invalidate", () => {
     );
 
     // create edition mint
-    [editionIssuerTokenAccount, editionMint] = await createMint(
+    const transaction2 = new Transaction();
+    const [ixs2] = await createMintIxs(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
-      1,
+      editionMint.publicKey,
       tokenCreator.publicKey
     );
-    console.log(editionIssuerTokenAccount);
+    transaction.instructions = ixs2;
+    await executeTransaction(
+      provider.connection,
+      transaction2,
+      new Wallet(tokenCreator)
+    );
     const editionMetadataId = await Metadata.getPDA(editionMint.publicKey);
 
     const editionId = await Edition.getPDA(editionMint.publicKey);
@@ -134,23 +142,13 @@ describe("Claim links master editions invalidate", () => {
         editionValue: new BN(1),
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(tokenCreator),
-        opts: provider.opts,
-      }),
-      [
-        ...metadataTx.instructions,
-        ...masterEditionTx.instructions,
-        ...editionTx.instructions,
-      ]
-    );
-
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    const tx = new Transaction();
+    tx.instructions = [
+      ...metadataTx.instructions,
+      ...masterEditionTx.instructions,
+      ...editionTx.instructions,
+    ];
+    await executeTransaction(provider.connection, tx, new Wallet(tokenCreator));
   });
 
   it("Create link", async () => {
@@ -166,19 +164,11 @@ describe("Claim links master editions invalidate", () => {
         invalidationType: InvalidationType.Invalidate,
       }
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(tokenCreator),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(tokenCreator)
     );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     claimLink = claimLinks.getLink(tokenManagerId, otp);
 
@@ -188,17 +178,22 @@ describe("Claim links master editions invalidate", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      new SignerWallet(tokenCreator).publicKey
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
     );
-    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(otp.publicKey);
+    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      new SignerWallet(tokenCreator).publicKey.toString()
+    );
+    expect(tokenManagerData.parsed.claimApprover?.toString()).to.eq(
+      otp.publicKey.toString()
+    );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
     console.log("Link created: ", claimLink);
   });
@@ -210,23 +205,15 @@ describe("Claim links master editions invalidate", () => {
 
     const transaction = await claimToken(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions],
-      [otpKeypair]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient),
+      { signers: [otpKeypair] }
     );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -235,15 +222,21 @@ describe("Claim links master editions invalidate", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAta = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAta
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
   });
 
@@ -251,7 +244,7 @@ describe("Claim links master editions invalidate", () => {
     const provider = getProvider();
     const transaction = await useTransaction(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       rentalMint.publicKey,
       1
     );
@@ -259,7 +252,7 @@ describe("Claim links master editions invalidate", () => {
     transaction.recentBlockhash = (
       await provider.connection.getRecentBlockhash("max")
     ).blockhash;
-    await new SignerWallet(recipient).signTransaction(transaction);
+    await new Wallet(recipient).signTransaction(transaction);
     serializedUsage = transaction.serialize().toString("base64");
   });
 
@@ -289,10 +282,15 @@ describe("Claim links master editions invalidate", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Invalidated);
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAta = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAta
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(false);
   });
 });

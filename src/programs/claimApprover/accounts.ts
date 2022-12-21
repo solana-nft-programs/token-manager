@@ -1,13 +1,13 @@
+import type { AccountData } from "@cardinal/common";
 import {
   AnchorProvider,
   BorshAccountsCoder,
   Program,
+  Wallet,
 } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type {
   CLAIM_APPROVER_PROGRAM,
   PaidClaimApproverData,
@@ -21,7 +21,7 @@ export const getClaimApprover = async (
 ): Promise<AccountData<PaidClaimApproverData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
@@ -47,7 +47,7 @@ export const getClaimApprovers = async (
 ): Promise<AccountData<PaidClaimApproverData>[]> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(

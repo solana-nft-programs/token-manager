@@ -1,17 +1,16 @@
-import { withFindOrInitAssociatedTokenAccount } from "@cardinal/common";
-import { BN } from "@project-serum/anchor";
-import { expectTXTable } from "@saberhq/chai-solana";
 import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
+import { BN, Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimToken, findAta, withTransfer } from "../../src";
+import { claimToken, withTransfer } from "../../src";
 import { tokenManager } from "../../src/programs";
 import {
   InvalidationType,
@@ -22,7 +21,6 @@ import {
   createTransferReceipt,
   setTransferAuthority,
 } from "../../src/programs/tokenManager/instruction";
-import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
 describe("Transfer receipt transfer", () => {
@@ -32,7 +30,7 @@ describe("Transfer receipt transfer", () => {
   const user = Keypair.generate();
   const transferAuthority = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  let mint: Token;
+  const mint: Keypair = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
@@ -67,13 +65,15 @@ describe("Transfer receipt transfer", () => {
     await provider.connection.confirmTransaction(airdropIncorrectTarget);
 
     // create rental mint
-    [issuerTokenAccountId, mint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
+      mint.publicKey,
       user.publicKey
     );
+    issuerTokenAccountId = await findAta(mint.publicKey, user.publicKey, true);
+    transaction.instructions = ixs;
+    await executeTransaction(provider.connection, transaction, provider.wallet);
   });
 
   it("Issue token with transfer authority", async () => {
@@ -83,7 +83,7 @@ describe("Transfer receipt transfer", () => {
     const [tokenManagerIx, tokenManagerId] =
       await tokenManager.instruction.init(
         provider.connection,
-        new SignerWallet(user),
+        new Wallet(user),
         mint.publicKey,
         issuerTokenAccountId,
         new BN(1),
@@ -95,7 +95,7 @@ describe("Transfer receipt transfer", () => {
     transaction.add(
       setTransferAuthority(
         provider.connection,
-        new SignerWallet(user),
+        new Wallet(user),
         tokenManagerId,
         transferAuthority.publicKey
       )
@@ -114,7 +114,7 @@ describe("Transfer receipt transfer", () => {
       (
         await tokenManager.instruction.creatMintManager(
           provider.connection,
-          new SignerWallet(user),
+          new Wallet(user),
           mint.publicKey
         )
       )[0]
@@ -123,24 +123,17 @@ describe("Transfer receipt transfer", () => {
     transaction.add(
       tokenManager.instruction.issue(
         provider.connection,
-        new SignerWallet(user),
+        new Wallet(user),
         tokenManagerId,
         tokenManagerTokenAccountId,
         issuerTokenAccountId
       )
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "create", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -148,16 +141,21 @@ describe("Transfer receipt transfer", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(mint.publicKey);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
-    expect(tokenManagerData.parsed.transferAuthority).to.eqAddress(
-      transferAuthority.publicKey
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      mint.publicKey.toString()
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      user.publicKey.toString()
+    );
+    expect(tokenManagerData.parsed.transferAuthority?.toString()).to.eq(
+      transferAuthority.publicKey.toString()
     );
 
-    const checkIssuerTokenAccount = await mint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
   });
 
   it("Claim", async () => {
@@ -170,23 +168,14 @@ describe("Transfer receipt transfer", () => {
 
     const transaction = await claimToken(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "claim", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -195,15 +184,21 @@ describe("Transfer receipt transfer", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await mint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await mint.getAccountInfo(
-      await findAta(mint.publicKey, recipient.publicKey)
+    const recipientTokenAccountId = await findAta(
+      mint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientTokenAccountId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
   });
 
@@ -215,22 +210,17 @@ describe("Transfer receipt transfer", () => {
     );
     const [ix, transferReceiptId] = await createTransferReceipt(
       provider.connection,
-      new SignerWallet(transferAuthority),
+      new Wallet(transferAuthority),
       tokenManagerId,
       target.publicKey
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(transferAuthority),
-        opts: provider.opts,
-      }),
-      [ix]
+    const tx = new Transaction();
+    tx.add(ix);
+    await executeTransaction(
+      provider.connection,
+      tx,
+      new Wallet(transferAuthority)
     );
-    await expectTXTable(txEnvelope, "use", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const transferReceipt = await tokenManager.accounts.getTransferReceipt(
       provider.connection,
@@ -250,51 +240,27 @@ describe("Transfer receipt transfer", () => {
   it("Fail transfer", async () => {
     const provider = getProvider();
 
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(incorrectTarget),
-        opts: provider.opts,
-      }),
-      (
-        await withTransfer(
-          new Transaction(),
-          provider.connection,
-          new SignerWallet(incorrectTarget),
-          mint.publicKey,
-          incorrectTarget.publicKey
-        )
-      ).instructions
+    const tx = await withTransfer(
+      new Transaction(),
+      provider.connection,
+      new Wallet(incorrectTarget),
+      mint.publicKey,
+      incorrectTarget.publicKey
     );
-    await expectTXTable(txEnvelope, "transfer", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.rejectedWith(Error);
+    expect(
+      executeTransaction(provider.connection, tx, new Wallet(incorrectTarget))
+    ).to.throw();
   });
 
   it("Transfer", async () => {
     const provider = getProvider();
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(target),
-        opts: provider.opts,
-      }),
-      (
-        await withTransfer(
-          new Transaction(),
-          provider.connection,
-          new SignerWallet(target),
-          mint.publicKey
-        )
-      ).instructions
+    const tx = await withTransfer(
+      new Transaction(),
+      provider.connection,
+      new Wallet(target),
+      mint.publicKey
     );
-
-    await expectTXTable(txEnvelope, "transfer", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    await executeTransaction(provider.connection, tx, new Wallet(target));
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -307,21 +273,32 @@ describe("Transfer receipt transfer", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await mint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await mint.getAccountInfo(
-      await findAta(mint.publicKey, recipient.publicKey)
+    const recipientTokenAccountId = await findAta(
+      mint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(0);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientTokenAccountId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("0");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(false);
 
-    const targetTokenAccount = await mint.getAccountInfo(
-      await findAta(mint.publicKey, target.publicKey)
+    const targetTokenAccountId = await findAta(
+      mint.publicKey,
+      target.publicKey
     );
-    expect(targetTokenAccount.amount.toNumber()).to.eq(1);
+    const targetTokenAccount = await getAccount(
+      provider.connection,
+      targetTokenAccountId
+    );
+    expect(targetTokenAccount.amount.toString()).to.eq("1");
     expect(targetTokenAccount.isFrozen).to.eq(true);
 
     expect(tokenManagerData.parsed.recipientTokenAccount.toString()).to.eq(

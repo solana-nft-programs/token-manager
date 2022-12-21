@@ -1,25 +1,18 @@
-import { BN } from "@project-serum/anchor";
-import { expectTXTable } from "@saberhq/chai-solana";
 import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  tryGetAccount,
+} from "@cardinal/common";
+import { BN, Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import {
-  findAta,
-  invalidate,
-  rentals,
-  tryGetAccount,
-  withUpdateMaxExpiration,
-} from "../src";
+import { invalidate, rentals, withUpdateMaxExpiration } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Update max expiration", () => {
@@ -28,7 +21,7 @@ describe("Update max expiration", () => {
   const durationSeconds = 1;
   let newMaxExpiration = new BN(0); // setting below to not set on runtime
   let issuerTokenAccountId: PublicKey;
-  let rentalMint: Token;
+  const rentalMint: Keypair = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
@@ -45,12 +38,22 @@ describe("Update max expiration", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
+      rentalMint.publicKey,
       user.publicKey
+    );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      user.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
   });
 
@@ -58,7 +61,7 @@ describe("Update max expiration", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       {
         timeInvalidation: {
           durationSeconds,
@@ -68,18 +71,11 @@ describe("Update max expiration", () => {
         amount: new BN(1),
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "create", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -87,9 +83,13 @@ describe("Update max expiration", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
+    );
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      user.publicKey.toString()
+    );
 
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
@@ -114,23 +114,14 @@ describe("Update max expiration", () => {
 
     const transaction = await rentals.claimRental(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "claim", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -147,15 +138,21 @@ describe("Update max expiration", () => {
     );
     expect(checkMintManager.parsed.tokenManagers?.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAtaId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAtaId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
 
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
@@ -182,26 +179,13 @@ describe("Update max expiration", () => {
     await withUpdateMaxExpiration(
       transaction,
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       tokenManagerId,
       newMaxExpiration.sub(new BN(1000))
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-
-    expect(async () => {
-      await expectTXTable(txEnvelope, "fail to extend expiration", {
-        verbosity: "error",
-        formatLogs: true,
-      }).to.be.rejectedWith(Error);
-    });
+    expect(
+      executeTransaction(provider.connection, transaction, new Wallet(user))
+    ).to.throw();
   });
 
   it("Update Max Expiration", async () => {
@@ -216,24 +200,15 @@ describe("Update max expiration", () => {
     await withUpdateMaxExpiration(
       transaction,
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       tokenManagerId,
       newMaxExpiration
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-
-    await expectTXTable(txEnvelope, "update max expiration", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
@@ -251,25 +226,12 @@ describe("Update max expiration", () => {
     const provider = getProvider();
     const transaction = await invalidate(
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       rentalMint.publicKey
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-
-    expect(async () => {
-      await expectTXTable(txEnvelope, "invalidate early", {
-        verbosity: "error",
-        formatLogs: true,
-      }).to.be.rejectedWith(Error);
-    });
+    expect(
+      executeTransaction(provider.connection, transaction, new Wallet(user))
+    ).to.throw();
   });
 
   it("Invalidate", async () => {
@@ -278,23 +240,14 @@ describe("Update max expiration", () => {
     const provider = getProvider();
     const transaction = await invalidate(
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       rentalMint.publicKey
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-
-    await expectTXTable(txEnvelope, "invalidate", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -306,9 +259,10 @@ describe("Update max expiration", () => {
     );
     expect(tokenManagerData).to.eq(null);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("1");
   });
 });

@@ -1,19 +1,18 @@
+import type { AccountData } from "@cardinal/common";
+import { withFindOrInitAssociatedTokenAccount } from "@cardinal/common";
 import {
   Edition,
   MetadataProgram,
 } from "@metaplex-foundation/mpl-token-metadata";
-import type { Wallet } from "@saberhq/solana-contrib";
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { getAccount } from "@solana/spl-token";
 import type {
   AccountMeta,
   Connection,
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
-import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../..";
-import { withFindOrInitAssociatedTokenAccount } from "../..";
 import type { TokenManagerData } from ".";
 import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
 import { findMintManagerId, findTransferReceiptId } from "./pda";
@@ -94,13 +93,8 @@ export const withRemainingAccountsForReturn = async (
       // get holder of receipt mint
       const receiptTokenAccountId = receiptMintLargestAccount.value[0]?.address;
       if (!receiptTokenAccountId) throw new Error("No token accounts found");
-      const receiptMintToken = new Token(
+      const receiptTokenAccount = await getAccount(
         connection,
-        receiptMint,
-        TOKEN_PROGRAM_ID,
-        Keypair.generate()
-      );
-      const receiptTokenAccount = await receiptMintToken.getAccountInfo(
         receiptTokenAccountId
       );
 

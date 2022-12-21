@@ -1,3 +1,4 @@
+import { findAta } from "@cardinal/common";
 import { PROGRAM_ID } from "@cardinal/creator-standard";
 import {
   Metadata,
@@ -5,7 +6,7 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import type { BN } from "@project-serum/anchor";
 import { AnchorProvider, Program } from "@project-serum/anchor";
-import type { Wallet } from "@saberhq/solana-contrib";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -22,7 +23,6 @@ import {
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 
-import { findAta } from "../..";
 import { CRANK_KEY, TokenManagerState } from ".";
 import type {
   InvalidationType,

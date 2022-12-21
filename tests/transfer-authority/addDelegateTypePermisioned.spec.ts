@@ -1,20 +1,16 @@
+import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
 import {
   CreateMetadataV2,
   DataV2,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+import { Wallet } from "@project-serum/anchor";
+import { SignerWallet } from "@saberhq/solana-contrib";
+import { getAccount } from "@solana/spl-token";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
-  findAta,
   withClaimToken,
   withDelegate,
   withIssueToken,
@@ -27,12 +23,11 @@ import {
   TokenManagerState,
 } from "../../src/programs/tokenManager";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
-import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
 describe("Add and Remove Delegate for Type Permissioned", () => {
   const user = Keypair.generate();
-  let rentalMint: Token;
+  const rentalMint: Keypair = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
@@ -43,13 +38,19 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
     await provider.connection.confirmTransaction(airdropCreator);
 
     // create rental mint
-    [, rentalMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
+      rentalMint.publicKey,
       user.publicKey
     );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
+    );
+
     const metadataId = await Metadata.getPDA(rentalMint.publicKey);
     const metadataTx = new CreateMetadataV2(
       { feePayer: user.publicKey },
@@ -69,20 +70,9 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
         mintAuthority: user.publicKey,
       }
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...metadataTx.instructions]
-    );
-
-    await expectTXTable(txEnvelope, "Create Token", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    const tx = new Transaction();
+    tx.instructions = [...metadataTx.instructions];
+    await executeTransaction(provider.connection, tx, new Wallet(user));
   });
 
   it("Issue Token Manager", async () => {
@@ -103,19 +93,11 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
         invalidationType: InvalidationType.Release,
       }
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "issue token manager", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -123,13 +105,18 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
+    );
     expect(tokenManagerData.parsed.invalidators.length).equals(0);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      user.publicKey.toString()
+    );
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
   });
 
   it("Fail To Delegate Token", async () => {
@@ -138,23 +125,12 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
     await withDelegate(
       transaction,
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       rentalMint.publicKey
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-    expect(async () => {
-      await expectTXTable(txEnvelope, "delegate token", {
-        verbosity: "error",
-      }).to.be.rejectedWith(Error);
-    });
+    expect(
+      executeTransaction(provider.connection, transaction, provider.wallet)
+    ).to.throw();
   });
 
   it("Claim Token Manager", async () => {
@@ -173,19 +149,11 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       new SignerWallet(user),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "claim token manager", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -193,10 +161,11 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    const checkClaimerTokenAccount = await rentalMint.getAccountInfo(
+    const checkClaimerTokenAccount = await getAccount(
+      provider.connection,
       claimerTokenAccountId
     );
-    expect(checkClaimerTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkClaimerTokenAccount.amount.toString()).to.eq("1");
     expect(checkClaimerTokenAccount.delegate).to.be.null;
     expect(checkClaimerTokenAccount.isFrozen).to.be.true;
   });
@@ -218,24 +187,17 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       new SignerWallet(user),
       rentalMint.publicKey
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "delegate token", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
-    const checkClaimerTokenAccount = await rentalMint.getAccountInfo(
+    const checkClaimerTokenAccount = await getAccount(
+      provider.connection,
       claimerTokenAccountId
     );
-    expect(checkClaimerTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkClaimerTokenAccount.amount.toString()).to.eq("1");
     expect(checkClaimerTokenAccount.delegate?.toString()).to.eq(
       tokenManagerId.toString()
     );
@@ -256,24 +218,17 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       new SignerWallet(user),
       rentalMint.publicKey
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "undelegate token", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
-    const checkClaimerTokenAccount = await rentalMint.getAccountInfo(
+    const checkClaimerTokenAccount = await getAccount(
+      provider.connection,
       claimerTokenAccountId
     );
-    expect(checkClaimerTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkClaimerTokenAccount.amount.toString()).to.eq("1");
     expect(checkClaimerTokenAccount.delegate).to.be.null;
     expect(checkClaimerTokenAccount.isFrozen).to.be.true;
   });

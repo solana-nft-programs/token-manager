@@ -1,11 +1,12 @@
-import type { Wallet } from "@saberhq/solana-contrib";
+import {
+  findAta,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import * as BufferLayout from "@solana/buffer-layout";
 import * as splToken from "@solana/spl-token";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { SystemProgram, TransactionInstruction } from "@solana/web3.js";
-
-import { withFindOrInitAssociatedTokenAccount } from ".";
-import { findAta } from "./utils";
 
 export async function withWrapSol(
   transaction: Transaction,

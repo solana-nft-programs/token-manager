@@ -1,34 +1,28 @@
-import { expectTXTable } from "@saberhq/chai-solana";
 import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  tryGetAccount,
+} from "@cardinal/common";
+import { Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import {
-  claimToken,
-  findAta,
-  invalidate,
-  issueToken,
-  tryGetAccount,
-} from "../src";
+import { claimToken, invalidate, issueToken } from "../src";
 import { tokenManager } from "../src/programs";
 import {
   InvalidationType,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Time invalidation vest claimed", () => {
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  let rentalMint: Token;
+  const rentalMint: Keypair = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
@@ -45,12 +39,22 @@ describe("Time invalidation vest claimed", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
+      rentalMint.publicKey,
       user.publicKey
+    );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      user.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
   });
 
@@ -58,7 +62,7 @@ describe("Time invalidation vest claimed", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       {
         timeInvalidation: { maxExpiration: Date.now() / 1000 + 1 },
         mint: rentalMint.publicKey,
@@ -68,18 +72,11 @@ describe("Time invalidation vest claimed", () => {
         invalidationType: InvalidationType.Vest,
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "create", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -87,14 +84,19 @@ describe("Time invalidation vest claimed", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
+    );
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      user.publicKey.toString()
+    );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
   });
 
   it("Claim rental", async () => {
@@ -107,23 +109,15 @@ describe("Time invalidation vest claimed", () => {
 
     const transaction = await claimToken(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
 
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "claim", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -132,15 +126,21 @@ describe("Time invalidation vest claimed", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAtaId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAtaId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
   });
 
@@ -150,23 +150,14 @@ describe("Time invalidation vest claimed", () => {
     const provider = getProvider();
     const transaction = await invalidate(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       rentalMint.publicKey
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "use", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -178,17 +169,23 @@ describe("Time invalidation vest claimed", () => {
     );
     expect(tokenManagerData).to.eq(null);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAtaId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAtaId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(false);
-    expect(checkRecipientTokenAccount.delegatedAmount.toNumber()).to.eq(0);
+    expect(checkRecipientTokenAccount.delegatedAmount.toString()).to.eq("0");
     expect(checkRecipientTokenAccount.delegate).to.eq(null);
   });
 });

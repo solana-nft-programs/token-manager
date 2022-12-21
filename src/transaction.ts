@@ -1,3 +1,9 @@
+import type { AccountData } from "@cardinal/common";
+import {
+  findAta,
+  tryGetAccount,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
 import {
   findMintManagerId as findCCSMintManagerId,
   findRulesetId,
@@ -5,16 +11,11 @@ import {
 import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
 import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
-import type { Wallet } from "@saberhq/solana-contrib";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  Token,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import { findAta } from ".";
 import {
   claimApprover,
   timeInvalidator,
@@ -52,8 +53,6 @@ import {
 } from "./programs/transferAuthority/accounts";
 import { findListingAddress } from "./programs/transferAuthority/pda";
 import type { UseInvalidationParams } from "./programs/useInvalidator/instruction";
-import type { AccountData } from "./utils";
-import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "./utils";
 
 export type IssueParameters = {
   claimPayment?: ClaimApproverParams;
@@ -456,9 +455,7 @@ export const withClaimToken = async (
     claimReceiptId = claimReceipt;
   }
 
-  const tokenManagerTokenAccountId = await Token.getAssociatedTokenAddress(
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
+  const tokenManagerTokenAccountId = getAssociatedTokenAddressSync(
     tokenManagerData.parsed.mint,
     tokenManagerId,
     true

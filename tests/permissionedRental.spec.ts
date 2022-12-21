@@ -1,22 +1,17 @@
-import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import { Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { claimToken, findAta, issueToken } from "../src";
+import { claimToken, issueToken } from "../src";
 import { tokenManager } from "../src/programs";
 import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
 import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Permissioned rental", () => {
@@ -24,7 +19,7 @@ describe("Permissioned rental", () => {
   const alternativeRecipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  let rentalMint: Token;
+  const rentalMint: Keypair = Keypair.generate();
   let claimLink: string;
 
   before(async () => {
@@ -42,18 +37,24 @@ describe("Permissioned rental", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
-      user.publicKey
+      rentalMint.publicKey,
+      provider.wallet.publicKey
     );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(provider.connection, transaction, provider.wallet);
   });
 
   it("Requires permissioned publicKey", async () => {
     const provider = getProvider();
-    await issueToken(provider.connection, new SignerWallet(user), {
+    await issueToken(provider.connection, new Wallet(user), {
       mint: rentalMint.publicKey,
       issuerTokenAccountId,
       useInvalidation: { totalUsages: 4 },
@@ -72,7 +73,7 @@ describe("Permissioned rental", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       {
         mint: rentalMint.publicKey,
         issuerTokenAccountId,
@@ -82,19 +83,11 @@ describe("Permissioned rental", () => {
         permissionedClaimApprover: recipient.publicKey,
       }
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -102,17 +95,22 @@ describe("Permissioned rental", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
+    );
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
-    expect(tokenManagerData.parsed.claimApprover).to.eqAddress(
-      recipient.publicKey
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      user.publicKey.toString()
+    );
+    expect(tokenManagerData.parsed.claimApprover?.toString()).to.eq(
+      recipient.publicKey.toString()
     );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
     console.log("Link created: ", claimLink);
   });
@@ -123,26 +121,20 @@ describe("Permissioned rental", () => {
       rentalMint.publicKey
     );
 
-    expect(async () => {
-      await expectTXTable(
-        new TransactionEnvelope(
-          SolanaProvider.init({
-            connection: provider.connection,
-            wallet: new SignerWallet(alternativeRecipient),
-            opts: provider.opts,
-          }),
-          (
-            await claimToken(
-              provider.connection,
-              new SignerWallet(alternativeRecipient),
-              tokenManagerId
-            )
-          ).instructions
-        ),
-        "Cannot be claimed by incorrect address",
-        { verbosity: "error" }
-      ).to.be.rejectedWith(Error);
-    });
+    const ix = await claimToken(
+      provider.connection,
+      new Wallet(alternativeRecipient),
+      tokenManagerId
+    );
+    const transaction = new Transaction();
+    transaction.add(ix);
+    expect(
+      executeTransaction(
+        provider.connection,
+        transaction,
+        new Wallet(alternativeRecipient)
+      )
+    ).to.throw();
   });
 
   it("Claim token", async () => {
@@ -153,22 +145,14 @@ describe("Permissioned rental", () => {
 
     const transaction = await claimToken(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -177,15 +161,21 @@ describe("Permissioned rental", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAtaId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAtaId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
   });
 });

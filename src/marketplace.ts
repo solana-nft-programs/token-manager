@@ -1,3 +1,9 @@
+import {
+  emptyWallet,
+  findAta,
+  tryGetAccount,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withRemainingAccountsForHandlePaymentWithRoyalties } from "@cardinal/payment-manager/dist/cjs/utils";
@@ -5,7 +11,7 @@ import {
   MasterEdition,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
-import type { Wallet } from "@saberhq/solana-contrib";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 import type BN from "bn.js";
@@ -49,12 +55,6 @@ import {
   findTransferAuthorityAddress,
 } from "./programs/transferAuthority/pda";
 import { withIssueToken } from "./transaction";
-import {
-  emptyWallet,
-  findAta,
-  tryGetAccount,
-  withFindOrInitAssociatedTokenAccount,
-} from "./utils";
 import { withWrapSol } from "./wrappedSol";
 
 export const withWrapToken = async (

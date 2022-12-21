@@ -1,3 +1,9 @@
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  tryGetAccount,
+} from "@cardinal/common";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { init } from "@cardinal/payment-manager/dist/cjs/instruction";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
@@ -9,26 +15,18 @@ import {
   MasterEdition,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { BN } from "@project-serum/anchor";
-import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
-import * as splToken from "@solana/spl-token";
+import { BN, Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals, tryGetAccount } from "../src";
+import { rentals } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create Rental With Royalties", () => {
@@ -50,8 +48,8 @@ describe("Create Rental With Royalties", () => {
   const creator2Share = new BN(55);
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  let paymentMint: Token;
-  let rentalMint: Token;
+  const paymentMint: Keypair = Keypair.generate();
+  const rentalMint: Keypair = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
@@ -68,20 +66,41 @@ describe("Create Rental With Royalties", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      tokenCreator,
+      paymentMint.publicKey,
       recipient.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT
+      { amount: RECIPIENT_START_PAYMENT_AMOUNT }
+    );
+    recipientPaymentTokenAccountId = await findAta(
+      paymentMint.publicKey,
+      recipient.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
 
-    // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction2 = new Transaction();
+    const [ixs2] = await createMintIxs(
       provider.connection,
-      tokenCreator,
-      provider.wallet.publicKey,
-      1,
+      rentalMint.publicKey,
       tokenCreator.publicKey
+    );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      tokenCreator.publicKey,
+      true
+    );
+    transaction2.instructions = ixs2;
+    await executeTransaction(
+      provider.connection,
+      transaction2,
+      new Wallet(tokenCreator)
     );
 
     const metadataId = await Metadata.getPDA(rentalMint.publicKey);
@@ -132,19 +151,12 @@ describe("Create Rental With Royalties", () => {
         maxSupply: new BN(1),
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(tokenCreator),
-        opts: provider.opts,
-      }),
-      [...metadataTx.instructions, ...masterEditionTx.instructions]
-    );
-
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    const tx = new Transaction();
+    tx.instructions = [
+      ...metadataTx.instructions,
+      ...masterEditionTx.instructions,
+    ];
+    await executeTransaction(provider.connection, tx, new Wallet(tokenCreator));
   });
 
   it("Create payment manager", async () => {
@@ -163,20 +175,8 @@ describe("Create Rental With Royalties", () => {
       authority: provider.wallet.publicKey,
       payer: provider.wallet.publicKey,
     });
-
     transaction.add(ix);
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-    await expectTXTable(txEnvelope, "Create Payment Manager", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    await executeTransaction(provider.connection, transaction, provider.wallet);
 
     const [checkPaymentManagerId] = await findPaymentManagerAddress(
       paymentManagerName
@@ -224,18 +224,7 @@ describe("Create Rental With Royalties", () => {
         kind: TokenManagerKind.Edition,
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    await executeTransaction(provider.connection, transaction, provider.wallet);
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -243,16 +232,19 @@ describe("Create Rental With Royalties", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
+    );
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(
-      provider.wallet.publicKey
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      provider.wallet.publicKey.toString()
     );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
@@ -266,15 +258,6 @@ describe("Create Rental With Royalties", () => {
 
   it("Claim rental", async () => {
     const provider = getProvider();
-
-    const paymentMintInfo = new splToken.Token(
-      provider.connection,
-      paymentMint.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
     const myAta = await findAta(
       paymentMint.publicKey,
       tokenCreator.publicKey,
@@ -291,16 +274,8 @@ describe("Create Rental With Royalties", () => {
       true
     );
 
-    expect(async () => {
-      await expect(() =>
-        paymentMintInfo.getAccountInfo(creator1Ata)
-      ).to.be.rejectedWith(Error);
-    });
-    expect(async () => {
-      await expect(() =>
-        paymentMintInfo.getAccountInfo(creator2Ata)
-      ).to.be.rejectedWith(Error);
-    });
+    expect(getAccount(provider.connection, creator1Ata)).to.throw();
+    expect(getAccount(provider.connection, creator2Ata)).to.throw();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -309,23 +284,14 @@ describe("Create Rental With Royalties", () => {
 
     const transaction = await rentals.claimRental(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -334,18 +300,25 @@ describe("Create Rental With Royalties", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAtaId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAtaId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
+    const checkRecipientPaymentTokenAccount = await getAccount(
+      provider.connection,
       recipientPaymentTokenAccountId
     );
 
@@ -357,23 +330,25 @@ describe("Create Rental With Royalties", () => {
     const totalFees = makerFee.add(takerFee);
     const splitFees = totalFees.mul(FEE_SPLIT).div(new BN(100));
 
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT -
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+      (
+        RECIPIENT_START_PAYMENT_AMOUNT -
         RENTAL_PAYMENT_AMONT -
         takerFee.toNumber()
+      ).toString()
     );
 
     const myFunds = splitFees.mul(myShare).div(new BN(100));
-    const myAtaInfo = await paymentMintInfo.getAccountInfo(myAta);
-    expect(myAtaInfo.amount.toNumber()).to.eq(myFunds.toNumber());
+    const myAtaInfo = await getAccount(provider.connection, myAta);
+    expect(myAtaInfo.amount.toString()).to.eq(myFunds.toString());
 
     const creator1Funds = splitFees.mul(creator1Share).div(new BN(100));
-    const creator1AtaInfo = await paymentMintInfo.getAccountInfo(creator1Ata);
-    expect(creator1AtaInfo.amount.toNumber()).to.eq(creator1Funds.toNumber());
+    const creator1AtaInfo = await getAccount(provider.connection, creator1Ata);
+    expect(creator1AtaInfo.amount.toString()).to.eq(creator1Funds.toString());
 
     const creator2Funds = splitFees.mul(creator2Share).div(new BN(100));
-    const creator2AtaInfo = await paymentMintInfo.getAccountInfo(creator2Ata);
-    expect(creator2AtaInfo.amount.toNumber()).to.eq(creator2Funds.toNumber());
+    const creator2AtaInfo = await getAccount(provider.connection, creator2Ata);
+    expect(creator2AtaInfo.amount.toString()).to.eq(creator2Funds.toString());
   });
 
   it("Extend Rental", async () => {
@@ -394,24 +369,15 @@ describe("Create Rental With Royalties", () => {
 
     const transaction = await rentals.extendRentalExpiration(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId,
       1000
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "extend", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(

@@ -1,24 +1,23 @@
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  tryGetAccount,
+} from "@cardinal/common";
 import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { init } from "@cardinal/payment-manager/dist/cjs/instruction";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import { BN, web3 } from "@project-serum/anchor";
-import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+import { BN, Wallet, web3 } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { findAta, rentals, tryGetAccount } from "../src";
+import { rentals } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { getClaimApprover } from "../src/programs/claimApprover/accounts";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create rental with payment manager and extend", () => {
@@ -33,8 +32,8 @@ describe("Create rental with payment manager and extend", () => {
   const feeCollector = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  let paymentMint: Token;
-  let rentalMint: Token;
+  const paymentMint: Keypair = Keypair.generate();
+  const rentalMint: Keypair = Keypair.generate();
   let expiration: number;
   let paymentManagerId: PublicKey;
 
@@ -53,20 +52,42 @@ describe("Create rental with payment manager and extend", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
+      paymentMint.publicKey,
       recipient.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT
+      { amount: RECIPIENT_START_PAYMENT_AMOUNT }
+    );
+    recipientPaymentTokenAccountId = await findAta(
+      paymentMint.publicKey,
+      recipient.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction2 = new Transaction();
+    const [ixs2] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
+      rentalMint.publicKey,
       user.publicKey
+    );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      user.publicKey,
+      true
+    );
+    transaction2.instructions = ixs2;
+    await executeTransaction(
+      provider.connection,
+      transaction2,
+      new Wallet(user)
     );
   });
 
@@ -75,35 +96,22 @@ describe("Create rental with payment manager and extend", () => {
     const transaction = new web3.Transaction();
 
     [paymentManagerId] = await findPaymentManagerAddress(paymentManagerName);
-    const ix = init(
-      provider.connection,
-      new SignerWallet(user),
-      paymentManagerName,
-      {
-        paymentManagerId: paymentManagerId,
-        feeCollector: feeCollector.publicKey,
-        makerFeeBasisPoints: MAKER_FEE,
-        takerFeeBasisPoints: TAKER_FEE,
-        includeSellerFeeBasisPoints: false,
-        royaltyFeeShare: new BN(0),
-        authority: user.publicKey,
-        payer: user.publicKey,
-      }
-    );
-
+    const ix = init(provider.connection, new Wallet(user), paymentManagerName, {
+      paymentManagerId: paymentManagerId,
+      feeCollector: feeCollector.publicKey,
+      makerFeeBasisPoints: MAKER_FEE,
+      takerFeeBasisPoints: TAKER_FEE,
+      includeSellerFeeBasisPoints: false,
+      royaltyFeeShare: new BN(0),
+      authority: user.publicKey,
+      payer: user.publicKey,
+    });
     transaction.add(ix);
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "Create Payment Manager", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const [checkPaymentManagerId] = await findPaymentManagerAddress(
       paymentManagerName
@@ -119,7 +127,7 @@ describe("Create rental with payment manager and extend", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
@@ -141,18 +149,11 @@ describe("Create rental with payment manager and extend", () => {
         amount: new BN(1),
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "Create Rental", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -160,9 +161,13 @@ describe("Create rental with payment manager and extend", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint.toString()).to.eq(
+      rentalMint.publicKey.toString()
+    );
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
+    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+      user.publicKey.toString()
+    );
 
     const claimApproverData = await getClaimApprover(
       provider.connection,
@@ -172,10 +177,11 @@ describe("Create rental with payment manager and extend", () => {
       paymentManagerId.toString()
     );
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
@@ -197,23 +203,14 @@ describe("Create rental with payment manager and extend", () => {
 
     const transaction = await rentals.claimRental(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "Claim Rental", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -222,40 +219,54 @@ describe("Create rental with payment manager and extend", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAtaId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAtaId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
+    const checkRecipientPaymentTokenAccount = await getAccount(
+      provider.connection,
       recipientPaymentTokenAccountId
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT -
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+      (
+        RECIPIENT_START_PAYMENT_AMOUNT -
         RENTAL_PAYMENT_AMONT -
         Math.floor((RENTAL_PAYMENT_AMONT * TAKER_FEE) / BASIS_POINTS_DIVISOR)
+      ).toString()
     );
 
-    const feeCollectorTokenAccountAfter = await paymentMint.getAccountInfo(
-      await findAta(paymentMint.publicKey, feeCollector.publicKey)
+    const feeCollectorAtaId = await findAta(
+      paymentMint.publicKey,
+      feeCollector.publicKey
+    );
+    const feeCollectorTokenAccountAfter = await getAccount(
+      provider.connection,
+      feeCollectorAtaId
     );
 
     const buySideFee =
       (RENTAL_PAYMENT_AMONT * DEFAULT_BUY_SIDE_FEE_SHARE) /
       BASIS_POINTS_DIVISOR;
-    expect(feeCollectorTokenAccountAfter.amount.toNumber()).to.eq(
+    expect(feeCollectorTokenAccountAfter.amount.toString()).to.eq(
       Math.floor(
         new BN(RENTAL_PAYMENT_AMONT)
           .mul(new BN(MAKER_FEE).add(new BN(TAKER_FEE).add(new BN(buySideFee))))
           .div(new BN(BASIS_POINTS_DIVISOR))
           .toNumber()
-      )
+      ).toString()
     );
   });
 
@@ -266,12 +277,18 @@ describe("Create rental with payment manager and extend", () => {
       rentalMint.publicKey
     );
 
-    const recipientPaymentTokenAccountBefore = await paymentMint.getAccountInfo(
+    const recipientPaymentTokenAccountBefore = await getAccount(
+      provider.connection,
       recipientPaymentTokenAccountId
     );
 
-    const feeCollectorTokenAccountBefore = await paymentMint.getAccountInfo(
-      await findAta(paymentMint.publicKey, feeCollector.publicKey)
+    const feeCollectorAtaId = await findAta(
+      paymentMint.publicKey,
+      feeCollector.publicKey
+    );
+    const feeCollectorTokenAccountBefore = await getAccount(
+      provider.connection,
+      feeCollectorAtaId
     );
 
     let timeInvalidatorData = await tryGetAccount(async () =>
@@ -291,24 +308,15 @@ describe("Create rental with payment manager and extend", () => {
 
     const transaction = await rentals.extendRentalExpiration(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId,
       1000 * 10 // 10 amount extension
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "Extend Rental", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
@@ -323,37 +331,44 @@ describe("Create rental with payment manager and extend", () => {
       expiration + 10000
     );
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAtaId = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAtaId
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
+    const checkRecipientPaymentTokenAccount = await getAccount(
+      provider.connection,
       recipientPaymentTokenAccountId
     );
 
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      recipientPaymentTokenAccountBefore.amount
-        .sub(new BN(10))
-        .sub(
-          new BN(10).mul(new BN(TAKER_FEE)).div(new BN(BASIS_POINTS_DIVISOR))
-        )
-        .toNumber()
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+      Number(recipientPaymentTokenAccountBefore.amount) -
+        10 -
+        new BN(10)
+          .mul(new BN(TAKER_FEE))
+          .div(new BN(BASIS_POINTS_DIVISOR))
+          .toNumber()
     );
 
-    const feeCollectorTokenAccountAfter = await paymentMint.getAccountInfo(
-      await findAta(paymentMint.publicKey, feeCollector.publicKey)
+    const feeCollectorTokenAccountAfter = await getAccount(
+      provider.connection,
+      feeCollectorAtaId
     );
 
-    expect(feeCollectorTokenAccountAfter.amount.toNumber()).to.eq(
-      feeCollectorTokenAccountBefore.amount
-        .add(
-          new BN(10)
-            .mul(new BN(TAKER_FEE).add(new BN(MAKER_FEE)))
-            .div(new BN(BASIS_POINTS_DIVISOR))
-        )
-        .toNumber()
+    expect(feeCollectorTokenAccountAfter.amount.toString()).to.eq(
+      (
+        Number(feeCollectorTokenAccountBefore.amount) +
+        new BN(10)
+          .mul(new BN(TAKER_FEE).add(new BN(MAKER_FEE)))
+          .div(new BN(BASIS_POINTS_DIVISOR))
+          .toNumber()
+      ).toString()
     );
   });
 });

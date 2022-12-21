@@ -1,18 +1,18 @@
-import { expectTXTable } from "@saberhq/chai-solana";
 import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  tryGetAccount,
+} from "@cardinal/common";
+import { Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { extendUsages, findAta, rentals, tryGetAccount } from "../src";
+import { extendUsages, rentals } from "../src";
 import { tokenManager, useInvalidator } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create and Extend Rental", () => {
@@ -24,8 +24,8 @@ describe("Create and Extend Rental", () => {
   const user = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  let paymentMint: Token;
-  let rentalMint: Token;
+  const paymentMint: Keypair = Keypair.generate();
+  const rentalMint: Keypair = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
@@ -42,20 +42,42 @@ describe("Create and Extend Rental", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      user,
+      paymentMint.publicKey,
       recipient.publicKey,
-      RECIPIENT_START_PAYMENT_AMOUNT
+      { amount: RECIPIENT_START_PAYMENT_AMOUNT }
+    );
+    recipientPaymentTokenAccountId = await findAta(
+      paymentMint.publicKey,
+      recipient.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
 
     // create rental mint
-    [issuerTokenAccountId, rentalMint] = await createMint(
+    const transaction2 = new Transaction();
+    const [ixs2] = await createMintIxs(
       provider.connection,
-      user,
-      user.publicKey,
-      1,
+      rentalMint.publicKey,
       user.publicKey
+    );
+    issuerTokenAccountId = await findAta(
+      rentalMint.publicKey,
+      user.publicKey,
+      true
+    );
+    transaction2.instructions = ixs2;
+    await executeTransaction(
+      provider.connection,
+      transaction2,
+      new Wallet(user)
     );
   });
 
@@ -63,7 +85,7 @@ describe("Create and Extend Rental", () => {
     const provider = getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
-      new SignerWallet(user),
+      new Wallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
@@ -82,18 +104,11 @@ describe("Create and Extend Rental", () => {
         issuerTokenAccountId: issuerTokenAccountId,
       }
     );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(user),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(user)
     );
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -101,14 +116,15 @@ describe("Create and Extend Rental", () => {
     );
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint).to.eqAddress(rentalMint.publicKey);
+    expect(tokenManagerData.parsed.mint).to.eq(rentalMint.publicKey.toString());
     expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer).to.eqAddress(user.publicKey);
+    expect(tokenManagerData.parsed.issuer).to.eq(user.publicKey.toString());
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
@@ -130,23 +146,14 @@ describe("Create and Extend Rental", () => {
 
     const transaction = await rentals.claimRental(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "test", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -155,22 +162,29 @@ describe("Create and Extend Rental", () => {
     expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
     expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
 
-    const checkIssuerTokenAccount = await rentalMint.getAccountInfo(
+    const checkIssuerTokenAccount = await getAccount(
+      provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
 
-    const checkRecipientTokenAccount = await rentalMint.getAccountInfo(
-      await findAta(rentalMint.publicKey, recipient.publicKey)
+    const recipientAta = await findAta(
+      rentalMint.publicKey,
+      recipient.publicKey
     );
-    expect(checkRecipientTokenAccount.amount.toNumber()).to.eq(1);
+    const checkRecipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientAta
+    );
+    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
     expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
 
-    const checkRecipientPaymentTokenAccount = await paymentMint.getAccountInfo(
+    const checkRecipientPaymentTokenAccount = await getAccount(
+      provider.connection,
       recipientPaymentTokenAccountId
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toNumber()).to.eq(
-      RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+      (RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT).toString()
     );
   });
 
@@ -194,24 +208,15 @@ describe("Create and Extend Rental", () => {
 
     const transaction = await extendUsages(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId,
       1
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
     );
-
-    await expectTXTable(txEnvelope, "extend", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
@@ -235,25 +240,16 @@ describe("Create and Extend Rental", () => {
 
     const transaction = await extendUsages(
       provider.connection,
-      new SignerWallet(recipient),
+      new Wallet(recipient),
       tokenManagerId,
       4
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(recipient),
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-
-    expect(async () => {
-      await expectTXTable(txEnvelope, "extend", {
-        verbosity: "error",
-        formatLogs: true,
-      }).to.be.rejectedWith(Error);
-    });
+    expect(
+      executeTransaction(
+        provider.connection,
+        transaction,
+        new Wallet(recipient)
+      )
+    ).to.throw();
   });
 });

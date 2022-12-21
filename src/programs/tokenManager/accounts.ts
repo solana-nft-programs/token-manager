@@ -1,15 +1,15 @@
+import type { AccountData } from "@cardinal/common";
 import {
   AnchorProvider,
   BN,
   BorshAccountsCoder,
   Program,
   utils,
+  Wallet,
 } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type { TokenManagerState } from ".";
 import type {
   MintCounterData,
@@ -26,7 +26,7 @@ export const getTokenManager = async (
 ): Promise<AccountData<TokenManagerData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -50,7 +50,7 @@ export const getTokenManagers = async (
 ): Promise<AccountData<TokenManagerData>[]> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -140,7 +140,7 @@ export const getMintManager = async (
 ): Promise<AccountData<MintManagerData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -164,7 +164,7 @@ export const getMintCounter = async (
 ): Promise<AccountData<MintCounterData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -233,7 +233,7 @@ export const getTransferReceipt = async (
 ): Promise<AccountData<TransferReceiptData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(

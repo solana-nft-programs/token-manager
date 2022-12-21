@@ -1,3 +1,4 @@
+import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
 import { init } from "@cardinal/payment-manager/dist/cjs/instruction";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import {
@@ -7,22 +8,14 @@ import {
   MasterEdition,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
-import type { Token } from "@solana/spl-token";
-import * as splToken from "@solana/spl-token";
+import { Wallet } from "@project-serum/anchor";
+import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
 
 import {
-  emptyWallet,
-  findAta,
   withInitTransferAuthority,
   withRelease,
   withWrapToken,
@@ -31,7 +24,6 @@ import { getTokenManager } from "../../src/programs/tokenManager/accounts";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { getTransferAuthorityByName } from "../../src/programs/transferAuthority/accounts";
 import { findTransferAuthorityAddress } from "../../src/programs/transferAuthority/pda";
-import { createMint } from "../utils";
 import { getProvider } from "../workspace";
 
 describe("Release wrapped token", () => {
@@ -39,7 +31,7 @@ describe("Release wrapped token", () => {
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
-  let tokenMint: Token;
+  const tokenMint: Keypair = Keypair.generate();
   let listerTokenAccountId: PublicKey;
 
   const paymentManagerName = `pm-${Math.random()}`;
@@ -62,12 +54,22 @@ describe("Release wrapped token", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    [listerTokenAccountId, tokenMint] = await createMint(
+    const transaction = new Transaction();
+    const [ixs] = await createMintIxs(
       provider.connection,
-      lister,
-      lister.publicKey,
-      1,
+      tokenMint.publicKey,
       lister.publicKey
+    );
+    listerTokenAccountId = await findAta(
+      tokenMint.publicKey,
+      lister.publicKey,
+      true
+    );
+    transaction.instructions = ixs;
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(lister)
     );
 
     const metadataId = await Metadata.getPDA(tokenMint.publicKey);
@@ -102,20 +104,12 @@ describe("Release wrapped token", () => {
         maxSupply: new BN(1),
       }
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(lister),
-        opts: provider.opts,
-      }),
-      [...metadataTx.instructions, ...masterEditionTx.instructions]
-    );
-
-    await expectTXTable(txEnvelope, "Create Token", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    const tx = new Transaction();
+    tx.instructions = [
+      ...metadataTx.instructions,
+      ...masterEditionTx.instructions,
+    ];
+    await executeTransaction(provider.connection, tx, new Wallet(lister));
 
     const [paymentManagerId] = await findPaymentManagerAddress(
       paymentManagerName
@@ -129,19 +123,9 @@ describe("Release wrapped token", () => {
       authority: provider.wallet.publicKey,
       payer: provider.wallet.publicKey,
     });
-    const pmTxEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [ix]
-    );
-
-    await expectTXTable(pmTxEnvelope, "Create Payment Manager", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    const pmtx = new Transaction();
+    pmtx.add(ix);
+    await executeTransaction(provider.connection, pmtx, provider.wallet);
   });
 
   it("Create Transfer Authority", async () => {
@@ -154,19 +138,7 @@ describe("Release wrapped token", () => {
       provider.wallet,
       transferAuthorityName
     );
-
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
-    await expectTXTable(txEnvelope, "Create transfer authority", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    await executeTransaction(provider.connection, transaction, provider.wallet);
 
     const checkTransferAuthority = await getTransferAuthorityByName(
       provider.connection,
@@ -174,8 +146,8 @@ describe("Release wrapped token", () => {
     );
 
     expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
-    expect(checkTransferAuthority.parsed.authority).to.eqAddress(
-      provider.wallet.publicKey
+    expect(checkTransferAuthority.parsed.authority.toString()).to.eq(
+      provider.wallet.publicKey.toString()
     );
     expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
   });
@@ -190,44 +162,28 @@ describe("Release wrapped token", () => {
     await withWrapToken(
       wrapTransaction,
       provider.connection,
-      emptyWallet(lister.publicKey),
+      new Wallet(lister),
       tokenMint.publicKey,
       {
         transferAuthorityName: transferAuthorityName,
         creator: transferAuthorityId,
       }
     );
-
-    const wrapTxEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...wrapTransaction.instructions],
-      [lister]
-    );
-
-    await expectTXTable(wrapTxEnvelope, "Wrap Token", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const checkMint = new splToken.Token(
+    await executeTransaction(
       provider.connection,
-      tokenMint.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
+      wrapTransaction,
+      new Wallet(lister)
     );
     const mintTokenAccountId = await findAta(
       tokenMint.publicKey,
       lister.publicKey,
       true
     );
-    const mintTokenAccount = await checkMint.getAccountInfo(mintTokenAccountId);
-    expect(mintTokenAccount.amount.toNumber()).to.equal(1);
+    const mintTokenAccount = await getAccount(
+      provider.connection,
+      mintTokenAccountId
+    );
+    expect(mintTokenAccount.amount.toString()).to.equal("1");
     expect(mintTokenAccount.isFrozen).to.be.true;
 
     const [tokenManagerId] = await findTokenManagerAddress(tokenMint.publicKey);
@@ -253,42 +209,27 @@ describe("Release wrapped token", () => {
     await withRelease(
       transaction,
       provider.connection,
-      emptyWallet(lister.publicKey),
+      new Wallet(lister),
       tokenMint.publicKey,
       transferAuthorityId,
       listerTokenAccountId
     );
-
-    const wrapTxEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions],
-      [lister]
-    );
-
-    await expectTXTable(wrapTxEnvelope, "realease wrapped token", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const checkMint = new splToken.Token(
+    await executeTransaction(
       provider.connection,
-      tokenMint.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
+      transaction,
+      new Wallet(lister)
     );
+
     const mintTokenAccountId = await findAta(
       tokenMint.publicKey,
       lister.publicKey,
       true
     );
-    const mintTokenAccount = await checkMint.getAccountInfo(mintTokenAccountId);
-    expect(mintTokenAccount.amount.toNumber()).to.equal(1);
+    const mintTokenAccount = await getAccount(
+      provider.connection,
+      mintTokenAccountId
+    );
+    expect(mintTokenAccount.amount.toString()).to.equal("1");
     expect(mintTokenAccount.isFrozen).to.be.false;
   });
 });

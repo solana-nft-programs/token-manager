@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -8,7 +13,6 @@ import { expect } from "chai";
 import { issueToken, rentals, useTransaction } from "../src";
 import { tokenManager, useInvalidator } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Use by use authority", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
@@ -22,7 +26,7 @@ describe("Use by use authority", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -82,7 +86,7 @@ describe("Use by use authority", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(user),
@@ -128,7 +132,7 @@ describe("Use by use authority", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -179,7 +183,7 @@ describe("Use by use authority", () => {
   });
 
   it("Cannot be used by holder", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
@@ -196,7 +200,7 @@ describe("Use by use authority", () => {
   });
 
   it("Use by use authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(useAuthority),

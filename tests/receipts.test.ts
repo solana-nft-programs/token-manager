@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import {
@@ -23,7 +24,6 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Issue claim receipt invalidate", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
@@ -38,7 +38,7 @@ describe("Issue claim receipt invalidate", () => {
   let issuerReceiptMintTokenAccountId: PublicKey;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -136,7 +136,7 @@ describe("Issue claim receipt invalidate", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       provider.wallet,
@@ -190,7 +190,7 @@ describe("Issue claim receipt invalidate", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -241,7 +241,7 @@ describe("Issue claim receipt invalidate", () => {
   });
 
   it("Use rental and invalidate", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),

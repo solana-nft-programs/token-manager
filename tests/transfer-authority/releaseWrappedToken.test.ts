@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import {
   CreateMasterEditionV3,
@@ -23,7 +28,6 @@ import { getTokenManager } from "../../src/programs/tokenManager/accounts";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { getTransferAuthorityByName } from "../../src/programs/transferAuthority/accounts";
 import { findTransferAuthorityAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Release wrapped token", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -39,7 +43,7 @@ describe("Release wrapped token", () => {
   const TAKER_FEE = new BN(0);
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,
@@ -124,7 +128,7 @@ describe("Release wrapped token", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -148,7 +152,7 @@ describe("Release wrapped token", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
     const [transferAuthorityId] = await findTransferAuthorityAddress(
       transferAuthorityName
@@ -194,7 +198,7 @@ describe("Release wrapped token", () => {
   });
 
   it("Release token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     const [transferAuthorityId] = await findTransferAuthorityAddress(

@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
@@ -21,7 +22,6 @@ import {
   createTransferReceipt,
   setTransferAuthority,
 } from "../../src/programs/tokenManager/instruction";
-import { getProvider } from "../workspace";
 
 describe("Transfer receipt transfer", () => {
   const recipient = Keypair.generate();
@@ -33,7 +33,7 @@ describe("Transfer receipt transfer", () => {
   const mint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -77,7 +77,7 @@ describe("Transfer receipt transfer", () => {
   });
 
   it("Issue token with transfer authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const transaction = new Transaction();
     const [tokenManagerIx, tokenManagerId] =
@@ -159,7 +159,7 @@ describe("Transfer receipt transfer", () => {
   });
 
   it("Claim", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -203,7 +203,7 @@ describe("Transfer receipt transfer", () => {
   });
 
   it("Create transfer receipt", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       mint.publicKey
@@ -238,7 +238,7 @@ describe("Transfer receipt transfer", () => {
   });
 
   it("Fail transfer", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tx = await withTransfer(
       new Transaction(),
@@ -253,7 +253,7 @@ describe("Transfer receipt transfer", () => {
   });
 
   it("Transfer", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tx = await withTransfer(
       new Transaction(),
       provider.connection,

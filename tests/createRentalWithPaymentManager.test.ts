@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
@@ -18,7 +19,6 @@ import { rentals } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { getClaimApprover } from "../src/programs/claimApprover/accounts";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Create rental with payment manager and extend", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 100000;
@@ -38,7 +38,7 @@ describe("Create rental with payment manager and extend", () => {
   let paymentManagerId: PublicKey;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -92,7 +92,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Create payment manager", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new web3.Transaction();
 
     const pmtx = new Transaction();
@@ -120,7 +120,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -190,7 +190,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -267,7 +267,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Extend Rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       rentalMint.publicKey

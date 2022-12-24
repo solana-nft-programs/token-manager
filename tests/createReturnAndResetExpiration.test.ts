@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
@@ -19,7 +20,6 @@ import {
   InvalidationType,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend Again", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
@@ -32,7 +32,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -86,7 +86,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -143,7 +143,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   });
 
   it("Claim and extend rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -210,7 +210,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   it("Return Rental", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(recipient),
@@ -233,7 +233,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
     expect(tokenManagerData?.parsed.state).to.eq(TokenManagerState.Issued);
   });
   it("Reset Expiration", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       rentalMint.publicKey
@@ -266,7 +266,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
     expect(timeInvalidatorData?.parsed.expiration).to.eq(null);
   });
   it("Claim rental again", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,

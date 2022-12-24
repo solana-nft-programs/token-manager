@@ -1,4 +1,8 @@
-import { createMintIxs, executeTransaction } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  getProvider,
+} from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import {
@@ -26,7 +30,6 @@ import {
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Create Listing", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -46,7 +49,7 @@ describe("Create Listing", () => {
   //   const BASIS_POINTS_DIVISOR = 10000;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     // create rental mint
     const transaction = new Transaction();
     const [ixs] = await createMintIxs(
@@ -110,7 +113,7 @@ describe("Create Listing", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -134,7 +137,7 @@ describe("Create Listing", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
@@ -150,7 +153,7 @@ describe("Create Listing", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -179,7 +182,7 @@ describe("Create Listing", () => {
   });
 
   it("Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(

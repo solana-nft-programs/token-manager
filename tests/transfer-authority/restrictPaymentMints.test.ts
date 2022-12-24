@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import {
@@ -29,7 +34,6 @@ import {
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Restrict Payment Mints", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -48,7 +52,7 @@ describe("Restrict Payment Mints", () => {
   const BASIS_POINTS_DIVISOR = new BN(10000);
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,
@@ -143,7 +147,7 @@ describe("Restrict Payment Mints", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -167,7 +171,7 @@ describe("Restrict Payment Mints", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
@@ -196,7 +200,7 @@ describe("Restrict Payment Mints", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -228,7 +232,7 @@ describe("Restrict Payment Mints", () => {
   });
 
   it("Fail to Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
@@ -246,7 +250,7 @@ describe("Restrict Payment Mints", () => {
   });
 
   it("Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
@@ -291,7 +295,7 @@ describe("Restrict Payment Mints", () => {
   });
 
   it("Accept Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
     const checkListing = await getListing(
       provider.connection,

@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import {
   CreateMetadataV2,
   DataV2,
@@ -22,14 +27,13 @@ import {
   TokenManagerState,
 } from "../../src/programs/tokenManager";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
-import { getProvider } from "../workspace";
 
 describe("Add and Remove Delegate for Type Permissioned", () => {
   const user = Keypair.generate();
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -75,7 +79,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
   });
 
   it("Issue Token Manager", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const issuerTokenAccountId = await findAta(
       rentalMint.publicKey,
       user.publicKey,
@@ -119,7 +123,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
   });
 
   it("Fail To Delegate Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
     await withDelegate(
       transaction,
@@ -133,7 +137,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
   });
 
   it("Claim Token Manager", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [tokenManagerId] = await findTokenManagerAddress(
       rentalMint.publicKey
     );
@@ -170,7 +174,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
   });
 
   it("Delegate Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [tokenManagerId] = await findTokenManagerAddress(
       rentalMint.publicKey
     );
@@ -204,7 +208,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
   });
 
   it("Undelegate Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const claimerTokenAccountId = await findAta(
       rentalMint.publicKey,
       user.publicKey,

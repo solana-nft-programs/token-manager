@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -9,7 +14,6 @@ import { claimLinks, issueToken, withClaimToken } from "../src";
 import { fromLink } from "../src/claimLinks";
 import { tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Issue payer invalidate", () => {
   const recipient = Keypair.generate();
@@ -20,7 +24,7 @@ describe("Issue payer invalidate", () => {
   let claimLink: string;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -54,7 +58,7 @@ describe("Issue payer invalidate", () => {
   });
 
   it("Issue", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await issueToken(
       provider.connection,
       new Wallet(user),
@@ -105,7 +109,7 @@ describe("Issue payer invalidate", () => {
   });
 
   it("Claim from link with payer", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 

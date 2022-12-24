@@ -3,6 +3,7 @@ import {
   emptyWallet,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
@@ -36,7 +37,6 @@ import {
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
 import { findTransferAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Private Transfer", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -53,7 +53,7 @@ describe("Private Transfer", () => {
   const TAKER_FEE = new BN(0);
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       from.publicKey,
@@ -138,7 +138,7 @@ describe("Private Transfer", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -162,7 +162,7 @@ describe("Private Transfer", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
@@ -191,7 +191,7 @@ describe("Private Transfer", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -220,7 +220,7 @@ describe("Private Transfer", () => {
   });
 
   it("Init Transfer", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransfer(
@@ -253,7 +253,7 @@ describe("Private Transfer", () => {
   });
 
   it("Cancel Transfer", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCancelTransfer(
@@ -275,7 +275,7 @@ describe("Private Transfer", () => {
   });
 
   it("Init Transfer", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransfer(
@@ -308,7 +308,7 @@ describe("Private Transfer", () => {
   });
 
   it("Accept Transfer", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withAcceptTransfer(

@@ -3,6 +3,7 @@ import {
   emptyWallet,
   executeTransaction,
   findAta,
+  getProvider,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
@@ -36,7 +37,6 @@ import {
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Accept Listing Permissioned", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -54,7 +54,7 @@ describe("Accept Listing Permissioned", () => {
   const BASIS_POINTS_DIVISOR = new BN(10000);
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const feeCollectorInfo = await provider.connection.requestAirdrop(
       feeCollector.publicKey,
@@ -123,7 +123,7 @@ describe("Accept Listing Permissioned", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -147,7 +147,7 @@ describe("Accept Listing Permissioned", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
@@ -177,7 +177,7 @@ describe("Accept Listing Permissioned", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -206,7 +206,7 @@ describe("Accept Listing Permissioned", () => {
   });
 
   it("Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
@@ -259,7 +259,7 @@ describe("Accept Listing Permissioned", () => {
   });
 
   it("Accept Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
     const checkListing = await getListing(provider.connection, mint.publicKey);
 

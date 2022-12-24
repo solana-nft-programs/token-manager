@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
@@ -13,7 +14,6 @@ import { expect } from "chai";
 import { invalidate, rentals, withUpdateMaxExpiration } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Update max expiration", () => {
   const recipient = Keypair.generate();
@@ -24,7 +24,7 @@ describe("Update max expiration", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -58,7 +58,7 @@ describe("Update max expiration", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -105,7 +105,7 @@ describe("Update max expiration", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -167,7 +167,7 @@ describe("Update max expiration", () => {
   });
 
   it("Fail to update max expiration", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -189,7 +189,7 @@ describe("Update max expiration", () => {
   });
 
   it("Update Max Expiration", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -223,7 +223,7 @@ describe("Update max expiration", () => {
   });
 
   it("Invalidate early", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),
@@ -237,7 +237,7 @@ describe("Update max expiration", () => {
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 7000));
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),

@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -28,7 +33,6 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Claim links master editions invalidate", () => {
   const recipient = Keypair.generate();
@@ -40,7 +44,7 @@ describe("Claim links master editions invalidate", () => {
   let serializedUsage: string;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -151,7 +155,7 @@ describe("Claim links master editions invalidate", () => {
   });
 
   it("Create link", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await claimLinks.issueToken(
       provider.connection,
       new Wallet(tokenCreator),
@@ -198,7 +202,7 @@ describe("Claim links master editions invalidate", () => {
   });
 
   it("Claim from link", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
@@ -240,7 +244,7 @@ describe("Claim links master editions invalidate", () => {
   });
 
   it("Get use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
@@ -256,7 +260,7 @@ describe("Claim links master editions invalidate", () => {
   });
 
   it("Execute use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const buffer = Buffer.from(serializedUsage, "base64");
     const transaction = Transaction.from(buffer);
     await sendAndConfirmRawTransaction(

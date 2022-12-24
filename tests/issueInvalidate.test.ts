@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
@@ -13,7 +14,6 @@ import { expect } from "chai";
 import { invalidate, issueToken } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Issue Invalidate", () => {
   const recipient = Keypair.generate();
@@ -22,7 +22,7 @@ describe("Issue Invalidate", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -56,7 +56,7 @@ describe("Issue Invalidate", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(user),
@@ -106,7 +106,7 @@ describe("Issue Invalidate", () => {
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),

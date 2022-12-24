@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { Wallet } from "@project-serum/anchor";
@@ -16,7 +17,6 @@ import {
   InvalidationType,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Time invalidation vest claimed", () => {
   const recipient = Keypair.generate();
@@ -25,7 +25,7 @@ describe("Time invalidation vest claimed", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -59,7 +59,7 @@ describe("Time invalidation vest claimed", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(user),
@@ -100,7 +100,7 @@ describe("Time invalidation vest claimed", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -147,7 +147,7 @@ describe("Time invalidation vest claimed", () => {
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(recipient),

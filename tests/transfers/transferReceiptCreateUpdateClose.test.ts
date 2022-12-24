@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
@@ -24,7 +25,6 @@ import {
   setTransferAuthority,
   updateTransferReceipt,
 } from "../../src/programs/tokenManager/instruction";
-import { getProvider } from "../workspace";
 
 describe("Transfer receipt create update close", () => {
   const recipient = Keypair.generate();
@@ -37,7 +37,7 @@ describe("Transfer receipt create update close", () => {
   const mint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -73,7 +73,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Issue token with transfer authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const transaction = new Transaction();
     const [tokenManagerIx, tokenManagerId] =
@@ -155,7 +155,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Claim", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -199,7 +199,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Fail transfer receipt", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       mint.publicKey
@@ -218,7 +218,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Create transfer receipt", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       mint.publicKey
@@ -253,7 +253,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Update transfer receipt", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       mint.publicKey
@@ -288,7 +288,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Close transfer receipt", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const balanceBefore = await provider.connection.getBalance(
       closer.publicKey
     );

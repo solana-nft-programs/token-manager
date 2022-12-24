@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
@@ -14,7 +15,6 @@ import { invalidate, issueToken } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { closeMintManager } from "../src/programs/tokenManager/instruction";
-import { getProvider } from "./workspace";
 
 describe("Issue Claim Close Mint Manager", () => {
   const recipient = Keypair.generate();
@@ -23,7 +23,7 @@ describe("Issue Claim Close Mint Manager", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -57,7 +57,7 @@ describe("Issue Claim Close Mint Manager", () => {
   });
 
   it("Issue token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(user),
@@ -105,7 +105,7 @@ describe("Issue Claim Close Mint Manager", () => {
   });
 
   it("Cannot close mint manager", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [ix] = await closeMintManager(
       provider.connection,
       new Wallet(user),
@@ -124,7 +124,7 @@ describe("Issue Claim Close Mint Manager", () => {
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),
@@ -164,7 +164,7 @@ describe("Issue Claim Close Mint Manager", () => {
   });
 
   it("Close mint manager", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [ix] = await closeMintManager(
       provider.connection,
       new Wallet(user),

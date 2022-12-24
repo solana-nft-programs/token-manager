@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -17,7 +22,6 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Claim links", () => {
   const recipient = Keypair.generate();
@@ -28,7 +32,7 @@ describe("Claim links", () => {
   let serializedUsage: string;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -62,7 +66,7 @@ describe("Claim links", () => {
   });
 
   it("Create link", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await withIssueToken(
       new Transaction(),
       provider.connection,
@@ -111,7 +115,7 @@ describe("Claim links", () => {
   });
 
   it("Claim from link", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
@@ -155,7 +159,7 @@ describe("Claim links", () => {
   });
 
   it("Get use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
@@ -171,7 +175,7 @@ describe("Claim links", () => {
   });
 
   it("Execute use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const buffer = Buffer.from(serializedUsage, "base64");
     const transaction = Transaction.from(buffer);
     await sendAndConfirmRawTransaction(
@@ -192,7 +196,7 @@ describe("Claim links", () => {
   });
 
   it("Get new use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
@@ -208,7 +212,7 @@ describe("Claim links", () => {
   });
 
   it("Execute use again success", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const buffer = Buffer.from(serializedUsage, "base64");
     const transaction = Transaction.from(buffer);
     await sendAndConfirmRawTransaction(

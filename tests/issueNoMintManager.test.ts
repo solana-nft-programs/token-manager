@@ -1,11 +1,15 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { Wallet } from "@project-serum/anchor";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { issueToken } from "../src";
-import { getProvider } from "./workspace";
 
 describe("Issue no mint manager", () => {
   const recipient = Keypair.generate();
@@ -14,7 +18,7 @@ describe("Issue no mint manager", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -44,7 +48,7 @@ describe("Issue no mint manager", () => {
   });
 
   it("Issue failure", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction] = await issueToken(
       provider.connection,
       provider.wallet,

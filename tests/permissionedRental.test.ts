@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -12,7 +17,6 @@ import {
   TokenManagerState,
 } from "../src/programs/tokenManager";
 import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
-import { getProvider } from "./workspace";
 
 describe("Permissioned rental", () => {
   const recipient = Keypair.generate();
@@ -23,7 +27,7 @@ describe("Permissioned rental", () => {
   let claimLink: string;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -53,7 +57,7 @@ describe("Permissioned rental", () => {
   });
 
   it("Requires permissioned publicKey", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     await issueToken(provider.connection, new Wallet(user), {
       mint: rentalMint.publicKey,
       issuerTokenAccountId,
@@ -70,7 +74,7 @@ describe("Permissioned rental", () => {
   });
 
   it("Issue token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(user),
@@ -116,7 +120,7 @@ describe("Permissioned rental", () => {
   });
 
   it("Cannot be claimed by incorrect address", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [tokenManagerId] = await findTokenManagerAddress(
       rentalMint.publicKey
     );
@@ -138,7 +142,7 @@ describe("Permissioned rental", () => {
   });
 
   it("Claim token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [tokenManagerId] = await findTokenManagerAddress(
       rentalMint.publicKey
     );

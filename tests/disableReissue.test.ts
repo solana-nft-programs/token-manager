@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { Wallet } from "@project-serum/anchor";
@@ -17,7 +18,6 @@ import {
   TokenManagerState,
 } from "../src/programs/tokenManager";
 import { updateInvalidationType } from "../src/programs/tokenManager/instruction";
-import { getProvider } from "./workspace";
 
 describe("Create rental reissue", () => {
   const recipient = Keypair.generate();
@@ -28,7 +28,7 @@ describe("Create rental reissue", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       issuer.publicKey,
       LAMPORTS_PER_SOL
@@ -62,7 +62,7 @@ describe("Create rental reissue", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(issuer),
@@ -112,7 +112,7 @@ describe("Create rental reissue", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -180,7 +180,7 @@ describe("Create rental reissue", () => {
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(recipient),
@@ -247,7 +247,7 @@ describe("Create rental reissue", () => {
   });
 
   it("Claim again", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -301,7 +301,7 @@ describe("Create rental reissue", () => {
   });
 
   it("Disable reissue", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -334,7 +334,7 @@ describe("Create rental reissue", () => {
   });
 
   it("Enable reissue", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -366,7 +366,7 @@ describe("Create rental reissue", () => {
   });
 
   it("Disable reissue again", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -401,7 +401,7 @@ describe("Create rental reissue", () => {
   it("Invalidate again", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(recipient),

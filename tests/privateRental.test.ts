@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -17,7 +22,6 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Private rental", () => {
   const recipient = Keypair.generate();
@@ -28,7 +32,7 @@ describe("Private rental", () => {
   let serializedUsage: string;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -58,7 +62,7 @@ describe("Private rental", () => {
   });
 
   it("Create link", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -106,7 +110,7 @@ describe("Private rental", () => {
   });
 
   it("Claim from link", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
@@ -148,7 +152,7 @@ describe("Private rental", () => {
   });
 
   it("Get use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
@@ -164,7 +168,7 @@ describe("Private rental", () => {
   });
 
   it("Execute use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const buffer = Buffer.from(serializedUsage, "base64");
     const transaction = Transaction.from(buffer);
     await sendAndConfirmRawTransaction(
@@ -185,7 +189,7 @@ describe("Private rental", () => {
   });
 
   it("Get new use tx", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),

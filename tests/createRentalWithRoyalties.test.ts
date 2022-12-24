@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
@@ -27,7 +28,6 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Create Rental With Royalties", () => {
   const MAKER_FEE = new BN(500);
@@ -52,7 +52,7 @@ describe("Create Rental With Royalties", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -160,7 +160,7 @@ describe("Create Rental With Royalties", () => {
   });
 
   it("Create payment manager", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     const pmtx = new Transaction();
@@ -190,7 +190,7 @@ describe("Create Rental With Royalties", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const paymentManager = findPaymentManagerAddress(paymentManagerName);
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
@@ -250,7 +250,7 @@ describe("Create Rental With Royalties", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const myAta = await findAta(
       paymentMint.publicKey,
       tokenCreator.publicKey,
@@ -345,7 +345,7 @@ describe("Create Rental With Royalties", () => {
   });
 
   it("Extend Rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       rentalMint.publicKey

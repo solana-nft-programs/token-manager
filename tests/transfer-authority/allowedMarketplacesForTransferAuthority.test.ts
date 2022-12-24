@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import {
@@ -34,7 +39,6 @@ import {
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Allowed markeptlaces for transfer authority", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -53,7 +57,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   const BASIS_POINTS_DIVISOR = new BN(10000);
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const feeCollectorInfo = await provider.connection.requestAirdrop(
       feeCollector.publicKey,
@@ -138,7 +142,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -162,7 +166,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
@@ -191,7 +195,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -219,7 +223,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Whitelist random marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withWhitelistMarektplaces(
@@ -242,7 +246,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Fail to Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
@@ -259,7 +263,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Whitelist proper marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withWhitelistMarektplaces(
@@ -288,7 +292,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
@@ -332,7 +336,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Accept Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
     const checkListing = await getListing(
       provider.connection,

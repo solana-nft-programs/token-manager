@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
@@ -15,7 +16,6 @@ import { claimApprover, timeInvalidator, tokenManager } from "../src/programs";
 import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
 import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Issue Unissue", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
@@ -29,7 +29,7 @@ describe("Issue Unissue", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -83,7 +83,7 @@ describe("Issue Unissue", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -139,7 +139,7 @@ describe("Issue Unissue", () => {
   });
 
   it("Unissue rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const transaction = await unissueToken(
       provider.connection,
@@ -177,7 +177,7 @@ describe("Issue Unissue", () => {
   });
 
   it("Close claim approver", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
@@ -202,7 +202,7 @@ describe("Issue Unissue", () => {
   });
 
   it("Close time invalidator", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(

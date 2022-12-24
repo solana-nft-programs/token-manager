@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -9,7 +14,6 @@ import { rentals } from "../src";
 import { tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { getTokenManagersByState } from "../src/programs/tokenManager/accounts";
-import { getProvider } from "./workspace";
 
 describe("Multiple rentals", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
@@ -22,7 +26,7 @@ describe("Multiple rentals", () => {
   const rentalMint: Keypair = Keypair.generate();
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -75,7 +79,7 @@ describe("Multiple rentals", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -126,7 +130,7 @@ describe("Multiple rentals", () => {
   });
 
   it("Create another rental different mint", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const rentalMint2 = Keypair.generate();
     const transaction2 = new Transaction();
     const [ixs2] = await createMintIxs(
@@ -209,7 +213,7 @@ describe("Multiple rentals", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,

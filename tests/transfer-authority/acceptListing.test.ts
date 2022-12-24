@@ -1,4 +1,9 @@
-import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
+import {
+  createMintIxs,
+  executeTransaction,
+  findAta,
+  getProvider,
+} from "@cardinal/common";
 import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
@@ -35,7 +40,6 @@ import {
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Accept Listing", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -68,7 +72,7 @@ describe("Accept Listing", () => {
   const creator5Share = new BN(23);
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const feeCollectorInfo = await provider.connection.requestAirdrop(
       feeCollector.publicKey,
@@ -210,7 +214,7 @@ describe("Accept Listing", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -235,7 +239,7 @@ describe("Accept Listing", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
@@ -264,7 +268,7 @@ describe("Accept Listing", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -293,7 +297,7 @@ describe("Accept Listing", () => {
   });
 
   it("Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
@@ -334,7 +338,7 @@ describe("Accept Listing", () => {
   });
 
   it("Accept Listing Different Amount Fail", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
     const checkListing = await getListing(
       provider.connection,
@@ -363,7 +367,7 @@ describe("Accept Listing", () => {
   });
 
   it("Accept Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
     const checkListing = await getListing(
       provider.connection,

@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
@@ -13,7 +14,6 @@ import { expect } from "chai";
 import { rentals } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
-import { getProvider } from "./workspace";
 
 describe("Create and Extend Rental", () => {
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
@@ -29,7 +29,7 @@ describe("Create and Extend Rental", () => {
   let expiration: number;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -82,7 +82,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Create rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -140,7 +140,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Claim rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
 
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
@@ -192,7 +192,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Extend Rental", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       rentalMint.publicKey
@@ -239,7 +239,7 @@ describe("Create and Extend Rental", () => {
     );
   });
   it("Exceed Max Expiration", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       rentalMint.publicKey
@@ -260,7 +260,7 @@ describe("Create and Extend Rental", () => {
     ).to.throw();
   });
   it("Invalid Partial Expiration", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
       provider.connection,
       rentalMint.publicKey

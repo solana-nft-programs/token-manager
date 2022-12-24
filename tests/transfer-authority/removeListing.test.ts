@@ -2,6 +2,7 @@ import {
   createMintIxs,
   executeTransaction,
   findAta,
+  getProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
@@ -32,7 +33,6 @@ import {
   getTransferAuthorityByName,
 } from "../../src/programs/transferAuthority/accounts";
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
-import { getProvider } from "../workspace";
 
 describe("Remove Listing", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
@@ -52,7 +52,7 @@ describe("Remove Listing", () => {
   //   const BASIS_POINTS_DIVISOR = 10000;
 
   beforeAll(async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     // create rental mint
     const transaction = new Transaction();
     const [ixs] = await createMintIxs(
@@ -116,7 +116,7 @@ describe("Remove Listing", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -140,7 +140,7 @@ describe("Remove Listing", () => {
   });
 
   it("Wrap Token", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
@@ -158,7 +158,7 @@ describe("Remove Listing", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -187,7 +187,7 @@ describe("Remove Listing", () => {
   });
 
   it("Create Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
@@ -228,7 +228,7 @@ describe("Remove Listing", () => {
   });
 
   it("Remove Listing", async () => {
-    const provider = getProvider();
+    const provider = await getProvider();
     const transaction = new Transaction();
     const listerTokenAccountId = await findAta(
       rentalMint.publicKey,

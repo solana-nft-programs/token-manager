@@ -1,7 +1,8 @@
-import { tryGetAccount } from "../src";
-import { connectionFor } from "./connection";
-import { PublicKey } from "@solana/web3.js";
+import { tryGetAccount } from "@cardinal/common";
+import type { PublicKey } from "@solana/web3.js";
+
 import { getMarketplaceByName } from "../src/programs/transferAuthority/accounts";
+import { connectionFor } from "./connection";
 
 export type MarketplaceParams = {
   name: string;

@@ -56,7 +56,7 @@ export const init = async (
   const [useInvalidatorId, _useInvalidatorBump] =
     await findUseInvalidatorAddress(tokenManagerId);
 
-  const [defaultPaymentManagerId] = await findPaymentManagerAddress(
+  const defaultPaymentManagerId = findPaymentManagerAddress(
     DEFAULT_PAYMENT_MANAGER_NAME
   );
 

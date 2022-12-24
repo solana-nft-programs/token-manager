@@ -42,7 +42,7 @@ export const getTimeInvalidator = async (
 export const getTimeInvalidators = async (
   connection: Connection,
   timeInvalidatorIds: PublicKey[]
-): Promise<AccountData<TimeInvalidatorData>[]> => {
+): Promise<AccountData<TimeInvalidatorData | null>[]> => {
   const provider = new AnchorProvider(
     connection,
     new Wallet(Keypair.generate()),
@@ -64,7 +64,7 @@ export const getTimeInvalidators = async (
     console.log(e);
   }
   return timeInvalidators.map((data, i) => ({
-    parsed: data!,
+    parsed: data,
     pubkey: timeInvalidatorIds[i]!,
   }));
 };

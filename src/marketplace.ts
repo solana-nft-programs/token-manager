@@ -185,9 +185,7 @@ export const withInitMarketplace = async (
   payer = wallet.publicKey
 ): Promise<[Transaction, PublicKey]> => {
   const [marketplaceId] = await findMarketplaceAddress(name);
-  const [paymentManagerId] = await findPaymentManagerAddress(
-    paymentManagerName
-  );
+  const paymentManagerId = findPaymentManagerAddress(paymentManagerName);
   transaction.add(
     initMarketplace(
       connection,
@@ -212,9 +210,7 @@ export const withUpdateMarketplace = async (
   paymentMints: PublicKey[]
 ): Promise<Transaction> => {
   const [marketplaceId] = await findMarketplaceAddress(name);
-  const [paymentManagerId] = await findPaymentManagerAddress(
-    paymentManagerName
-  );
+  const paymentManagerId = findPaymentManagerAddress(paymentManagerName);
   transaction.add(
     updateMarketplace(
       connection,

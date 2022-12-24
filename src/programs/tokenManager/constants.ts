@@ -1,4 +1,4 @@
-import type { AnchorTypes } from "@saberhq/anchor-contrib";
+import type { ParsedIdlAccountData } from "@cardinal/common";
 import { PublicKey } from "@solana/web3.js";
 
 import * as TOKEN_MANAGER_TYPES from "../../idl/cardinal_token_manager";
@@ -23,23 +23,25 @@ export const TOKEN_MANAGER_IDL = TOKEN_MANAGER_TYPES.IDL;
 
 export type TOKEN_MANAGER_PROGRAM = TOKEN_MANAGER_TYPES.CardinalTokenManager;
 
-export type TokenManagerTypes = AnchorTypes<
-  TOKEN_MANAGER_PROGRAM,
-  {
-    tokenManager: TokenManagerData;
-  }
+export type TokenManagerData = ParsedIdlAccountData<
+  "tokenManager",
+  TOKEN_MANAGER_PROGRAM
 >;
 
-export type TokenManagerError = TokenManagerTypes["Error"];
+export type MintManagerData = ParsedIdlAccountData<
+  "mintManager",
+  TOKEN_MANAGER_PROGRAM
+>;
 
-type Accounts = TokenManagerTypes["Accounts"];
-export type TokenManagerData = Accounts["tokenManager"];
+export type MintCounterData = ParsedIdlAccountData<
+  "mintCounter",
+  TOKEN_MANAGER_PROGRAM
+>;
 
-export type MintManagerData = Accounts["mintManager"];
-
-export type MintCounterData = Accounts["mintCounter"];
-
-export type TransferReceiptData = Accounts["transferReceipt"];
+export type TransferReceiptData = ParsedIdlAccountData<
+  "transferReceipt",
+  TOKEN_MANAGER_PROGRAM
+>;
 
 export enum TokenManagerKind {
   Managed = 1,

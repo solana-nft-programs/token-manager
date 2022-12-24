@@ -1,10 +1,10 @@
+import { executeTransaction } from "@cardinal/common";
 import * as anchor from "@project-serum/anchor";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
-
 import dotenv from "dotenv";
-import { executeTransaction } from "./utils";
-import { connectionFor } from "./connection";
+
 import { withMigrate } from "../src";
+import { connectionFor } from "./connection";
 
 dotenv.config();
 
@@ -42,11 +42,12 @@ const main = async (cluster = "devnet") => {
   );
 
   try {
-    const txid = await executeTransaction(connection, wallet, transaction, {});
+    const txid = await executeTransaction(connection, transaction, wallet, {});
     console.log(
       `Successfully migrated token to CSS standard https://explorer.solana.com/tx/${txid}?cluster=${cluster}.`
     );
   } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     console.log(`Transactionn failed: ${e}`);
   }
 };

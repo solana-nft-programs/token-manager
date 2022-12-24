@@ -46,7 +46,7 @@ export const init = async (
     tokenManagerId
   );
 
-  const [defaultPaymentManagerId] = await findPaymentManagerAddress(
+  const defaultPaymentManagerId = findPaymentManagerAddress(
     DEFAULT_PAYMENT_MANAGER_NAME
   );
 

@@ -33,7 +33,7 @@ export const getUseInvalidator = async (
 export const getUseInvalidators = async (
   connection: Connection,
   useInvalidatorIds: PublicKey[]
-): Promise<AccountData<UseInvalidatorData>[]> => {
+): Promise<AccountData<UseInvalidatorData | null>[]> => {
   const provider = new AnchorProvider(
     connection,
     new Wallet(Keypair.generate()),
@@ -55,7 +55,7 @@ export const getUseInvalidators = async (
     console.log(e);
   }
   return useInvalidators.map((tm, i) => ({
-    parsed: tm!,
+    parsed: tm,
     pubkey: useInvalidatorIds[i]!,
   }));
 };

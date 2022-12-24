@@ -1,3 +1,4 @@
+import { createMintIxs } from "@cardinal/common";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -7,16 +8,14 @@ import {
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { BN, utils } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { connectionFor } from "./connection";
 
-import { createMintTransaction } from "./utils";
+import { connectionFor } from "./connection";
 
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
@@ -55,14 +54,15 @@ export const airdropMasterEdition = async (
     try {
       const masterEditionTransaction = new Transaction();
       const masterEditionMint = Keypair.generate();
-      const [masterEditionTokenAccountId] = await createMintTransaction(
-        masterEditionTransaction,
+      const [ixs] = await createMintIxs(
         connection,
-        new SignerWallet(wallet),
-        wallet.publicKey,
         masterEditionMint.publicKey,
-        1
+        wallet.publicKey
       );
+      masterEditionTransaction.instructions = [
+        ...masterEditionTransaction.instructions,
+        ...ixs,
+      ];
 
       const masterEditionMetadataId = await Metadata.getPDA(
         masterEditionMint.publicKey
@@ -126,7 +126,7 @@ export const airdropMasterEdition = async (
         commitment: "confirmed",
       });
       console.log(
-        `Master edition data created mintId=(${masterEditionMint.publicKey.toString()}) masterEditionId=(${masterEditionId.toString()}) metadataId=(${masterEditionMetadataId.toString()}) tokenAccount=(${masterEditionTokenAccountId.toString()})`
+        `Master edition data created mintId=(${masterEditionMint.publicKey.toString()}) masterEditionId=(${masterEditionId.toString()}) metadataId=(${masterEditionMetadataId.toString()})})`
       );
       allMintIds.push(masterEditionMint.publicKey);
     } catch (e) {

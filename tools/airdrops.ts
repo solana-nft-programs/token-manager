@@ -1,3 +1,4 @@
+import { createMintIxs } from "@cardinal/common";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -7,16 +8,15 @@ import {
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { BN, utils } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { connectionFor } from "./connection";
 import * as dotenv from "dotenv";
-import { createMintTransaction } from "./utils";
+
+import { connectionFor } from "./connection";
 
 dotenv.config();
 
@@ -29,7 +29,7 @@ const METADATA_URI =
 
 export const airdropMasterEdition = async (
   metadataUrl: string = METADATA_URI,
-  num: number = 1,
+  num = 1,
   cluster = "devnet",
   startNum = 0
 ) => {
@@ -46,14 +46,15 @@ export const airdropMasterEdition = async (
     try {
       const masterEditionTransaction = new Transaction();
       const masterEditionMint = Keypair.generate();
-      await createMintTransaction(
-        masterEditionTransaction,
+      const [ixs] = await createMintIxs(
         connection,
-        new SignerWallet(wallet),
-        wallet.publicKey,
         masterEditionMint.publicKey,
-        1
+        wallet.publicKey
       );
+      masterEditionTransaction.instructions = [
+        ...masterEditionTransaction.instructions,
+        ...ixs,
+      ];
 
       const masterEditionMetadataId = await Metadata.getPDA(
         masterEditionMint.publicKey

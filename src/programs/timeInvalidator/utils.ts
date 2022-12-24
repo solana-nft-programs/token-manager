@@ -1,6 +1,6 @@
+import type { AccountData } from "@cardinal/common";
 import { BN } from "@project-serum/anchor";
 
-import type { AccountData } from "../..";
 import type { TokenManagerData } from "../tokenManager";
 import { TokenManagerState } from "../tokenManager";
 import type { TimeInvalidatorData } from ".";

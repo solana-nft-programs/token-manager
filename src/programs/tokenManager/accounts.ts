@@ -47,7 +47,7 @@ export const getTokenManager = async (
 export const getTokenManagers = async (
   connection: Connection,
   tokenManagerIds: PublicKey[]
-): Promise<AccountData<TokenManagerData>[]> => {
+): Promise<AccountData<TokenManagerData | null>[]> => {
   const provider = new AnchorProvider(
     connection,
     new Wallet(Keypair.generate()),
@@ -59,23 +59,18 @@ export const getTokenManagers = async (
     provider
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  let tokenManagers = [];
+  let tokenManagers: (TokenManagerData | null)[] = [];
   try {
     tokenManagers =
-      await tokenManagerProgram.account.tokenManager.fetchMultiple(
+      (await tokenManagerProgram.account.tokenManager.fetchMultiple(
         tokenManagerIds
-      );
+      )) as (TokenManagerData | null)[];
   } catch (e) {
     console.log(e);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   return tokenManagers.map((tm, i) => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     parsed: tm,
-    pubkey: tokenManagerIds[i],
+    pubkey: tokenManagerIds[i]!,
   }));
 };
 

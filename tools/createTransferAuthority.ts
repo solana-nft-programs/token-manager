@@ -1,11 +1,10 @@
+import { executeTransaction, tryGetAccount } from "@cardinal/common";
 import * as anchor from "@project-serum/anchor";
-
-import { tryGetAccount, withInitTransferAuthority } from "../src";
-import { connectionFor } from "./connection";
-import { executeTransaction } from "./utils";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import { Keypair, Transaction } from "@solana/web3.js";
+
+import { withInitTransferAuthority } from "../src";
 import { getTransferAuthorityByName } from "../src/programs/transferAuthority/accounts";
+import { connectionFor } from "./connection";
 
 const wallet = Keypair.fromSecretKey(
   anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
@@ -18,22 +17,18 @@ const main = async (transferAuthorityName: string, cluster = "devnet") => {
   await withInitTransferAuthority(
     transaction,
     connection,
-    new SignerWallet(wallet),
+    new anchor.Wallet(wallet),
     transferAuthorityName
   );
 
   try {
     await executeTransaction(
       connection,
-      new SignerWallet(wallet),
       transaction,
-      {
-        confirmOptions: {
-          skipPreflight: true,
-        },
-      }
+      new anchor.Wallet(wallet)
     );
   } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     console.log(`Transactionn failed: ${e}`);
   }
 

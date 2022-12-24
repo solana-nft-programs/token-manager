@@ -44,7 +44,7 @@ export const getClaimApprover = async (
 export const getClaimApprovers = async (
   connection: Connection,
   claimApproverIds: PublicKey[]
-): Promise<AccountData<PaidClaimApproverData>[]> => {
+): Promise<AccountData<PaidClaimApproverData | null>[]> => {
   const provider = new AnchorProvider(
     connection,
     new Wallet(Keypair.generate()),
@@ -66,7 +66,7 @@ export const getClaimApprovers = async (
     console.log(e);
   }
   return claimApprovers.map((tm, i) => ({
-    parsed: tm!,
+    parsed: tm,
     pubkey: claimApproverIds[i]!,
   }));
 };

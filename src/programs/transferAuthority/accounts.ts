@@ -139,7 +139,7 @@ export const getMarketplaceByName = async (
 export const getAllMarketplaces = async (
   connection: Connection
 ): Promise<AccountData<MarketplaceData>[]> =>
-  getAllOfType<TransferAuthorityData>(connection, "marketplace");
+  getAllOfType<MarketplaceData>(connection, "marketplace");
 
 //////// LISTING ////////
 

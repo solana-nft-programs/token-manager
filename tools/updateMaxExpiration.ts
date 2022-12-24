@@ -1,15 +1,16 @@
-import { utils } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
+import type { AccountData } from "@cardinal/common";
+import { executeTransaction } from "@cardinal/common";
+import { utils, Wallet } from "@project-serum/anchor";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
-import { AccountData, withUpdateMaxExpiration } from "../src";
-import { TimeInvalidatorData } from "../src/programs/timeInvalidator";
+
+import { withUpdateMaxExpiration } from "../src";
+import type { TimeInvalidatorData } from "../src/programs/timeInvalidator";
 import { getTimeInvalidator } from "../src/programs/timeInvalidator/accounts";
 import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
 import { getTokenManagersForIssuer } from "../src/programs/tokenManager/accounts";
-
 import { connectionFor } from "./connection";
-import { chunkArray, executeTransaction } from "./utils";
+import { chunkArray } from "./issueVestingTokens";
 
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
@@ -47,7 +48,7 @@ const updateMaxExpiration = async (cluster = "mainnet"): Promise<void> => {
           await withUpdateMaxExpiration(
             transaction,
             connection,
-            new SignerWallet(wallet),
+            new Wallet(wallet),
             tm.pubkey,
             newMaxExpiration
           );
@@ -56,8 +57,8 @@ const updateMaxExpiration = async (cluster = "mainnet"): Promise<void> => {
       if (transaction.instructions.length > 0) {
         const txid = await executeTransaction(
           connection,
-          new SignerWallet(wallet),
           transaction,
+          new Wallet(wallet),
           {}
         );
         console.log(

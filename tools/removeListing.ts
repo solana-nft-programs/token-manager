@@ -1,9 +1,8 @@
+import { executeTransaction } from "@cardinal/common";
 import * as anchor from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import { PublicKey } from "@solana/web3.js";
 import * as web3Js from "@solana/web3.js";
 
-import { executeTransaction } from "./utils";
 import { withRemoveListing } from "../src";
 import { connectionFor } from "./connection";
 
@@ -21,18 +20,19 @@ const main = async (cluster = "devnet") => {
   await withRemoveListing(
     transaction,
     connection,
-    new SignerWallet(wallet),
+    new anchor.Wallet(wallet),
     new PublicKey("HWzZz7dXETthwGxNg6JPdF6qy22SboVzaoHtLa5MZ6vq"),
     new PublicKey("HWzZz7dXETthwGxNg6JPdF6qy22SboVzaoHtLa5MZ6vq")
   );
   try {
     await executeTransaction(
       connection,
-      new SignerWallet(wallet),
       transaction,
+      new anchor.Wallet(wallet),
       {}
     );
   } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     console.log(`Transactionn failed: ${e}`);
   }
 };

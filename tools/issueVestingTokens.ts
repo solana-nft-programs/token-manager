@@ -1,25 +1,28 @@
-import { utils } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
-import {
+import { findAta, getBatchedMultipleAccounts } from "@cardinal/common";
+import { utils, Wallet } from "@project-serum/anchor";
+import type {
   AccountInfo,
-  Keypair,
   ParsedAccountData,
-  PublicKey,
-  sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { findAta, issueToken } from "../src";
+import {
+  Keypair,
+  PublicKey,
+  sendAndConfirmRawTransaction,
+} from "@solana/web3.js";
+import * as dotenv from "dotenv";
+
+import { issueToken } from "../src";
 import {
   InvalidationType,
   TokenManagerKind,
 } from "../src/programs/tokenManager";
-import { connectionFor } from "./connection";
-import * as dotenv from "dotenv";
 import { findTokenManagerAddress } from "../src/programs/tokenManager/pda";
-import { getBatchedMultipleAccounts } from "@cardinal/common";
+import { connectionFor } from "./connection";
+
 dotenv.config();
 
-const wallet = new SignerWallet(
+const wallet = new Wallet(
   Keypair.fromSecretKey(utils.bytes.bs58.decode(process.env.AIRDROP_KEY || ""))
 );
 
@@ -82,7 +85,7 @@ export const issueVestingTokens = async (cluster = "mainnet") => {
               },
             });
           } else {
-            console.log(`[skip] ${r.mint}`);
+            console.log(`[skip] ${r.mint.toString()}`);
           }
           return transaction;
         })

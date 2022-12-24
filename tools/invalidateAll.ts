@@ -1,6 +1,9 @@
-import { utils } from "@project-serum/anchor";
-import type { Wallet } from "@saberhq/solana-contrib";
-import { SignerWallet } from "@saberhq/solana-contrib";
+import type { AccountData } from "@cardinal/common";
+import {
+  tryGetAccount,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
+import { utils, Wallet } from "@project-serum/anchor";
 import type { Connection } from "@solana/web3.js";
 import {
   Keypair,
@@ -9,8 +12,6 @@ import {
   Transaction,
 } from "@solana/web3.js";
 
-import type { AccountData } from "../src";
-import { tryGetAccount, withFindOrInitAssociatedTokenAccount } from "../src";
 import { claimApprover, timeInvalidator, tokenManager } from "../src/programs";
 import { getAllClaimApprovers } from "../src/programs/claimApprover/accounts";
 import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
@@ -209,7 +210,7 @@ const main = async (cluster: string) => {
       const transaction = await withInvalidate(
         new Transaction(),
         connection,
-        new SignerWallet(wallet),
+        new Wallet(wallet),
         timeInvalidatorData
       );
       if (transaction && transaction.instructions.length > 0) {
@@ -237,7 +238,7 @@ const tokenManagers = async (cluster: string) => {
         await withInvalidateTokenManager(
           transaction,
           connection,
-          new SignerWallet(wallet),
+          new Wallet(wallet),
           tokenManagerData
         );
         const txid = await executeTx(transaction, connection);
@@ -274,7 +275,7 @@ const claimApprovers = async (cluster: string) => {
         await withInvalidateTokenManager(
           transaction,
           connection,
-          new SignerWallet(wallet),
+          new Wallet(wallet),
           tokenManagerData
         );
         count += 1;
@@ -301,7 +302,7 @@ const claimApprovers = async (cluster: string) => {
         transaction.add(
           claimApprover.instruction.close(
             connection,
-            new SignerWallet(wallet),
+            new Wallet(wallet),
             claimApproverData.pubkey,
             tokenManagerDatas[0]?.pubkey ?? claimApproverData.pubkey
           )

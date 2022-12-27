@@ -10,8 +10,8 @@ import { USE_INVALIDATOR_ADDRESS, USE_INVALIDATOR_SEED } from "./constants";
 export const findUseInvalidatorAddress = (
   tokenManagerId: PublicKey
 ): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(USE_INVALIDATOR_SEED), tokenManagerId.toBuffer()],
     USE_INVALIDATOR_ADDRESS
-  );
+  )[0];
 };

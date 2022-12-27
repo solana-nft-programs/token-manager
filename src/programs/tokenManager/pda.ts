@@ -42,10 +42,10 @@ export const tokenManagerAddressFromMint = (mint: PublicKey): PublicKey => {
  * @returns
  */
 export const findTokenManagerAddress = (mint: PublicKey): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(TOKEN_MANAGER_SEED), mint.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -56,14 +56,14 @@ export const findClaimReceiptId = (
   tokenManagerId: PublicKey,
   recipientKey: PublicKey
 ): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [
       utils.bytes.utf8.encode(CLAIM_RECEIPT_SEED),
       tokenManagerId.toBuffer(),
       recipientKey.toBuffer(),
     ],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -71,10 +71,10 @@ export const findClaimReceiptId = (
  * @returns
  */
 export const findTransferReceiptId = (tokenManagerId: PublicKey): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(TRANSFER_RECEIPT_SEED), tokenManagerId.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -82,10 +82,10 @@ export const findTransferReceiptId = (tokenManagerId: PublicKey): PublicKey => {
  * @returns
  */
 export const findMintManagerId = (mintId: PublicKey): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(MINT_MANAGER_SEED), mintId.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -93,10 +93,10 @@ export const findMintManagerId = (mintId: PublicKey): PublicKey => {
  * @returns
  */
 export const findMintCounterId = (mintId: PublicKey): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(MINT_COUNTER_SEED), mintId.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -104,8 +104,8 @@ export const findMintCounterId = (mintId: PublicKey): PublicKey => {
  * @returns
  */
 export const findReceiptMintManagerId = (): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(RECEIPT_MINT_MANAGER_SEED)],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };

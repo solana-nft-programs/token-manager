@@ -15,13 +15,13 @@ import {
  * @returns
  */
 export const findTransferAuthorityAddress = (name: string): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [
       utils.bytes.utf8.encode(TRANSFER_AUTHORITY_SEED),
       utils.bytes.utf8.encode(name),
     ],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -29,10 +29,10 @@ export const findTransferAuthorityAddress = (name: string): PublicKey => {
  * @returns
  */
 export const findMarketplaceAddress = (name: string): PublicKey => {
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(MARKETPLACE_SEED), utils.bytes.utf8.encode(name)],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -41,10 +41,10 @@ export const findMarketplaceAddress = (name: string): PublicKey => {
  */
 export const findListingAddress = (mintId: PublicKey): PublicKey => {
   const tokenManagerId = findTokenManagerAddress(mintId);
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(LISTING_SEED), tokenManagerId.toBytes()],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };
 
 /**
@@ -53,8 +53,8 @@ export const findListingAddress = (mintId: PublicKey): PublicKey => {
  */
 export const findTransferAddress = (mintId: PublicKey): PublicKey => {
   const tokenManagerId = findTokenManagerAddress(mintId);
-  return PublicKey.createProgramAddressSync(
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(TRANSFER_SEED), tokenManagerId.toBytes()],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };

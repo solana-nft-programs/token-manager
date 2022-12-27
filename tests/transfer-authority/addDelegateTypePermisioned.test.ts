@@ -138,9 +138,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
 
   it("Claim Token Manager", async () => {
     const provider = await getProvider();
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
     const claimerTokenAccountId = await findAta(
       rentalMint.publicKey,
       user.publicKey,
@@ -175,9 +173,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
 
   it("Delegate Token", async () => {
     const provider = await getProvider();
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
     const claimerTokenAccountId = await findAta(
       rentalMint.publicKey,
       user.publicKey,

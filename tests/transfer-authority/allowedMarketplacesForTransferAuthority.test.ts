@@ -239,7 +239,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
       provider.connection,
       transferAuthorityName
     );
-    const [marketplaceId] = await findMarketplaceAddress("some-random-name");
+    const marketplaceId = findMarketplaceAddress("some-random-name");
     expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.eql([
       marketplaceId,
     ]);
@@ -279,10 +279,8 @@ describe("Allowed markeptlaces for transfer authority", () => {
       provider.connection,
       transferAuthorityName
     );
-    const [randomMarketplaceId] = await findMarketplaceAddress(
-      "some-random-name"
-    );
-    const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
+    const randomMarketplaceId = findMarketplaceAddress("some-random-name");
+    const marketplaceId = findMarketplaceAddress(marketplaceName);
 
     const marketplaces = (
       checkTransferAuthority.parsed.allowedMarketplaces as PublicKey[]
@@ -317,13 +315,11 @@ describe("Allowed markeptlaces for transfer authority", () => {
     expect(checkListing.parsed.lister.toString()).to.eq(
       lister.publicKey.toString()
     );
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
     expect(checkListing.parsed.tokenManager.toString()).to.eq(
       tokenManagerId.toString()
     );
-    const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
+    const marketplaceId = findMarketplaceAddress(marketplaceName);
     expect(checkListing.parsed.marketplace.toString()).to.eq(
       marketplaceId.toString()
     );

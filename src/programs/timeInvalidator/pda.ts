@@ -7,10 +7,10 @@ import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_SEED } from "./constants";
  * Finds the time invalidator for this token manager.
  * @returns
  */
-export const findTimeInvalidatorAddress = async (
+export const findTimeInvalidatorAddress = (
   tokenManagerId: PublicKey
-): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
+): PublicKey => {
+  return PublicKey.createProgramAddressSync(
     [utils.bytes.utf8.encode(TIME_INVALIDATOR_SEED), tokenManagerId.toBuffer()],
     TIME_INVALIDATOR_ADDRESS
   );

@@ -5,7 +5,7 @@ import { Keypair, Transaction } from "@solana/web3.js";
 
 import { withClaimToken, withIssueToken } from ".";
 import { InvalidationType, TokenManagerKind } from "./programs/tokenManager";
-import type { UseInvalidationParams } from "./programs/useInvalidator/instruction";
+import type { UseInvalidationParams } from "./programs/useInvalidator";
 
 export const getLink = (
   tokenManagerId: PublicKey,

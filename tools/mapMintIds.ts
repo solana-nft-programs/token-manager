@@ -8,11 +8,9 @@ const main = async (
   mintIds: string[]
 ): Promise<{ mintId: string; tokenManagerId: string }[]> => {
   return Promise.all(
-    mintIds.map(async (m) => ({
+    mintIds.map((m) => ({
       mintId: m,
-      tokenManagerId: (
-        await findTokenManagerAddress(new PublicKey(m))
-      )[0].toString(),
+      tokenManagerId: findTokenManagerAddress(new PublicKey(m)).toString(),
     }))
   );
 };

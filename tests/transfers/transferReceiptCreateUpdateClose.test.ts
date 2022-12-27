@@ -7,9 +7,14 @@ import {
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
+import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
 import { expect } from "chai";
 
 import { claimToken } from "../../src";
@@ -17,14 +22,15 @@ import { tokenManager } from "../../src/programs";
 import {
   InvalidationType,
   TokenManagerKind,
+  tokenManagerProgram,
   TokenManagerState,
 } from "../../src/programs/tokenManager";
 import {
-  closeTransferReceipt,
-  createTransferReceipt,
-  setTransferAuthority,
-  updateTransferReceipt,
-} from "../../src/programs/tokenManager/instruction";
+  findMintCounterId,
+  findMintManagerId,
+  findTokenManagerAddress,
+  findTransferReceiptId,
+} from "../../src/programs/tokenManager/pda";
 
 describe("Transfer receipt create update close", () => {
   const recipient = Keypair.generate();
@@ -74,28 +80,41 @@ describe("Transfer receipt create update close", () => {
 
   it("Issue token with transfer authority", async () => {
     const provider = await getProvider();
+    const tmManagerProgram = tokenManagerProgram(
+      provider.connection,
+      provider.wallet
+    );
 
     const transaction = new Transaction();
-    const [tokenManagerIx, tokenManagerId] =
-      await tokenManager.instruction.init(
-        provider.connection,
-        new Wallet(user),
-        mint.publicKey,
-        issuerTokenAccountId,
-        new BN(1),
-        TokenManagerKind.Managed,
-        InvalidationType.Release,
-        1
-      );
-    transaction.add(tokenManagerIx);
-    transaction.add(
-      setTransferAuthority(
-        provider.connection,
-        new Wallet(user),
-        tokenManagerId,
-        transferAuthority.publicKey
-      )
-    );
+    const tokenManagerId = findTokenManagerAddress(mint.publicKey);
+    const mintCounterId = findMintCounterId(mint.publicKey);
+    const tokenManagerInitIx = await tmManagerProgram.methods
+      .init({
+        amount: new BN(1),
+        kind: TokenManagerKind.Managed,
+        invalidationType: InvalidationType.Release,
+        numInvalidators: 1,
+      })
+      .accounts({
+        tokenManager: tokenManagerId,
+        mintCounter: mintCounterId,
+        mint: mint.publicKey,
+        issuer: user.publicKey,
+        payer: user.publicKey,
+        issuerTokenAccount: issuerTokenAccountId,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+    transaction.add(tokenManagerInitIx);
+
+    const setTransferAuthorityIx = await tmManagerProgram.methods
+      .setTransferAuthority(transferAuthority.publicKey)
+      .accounts({
+        tokenManager: tokenManagerId,
+        issuer: user.publicKey,
+      })
+      .instruction();
+    transaction.add(setTransferAuthorityIx);
     const tokenManagerTokenAccountId =
       await withFindOrInitAssociatedTokenAccount(
         transaction,
@@ -106,25 +125,34 @@ describe("Transfer receipt create update close", () => {
         true
       );
 
-    transaction.add(
-      (
-        await tokenManager.instruction.creatMintManager(
-          provider.connection,
-          new Wallet(user),
-          mint.publicKey
-        )
-      )[0]
-    );
+    const mintManagerId = findMintManagerId(mint.publicKey);
+    const createMintManagerIx = await tmManagerProgram.methods
+      .createMintManager()
+      .accounts({
+        mintManager: mintManagerId,
+        mint: mint.publicKey,
+        freezeAuthority: user.publicKey,
+        payer: user.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+    transaction.add(createMintManagerIx);
 
-    transaction.add(
-      tokenManager.instruction.issue(
-        provider.connection,
-        new Wallet(user),
-        tokenManagerId,
-        tokenManagerTokenAccountId,
-        issuerTokenAccountId
-      )
-    );
+    const issueIx = await tmManagerProgram.methods
+      .issue()
+      .accounts({
+        tokenManager: tokenManagerId,
+        tokenManagerTokenAccount: tokenManagerTokenAccountId,
+        issuer: user.publicKey,
+        issuerTokenAccount: issuerTokenAccountId,
+        payer: user.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+    transaction.add(issueIx);
+
     await executeTransaction(
       provider.connection,
       transaction,
@@ -157,8 +185,7 @@ describe("Transfer receipt create update close", () => {
   it("Claim", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       mint.publicKey
     );
 
@@ -200,18 +227,27 @@ describe("Transfer receipt create update close", () => {
 
   it("Fail transfer receipt", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
+      provider.wallet
+    );
+
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       mint.publicKey
     );
-    const [ix] = await createTransferReceipt(
-      provider.connection,
-      new Wallet(user),
-      tokenManagerId,
-      target.publicKey
-    );
+    const transferReceiptId = findTransferReceiptId(tokenManagerId);
+    const createTransferReceiptIx = await tmManagerProgram.methods
+      .createTransferReceipt(target.publicKey)
+      .accounts({
+        tokenManager: tokenManagerId,
+        transferAuthority: user.publicKey,
+        transferReceipt: transferReceiptId,
+        payer: user.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
     const tx = new Transaction();
-    tx.add(ix);
+    tx.add(createTransferReceiptIx);
     expect(
       executeTransaction(provider.connection, tx, new Wallet(recipient))
     ).to.throw();
@@ -219,18 +255,27 @@ describe("Transfer receipt create update close", () => {
 
   it("Create transfer receipt", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
+      provider.wallet
+    );
+
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       mint.publicKey
     );
     const tx = new Transaction();
-    const [ix, transferReceiptId] = await createTransferReceipt(
-      provider.connection,
-      new Wallet(transferAuthority),
-      tokenManagerId,
-      target.publicKey
-    );
-    tx.add(ix);
+    const transferReceiptId = findTransferReceiptId(tokenManagerId);
+    const createTransferReceiptIx = await tmManagerProgram.methods
+      .createTransferReceipt(target.publicKey)
+      .accounts({
+        tokenManager: tokenManagerId,
+        transferAuthority: transferAuthority.publicKey,
+        transferReceipt: transferReceiptId,
+        payer: transferAuthority.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+    tx.add(createTransferReceiptIx);
     await executeTransaction(
       provider.connection,
       tx,
@@ -254,18 +299,24 @@ describe("Transfer receipt create update close", () => {
 
   it("Update transfer receipt", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
+      provider.wallet
+    );
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       mint.publicKey
     );
-    const [ix, transferReceiptId] = await updateTransferReceipt(
-      provider.connection,
-      new Wallet(transferAuthority),
-      tokenManagerId,
-      target2.publicKey
-    );
+    const transferReceiptId = findTransferReceiptId(tokenManagerId);
+    const updateTransferReceiptIx = await tmManagerProgram.methods
+      .updateTransferReceipt(transferAuthority.publicKey)
+      .accounts({
+        tokenManager: tokenManagerId,
+        transferAuthority: transferAuthority.publicKey,
+        transferReceipt: transferReceiptId,
+      })
+      .instruction();
     const tx = new Transaction();
-    tx.add(ix);
+    tx.add(updateTransferReceiptIx);
     await executeTransaction(
       provider.connection,
       tx,
@@ -289,21 +340,29 @@ describe("Transfer receipt create update close", () => {
 
   it("Close transfer receipt", async () => {
     const provider = await getProvider();
+    const tmManagerProgram = tokenManagerProgram(
+      provider.connection,
+      provider.wallet
+    );
+
     const balanceBefore = await provider.connection.getBalance(
       closer.publicKey
     );
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       mint.publicKey
     );
-    const [ix, transferReceiptId] = await closeTransferReceipt(
-      provider.connection,
-      new Wallet(transferAuthority),
-      tokenManagerId,
-      closer.publicKey
-    );
+    const transferReceiptId = findTransferReceiptId(tokenManagerId);
+    const closeTransferReceiptIx = await tmManagerProgram.methods
+      .closeTransferReceipt()
+      .accounts({
+        tokenManager: tokenManagerId,
+        transferAuthority: transferAuthority.publicKey,
+        transferReceipt: transferReceiptId,
+        recipient: closer.publicKey,
+      })
+      .instruction();
     const tx = new Transaction();
-    tx.add(ix);
+    tx.add(closeTransferReceiptIx);
     await executeTransaction(
       provider.connection,
       tx,

@@ -25,7 +25,7 @@ export const getRemainingAccountsForKind = async (
     tokenManagerKind === TokenManagerKind.Managed ||
     tokenManagerKind === TokenManagerKind.Permissioned
   ) {
-    const [mintManagerId] = await findMintManagerId(mintId);
+    const mintManagerId = findMintManagerId(mintId);
     return [
       {
         pubkey: mintManagerId,
@@ -141,12 +141,12 @@ export const withRemainingAccountsForReturn = async (
   }
 };
 
-export const getRemainingAccountsForTransfer = async (
+export const getRemainingAccountsForTransfer = (
   transferAuthority: PublicKey | null,
   tokenManagerId: PublicKey
-): Promise<AccountMeta[]> => {
+): AccountMeta[] => {
   if (transferAuthority) {
-    const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
+    const transferReceiptId = findTransferReceiptId(tokenManagerId);
     return [
       {
         pubkey: transferReceiptId,

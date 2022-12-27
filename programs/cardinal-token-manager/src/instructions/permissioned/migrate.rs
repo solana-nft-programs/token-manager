@@ -34,12 +34,6 @@ pub struct MigrateCtx<'info> {
     token_authority: UncheckedAccount<'info>,
 
     /// CHECK: no checks required
-    #[account(mut)]
-    ruleset_collector: UncheckedAccount<'info>,
-    /// CHECK: no checks required
-    #[account(mut)]
-    collector: UncheckedAccount<'info>,
-    /// CHECK: no checks required
     authority: UncheckedAccount<'info>,
 
     #[account(mut)]

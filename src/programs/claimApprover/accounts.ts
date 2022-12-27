@@ -30,7 +30,7 @@ export const getClaimApprover = async (
     provider
   );
 
-  const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
+  const claimApproverId = findClaimApproverAddress(tokenManagerId);
 
   const parsed = await claimApproverProgram.account.paidClaimApprover.fetch(
     claimApproverId

@@ -830,16 +830,6 @@
           "isSigner": false
         },
         {
-          "name": "rulesetCollector",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collector",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "authority",
           "isMut": false,
           "isSigner": false
@@ -1121,18 +1111,6 @@
           },
           {
             "name": "tokenAuthority",
-            "type": {
-              "defined": "UncheckedAccount<'info>"
-            }
-          },
-          {
-            "name": "rulesetCollector",
-            "type": {
-              "defined": "UncheckedAccount<'info>"
-            }
-          },
-          {
-            "name": "collector",
             "type": {
               "defined": "UncheckedAccount<'info>"
             }

@@ -11,10 +11,9 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { rentals } from "../src";
+import { rentals, withResetExpiration } from "../src";
 import { invalidate } from "../src/api";
 import { timeInvalidator, tokenManager } from "../src/programs";
-import { resetExpiration } from "../src/programs/timeInvalidator/instruction";
 import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
 import {
   InvalidationType,
@@ -145,8 +144,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   it("Claim and extend rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -222,8 +220,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       new Wallet(recipient)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -234,22 +231,19 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   });
   it("Reset Expiration", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
-    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
-      tokenManagerId
-    );
+    const timeInvalidatorId = findTimeInvalidatorAddress(tokenManagerId);
 
-    const ix = resetExpiration(
+    const transaction = new Transaction();
+    await withResetExpiration(
+      transaction,
       provider.connection,
       new Wallet(recipient),
-      tokenManagerId,
       timeInvalidatorId
     );
-    const transaction = new Transaction();
-    transaction.add(ix);
+
     await executeTransaction(
       provider.connection,
       transaction,
@@ -268,13 +262,10 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   it("Claim rental again", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
-    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
-      tokenManagerId
-    );
+    const timeInvalidatorId = findTimeInvalidatorAddress(tokenManagerId);
 
     const transaction = await rentals.claimRental(
       provider.connection,

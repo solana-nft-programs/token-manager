@@ -242,7 +242,7 @@ describe("Private Transfer", () => {
       tokenMint.publicKey
     );
 
-    const [tokenManagerId] = await findTokenManagerAddress(tokenMint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(tokenMint.publicKey);
     expect(checkTransfer.parsed.tokenManager.toString()).to.eq(
       tokenManagerId.toString()
     );
@@ -297,7 +297,7 @@ describe("Private Transfer", () => {
       tokenMint.publicKey
     );
 
-    const [tokenManagerId] = await findTokenManagerAddress(tokenMint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(tokenMint.publicKey);
     expect(checkTransfer.parsed.tokenManager.toString()).to.eq(
       tokenManagerId.toString()
     );
@@ -321,7 +321,7 @@ describe("Private Transfer", () => {
     );
     await executeTransaction(provider.connection, transaction, new Wallet(to));
 
-    const [transferId] = await findTransferAddress(tokenMint.publicKey);
+    const transferId = findTransferAddress(tokenMint.publicKey);
     const checkTransferData = await tryGetAccount(() =>
       getTransfer(provider.connection, transferId)
     );

@@ -175,12 +175,11 @@ describe("Private rental", () => {
       provider.connection,
       transaction.serialize()
     );
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
+    const useInvalidatorId =
+      useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
     const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
       provider.connection,
       useInvalidatorId

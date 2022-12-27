@@ -215,8 +215,7 @@ describe("Multiple rentals", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 

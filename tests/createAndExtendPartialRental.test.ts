@@ -142,8 +142,7 @@ describe("Create and Extend Rental", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -193,17 +192,14 @@ describe("Create and Extend Rental", () => {
 
   it("Extend Rental", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
     let timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       )
     );
     const tokenManagerData = await tryGetAccount(async () =>
@@ -228,9 +224,7 @@ describe("Create and Extend Rental", () => {
     timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       )
     );
 
@@ -240,8 +234,7 @@ describe("Create and Extend Rental", () => {
   });
   it("Exceed Max Expiration", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -261,8 +254,7 @@ describe("Create and Extend Rental", () => {
   });
   it("Invalid Partial Expiration", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 

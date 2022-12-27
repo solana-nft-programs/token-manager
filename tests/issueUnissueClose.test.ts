@@ -12,8 +12,10 @@ import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { rentals, unissueToken } from "../src";
-import { claimApprover, timeInvalidator, tokenManager } from "../src/programs";
+import { timeInvalidator, tokenManager } from "../src/programs";
+import { claimApproverProgram } from "../src/programs/claimApprover";
 import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
+import { timeInvalidatorProgram } from "../src/programs/timeInvalidator";
 import { findTimeInvalidatorAddress } from "../src/programs/timeInvalidator/pda";
 import { TokenManagerState } from "../src/programs/tokenManager";
 
@@ -152,7 +154,7 @@ describe("Issue Unissue", () => {
       new Wallet(user)
     );
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = tokenManager.pda.findTokenManagerAddress(
       rentalMint.publicKey
     );
 
@@ -178,22 +180,27 @@ describe("Issue Unissue", () => {
 
   it("Close claim approver", async () => {
     const provider = await getProvider();
+    const caProgram = claimApproverProgram(
+      provider.connection,
+      provider.wallet
+    );
     const transaction = new Transaction();
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = tokenManager.pda.findTokenManagerAddress(
       rentalMint.publicKey
     );
-    const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
+    const claimApproverId = findClaimApproverAddress(tokenManagerId);
 
-    transaction.add(
-      claimApprover.instruction.close(
-        provider.connection,
-        new Wallet(user),
-        claimApproverId,
-        tokenManagerId,
-        collector.publicKey
-      )
-    );
+    const closeIx = await caProgram.methods
+      .close()
+      .accounts({
+        tokenManager: tokenManagerId,
+        claimApprover: claimApproverId,
+        collector: collector.publicKey,
+        closer: user.publicKey,
+      })
+      .instruction();
+    transaction.add(closeIx);
     await executeTransaction(
       provider.connection,
       transaction,
@@ -203,24 +210,27 @@ describe("Issue Unissue", () => {
 
   it("Close time invalidator", async () => {
     const provider = await getProvider();
+    const tmeInvalidatorProgram = timeInvalidatorProgram(
+      provider.connection,
+      provider.wallet
+    );
     const transaction = new Transaction();
 
-    const [tokenManagerId] = await tokenManager.pda.findTokenManagerAddress(
+    const tokenManagerId = tokenManager.pda.findTokenManagerAddress(
       rentalMint.publicKey
     );
-    const [timeInvalidatorId] = await findTimeInvalidatorAddress(
-      tokenManagerId
-    );
+    const timeInvalidatorId = findTimeInvalidatorAddress(tokenManagerId);
 
-    transaction.add(
-      timeInvalidator.instruction.close(
-        provider.connection,
-        new Wallet(user),
-        timeInvalidatorId,
-        tokenManagerId,
-        collector.publicKey
-      )
-    );
+    const closeIx = await tmeInvalidatorProgram.methods
+      .close()
+      .accounts({
+        tokenManager: tokenManagerId,
+        timeInvalidator: timeInvalidatorId,
+        collector: collector.publicKey,
+        closer: user.publicKey,
+      })
+      .instruction();
+    transaction.add(closeIx);
     await executeTransaction(
       provider.connection,
       transaction,

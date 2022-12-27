@@ -276,13 +276,11 @@ describe("Restrict Payment Mints", () => {
     expect(checkListing.parsed.lister.toString()).to.eq(
       lister.publicKey.toString()
     );
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
     expect(checkListing.parsed.tokenManager.toString()).to.eq(
       tokenManagerId.toString()
     );
-    const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
+    const marketplaceId = findMarketplaceAddress(marketplaceName);
     expect(checkListing.parsed.marketplace.toString()).to.eq(
       marketplaceId.toString()
     );

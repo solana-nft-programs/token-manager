@@ -154,7 +154,7 @@ describe("Release wrapped token", () => {
   it("Wrap Token", async () => {
     const provider = await getProvider();
     const wrapTransaction = new Transaction();
-    const [transferAuthorityId] = await findTransferAuthorityAddress(
+    const transferAuthorityId = findTransferAuthorityAddress(
       transferAuthorityName
     );
 
@@ -185,7 +185,7 @@ describe("Release wrapped token", () => {
     expect(mintTokenAccount.amount.toString()).to.equal("1");
     expect(mintTokenAccount.isFrozen).to.be.true;
 
-    const [tokenManagerId] = await findTokenManagerAddress(tokenMint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(tokenMint.publicKey);
     const tokenManagerData = await getTokenManager(
       provider.connection,
       tokenManagerId
@@ -201,7 +201,7 @@ describe("Release wrapped token", () => {
     const provider = await getProvider();
     const transaction = new Transaction();
 
-    const [transferAuthorityId] = await findTransferAuthorityAddress(
+    const transferAuthorityId = findTransferAuthorityAddress(
       transferAuthorityName
     );
 

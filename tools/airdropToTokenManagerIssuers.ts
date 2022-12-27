@@ -36,14 +36,12 @@ export const airdropToTokenManagerIssuers = async (
   const connection = connectionFor(cluster);
 
   // find token managers
-  const tokenManagerIds = await Promise.all(
-    mintIds.map((mint) => findTokenManagerAddress(mint))
-  );
+  const tokenManagerIds = mintIds.map((mint) => findTokenManagerAddress(mint));
 
   const tokenManagerDatas = (
     await Promise.all(
       tokenManagerIds.map((tmId) =>
-        tryGetAccount(() => getTokenManager(connection, tmId[0]))
+        tryGetAccount(() => getTokenManager(connection, tmId))
       )
     )
   ).filter((tm) => !!tm);

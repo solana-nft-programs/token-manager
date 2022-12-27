@@ -121,9 +121,7 @@ describe("Permissioned rental", () => {
 
   it("Cannot be claimed by incorrect address", async () => {
     const provider = await getProvider();
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
 
     const ix = await claimToken(
       provider.connection,
@@ -143,9 +141,7 @@ describe("Permissioned rental", () => {
 
   it("Claim token", async () => {
     const provider = await getProvider();
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
 
     const transaction = await claimToken(
       provider.connection,

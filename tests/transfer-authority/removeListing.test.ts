@@ -209,13 +209,11 @@ describe("Remove Listing", () => {
     expect(checkListing.parsed.lister.toString()).to.eq(
       provider.wallet.publicKey.toString()
     );
-    const [tokenManagerId] = await findTokenManagerAddress(
-      rentalMint.publicKey
-    );
+    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
     expect(checkListing.parsed.tokenManager.toString()).to.eq(
       tokenManagerId.toString()
     );
-    const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
+    const marketplaceId = findMarketplaceAddress(marketplaceName);
     expect(checkListing.parsed.marketplace.toString()).to.eq(
       marketplaceId.toString()
     );

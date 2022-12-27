@@ -114,8 +114,7 @@ describe("Time invalidation vest issued", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 

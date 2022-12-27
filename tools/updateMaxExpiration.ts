@@ -23,11 +23,9 @@ const updateMaxExpiration = async (cluster = "mainnet"): Promise<void> => {
   const connection = connectionFor(cluster);
   console.log("Fetching all token managers...");
   const tokenManagers = await getTokenManagersForIssuer(connection, issuerId);
-  const timeInvalidatorIds = (
-    await Promise.all(
-      tokenManagers.map((tm) => findTimeInvalidatorAddress(tm.pubkey))
-    )
-  ).map((t) => t[0]);
+  const timeInvalidatorIds = tokenManagers.map((tm) =>
+    findTimeInvalidatorAddress(tm.pubkey)
+  );
   const timeInvalidatorData = await Promise.all(
     timeInvalidatorIds.map((t) => getTimeInvalidator(connection, t))
   );

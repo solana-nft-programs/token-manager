@@ -228,11 +228,11 @@ describe("Accept Listing Permissioned", () => {
     expect(checkListing.parsed.lister.toString()).to.eq(
       lister.publicKey.toString()
     );
-    const [tokenManagerId] = await findTokenManagerAddress(mint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(mint.publicKey);
     expect(checkListing.parsed.tokenManager.toString()).to.eq(
       tokenManagerId.toString()
     );
-    const [marketplaceId] = await findMarketplaceAddress(marketplaceName);
+    const marketplaceId = findMarketplaceAddress(marketplaceName);
     expect(checkListing.parsed.marketplace.toString()).to.eq(
       marketplaceId.toString()
     );

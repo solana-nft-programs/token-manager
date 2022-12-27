@@ -49,12 +49,10 @@ export const issueVestingTokens = async (cluster = "mainnet") => {
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i]!;
 
-    const tokenManagerIds = await Promise.all(
-      chunk.map(async ({ mint }) => {
-        const [tmid] = await findTokenManagerAddress(mint);
-        return tmid;
-      })
-    );
+    const tokenManagerIds = chunk.map(({ mint }) => {
+      const tmid = findTokenManagerAddress(mint);
+      return tmid;
+    });
     const accounts = await getBatchedMultipleAccounts(
       connection,
       tokenManagerIds

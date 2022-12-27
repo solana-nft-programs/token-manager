@@ -15,9 +15,9 @@ import { invalidate, issueToken, rentals } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import {
   InvalidationType,
+  tokenManagerProgram,
   TokenManagerState,
 } from "../src/programs/tokenManager";
-import { updateInvalidationType } from "../src/programs/tokenManager/instruction";
 
 describe("Create rental reissue", () => {
   const recipient = Keypair.generate();
@@ -99,9 +99,7 @@ describe("Create rental reissue", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
       maxExpiration
@@ -114,8 +112,7 @@ describe("Create rental reissue", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -168,9 +165,7 @@ describe("Create rental reissue", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
       durationSeconds
@@ -187,8 +182,7 @@ describe("Create rental reissue", () => {
       rentalMint.publicKey
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -237,9 +231,7 @@ describe("Create rental reissue", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
       maxExpiration
@@ -249,8 +241,7 @@ describe("Create rental reissue", () => {
   it("Claim again", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -291,9 +282,7 @@ describe("Create rental reissue", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
       durationSeconds
@@ -302,19 +291,24 @@ describe("Create rental reissue", () => {
 
   it("Disable reissue", async () => {
     const provider = await getProvider();
-
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
+      provider.wallet
+    );
+
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
-    const ix = updateInvalidationType(
-      provider.connection,
-      new Wallet(issuer),
-      tokenManagerId,
-      InvalidationType.Return
-    );
+
+    const updateInvalidationTypeIx = await tmManagerProgram.methods
+      .updateInvalidationType(InvalidationType.Return)
+      .accounts({
+        tokenManager: tokenManagerId,
+        issuer: issuer.publicKey,
+      })
+      .instruction();
     const transaction = new Transaction();
-    transaction.add(ix);
+    transaction.add(updateInvalidationTypeIx);
 
     await executeTransaction(
       provider.connection,
@@ -335,19 +329,23 @@ describe("Create rental reissue", () => {
 
   it("Enable reissue", async () => {
     const provider = await getProvider();
-
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
+      provider.wallet
+    );
+
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
-    const ix = updateInvalidationType(
-      provider.connection,
-      new Wallet(issuer),
-      tokenManagerId,
-      InvalidationType.Reissue
-    );
+    const updateInvalidationTypeIx = await tmManagerProgram.methods
+      .updateInvalidationType(InvalidationType.Reissue)
+      .accounts({
+        tokenManager: tokenManagerId,
+        issuer: issuer.publicKey,
+      })
+      .instruction();
     const transaction = new Transaction();
-    transaction.add(ix);
+    transaction.add(updateInvalidationTypeIx);
     await executeTransaction(
       provider.connection,
       transaction,
@@ -367,19 +365,23 @@ describe("Create rental reissue", () => {
 
   it("Disable reissue again", async () => {
     const provider = await getProvider();
-
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
+      provider.wallet
+    );
+
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
-    const ix = updateInvalidationType(
-      provider.connection,
-      new Wallet(issuer),
-      tokenManagerId,
-      InvalidationType.Return
-    );
+    const updateInvalidationTypeIx = await tmManagerProgram.methods
+      .updateInvalidationType(InvalidationType.Return)
+      .accounts({
+        tokenManager: tokenManagerId,
+        issuer: issuer.publicKey,
+      })
+      .instruction();
     const transaction = new Transaction();
-    transaction.add(ix);
+    transaction.add(updateInvalidationTypeIx);
 
     await executeTransaction(
       provider.connection,
@@ -413,8 +415,7 @@ describe("Create rental reissue", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
     const tokenManagerData = await tryGetAccount(() =>

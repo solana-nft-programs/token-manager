@@ -94,9 +94,7 @@ describe("Update max expiration", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
@@ -107,8 +105,7 @@ describe("Update max expiration", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -132,9 +129,7 @@ describe("Update max expiration", () => {
 
     const checkMintManager = await tokenManager.accounts.getMintManager(
       provider.connection,
-      (
-        await tokenManager.pda.findMintManagerId(rentalMint.publicKey)
-      )[0]
+      tokenManager.pda.findMintManagerId(rentalMint.publicKey)
     );
     expect(checkMintManager.parsed.tokenManagers?.toNumber()).to.eq(1);
 
@@ -157,9 +152,7 @@ describe("Update max expiration", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
       durationSeconds
@@ -169,8 +162,7 @@ describe("Update max expiration", () => {
   it("Fail to update max expiration", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -191,8 +183,7 @@ describe("Update max expiration", () => {
   it("Update Max Expiration", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -213,9 +204,7 @@ describe("Update max expiration", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
       newMaxExpiration.toNumber()
@@ -249,8 +238,7 @@ describe("Update max expiration", () => {
       new Wallet(user)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 

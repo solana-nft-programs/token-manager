@@ -139,8 +139,7 @@ describe("Create and Extend Rental", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -190,17 +189,14 @@ describe("Create and Extend Rental", () => {
 
   it("Extend", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
     let useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
         provider.connection,
-        (
-          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
-        )[0]
+        useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
       )
     );
     const totalUsages = useInvalidatorData?.parsed.totalUsages?.toNumber() || 0;
@@ -221,9 +217,7 @@ describe("Create and Extend Rental", () => {
     useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
         provider.connection,
-        (
-          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
-        )[0]
+        useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
       )
     );
 
@@ -233,8 +227,7 @@ describe("Create and Extend Rental", () => {
   });
   it("Exceed Max Usages", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 

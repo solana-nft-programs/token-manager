@@ -134,8 +134,7 @@ describe("Use by use authority", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -213,12 +212,11 @@ describe("Use by use authority", () => {
       new Wallet(useAuthority)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
-    const [useInvalidatorId] =
-      await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
+    const useInvalidatorId =
+      useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
     const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
       provider.connection,
       useInvalidatorId

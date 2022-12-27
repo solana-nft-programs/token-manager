@@ -135,8 +135,7 @@ describe("Invalidate rentals", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -197,8 +196,7 @@ describe("Invalidate rentals", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
     const tokenManagerData = await tryGetAccount(() =>
@@ -209,9 +207,7 @@ describe("Invalidate rentals", () => {
     const useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
         provider.connection,
-        (
-          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
-        )[0]
+        useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
       )
     );
     expect(useInvalidatorData).to.eq(null);
@@ -263,8 +259,7 @@ describe("Invalidate rentals", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -326,17 +321,14 @@ describe("Invalidate rentals", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
     const useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
         provider.connection,
-        (
-          await useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
-        )[0]
+        useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
       )
     );
     expect(useInvalidatorData).to.eq(null);

@@ -6,6 +6,7 @@ import {
   tryGetAccount,
 } from "@cardinal/common";
 import { BN, Wallet } from "@project-serum/anchor";
+import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
@@ -13,8 +14,11 @@ import { expect } from "chai";
 
 import { invalidate, issueToken } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
-import { TokenManagerState } from "../src/programs/tokenManager";
-import { closeMintManager } from "../src/programs/tokenManager/instruction";
+import {
+  tokenManagerProgram,
+  TokenManagerState,
+} from "../src/programs/tokenManager";
+import { findMintManagerId } from "../src/programs/tokenManager/pda";
 
 describe("Issue Claim Close Mint Manager", () => {
   const recipient = Keypair.generate();
@@ -106,12 +110,25 @@ describe("Issue Claim Close Mint Manager", () => {
 
   it("Cannot close mint manager", async () => {
     const provider = await getProvider();
-    const [ix] = await closeMintManager(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
-      new Wallet(user),
-      rentalMint.publicKey
+      provider.wallet
     );
-    const transaction = new Transaction().add(ix);
+
+    const mintManagerId = findMintManagerId(rentalMint.publicKey);
+    const closeMintManagerIx = await tmManagerProgram.methods
+      .closeMintManager()
+      .accounts({
+        mintManager: mintManagerId,
+        mint: rentalMint.publicKey,
+        freezeAuthority: user.publicKey,
+        payer: user.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .instruction();
+    const transaction = new Transaction();
+    transaction.add(closeMintManagerIx);
+
     expect(
       executeTransaction(
         provider.connection,
@@ -136,8 +153,7 @@ describe("Issue Claim Close Mint Manager", () => {
       new Wallet(user)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -149,9 +165,7 @@ describe("Issue Claim Close Mint Manager", () => {
     const timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       )
     );
     expect(timeInvalidatorData).to.eq(null);
@@ -165,12 +179,25 @@ describe("Issue Claim Close Mint Manager", () => {
 
   it("Close mint manager", async () => {
     const provider = await getProvider();
-    const [ix] = await closeMintManager(
+    const tmManagerProgram = tokenManagerProgram(
       provider.connection,
-      new Wallet(user),
-      rentalMint.publicKey
+      provider.wallet
     );
-    const transaction = new Transaction().add(ix);
+
+    const mintManagerId = findMintManagerId(rentalMint.publicKey);
+    const closeMintManagerIx = await tmManagerProgram.methods
+      .closeMintManager()
+      .accounts({
+        mintManager: mintManagerId,
+        mint: rentalMint.publicKey,
+        freezeAuthority: user.publicKey,
+        payer: user.publicKey,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .instruction();
+    const transaction = new Transaction();
+    transaction.add(closeMintManagerIx);
+
     await executeTransaction(
       provider.connection,
       transaction,
@@ -179,9 +206,7 @@ describe("Issue Claim Close Mint Manager", () => {
     const checkMintManager = await tryGetAccount(async () =>
       tokenManager.accounts.getMintManager(
         provider.connection,
-        (
-          await tokenManager.pda.findMintManagerId(rentalMint.publicKey)
-        )[0]
+        tokenManager.pda.findMintManagerId(rentalMint.publicKey)
       )
     );
     expect(checkMintManager).to.eq(null);

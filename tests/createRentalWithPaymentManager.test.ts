@@ -192,8 +192,7 @@ describe("Create rental with payment manager and extend", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -268,8 +267,7 @@ describe("Create rental with payment manager and extend", () => {
 
   it("Extend Rental", async () => {
     const provider = await getProvider();
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -290,9 +288,7 @@ describe("Create rental with payment manager and extend", () => {
     let timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       )
     );
     const tokenManagerData = await tryGetAccount(async () =>
@@ -317,9 +313,7 @@ describe("Create rental with payment manager and extend", () => {
     timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       )
     );
 

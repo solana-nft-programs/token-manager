@@ -1,5 +1,12 @@
 import type { ParsedIdlAccountData } from "@cardinal/common";
-import { PublicKey } from "@solana/web3.js";
+import {
+  AnchorProvider,
+  Program,
+  Wallet as AWallet,
+} from "@project-serum/anchor";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import type { ConfirmOptions, Connection } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import * as TOKEN_MANAGER_TYPES from "../../idl/cardinal_token_manager";
 
@@ -68,3 +75,19 @@ export enum TokenManagerState {
 export const CRANK_KEY = new PublicKey(
   "crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr"
 );
+
+export const tokenManagerProgram = (
+  connection: Connection,
+  wallet?: Wallet,
+  confirmOptions?: ConfirmOptions
+) => {
+  return new Program<TOKEN_MANAGER_PROGRAM>(
+    TOKEN_MANAGER_IDL,
+    TOKEN_MANAGER_ADDRESS,
+    new AnchorProvider(
+      connection,
+      wallet ?? new AWallet(Keypair.generate()),
+      confirmOptions ?? {}
+    )
+  );
+};

@@ -93,9 +93,7 @@ describe("Time invalidation on claim", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
@@ -106,8 +104,7 @@ describe("Time invalidation on claim", () => {
   it("Claim rental", async () => {
     const provider = await getProvider();
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 
@@ -131,9 +128,7 @@ describe("Time invalidation on claim", () => {
 
     const checkMintManager = await tokenManager.accounts.getMintManager(
       provider.connection,
-      (
-        await tokenManager.pda.findMintManagerId(rentalMint.publicKey)
-      )[0]
+      tokenManager.pda.findMintManagerId(rentalMint.publicKey)
     );
     expect(checkMintManager.parsed.tokenManagers?.toNumber()).to.eq(1);
 
@@ -156,9 +151,7 @@ describe("Time invalidation on claim", () => {
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
-        (
-          await timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
-        )[0]
+        timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
     expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
       durationSeconds
@@ -180,8 +173,7 @@ describe("Time invalidation on claim", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = await tokenManager.pda.tokenManagerAddressFromMint(
-      provider.connection,
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
       rentalMint.publicKey
     );
 

@@ -37,7 +37,6 @@ const main = async (cluster = "devnet") => {
     mintId,
     rulesetName,
     holderTokenAccount.address,
-    collector,
     wallet.publicKey
   );
 

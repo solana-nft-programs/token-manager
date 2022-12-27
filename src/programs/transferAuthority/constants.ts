@@ -1,5 +1,12 @@
 import type { ParsedIdlAccountData } from "@cardinal/common";
-import { PublicKey } from "@solana/web3.js";
+import {
+  AnchorProvider,
+  Program,
+  Wallet as AWallet,
+} from "@project-serum/anchor";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import type { ConfirmOptions, Connection } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import * as TRANSFER_AUTHORITY_TYPES from "../../idl/cardinal_transfer_authority";
 
@@ -39,3 +46,19 @@ export type TransferData = ParsedIdlAccountData<
   "transfer",
   TRANSFER_AUTHORITY_PROGRAM
 >;
+
+export const transferAuthorityProgram = (
+  connection: Connection,
+  wallet?: Wallet,
+  confirmOptions?: ConfirmOptions
+) => {
+  return new Program<TRANSFER_AUTHORITY_PROGRAM>(
+    TRANSFER_AUTHORITY_IDL,
+    TRANSFER_AUTHORITY_ADDRESS,
+    new AnchorProvider(
+      connection,
+      wallet ?? new AWallet(Keypair.generate()),
+      confirmOptions ?? {}
+    )
+  );
+};

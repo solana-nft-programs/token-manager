@@ -4,21 +4,29 @@ import {
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
 import { utils, Wallet } from "@project-serum/anchor";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { Connection } from "@solana/web3.js";
 import {
   Keypair,
   PublicKey,
   sendAndConfirmRawTransaction,
+  SYSVAR_RENT_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
 
-import { claimApprover, timeInvalidator, tokenManager } from "../src/programs";
+import { tokenManager } from "../src/programs";
+import { claimApproverProgram } from "../src/programs/claimApprover";
 import { getAllClaimApprovers } from "../src/programs/claimApprover/accounts";
 import { findClaimApproverAddress } from "../src/programs/claimApprover/pda";
 import type { TimeInvalidatorData } from "../src/programs/timeInvalidator";
+import { timeInvalidatorProgram } from "../src/programs/timeInvalidator";
 import { getAllTimeInvalidators } from "../src/programs/timeInvalidator/accounts";
 import type { TokenManagerData } from "../src/programs/tokenManager";
 import {
+  CRANK_KEY,
+  getRemainingAccountsForKind,
+  TOKEN_MANAGER_ADDRESS,
+  tokenManagerProgram,
   TokenManagerState,
   withRemainingAccountsForReturn,
 } from "../src/programs/tokenManager";
@@ -36,6 +44,9 @@ export const withInvalidate = async (
   wallet: Wallet,
   timeInvalidatorData: AccountData<TimeInvalidatorData>
 ): Promise<Transaction> => {
+  const caProgram = claimApproverProgram(connection, wallet);
+  const tmeInvalidatorProgram = timeInvalidatorProgram(connection, wallet);
+
   const tokenManagerData = await tryGetAccount(() =>
     tokenManager.accounts.getTokenManager(
       connection,
@@ -73,26 +84,37 @@ export const withInvalidate = async (
       tokenManagerData?.pubkey.toString(),
       tokenManagerData?.parsed.state
     );
-    transaction.add(
-      await timeInvalidator.instruction.invalidate(
-        connection,
-        wallet,
-        tokenManagerData.parsed.mint,
-        tokenManagerData.pubkey,
-        tokenManagerData.parsed.kind,
-        tokenManagerData.parsed.state,
-        tokenManagerTokenAccountId,
-        tokenManagerData?.parsed.recipientTokenAccount.toString() ===
+    const transferAccounts = await getRemainingAccountsForKind(
+      tokenManagerData.parsed.mint,
+      tokenManagerData.parsed.kind
+    );
+    const invalidateIx = await tmeInvalidatorProgram.methods
+      .invalidate()
+      .accounts({
+        tokenManager: tokenManagerData.pubkey,
+        timeInvalidator: timeInvalidatorData.pubkey,
+        invalidator: wallet.publicKey,
+        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        tokenManagerTokenAccount: tokenManagerTokenAccountId,
+        mint: tokenManagerData.parsed.mint,
+        recipientTokenAccount:
+          tokenManagerData?.parsed.recipientTokenAccount.toString() ===
           PublicKey.default.toString()
-          ? tokenManagerTokenAccountId
-          : tokenManagerData?.parsed.recipientTokenAccount,
-        remainingAccountsForReturn
-      )
-    );
+            ? tokenManagerTokenAccountId
+            : tokenManagerData?.parsed.recipientTokenAccount,
+        rent: SYSVAR_RENT_PUBKEY,
+      })
+      .remainingAccounts([
+        ...(tokenManagerData.parsed.state === TokenManagerState.Claimed
+          ? transferAccounts
+          : []),
+        ...remainingAccountsForReturn,
+      ])
+      .instruction();
+    transaction.add(invalidateIx);
 
-    const [claimApproverId] = await findClaimApproverAddress(
-      tokenManagerData.pubkey
-    );
+    const claimApproverId = findClaimApproverAddress(tokenManagerData.pubkey);
 
     if (
       tokenManagerData.parsed.claimApprover &&
@@ -100,27 +122,30 @@ export const withInvalidate = async (
         claimApproverId.toString()
     ) {
       console.log("Close PCA: ", claimApproverId);
-      transaction.add(
-        claimApprover.instruction.close(
-          connection,
-          wallet,
-          claimApproverId,
-          tokenManagerData.pubkey
-        )
-      );
+      const closeIx = await caProgram.methods
+        .close()
+        .accounts({
+          tokenManager: tokenManagerData.pubkey,
+          claimApprover: claimApproverId,
+          collector: CRANK_KEY,
+          closer: wallet.publicKey,
+        })
+        .instruction();
+      transaction.add(closeIx);
     }
   }
 
   console.log("Close TI: ", timeInvalidatorData.pubkey);
-  transaction.add(
-    timeInvalidator.instruction.close(
-      connection,
-      wallet,
-      timeInvalidatorData.pubkey,
-      timeInvalidatorData.parsed.tokenManager,
-      timeInvalidatorData.parsed.collector
-    )
-  );
+  const closeIx = await tmeInvalidatorProgram.methods
+    .close()
+    .accounts({
+      tokenManager: timeInvalidatorData.parsed.tokenManager,
+      timeInvalidator: timeInvalidatorData.pubkey,
+      collector: timeInvalidatorData.parsed.collector,
+      closer: wallet.publicKey,
+    })
+    .instruction();
+  transaction.add(closeIx);
 
   return transaction;
 };
@@ -131,6 +156,8 @@ export const withInvalidateTokenManager = async (
   wallet: Wallet,
   tokenManagerData: AccountData<TokenManagerData>
 ): Promise<Transaction> => {
+  const tmManagerProgram = tokenManagerProgram(connection, wallet);
+  const caProgram = claimApproverProgram(connection, wallet);
   const tokenManagerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
@@ -159,26 +186,36 @@ export const withInvalidateTokenManager = async (
     tokenManagerData?.parsed.state,
     remainingAccountsForReturn
   );
-  transaction.add(
-    await tokenManager.instruction.invalidate(
-      connection,
-      wallet,
-      tokenManagerData.parsed.mint,
-      tokenManagerData.pubkey,
-      tokenManagerData.parsed.kind,
-      tokenManagerData.parsed.state,
-      tokenManagerTokenAccountId,
-      tokenManagerData?.parsed.recipientTokenAccount.toString() ===
+  const transferAccounts = await getRemainingAccountsForKind(
+    tokenManagerData.parsed.mint,
+    tokenManagerData.parsed.kind
+  );
+  const invalidateIx = await tmManagerProgram.methods
+    .invalidate()
+    .accounts({
+      tokenManager: tokenManagerData.pubkey,
+      tokenManagerTokenAccount: tokenManagerTokenAccountId,
+      mint: tokenManagerData.parsed.mint,
+      recipientTokenAccount:
+        tokenManagerData?.parsed.recipientTokenAccount.toString() ===
         PublicKey.default.toString()
-        ? tokenManagerTokenAccountId
-        : tokenManagerData?.parsed.recipientTokenAccount,
-      remainingAccountsForReturn
-    )
-  );
+          ? tokenManagerTokenAccountId
+          : tokenManagerData?.parsed.recipientTokenAccount,
+      invalidator: wallet.publicKey,
+      collector: CRANK_KEY,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
+    })
+    .remainingAccounts([
+      ...(tokenManagerData.parsed.state === TokenManagerState.Claimed
+        ? transferAccounts
+        : []),
+      ...remainingAccountsForReturn,
+    ])
+    .instruction();
+  transaction.add(invalidateIx);
 
-  const [claimApproverId] = await findClaimApproverAddress(
-    tokenManagerData.pubkey
-  );
+  const claimApproverId = findClaimApproverAddress(tokenManagerData.pubkey);
 
   if (
     tokenManagerData.parsed.claimApprover &&
@@ -186,14 +223,16 @@ export const withInvalidateTokenManager = async (
       claimApproverId.toString()
   ) {
     console.log("Close PCA: ", claimApproverId);
-    transaction.add(
-      claimApprover.instruction.close(
-        connection,
-        wallet,
-        claimApproverId,
-        tokenManagerData.pubkey
-      )
-    );
+    const closeIx = await caProgram.methods
+      .close()
+      .accounts({
+        tokenManager: tokenManagerData.pubkey,
+        claimApprover: claimApproverId,
+        collector: CRANK_KEY,
+        closer: wallet.publicKey,
+      })
+      .instruction();
+    transaction.add(closeIx);
   }
   return transaction;
 };
@@ -255,6 +294,7 @@ const tokenManagers = async (cluster: string) => {
 
 const claimApprovers = async (cluster: string) => {
   const connection = connectionFor(cluster);
+  const caProgram = claimApproverProgram(connection);
   const tokenManagerDatas = await getTokenManagersByState(connection, null);
   const claimApproverDatas = await getAllClaimApprovers(connection);
   // const claimApproverIds = claimApproverDatas.map((i) => i.pubkey.toString());
@@ -299,14 +339,18 @@ const claimApprovers = async (cluster: string) => {
       try {
         const transaction = new Transaction();
         console.log(`Invalidating remaining CPA ${count}`);
-        transaction.add(
-          claimApprover.instruction.close(
-            connection,
-            new Wallet(wallet),
-            claimApproverData.pubkey,
-            tokenManagerDatas[0]?.pubkey ?? claimApproverData.pubkey
-          )
-        );
+        const closeIx = await caProgram.methods
+          .close()
+          .accounts({
+            tokenManager:
+              tokenManagerDatas[0]?.pubkey ??
+              claimApproverData.parsed.tokenManager,
+            claimApprover: claimApproverData.pubkey,
+            collector: CRANK_KEY,
+            closer: wallet.publicKey,
+          })
+          .instruction();
+        transaction.add(closeIx);
         count += 1;
         const txid = await executeTx(transaction, connection);
         console.log(

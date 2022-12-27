@@ -68,7 +68,7 @@ export const getTransferAuthorityByName = async (
     provider
   );
 
-  const [transferAuthorityId] = await findTransferAuthorityAddress(name);
+  const transferAuthorityId = findTransferAuthorityAddress(name);
 
   const parsed = await transferAuthorityProgram.account.transferAuthority.fetch(
     transferAuthorityId
@@ -125,7 +125,7 @@ export const getMarketplaceByName = async (
     provider
   );
 
-  const [marketplaceId] = await findMarketplaceAddress(name);
+  const marketplaceId = findMarketplaceAddress(name);
 
   const parsed = await transferAuthorityProgram.account.marketplace.fetch(
     marketplaceId
@@ -158,7 +158,7 @@ export const getListing = async (
     provider
   );
 
-  const [listingId] = await findListingAddress(mintId);
+  const listingId = findListingAddress(mintId);
 
   const parsed = await transferAuthorityProgram.account.listing.fetch(
     listingId
@@ -273,7 +273,7 @@ export const getTransfer = async (
     provider
   );
 
-  const [transferId] = await findTransferAddress(mintId);
+  const transferId = findTransferAddress(mintId);
   const parsed = await transferAuthorityProgram.account.transfer.fetch(
     transferId
   );

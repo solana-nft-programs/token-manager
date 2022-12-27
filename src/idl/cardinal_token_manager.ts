@@ -830,16 +830,6 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
-          name: "rulesetCollector";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "collector";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "authority";
           isMut: false;
           isSigner: false;
@@ -1121,18 +1111,6 @@ export type CardinalTokenManager = {
           },
           {
             name: "tokenAuthority";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "rulesetCollector";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "collector";
             type: {
               defined: "UncheckedAccount<'info>";
             };
@@ -2271,16 +2249,6 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
         {
-          name: "rulesetCollector",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "collector",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "authority",
           isMut: false,
           isSigner: false,
@@ -2562,18 +2530,6 @@ export const IDL: CardinalTokenManager = {
           },
           {
             name: "tokenAuthority",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "rulesetCollector",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "collector",
             type: {
               defined: "UncheckedAccount<'info>",
             },

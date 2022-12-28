@@ -1,9 +1,11 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -23,7 +25,6 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { claimLinks, claimToken, useTransaction } from "../src";
 import { fromLink } from "../src/claimLinks";
@@ -34,17 +35,18 @@ import {
 } from "../src/programs/tokenManager";
 
 describe("Claim links master editions", () => {
+  let provider: CardinalProvider;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  let editionIssuerTokenAccount: PublicKey;
-  const rentalMint: Keypair = Keypair.generate();
-  const editionMint: Keypair = Keypair.generate();
+  let editionIssuerTokenAccountId: PublicKey;
+  let rentalMint: PublicKey;
+  let editionMint: PublicKey;
   let claimLink: string;
   let serializedUsage: string;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -58,25 +60,12 @@ describe("Claim links master editions", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      tokenCreator.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      tokenCreator.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
       new Wallet(tokenCreator)
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(rentalMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: tokenCreator.publicKey },
       {
@@ -91,57 +80,43 @@ describe("Claim links master editions", () => {
           uses: null,
         }),
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(rentalMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: tokenCreator.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
         maxSupply: new BN(1),
       }
     );
 
     // create edition mint
-    const transaction2 = new Transaction();
-    const [ixs2] = await createMintIxs(
+    [editionIssuerTokenAccountId, editionMint] = await createMint(
       provider.connection,
-      editionMint.publicKey,
-      tokenCreator.publicKey
-    );
-    editionIssuerTokenAccount = await findAta(
-      editionMint.publicKey,
-      tokenCreator.publicKey,
-      true
-    );
-    transaction2.instructions = ixs2;
-    await executeTransaction(
-      provider.connection,
-      transaction2,
-      new Wallet(tokenCreator)
+      new Wallet(tokenCreator),
+      {
+        target: provider.wallet.publicKey,
+      }
     );
 
-    const editionMetadataId = await Metadata.getPDA(editionMint.publicKey);
-
-    const editionId = await Edition.getPDA(editionMint.publicKey);
-    const editionMarkerId = await EditionMarker.getPDA(
-      rentalMint.publicKey,
-      new BN(0)
-    );
+    const editionMetadataId = await Metadata.getPDA(editionMint);
+    const editionId = await Edition.getPDA(editionMint);
+    const editionMarkerId = await EditionMarker.getPDA(rentalMint, new BN(0));
     const editionTx = new MintNewEditionFromMasterEditionViaToken(
       { feePayer: tokenCreator.publicKey },
       {
         edition: editionId,
         metadata: editionMetadataId,
         updateAuthority: tokenCreator.publicKey,
-        mint: editionMint.publicKey,
+        mint: editionMint,
         mintAuthority: tokenCreator.publicKey,
         masterEdition: masterEditionId,
         masterMetadata: metadataId,
@@ -161,12 +136,11 @@ describe("Claim links master editions", () => {
   });
 
   it("Create link", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await claimLinks.issueToken(
       provider.connection,
       new Wallet(tokenCreator),
       {
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId,
         useInvalidation: { totalUsages: 4 },
         kind: TokenManagerKind.Edition,
@@ -184,16 +158,18 @@ describe("Claim links master editions", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      0
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       new Wallet(tokenCreator).publicKey.toString()
     );
-    expect(tokenManagerData.parsed.claimApprover?.toString()).to.eq(
+    expect(tokenManagerData.parsed.claimApprover?.toString()).toEqual(
       otp.publicKey.toString()
     );
 
@@ -201,14 +177,12 @@ describe("Claim links master editions", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     console.log("Link created: ", claimLink);
   });
 
   it("Claim from link", async () => {
-    const provider = await getProvider();
-
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
     const transaction = await claimToken(
@@ -228,32 +202,31 @@ describe("Claim links master editions", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     const recipientTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       recipient.publicKey
     );
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientTokenAccountId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
   });
 
   it("Get use tx", async () => {
-    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey,
+      rentalMint,
       1
     );
     transaction.feePayer = recipient.publicKey;
@@ -265,31 +238,28 @@ describe("Claim links master editions", () => {
   });
 
   it("Execute use tx", async () => {
-    const provider = await getProvider();
     const buffer = Buffer.from(serializedUsage, "base64");
     const transaction = Transaction.from(buffer);
     await sendAndConfirmRawTransaction(
       provider.connection,
       transaction.serialize()
     );
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
     const useInvalidatorId =
       useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
     const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
       provider.connection,
       useInvalidatorId
     );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+    expect(useInvalidatorData.parsed.usages.toNumber()).toEqual(1);
   });
 
   it("Get new use tx", async () => {
-    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey,
+      rentalMint,
       2
     );
     transaction.feePayer = recipient.publicKey;
@@ -301,33 +271,30 @@ describe("Claim links master editions", () => {
   });
 
   it("Execute use again success", async () => {
-    const provider = await getProvider();
     const buffer = Buffer.from(serializedUsage, "base64");
     const transaction = Transaction.from(buffer);
     await sendAndConfirmRawTransaction(
       provider.connection,
       transaction.serialize()
     );
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
     const useInvalidatorId =
       useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
     const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
       provider.connection,
       useInvalidatorId
     );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(3);
+    expect(useInvalidatorData.parsed.usages.toNumber()).toEqual(3);
   });
 
   it("Create link for edition", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await claimLinks.issueToken(
       provider.connection,
       provider.wallet,
       {
-        mint: editionMint.publicKey,
-        issuerTokenAccountId: editionIssuerTokenAccount,
+        mint: editionMint,
+        issuerTokenAccountId: editionIssuerTokenAccountId,
         useInvalidation: { totalUsages: 4 },
         kind: TokenManagerKind.Edition,
       }
@@ -341,31 +308,31 @@ describe("Claim links master editions", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      editionMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      editionMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      0
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(tokenManagerData.parsed.claimApprover?.toString()).to.eq(
+    expect(tokenManagerData.parsed.claimApprover?.toString()).toEqual(
       otp.publicKey.toString()
     );
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
-      editionIssuerTokenAccount
+      editionIssuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     console.log("Link created: ", claimLink);
   });
 
   it("Claim edition from link", async () => {
-    const provider = await getProvider();
-
     const [mintId, otpKeypair] = fromLink(claimLink);
 
     const transaction = await claimToken(
@@ -381,30 +348,29 @@ describe("Claim links master editions", () => {
       { signers: [otpKeypair] }
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      editionMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(editionMint);
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
-      editionIssuerTokenAccount
+      editionIssuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     const recipientTokenAccountId = await findAta(
-      editionMint.publicKey,
+      editionMint,
       recipient.publicKey
     );
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientTokenAccountId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
   });
 });

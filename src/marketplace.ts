@@ -151,7 +151,7 @@ export const withInitTransferAuthority = async (
     .initTransferAuthority({
       name: name,
       authority: authority,
-      allowedMarketplaces: allowedMarketplaces,
+      allowedMarketplaces: allowedMarketplaces ?? null,
     })
     .accounts({
       transferAuthority: transferAuthorityId,
@@ -205,7 +205,7 @@ export const withInitMarketplace = async (
     .initMarketplace({
       name: name,
       authority: wallet.publicKey,
-      paymentMints: paymentMints,
+      paymentMints: paymentMints ?? null,
     })
     .accounts({
       marketplace: marketplaceId,

@@ -1,14 +1,15 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { claimLinks, issueToken, withClaimToken } from "../src";
 import { fromLink } from "../src/claimLinks";
@@ -16,15 +17,16 @@ import { tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 
 describe("Issue payer invalidate", () => {
+  let provider: CardinalProvider;
   const recipient = Keypair.generate();
   const payer = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
   let claimLink: string;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -38,33 +40,19 @@ describe("Issue payer invalidate", () => {
     await provider.connection.confirmTransaction(airdropPayer);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      user.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      user.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
       new Wallet(user)
     );
   });
 
   it("Issue", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await issueToken(
       provider.connection,
       new Wallet(user),
       {
         timeInvalidation: { maxExpiration: Date.now() / 1000 },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
         visibility: "private",
@@ -82,13 +70,15 @@ describe("Issue payer invalidate", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
 
@@ -96,25 +86,25 @@ describe("Issue payer invalidate", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
       user.publicKey
     );
-    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+    expect(tokenManagers.map((i) => i.pubkey.toString())).toContain(
       tokenManagerId.toString()
     );
   });
 
   it("Claim from link with payer", async () => {
-    const provider = await getProvider();
-
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
-    // assert not lamports
-    expect(provider.connection.getAccountInfo(recipient.publicKey)).to.throw();
+    const beforeAccount = await provider.connection.getAccountInfo(
+      recipient.publicKey
+    );
+    expect(beforeAccount).toBeNull();
 
     const transaction = await withClaimToken(
       new Transaction(),
@@ -136,24 +126,21 @@ describe("Issue payer invalidate", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
   });
 });

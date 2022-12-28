@@ -1,10 +1,12 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
   tryGetAccount,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -12,15 +14,14 @@ import {
   Keypair,
   LAMPORTS_PER_SOL,
   sendAndConfirmRawTransaction,
-  Transaction,
 } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { rentals, useTransaction } from "../src";
 import { tokenManager, useInvalidator } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 
 describe("Invalidate rentals", () => {
+  let provider: CardinalProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
@@ -28,11 +29,11 @@ describe("Invalidate rentals", () => {
   const collector = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  const paymentMint: Keypair = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let paymentMint: PublicKey;
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -46,56 +47,29 @@ describe("Invalidate rentals", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      paymentMint.publicKey,
-      recipient.publicKey,
+      new Wallet(recipient),
       { amount: RECIPIENT_START_PAYMENT_AMOUNT }
     );
-    recipientPaymentTokenAccountId = await findAta(
-      paymentMint.publicKey,
-      recipient.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(recipient)
-    );
 
-    const transaction2 = new Transaction();
-    const [ixs2] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      user.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      user.publicKey,
-      true
-    );
-    transaction2.instructions = ixs2;
-    await executeTransaction(
-      provider.connection,
-      transaction2,
       new Wallet(user)
     );
   });
 
   it("Create rental", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
-          paymentMint: paymentMint.publicKey,
+          paymentMint: paymentMint,
         },
         useInvalidation: { totalUsages: 1, collector: collector.publicKey },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
@@ -115,13 +89,15 @@ describe("Invalidate rentals", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
 
@@ -129,15 +105,12 @@ describe("Invalidate rentals", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
   });
 
   it("Claim rental", async () => {
-    const provider = await getProvider();
-
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = await rentals.claimRental(
       provider.connection,
@@ -154,40 +127,39 @@ describe("Invalidate rentals", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     const recipientTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       recipient.publicKey
     );
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientTokenAccountId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
 
     const checkRecipientPaymentTokenAccount = await getAccount(
       provider.connection,
       recipientPaymentTokenAccountId
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).toEqual(
       (RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT).toString()
     );
   });
 
   it("Use rental and invalidate", async () => {
-    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey,
+      rentalMint,
       1
     );
     await executeTransaction(
@@ -196,13 +168,12 @@ describe("Invalidate rentals", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
     );
-    expect(tokenManagerData).to.eq(null);
+    expect(tokenManagerData).toEqual(null);
 
     const useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
@@ -210,21 +181,20 @@ describe("Invalidate rentals", () => {
         useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
       )
     );
-    expect(useInvalidatorData).to.eq(null);
+    expect(useInvalidatorData).toEqual(null);
   });
 
   it("Create rental", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
-          paymentMint: paymentMint.publicKey,
+          paymentMint: paymentMint,
         },
         useInvalidation: { totalUsages: 1 },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
@@ -239,13 +209,15 @@ describe("Invalidate rentals", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
 
@@ -253,15 +225,12 @@ describe("Invalidate rentals", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
   });
 
   it("Claim rental", async () => {
-    const provider = await getProvider();
-
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = await rentals.claimRental(
       provider.connection,
@@ -279,40 +248,36 @@ describe("Invalidate rentals", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
 
     const checkRecipientPaymentTokenAccount = await getAccount(
       provider.connection,
       recipientPaymentTokenAccountId
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).toEqual(
       (RECIPIENT_START_PAYMENT_AMOUNT - 2 * RENTAL_PAYMENT_AMONT).toString()
     );
   });
 
   it("Use rental", async () => {
-    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey,
+      rentalMint,
       1
     );
     await executeTransaction(
@@ -321,9 +286,8 @@ describe("Invalidate rentals", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
@@ -331,11 +295,11 @@ describe("Invalidate rentals", () => {
         useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
       )
     );
-    expect(useInvalidatorData).to.eq(null);
+    expect(useInvalidatorData).toEqual(null);
 
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
     );
-    expect(tokenManagerData).to.eq(null);
+    expect(tokenManagerData).toEqual(null);
   });
 });

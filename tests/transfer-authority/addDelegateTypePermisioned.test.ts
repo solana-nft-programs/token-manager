@@ -1,9 +1,11 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMetadataV2,
   DataV2,
@@ -11,8 +13,8 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import {
   withClaimToken,
@@ -29,11 +31,12 @@ import {
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 
 describe("Add and Remove Delegate for Type Permissioned", () => {
+  let provider: CardinalProvider;
   const user = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -41,20 +44,9 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
     await provider.connection.confirmTransaction(airdropCreator);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
-      provider.connection,
-      rentalMint.publicKey,
-      user.publicKey
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(user)
-    );
+    [, rentalMint] = await createMint(provider.connection, new Wallet(user));
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(rentalMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: user.publicKey },
       {
@@ -69,7 +61,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
           uses: null,
         }),
         updateAuthority: user.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: user.publicKey,
       }
     );
@@ -79,9 +71,8 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
   });
 
   it("Issue Token Manager", async () => {
-    const provider = await getProvider();
     const issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       user.publicKey,
       true
     );
@@ -90,7 +81,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       provider.connection,
       new Wallet(user),
       {
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId,
         kind: TokenManagerKind.Permissioned,
         invalidationType: InvalidationType.Release,
@@ -106,41 +97,39 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators.length).equals(0);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toEqual(0);
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
   });
 
   it("Fail To Delegate Token", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
     await withDelegate(
       transaction,
       provider.connection,
       new Wallet(user),
-      rentalMint.publicKey
+      rentalMint
     );
-    expect(
+    await expect(
       executeTransaction(provider.connection, transaction, provider.wallet)
-    ).to.throw();
+    ).rejects.toThrow();
   });
 
   it("Claim Token Manager", async () => {
-    const provider = await getProvider();
-    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(rentalMint);
     const claimerTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       user.publicKey,
       true
     );
@@ -160,22 +149,21 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
     const checkClaimerTokenAccount = await getAccount(
       provider.connection,
       claimerTokenAccountId
     );
-    expect(checkClaimerTokenAccount.amount.toString()).to.eq("1");
-    expect(checkClaimerTokenAccount.delegate).to.be.null;
-    expect(checkClaimerTokenAccount.isFrozen).to.be.true;
+    expect(checkClaimerTokenAccount.amount.toString()).toEqual("1");
+    expect(checkClaimerTokenAccount.delegate).toBeNull();
+    expect(checkClaimerTokenAccount.isFrozen).toBeTruthy();
   });
 
   it("Delegate Token", async () => {
-    const provider = await getProvider();
-    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(rentalMint);
     const claimerTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       user.publicKey,
       true
     );
@@ -184,7 +172,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       transaction,
       provider.connection,
       new Wallet(user),
-      rentalMint.publicKey
+      rentalMint
     );
     await executeTransaction(
       provider.connection,
@@ -196,17 +184,16 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       provider.connection,
       claimerTokenAccountId
     );
-    expect(checkClaimerTokenAccount.amount.toString()).to.eq("1");
-    expect(checkClaimerTokenAccount.delegate?.toString()).to.eq(
+    expect(checkClaimerTokenAccount.amount.toString()).toEqual("1");
+    expect(checkClaimerTokenAccount.delegate?.toString()).toEqual(
       tokenManagerId.toString()
     );
-    expect(checkClaimerTokenAccount.isFrozen).to.be.true;
+    expect(checkClaimerTokenAccount.isFrozen).toBeTruthy();
   });
 
   it("Undelegate Token", async () => {
-    const provider = await getProvider();
     const claimerTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       user.publicKey,
       true
     );
@@ -215,7 +202,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       transaction,
       provider.connection,
       new Wallet(user),
-      rentalMint.publicKey
+      rentalMint
     );
     await executeTransaction(
       provider.connection,
@@ -227,8 +214,8 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
       provider.connection,
       claimerTokenAccountId
     );
-    expect(checkClaimerTokenAccount.amount.toString()).to.eq("1");
-    expect(checkClaimerTokenAccount.delegate).to.be.null;
-    expect(checkClaimerTokenAccount.isFrozen).to.be.true;
+    expect(checkClaimerTokenAccount.amount.toString()).toEqual("1");
+    expect(checkClaimerTokenAccount.delegate).toBeNull();
+    expect(checkClaimerTokenAccount.isFrozen).toBeTruthy();
   });
 });

@@ -1,5 +1,6 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
@@ -7,6 +8,7 @@ import {
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -15,9 +17,13 @@ import {
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { Wallet } from "@project-serum/anchor";
-import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  Transaction,
+} from "@solana/web3.js";
 import { BN } from "bn.js";
-import { expect } from "chai";
 
 import {
   withCreateListing,
@@ -35,11 +41,12 @@ import {
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
 
 describe("Remove Listing", () => {
+  let provider: CardinalProvider;
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
   const tokenCreator = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
   const rentalPaymentAmount = new BN(1);
   const rentalPaymentMint = new PublicKey(
     "So11111111111111111111111111111111111111112"
@@ -49,21 +56,25 @@ describe("Remove Listing", () => {
   const feeCollector = Keypair.generate();
   const MAKER_FEE = 500;
   const TAKER_FEE = 0;
-  //   const BASIS_POINTS_DIVISOR = 10000;
 
   beforeAll(async () => {
-    const provider = await getProvider();
-    // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
-      provider.connection,
-      rentalMint.publicKey,
-      provider.wallet.publicKey
+    provider = await getProvider();
+    const airdropCreator = await provider.connection.requestAirdrop(
+      tokenCreator.publicKey,
+      LAMPORTS_PER_SOL
     );
-    transaction.instructions = ixs;
-    await executeTransaction(provider.connection, transaction, provider.wallet);
+    await provider.connection.confirmTransaction(airdropCreator);
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    // create rental mint
+    [, rentalMint] = await createMint(
+      provider.connection,
+      new Wallet(tokenCreator),
+      {
+        target: provider.wallet.publicKey,
+      }
+    );
+
+    const metadataId = await Metadata.getPDA(rentalMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: tokenCreator.publicKey },
       {
@@ -78,19 +89,19 @@ describe("Remove Listing", () => {
           uses: null,
         }),
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(rentalMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: tokenCreator.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
         maxSupply: new BN(1),
       }
@@ -116,7 +127,6 @@ describe("Remove Listing", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -132,22 +142,21 @@ describe("Remove Listing", () => {
       transferAuthorityName
     );
 
-    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
-    expect(checkTransferAuthority.parsed.authority.toString()).to.eq(
+    expect(checkTransferAuthority.parsed.name).toEqual(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).toBeNull();
   });
 
   it("Wrap Token", async () => {
-    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
       wrapTransaction,
       provider.connection,
       provider.wallet,
-      rentalMint.publicKey,
+      rentalMint,
       { transferAuthorityName: transferAuthorityName }
     );
     await executeTransaction(
@@ -158,7 +167,6 @@ describe("Remove Listing", () => {
   });
 
   it("Create Marketplace", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -175,61 +183,56 @@ describe("Remove Listing", () => {
       marketplaceName
     );
 
-    expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
+    expect(checkMarketplace.parsed.name).toEqual(marketplaceName);
     const paymentManagerId = findPaymentManagerAddress(paymentManagerName);
-    expect(checkMarketplace.parsed.paymentManager.toString()).to.eq(
+    expect(checkMarketplace.parsed.paymentManager.toString()).toEqual(
       paymentManagerId.toString()
     );
-    expect(checkMarketplace.parsed.authority.toString()).to.eq(
+    expect(checkMarketplace.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkMarketplace.parsed.paymentMints).to.be.null;
+    expect(checkMarketplace.parsed.paymentMints).toBeNull();
   });
 
   it("Create Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
       transaction,
       provider.connection,
       provider.wallet,
-      rentalMint.publicKey,
+      rentalMint,
       marketplaceName,
       rentalPaymentAmount,
       rentalPaymentMint
     );
     await executeTransaction(provider.connection, transaction, provider.wallet);
 
-    const checkListing = await getListing(
-      provider.connection,
-      rentalMint.publicKey
-    );
+    const checkListing = await getListing(provider.connection, rentalMint);
 
-    expect(checkListing.parsed.lister.toString()).to.eq(
+    expect(checkListing.parsed.lister.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
-    expect(checkListing.parsed.tokenManager.toString()).to.eq(
+    const tokenManagerId = findTokenManagerAddress(rentalMint);
+    expect(checkListing.parsed.tokenManager.toString()).toEqual(
       tokenManagerId.toString()
     );
     const marketplaceId = findMarketplaceAddress(marketplaceName);
-    expect(checkListing.parsed.marketplace.toString()).to.eq(
+    expect(checkListing.parsed.marketplace.toString()).toEqual(
       marketplaceId.toString()
     );
-    expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
+    expect(checkListing.parsed.paymentAmount.toNumber()).toEqual(
       rentalPaymentAmount.toNumber()
     );
-    expect(checkListing.parsed.paymentMint.toString()).to.eq(
+    expect(checkListing.parsed.paymentMint.toString()).toEqual(
       rentalPaymentMint.toString()
     );
   });
 
   it("Remove Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
     const listerTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       provider.wallet.publicKey
     );
 
@@ -237,14 +240,14 @@ describe("Remove Listing", () => {
       transaction,
       provider.connection,
       provider.wallet,
-      rentalMint.publicKey,
+      rentalMint,
       listerTokenAccountId
     );
     await executeTransaction(provider.connection, transaction, provider.wallet);
 
     const checkListing = await tryGetAccount(() =>
-      getListing(provider.connection, rentalMint.publicKey)
+      getListing(provider.connection, rentalMint)
     );
-    expect(checkListing).to.be.null;
+    expect(checkListing).toBeNull();
   });
 });

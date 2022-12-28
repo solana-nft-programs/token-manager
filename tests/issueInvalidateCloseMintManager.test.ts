@@ -1,16 +1,16 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
-  findAta,
   getProvider,
   tryGetAccount,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import { BN, Wallet } from "@project-serum/anchor";
 import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { invalidate, issueToken } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
@@ -21,13 +21,14 @@ import {
 import { findMintManagerId } from "../src/programs/tokenManager/pda";
 
 describe("Issue Claim Close Mint Manager", () => {
+  let provider: CardinalProvider;
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -41,33 +42,19 @@ describe("Issue Claim Close Mint Manager", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      user.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      user.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
       new Wallet(user)
     );
   });
 
   it("Issue token", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(user),
       {
         timeInvalidation: { maxExpiration: Date.now() / 1000 },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
@@ -82,13 +69,15 @@ describe("Issue Claim Close Mint Manager", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
 
@@ -96,31 +85,30 @@ describe("Issue Claim Close Mint Manager", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
       user.publicKey
     );
-    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+    expect(tokenManagers.map((i) => i.pubkey.toString())).toContain(
       tokenManagerId.toString()
     );
   });
 
   it("Cannot close mint manager", async () => {
-    const provider = await getProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
     );
 
-    const mintManagerId = findMintManagerId(rentalMint.publicKey);
+    const mintManagerId = findMintManagerId(rentalMint);
     const closeMintManagerIx = await tmManagerProgram.methods
       .closeMintManager()
       .accounts({
         mintManager: mintManagerId,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         freezeAuthority: user.publicKey,
         payer: user.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -129,23 +117,22 @@ describe("Issue Claim Close Mint Manager", () => {
     const transaction = new Transaction();
     transaction.add(closeMintManagerIx);
 
-    expect(
+    await expect(
       executeTransaction(
         provider.connection,
         transaction,
         new Wallet(recipient)
       )
-    ).to.throw();
+    ).rejects.toThrow();
   });
 
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),
-      rentalMint.publicKey
+      rentalMint
     );
     await executeTransaction(
       provider.connection,
@@ -153,14 +140,13 @@ describe("Issue Claim Close Mint Manager", () => {
       new Wallet(user)
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
     );
-    expect(tokenManagerData).to.eq(null);
+    expect(tokenManagerData).toEqual(null);
 
     const timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
@@ -168,28 +154,27 @@ describe("Issue Claim Close Mint Manager", () => {
         timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       )
     );
-    expect(timeInvalidatorData).to.eq(null);
+    expect(timeInvalidatorData).toEqual(null);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("1");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("1");
   });
 
   it("Close mint manager", async () => {
-    const provider = await getProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
     );
 
-    const mintManagerId = findMintManagerId(rentalMint.publicKey);
+    const mintManagerId = findMintManagerId(rentalMint);
     const closeMintManagerIx = await tmManagerProgram.methods
       .closeMintManager()
       .accounts({
         mintManager: mintManagerId,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         freezeAuthority: user.publicKey,
         payer: user.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -206,9 +191,9 @@ describe("Issue Claim Close Mint Manager", () => {
     const checkMintManager = await tryGetAccount(async () =>
       tokenManager.accounts.getMintManager(
         provider.connection,
-        tokenManager.pda.findMintManagerId(rentalMint.publicKey)
+        tokenManager.pda.findMintManagerId(rentalMint)
       )
     );
-    expect(checkMintManager).to.eq(null);
+    expect(checkMintManager).toEqual(null);
   });
 });

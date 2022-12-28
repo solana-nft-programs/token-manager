@@ -131,6 +131,7 @@ export const withIssueToken = async (
   const caProgram = claimApproverProgram(connection, wallet);
   const tmeInvalidatorProgram = timeInvalidatorProgram(connection, wallet);
   const usgInvalidatorProgram = useInvalidatorProgram(connection, wallet);
+
   // create mint manager
   if (
     kind === TokenManagerKind.Managed ||
@@ -233,7 +234,13 @@ export const withIssueToken = async (
         paymentManager: claimPayment.paymentManager || defaultPaymentManagerId,
         collector: claimPayment.collector || CRANK_KEY,
       })
-      .accounts({})
+      .accounts({
+        tokenManager: tokenManagerId,
+        claimApprover: paidClaimApproverId,
+        issuer: wallet.publicKey,
+        payer: payer ?? wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
       .instruction();
     transaction.add(paidClaimApproverIx);
     const setClaimApproverIx = await tmManagerProgram.methods
@@ -278,22 +285,24 @@ export const withIssueToken = async (
         collector: timeInvalidation.collector || CRANK_KEY,
         paymentManager:
           timeInvalidation.paymentManager || defaultPaymentManagerId,
-        durationSeconds: timeInvalidation.durationSeconds
-          ? new BN(timeInvalidation.durationSeconds)
-          : null,
-        extensionPaymentAmount: timeInvalidation.extension
-          ?.extensionPaymentAmount
-          ? new BN(timeInvalidation.extension?.extensionPaymentAmount)
-          : null,
-        extensionDurationSeconds: timeInvalidation.extension
-          ?.extensionDurationSeconds
-          ? new BN(timeInvalidation.extension?.extensionDurationSeconds)
-          : null,
+        durationSeconds:
+          timeInvalidation.durationSeconds !== undefined
+            ? new BN(timeInvalidation.durationSeconds)
+            : null,
+        extensionPaymentAmount:
+          timeInvalidation.extension?.extensionPaymentAmount !== undefined
+            ? new BN(timeInvalidation.extension?.extensionPaymentAmount)
+            : null,
+        extensionDurationSeconds:
+          timeInvalidation.extension?.extensionDurationSeconds !== undefined
+            ? new BN(timeInvalidation.extension?.extensionDurationSeconds)
+            : null,
         extensionPaymentMint:
           timeInvalidation.extension?.extensionPaymentMint || null,
-        maxExpiration: timeInvalidation.maxExpiration
-          ? new BN(timeInvalidation.maxExpiration)
-          : null,
+        maxExpiration:
+          timeInvalidation.maxExpiration !== undefined
+            ? new BN(timeInvalidation.maxExpiration)
+            : null,
         disablePartialExtension:
           timeInvalidation.extension?.disablePartialExtension || null,
       })
@@ -533,7 +542,7 @@ export const withClaimToken = async (
     const [
       issuerTokenAccountId,
       feeCollectorTokenAccountId,
-      _remainingAccounts,
+      remainingAccounts,
     ] = await withRemainingAccountsForPayment(
       transaction,
       connection,
@@ -565,6 +574,7 @@ export const withClaimToken = async (
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       })
+      .remainingAccounts(remainingAccounts)
       .instruction();
     transaction.add(payIx);
   } else if (tokenManagerData.parsed.claimApprover) {
@@ -574,7 +584,7 @@ export const withClaimToken = async (
       .createClaimReceipt(wallet.publicKey)
       .accounts({
         tokenManager: tokenManagerId,
-        claimApprover: claimApproverData?.pubkey,
+        claimApprover: tokenManagerData.parsed.claimApprover,
         claimReceipt: claimReceiptId,
         payer: additionalOptions?.payer || wallet.publicKey,
         systemProgram: SystemProgram.programId,
@@ -715,6 +725,11 @@ export const withInvalidate = async (
     tokenManagerData
   );
 
+  const transferAccounts = await getRemainingAccountsForKind(
+    mintId,
+    tokenManagerData.parsed.kind
+  );
+
   if (
     useInvalidatorData &&
     useInvalidatorData.parsed.totalUsages &&
@@ -754,7 +769,7 @@ export const withInvalidate = async (
       .invalidate()
       .accounts({
         tokenManager: tokenManagerId,
-        timeInvalidator: useInvalidatorId,
+        timeInvalidator: timeInvalidatorId,
         invalidator: wallet.publicKey,
         cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -763,7 +778,12 @@ export const withInvalidate = async (
         recipientTokenAccount: tokenManagerData.parsed.recipientTokenAccount,
         rent: SYSVAR_RENT_PUBKEY,
       })
-      .remainingAccounts(remainingAccountsForReturn)
+      .remainingAccounts([
+        ...(tokenManagerData.parsed.state === TokenManagerState.Claimed
+          ? transferAccounts
+          : []),
+        ...remainingAccountsForReturn,
+      ])
       .instruction();
     transaction.add(invalidateIx);
     const closeIx = await tmeInvalidatorProgram.methods
@@ -783,10 +803,6 @@ export const withInvalidate = async (
     tokenManagerData.parsed.invalidationType === InvalidationType.Return ||
     tokenManagerData.parsed.invalidationType === InvalidationType.Reissue
   ) {
-    const transferAccounts = await getRemainingAccountsForKind(
-      mintId,
-      tokenManagerData.parsed.kind
-    );
     const invalidateIx = await tmManagerProgram.methods
       .invalidate()
       .accounts({
@@ -945,6 +961,10 @@ export const withUse = async (
       tokenManagerData
     );
 
+    const remainingAccountsForKind = await getRemainingAccountsForKind(
+      mintId,
+      tokenManagerData.parsed.kind
+    );
     const invalidateIx = await usgInvalidatorProgram.methods
       .invalidate()
       .accounts({
@@ -958,9 +978,13 @@ export const withUse = async (
         recipientTokenAccount: tokenManagerData.parsed.recipientTokenAccount,
         rent: SYSVAR_RENT_PUBKEY,
       })
-      .remainingAccounts(remainingAccountsForReturn)
+      .remainingAccounts([
+        ...remainingAccountsForKind,
+        ...remainingAccountsForReturn,
+      ])
       .instruction();
     transaction.add(invalidateIx);
+
     const closeIx = await usgInvalidatorProgram.methods
       .close()
       .accounts({

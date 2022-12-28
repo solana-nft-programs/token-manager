@@ -1,5 +1,6 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   emptyWallet,
   executeTransaction,
   findAta,
@@ -8,6 +9,7 @@ import {
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -20,7 +22,6 @@ import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
-import { expect } from "chai";
 
 import {
   withAcceptTransfer,
@@ -39,13 +40,14 @@ import {
 import { findTransferAddress } from "../../src/programs/transferAuthority/pda";
 
 describe("Private Transfer", () => {
+  let provider: CardinalProvider;
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
   const from = Keypair.generate();
   const to = Keypair.generate();
   let fromTokenAccountId: PublicKey;
-  const tokenMint: Keypair = Keypair.generate();
+  let tokenMint: PublicKey;
 
   const paymentManagerName = `pm-${Math.random()}`;
   const feeCollector = Keypair.generate();
@@ -53,7 +55,7 @@ describe("Private Transfer", () => {
   const TAKER_FEE = new BN(0);
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       from.publicKey,
@@ -67,25 +69,12 @@ describe("Private Transfer", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [fromTokenAccountId, tokenMint] = await createMint(
       provider.connection,
-      tokenMint.publicKey,
-      from.publicKey
-    );
-    fromTokenAccountId = await findAta(
-      tokenMint.publicKey,
-      from.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
       new Wallet(from)
     );
 
-    const metadataId = await Metadata.getPDA(tokenMint.publicKey);
+    const metadataId = await Metadata.getPDA(tokenMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: from.publicKey },
       {
@@ -100,19 +89,19 @@ describe("Private Transfer", () => {
           uses: null,
         }),
         updateAuthority: from.publicKey,
-        mint: tokenMint.publicKey,
+        mint: tokenMint,
         mintAuthority: from.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(tokenMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(tokenMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: from.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: from.publicKey,
-        mint: tokenMint.publicKey,
+        mint: tokenMint,
         mintAuthority: from.publicKey,
         maxSupply: new BN(1),
       }
@@ -138,7 +127,6 @@ describe("Private Transfer", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -154,22 +142,21 @@ describe("Private Transfer", () => {
       transferAuthorityName
     );
 
-    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
-    expect(checkTransferAuthority.parsed.authority.toString()).to.eq(
+    expect(checkTransferAuthority.parsed.name).toEqual(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).toBeNull();
   });
 
   it("Wrap Token", async () => {
-    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
       wrapTransaction,
       provider.connection,
       new Wallet(from),
-      tokenMint.publicKey,
+      tokenMint,
       { transferAuthorityName: transferAuthorityName }
     );
     await executeTransaction(
@@ -177,21 +164,16 @@ describe("Private Transfer", () => {
       wrapTransaction,
       new Wallet(from)
     );
-    const mintTokenAccountId = await findAta(
-      tokenMint.publicKey,
-      from.publicKey,
-      true
-    );
+    const mintTokenAccountId = await findAta(tokenMint, from.publicKey, true);
     const mintTokenAccount = await getAccount(
       provider.connection,
       mintTokenAccountId
     );
-    expect(mintTokenAccount.amount.toString()).to.equal("1");
-    expect(mintTokenAccount.isFrozen).to.be.true;
+    expect(mintTokenAccount.amount.toString()).toEqual("1");
+    expect(mintTokenAccount.isFrozen).toBeTruthy();
   });
 
   it("Create Marketplace", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -208,19 +190,18 @@ describe("Private Transfer", () => {
       marketplaceName
     );
 
-    expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
+    expect(checkMarketplace.parsed.name).toEqual(marketplaceName);
     const paymentManagerId = findPaymentManagerAddress(paymentManagerName);
-    expect(checkMarketplace.parsed.paymentManager.toString()).to.eq(
+    expect(checkMarketplace.parsed.paymentManager.toString()).toEqual(
       paymentManagerId.toString()
     );
-    expect(checkMarketplace.parsed.authority.toString()).to.eq(
+    expect(checkMarketplace.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkMarketplace.parsed.paymentMints).to.be.null;
+    expect(checkMarketplace.parsed.paymentMints).toBeNull();
   });
 
   it("Init Transfer", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransfer(
@@ -228,7 +209,7 @@ describe("Private Transfer", () => {
       provider.connection,
       emptyWallet(from.publicKey),
       to.publicKey,
-      tokenMint.publicKey,
+      tokenMint,
       fromTokenAccountId
     );
     await executeTransaction(
@@ -237,30 +218,26 @@ describe("Private Transfer", () => {
       new Wallet(from)
     );
 
-    const checkTransfer = await getTransfer(
-      provider.connection,
-      tokenMint.publicKey
-    );
+    const checkTransfer = await getTransfer(provider.connection, tokenMint);
 
-    const tokenManagerId = findTokenManagerAddress(tokenMint.publicKey);
-    expect(checkTransfer.parsed.tokenManager.toString()).to.eq(
+    const tokenManagerId = findTokenManagerAddress(tokenMint);
+    expect(checkTransfer.parsed.tokenManager.toString()).toEqual(
       tokenManagerId.toString()
     );
-    expect(checkTransfer.parsed.from.toString()).to.eq(
+    expect(checkTransfer.parsed.from.toString()).toEqual(
       from.publicKey.toString()
     );
-    expect(checkTransfer.parsed.to.toString()).to.eq(to.publicKey.toString());
+    expect(checkTransfer.parsed.to.toString()).toEqual(to.publicKey.toString());
   });
 
   it("Cancel Transfer", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCancelTransfer(
       transaction,
       provider.connection,
       emptyWallet(from.publicKey),
-      tokenMint.publicKey
+      tokenMint
     );
     await executeTransaction(
       provider.connection,
@@ -269,13 +246,12 @@ describe("Private Transfer", () => {
     );
 
     const checkTransferData = await tryGetAccount(() =>
-      getTransfer(provider.connection, tokenMint.publicKey)
+      getTransfer(provider.connection, tokenMint)
     );
-    expect(checkTransferData).to.be.null;
+    expect(checkTransferData).toBeNull();
   });
 
   it("Init Transfer", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransfer(
@@ -283,7 +259,7 @@ describe("Private Transfer", () => {
       provider.connection,
       emptyWallet(from.publicKey),
       to.publicKey,
-      tokenMint.publicKey,
+      tokenMint,
       fromTokenAccountId
     );
     await executeTransaction(
@@ -292,63 +268,51 @@ describe("Private Transfer", () => {
       new Wallet(from)
     );
 
-    const checkTransfer = await getTransfer(
-      provider.connection,
-      tokenMint.publicKey
-    );
+    const checkTransfer = await getTransfer(provider.connection, tokenMint);
 
-    const tokenManagerId = findTokenManagerAddress(tokenMint.publicKey);
-    expect(checkTransfer.parsed.tokenManager.toString()).to.eq(
+    const tokenManagerId = findTokenManagerAddress(tokenMint);
+    expect(checkTransfer.parsed.tokenManager.toString()).toEqual(
       tokenManagerId.toString()
     );
-    expect(checkTransfer.parsed.from.toString()).to.eq(
+    expect(checkTransfer.parsed.from.toString()).toEqual(
       from.publicKey.toBase58()
     );
-    expect(checkTransfer.parsed.to.toString()).to.eq(to.publicKey.toString());
+    expect(checkTransfer.parsed.to.toString()).toEqual(to.publicKey.toString());
   });
 
   it("Accept Transfer", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withAcceptTransfer(
       transaction,
       provider.connection,
       emptyWallet(to.publicKey),
-      tokenMint.publicKey,
+      tokenMint,
       to.publicKey,
       from.publicKey
     );
     await executeTransaction(provider.connection, transaction, new Wallet(to));
 
-    const transferId = findTransferAddress(tokenMint.publicKey);
+    const transferId = findTransferAddress(tokenMint);
     const checkTransferData = await tryGetAccount(() =>
       getTransfer(provider.connection, transferId)
     );
-    expect(checkTransferData).to.be.null;
+    expect(checkTransferData).toBeNull();
 
-    const toTokenAccountId = await findAta(
-      tokenMint.publicKey,
-      to.publicKey,
-      true
-    );
+    const toTokenAccountId = await findAta(tokenMint, to.publicKey, true);
     const toTokenAccountData = await getAccount(
       provider.connection,
       toTokenAccountId
     );
-    expect(toTokenAccountData.amount.toString()).to.be.equal("1");
-    expect(toTokenAccountData.isFrozen).to.be.true;
+    expect(toTokenAccountData.amount.toString()).toEqual("1");
+    expect(toTokenAccountData.isFrozen).toBeTruthy();
 
-    const fromTokenAccountId = await findAta(
-      tokenMint.publicKey,
-      from.publicKey,
-      true
-    );
+    const fromTokenAccountId = await findAta(tokenMint, from.publicKey, true);
     const fromTokenAccountData = await getAccount(
       provider.connection,
       fromTokenAccountId
     );
-    expect(fromTokenAccountData.amount.toString()).to.be.equal("0");
-    expect(fromTokenAccountData.isFrozen).to.be.false;
+    expect(fromTokenAccountData.amount.toString()).toEqual("0");
+    expect(fromTokenAccountData.isFrozen).toBeFalsy();
   });
 });

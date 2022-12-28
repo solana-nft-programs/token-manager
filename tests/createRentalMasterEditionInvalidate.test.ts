@@ -1,10 +1,12 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
   tryGetAccount,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -16,7 +18,6 @@ import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { rentals, useTransaction } from "../src";
 import { tokenManager, useInvalidator } from "../src/programs";
@@ -26,17 +27,18 @@ import {
 } from "../src/programs/tokenManager";
 
 describe("Master editions", () => {
+  let provider: CardinalProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  const paymentMint: Keypair = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let paymentMint: PublicKey;
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -50,44 +52,19 @@ describe("Master editions", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      paymentMint.publicKey,
-      recipient.publicKey,
-      { amount: RECIPIENT_START_PAYMENT_AMOUNT }
-    );
-    recipientPaymentTokenAccountId = await findAta(
-      paymentMint.publicKey,
-      recipient.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(recipient)
+      new Wallet(tokenCreator),
+      { target: recipient.publicKey, amount: RECIPIENT_START_PAYMENT_AMOUNT }
     );
 
-    const transaction2 = new Transaction();
-    const [ixs2] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      tokenCreator.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      tokenCreator.publicKey,
-      true
-    );
-    transaction2.instructions = ixs2;
-    await executeTransaction(
-      provider.connection,
-      transaction2,
-      new Wallet(tokenCreator)
+      new Wallet(tokenCreator),
+      { target: provider.wallet.publicKey }
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(rentalMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: tokenCreator.publicKey },
       {
@@ -102,19 +79,19 @@ describe("Master editions", () => {
           uses: null,
         }),
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(rentalMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: tokenCreator.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
         maxSupply: new BN(1),
       }
@@ -128,17 +105,16 @@ describe("Master editions", () => {
   });
 
   it("Create rental", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       provider.wallet,
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
-          paymentMint: paymentMint.publicKey,
+          paymentMint: paymentMint,
         },
         useInvalidation: { totalUsages: 1 },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
         kind: TokenManagerKind.Edition,
@@ -150,13 +126,15 @@ describe("Master editions", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
 
@@ -164,15 +142,12 @@ describe("Master editions", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
   });
 
   it("Claim rental", async () => {
-    const provider = await getProvider();
-
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = await rentals.claimRental(
       provider.connection,
@@ -189,41 +164,37 @@ describe("Master editions", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
 
     const checkRecipientPaymentTokenAccount = await getAccount(
       provider.connection,
       recipientPaymentTokenAccountId
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).toEqual(
       (RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT).toString()
     );
   });
 
   it("Use", async () => {
-    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey,
+      rentalMint,
       1
     );
     await executeTransaction(
@@ -232,15 +203,14 @@ describe("Master editions", () => {
       new Wallet(recipient)
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
     const useInvalidatorData = await tryGetAccount(async () =>
       useInvalidator.accounts.getUseInvalidator(
         provider.connection,
         useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId)
       )
     );
-    expect(useInvalidatorData).to.eq(null);
+    expect(useInvalidatorData).toEqual(null);
   });
 });

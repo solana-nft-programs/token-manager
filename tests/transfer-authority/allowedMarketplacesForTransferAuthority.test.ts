@@ -1,11 +1,13 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -22,7 +24,6 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { BN } from "bn.js";
-import { expect } from "chai";
 
 import {
   withAcceptListing,
@@ -41,13 +42,14 @@ import {
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
 
 describe("Allowed markeptlaces for transfer authority", () => {
+  let provider: CardinalProvider;
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
 
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
   const rentalPaymentAmount = new BN(100);
 
   const paymentManagerName = `pm-${Math.random()}`;
@@ -57,7 +59,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
   const BASIS_POINTS_DIVISOR = new BN(10000);
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
     const feeCollectorInfo = await provider.connection.requestAirdrop(
       feeCollector.publicKey,
@@ -76,20 +78,9 @@ describe("Allowed markeptlaces for transfer authority", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
-      provider.connection,
-      rentalMint.publicKey,
-      lister.publicKey
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(lister)
-    );
+    [, rentalMint] = await createMint(provider.connection, new Wallet(lister));
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(rentalMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: lister.publicKey },
       {
@@ -104,19 +95,19 @@ describe("Allowed markeptlaces for transfer authority", () => {
           uses: null,
         }),
         updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: lister.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(rentalMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: lister.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: lister.publicKey,
         maxSupply: new BN(1),
       }
@@ -142,7 +133,6 @@ describe("Allowed markeptlaces for transfer authority", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -158,22 +148,21 @@ describe("Allowed markeptlaces for transfer authority", () => {
       transferAuthorityName
     );
 
-    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
-    expect(checkTransferAuthority.parsed.authority.toString()).to.eq(
+    expect(checkTransferAuthority.parsed.name).toEqual(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).toBeNull();
   });
 
   it("Wrap Token", async () => {
-    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
       wrapTransaction,
       provider.connection,
       new Wallet(lister),
-      rentalMint.publicKey,
+      rentalMint,
       { transferAuthorityName: transferAuthorityName }
     );
     await executeTransaction(
@@ -182,7 +171,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
       new Wallet(lister)
     );
     const mintTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       lister.publicKey,
       true
     );
@@ -190,12 +179,11 @@ describe("Allowed markeptlaces for transfer authority", () => {
       provider.connection,
       mintTokenAccountId
     );
-    expect(mintTokenAccount.amount.toString()).to.equal("1");
-    expect(mintTokenAccount.isFrozen).to.be.true;
+    expect(mintTokenAccount.amount.toString()).toEqual("1");
+    expect(mintTokenAccount.isFrozen).toBeTruthy();
   });
 
   it("Create Marketplace", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -212,18 +200,17 @@ describe("Allowed markeptlaces for transfer authority", () => {
       marketplaceName
     );
 
-    expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
+    expect(checkMarketplace.parsed.name).toEqual(marketplaceName);
     const paymentManagerId = findPaymentManagerAddress(paymentManagerName);
-    expect(checkMarketplace.parsed.paymentManager.toString()).to.eq(
+    expect(checkMarketplace.parsed.paymentManager.toString()).toEqual(
       paymentManagerId.toString()
     );
-    expect(checkMarketplace.parsed.authority.toString()).to.eq(
+    expect(checkMarketplace.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
   });
 
   it("Whitelist random marketplace", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withWhitelistMarektplaces(
@@ -240,30 +227,28 @@ describe("Allowed markeptlaces for transfer authority", () => {
       transferAuthorityName
     );
     const marketplaceId = findMarketplaceAddress("some-random-name");
-    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.eql([
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).toEqual([
       marketplaceId,
     ]);
   });
 
   it("Fail to Create Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
       transaction,
       provider.connection,
       new Wallet(lister),
-      rentalMint.publicKey,
+      rentalMint,
       marketplaceName,
       rentalPaymentAmount
     );
-    expect(
+    await expect(
       executeTransaction(provider.connection, transaction, provider.wallet)
-    ).to.throw();
+    ).rejects.toThrow();
   });
 
   it("Whitelist proper marketplace", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withWhitelistMarektplaces(
@@ -285,19 +270,18 @@ describe("Allowed markeptlaces for transfer authority", () => {
     const marketplaces = (
       checkTransferAuthority.parsed.allowedMarketplaces as PublicKey[]
     ).map((m) => m.toString());
-    expect(marketplaces).to.include(marketplaceId.toString());
-    expect(marketplaces).to.include(randomMarketplaceId.toString());
+    expect(marketplaces).toContain(marketplaceId.toString());
+    expect(marketplaces).toContain(randomMarketplaceId.toString());
   });
 
   it("Create Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
       transaction,
       provider.connection,
       new Wallet(lister),
-      rentalMint.publicKey,
+      rentalMint,
       marketplaceName,
       rentalPaymentAmount
     );
@@ -307,37 +291,30 @@ describe("Allowed markeptlaces for transfer authority", () => {
       new Wallet(lister)
     );
 
-    const checkListing = await getListing(
-      provider.connection,
-      rentalMint.publicKey
-    );
+    const checkListing = await getListing(provider.connection, rentalMint);
 
-    expect(checkListing.parsed.lister.toString()).to.eq(
+    expect(checkListing.parsed.lister.toString()).toEqual(
       lister.publicKey.toString()
     );
-    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
-    expect(checkListing.parsed.tokenManager.toString()).to.eq(
+    const tokenManagerId = findTokenManagerAddress(rentalMint);
+    expect(checkListing.parsed.tokenManager.toString()).toEqual(
       tokenManagerId.toString()
     );
     const marketplaceId = findMarketplaceAddress(marketplaceName);
-    expect(checkListing.parsed.marketplace.toString()).to.eq(
+    expect(checkListing.parsed.marketplace.toString()).toEqual(
       marketplaceId.toString()
     );
-    expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
+    expect(checkListing.parsed.paymentAmount.toNumber()).toEqual(
       rentalPaymentAmount.toNumber()
     );
-    expect(checkListing.parsed.paymentMint.toString()).to.eq(
+    expect(checkListing.parsed.paymentMint.toString()).toEqual(
       PublicKey.default.toString()
     );
   });
 
   it("Accept Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
-    const checkListing = await getListing(
-      provider.connection,
-      rentalMint.publicKey
-    );
+    const checkListing = await getListing(provider.connection, rentalMint);
     const listingInfo = await provider.connection.getAccountInfo(
       checkListing.pubkey
     );
@@ -354,7 +331,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
       provider.connection,
       new Wallet(buyer),
       buyer.publicKey,
-      rentalMint.publicKey,
+      rentalMint,
       checkListing.parsed.paymentAmount,
       checkListing.parsed.paymentMint
     );
@@ -365,7 +342,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
     );
 
     const buyerMintTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       buyer.publicKey,
       true
     );
@@ -373,8 +350,8 @@ describe("Allowed markeptlaces for transfer authority", () => {
       provider.connection,
       buyerMintTokenAccountId
     );
-    expect(buyerRentalMintTokenAccount.amount.toString()).to.eq("1");
-    expect(buyerRentalMintTokenAccount.isFrozen).to.be.true;
+    expect(buyerRentalMintTokenAccount.amount.toString()).toEqual("1");
+    expect(buyerRentalMintTokenAccount.isFrozen).toBeTruthy();
 
     const makerFee = rentalPaymentAmount
       .mul(MAKER_FEE)
@@ -387,7 +364,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
     const listerInfo = await provider.connection.getAccountInfo(
       lister.publicKey
     );
-    expect(listerInfo?.lamports).to.eq(
+    expect(listerInfo?.lamports).toEqual(
       beforeListerAmount +
         rentalPaymentAmount.sub(makerFee).toNumber() +
         (listingInfo?.lamports || 0)
@@ -396,7 +373,7 @@ describe("Allowed markeptlaces for transfer authority", () => {
     const feeCollectorInfo = await provider.connection.getAccountInfo(
       feeCollector.publicKey
     );
-    expect(feeCollectorInfo?.lamports).to.eq(
+    expect(feeCollectorInfo?.lamports).toEqual(
       beforeFeeCollectorAmount + totalFees.toNumber()
     );
   });

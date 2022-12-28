@@ -1,15 +1,16 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
   tryGetAccount,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { rentals, withResetExpiration } from "../src";
 import { invalidate } from "../src/api";
@@ -21,17 +22,18 @@ import {
 } from "../src/programs/tokenManager";
 
 describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend Again", () => {
+  let provider: CardinalProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  const paymentMint: Keypair = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let paymentMint: PublicKey;
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -45,47 +47,20 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      paymentMint.publicKey,
-      recipient.publicKey,
-      { amount: RECIPIENT_START_PAYMENT_AMOUNT }
-    );
-    recipientPaymentTokenAccountId = await findAta(
-      paymentMint.publicKey,
-      recipient.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(recipient)
+      new Wallet(user),
+      { target: recipient.publicKey, amount: RECIPIENT_START_PAYMENT_AMOUNT }
     );
 
     // create rental mint
-    const transaction2 = new Transaction();
-    const [ixs2] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      user.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      user.publicKey,
-      true
-    );
-    transaction2.instructions = ixs2;
-    await executeTransaction(
-      provider.connection,
-      transaction2,
       new Wallet(user)
     );
   });
 
   it("Create rental", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -96,10 +71,10 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
           extension: {
             extensionPaymentAmount: RENTAL_PAYMENT_AMONT, // Pay 10 lamport to add 1000 seconds of expiration time
             extensionDurationSeconds: 1000,
-            extensionPaymentMint: paymentMint.publicKey,
+            extensionPaymentMint: paymentMint,
           },
         },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
         invalidationType: InvalidationType.Reissue,
@@ -115,13 +90,15 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
 
@@ -129,24 +106,21 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
       user.publicKey
     );
-    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+    expect(tokenManagers.map((i) => i.pubkey.toString())).toContain(
       tokenManagerId.toString()
     );
   });
 
   it("Claim and extend rental", async () => {
-    const provider = await getProvider();
-
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = await rentals.claimRental(
       provider.connection,
@@ -176,31 +150,28 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
 
     const checkRecipientPaymentTokenAccount = await getAccount(
       provider.connection,
       recipientPaymentTokenAccountId
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).toEqual(
       (RECIPIENT_START_PAYMENT_AMOUNT - RENTAL_PAYMENT_AMONT).toString()
     );
   });
@@ -208,11 +179,10 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
   it("Return Rental", async () => {
     await new Promise((r) => setTimeout(r, 2000));
 
-    const provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey
+      rentalMint
     );
     await executeTransaction(
       provider.connection,
@@ -220,20 +190,17 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       new Wallet(recipient)
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
     );
-    expect(tokenManagerData?.parsed.state).to.eq(TokenManagerState.Issued);
+    expect(tokenManagerData?.parsed.state).toEqual(TokenManagerState.Issued);
   });
   it("Reset Expiration", async () => {
-    const provider = await getProvider();
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
     const timeInvalidatorId = findTimeInvalidatorAddress(tokenManagerId);
 
     const transaction = new Transaction();
@@ -241,7 +208,7 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       transaction,
       provider.connection,
       new Wallet(recipient),
-      timeInvalidatorId
+      tokenManagerId
     );
 
     await executeTransaction(
@@ -257,14 +224,11 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       )
     );
 
-    expect(timeInvalidatorData?.parsed.expiration).to.eq(null);
+    expect(timeInvalidatorData?.parsed.expiration).toEqual(null);
   });
   it("Claim rental again", async () => {
-    const provider = await getProvider();
-
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
     const timeInvalidatorId = findTimeInvalidatorAddress(tokenManagerId);
 
     const transaction = await rentals.claimRental(
@@ -294,8 +258,8 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const timeInvalidatorData = await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(
@@ -305,8 +269,8 @@ describe("Create, Claim and Extend, Return, Reset Expiration, Claim and Extend A
     );
 
     // Expiration on time invalidator should be less than or equal to 1000 seconds
-    expect(timeInvalidatorData?.parsed.expiration?.toNumber()).to.be.lte(
-      Date.now() / 1000 + 1000
-    );
+    expect(
+      timeInvalidatorData?.parsed.expiration?.toNumber()
+    ).toBeLessThanOrEqual(Date.now() / 1000 + 1000);
   });
 });

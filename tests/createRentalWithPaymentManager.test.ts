@@ -1,5 +1,6 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
@@ -9,11 +10,11 @@ import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
-import { BN, Wallet, web3 } from "@project-serum/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { rentals } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
@@ -21,6 +22,7 @@ import { getClaimApprover } from "../src/programs/claimApprover/accounts";
 import { TokenManagerState } from "../src/programs/tokenManager";
 
 describe("Create rental with payment manager and extend", () => {
+  let provider: CardinalProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 100000;
   const RENTAL_PAYMENT_AMONT = 10000;
   const MAKER_FEE = 500;
@@ -32,13 +34,13 @@ describe("Create rental with payment manager and extend", () => {
   const feeCollector = Keypair.generate();
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  const paymentMint: Keypair = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let paymentMint: PublicKey;
+  let rentalMint: PublicKey;
   let expiration: number;
   let paymentManagerId: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -52,48 +54,22 @@ describe("Create rental with payment manager and extend", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      paymentMint.publicKey,
-      recipient.publicKey,
+      new Wallet(recipient),
       { amount: RECIPIENT_START_PAYMENT_AMOUNT }
-    );
-    recipientPaymentTokenAccountId = await findAta(
-      paymentMint.publicKey,
-      recipient.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(recipient)
     );
 
     // create rental mint
-    const transaction2 = new Transaction();
-    const [ixs2] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      user.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      user.publicKey,
-      true
-    );
-    transaction2.instructions = ixs2;
-    await executeTransaction(
-      provider.connection,
-      transaction2,
       new Wallet(user)
     );
   });
 
   it("Create payment manager", async () => {
-    const provider = await getProvider();
-    const transaction = new web3.Transaction();
+    provider = await getProvider();
+    paymentManagerId = findPaymentManagerAddress(paymentManagerName);
 
     const pmtx = new Transaction();
     await withInit(pmtx, provider.connection, new Wallet(user), {
@@ -105,29 +81,25 @@ describe("Create rental with payment manager and extend", () => {
       royaltyFeeShare: new BN(0),
       payer: user.publicKey,
     });
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(user)
-    );
+    await executeTransaction(provider.connection, pmtx, new Wallet(user));
 
     const checkPaymentManagerId = findPaymentManagerAddress(paymentManagerName);
     const paymentManagerData = await getPaymentManager(
       provider.connection,
       checkPaymentManagerId
     );
-    expect(paymentManagerData.parsed.name).to.eq(paymentManagerName);
+    expect(paymentManagerData.parsed.name).toEqual(paymentManagerName);
   });
 
   it("Create rental", async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
-          paymentMint: paymentMint.publicKey,
+          paymentMint: paymentMint,
           paymentManager: paymentManagerId,
         },
         timeInvalidation: {
@@ -136,11 +108,11 @@ describe("Create rental with payment manager and extend", () => {
           extension: {
             extensionPaymentAmount: 1, // Pay 1 amount to add 1000 seconds of expiration time
             extensionDurationSeconds: 1000,
-            extensionPaymentMint: paymentMint.publicKey,
+            extensionPaymentMint: paymentMint,
             disablePartialExtension: true,
           },
         },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
@@ -155,13 +127,15 @@ describe("Create rental with payment manager and extend", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
 
@@ -169,7 +143,7 @@ describe("Create rental with payment manager and extend", () => {
       provider.connection,
       tokenManagerData.pubkey
     );
-    expect(claimApproverData.parsed.paymentManager.toString()).to.eq(
+    expect(claimApproverData.parsed.paymentManager.toString()).toEqual(
       paymentManagerId.toString()
     );
 
@@ -177,24 +151,23 @@ describe("Create rental with payment manager and extend", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
       user.publicKey
     );
-    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+    expect(tokenManagers.map((i) => i.pubkey.toString())).toContain(
       tokenManagerId.toString()
     );
   });
 
   it("Claim rental", async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = await rentals.claimRental(
       provider.connection,
@@ -211,31 +184,28 @@ describe("Create rental with payment manager and extend", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
 
     const checkRecipientPaymentTokenAccount = await getAccount(
       provider.connection,
       recipientPaymentTokenAccountId
     );
-    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).toEqual(
       (
         RECIPIENT_START_PAYMENT_AMOUNT -
         RENTAL_PAYMENT_AMONT -
@@ -244,7 +214,7 @@ describe("Create rental with payment manager and extend", () => {
     );
 
     const feeCollectorAtaId = await findAta(
-      paymentMint.publicKey,
+      paymentMint,
       feeCollector.publicKey
     );
     const feeCollectorTokenAccountAfter = await getAccount(
@@ -255,7 +225,7 @@ describe("Create rental with payment manager and extend", () => {
     const buySideFee =
       (RENTAL_PAYMENT_AMONT * DEFAULT_BUY_SIDE_FEE_SHARE) /
       BASIS_POINTS_DIVISOR;
-    expect(feeCollectorTokenAccountAfter.amount.toString()).to.eq(
+    expect(feeCollectorTokenAccountAfter.amount.toString()).toEqual(
       Math.floor(
         new BN(RENTAL_PAYMENT_AMONT)
           .mul(new BN(MAKER_FEE).add(new BN(TAKER_FEE).add(new BN(buySideFee))))
@@ -266,10 +236,9 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Extend Rental", async () => {
-    const provider = await getProvider();
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    provider = await getProvider();
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const recipientPaymentTokenAccountBefore = await getAccount(
       provider.connection,
@@ -277,7 +246,7 @@ describe("Create rental with payment manager and extend", () => {
     );
 
     const feeCollectorAtaId = await findAta(
-      paymentMint.publicKey,
+      paymentMint,
       feeCollector.publicKey
     );
     const feeCollectorTokenAccountBefore = await getAccount(
@@ -317,27 +286,24 @@ describe("Create rental with payment manager and extend", () => {
       )
     );
 
-    expect(timeInvalidatorData?.parsed.expiration?.toNumber()).to.eq(
+    expect(timeInvalidatorData?.parsed.expiration?.toNumber()).toEqual(
       expiration + 10000
     );
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
 
     const checkRecipientPaymentTokenAccount = await getAccount(
       provider.connection,
       recipientPaymentTokenAccountId
     );
 
-    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+    expect(Number(checkRecipientPaymentTokenAccount.amount)).toEqual(
       Number(recipientPaymentTokenAccountBefore.amount) -
         10 -
         new BN(10)
@@ -351,7 +317,7 @@ describe("Create rental with payment manager and extend", () => {
       feeCollectorAtaId
     );
 
-    expect(feeCollectorTokenAccountAfter.amount.toString()).to.eq(
+    expect(feeCollectorTokenAccountAfter.amount.toString()).toEqual(
       (
         Number(feeCollectorTokenAccountBefore.amount) +
         new BN(10)

@@ -1,24 +1,21 @@
-import {
-  createMintIxs,
-  executeTransaction,
-  findAta,
-  getProvider,
-} from "@cardinal/common";
+import type { CardinalProvider } from "@cardinal/common";
+import { createMint, executeTransaction, getProvider } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import { Wallet } from "@project-serum/anchor";
 import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { issueToken } from "../src";
 
 describe("Issue no mint manager", () => {
+  let provider: CardinalProvider;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -32,38 +29,28 @@ describe("Issue no mint manager", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      provider.wallet.publicKey
+      provider.wallet
     );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      provider.wallet.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(provider.connection, transaction, provider.wallet);
   });
 
   it("Issue failure", async () => {
-    const provider = await getProvider();
     const [transaction] = await issueToken(
       provider.connection,
       provider.wallet,
       {
         timeInvalidation: { maxExpiration: Date.now() / 1000 },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
       }
     );
-    expect(
+    await expect(
       executeTransaction(
         provider.connection,
         transaction,
         new Wallet(recipient)
       )
-    ).to.throw();
+    ).rejects.toThrow();
   });
 });

@@ -1,10 +1,12 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
 } from "@cardinal/common";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -17,7 +19,6 @@ import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
-import { expect } from "chai";
 
 import {
   withInitTransferAuthority,
@@ -31,10 +32,11 @@ import { findTransferAuthorityAddress } from "../../src/programs/transferAuthori
 
 describe("Release wrapped token", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
+  let provider: CardinalProvider;
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
-  const tokenMint: Keypair = Keypair.generate();
+  let tokenMint: PublicKey;
   let listerTokenAccountId: PublicKey;
 
   const paymentManagerName = `pm-${Math.random()}`;
@@ -43,7 +45,7 @@ describe("Release wrapped token", () => {
   const TAKER_FEE = new BN(0);
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,
@@ -57,25 +59,12 @@ describe("Release wrapped token", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [listerTokenAccountId, tokenMint] = await createMint(
       provider.connection,
-      tokenMint.publicKey,
-      lister.publicKey
-    );
-    listerTokenAccountId = await findAta(
-      tokenMint.publicKey,
-      lister.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
       new Wallet(lister)
     );
 
-    const metadataId = await Metadata.getPDA(tokenMint.publicKey);
+    const metadataId = await Metadata.getPDA(tokenMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: lister.publicKey },
       {
@@ -90,19 +79,19 @@ describe("Release wrapped token", () => {
           uses: null,
         }),
         updateAuthority: lister.publicKey,
-        mint: tokenMint.publicKey,
+        mint: tokenMint,
         mintAuthority: lister.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(tokenMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(tokenMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: lister.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: lister.publicKey,
-        mint: tokenMint.publicKey,
+        mint: tokenMint,
         mintAuthority: lister.publicKey,
         maxSupply: new BN(1),
       }
@@ -128,7 +117,6 @@ describe("Release wrapped token", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -144,15 +132,14 @@ describe("Release wrapped token", () => {
       transferAuthorityName
     );
 
-    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
-    expect(checkTransferAuthority.parsed.authority.toString()).to.eq(
+    expect(checkTransferAuthority.parsed.name).toEqual(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).toBeNull();
   });
 
   it("Wrap Token", async () => {
-    const provider = await getProvider();
     const wrapTransaction = new Transaction();
     const transferAuthorityId = findTransferAuthorityAddress(
       transferAuthorityName
@@ -162,7 +149,7 @@ describe("Release wrapped token", () => {
       wrapTransaction,
       provider.connection,
       new Wallet(lister),
-      tokenMint.publicKey,
+      tokenMint,
       {
         transferAuthorityName: transferAuthorityName,
         creator: transferAuthorityId,
@@ -173,19 +160,15 @@ describe("Release wrapped token", () => {
       wrapTransaction,
       new Wallet(lister)
     );
-    const mintTokenAccountId = await findAta(
-      tokenMint.publicKey,
-      lister.publicKey,
-      true
-    );
+    const mintTokenAccountId = await findAta(tokenMint, lister.publicKey, true);
     const mintTokenAccount = await getAccount(
       provider.connection,
       mintTokenAccountId
     );
-    expect(mintTokenAccount.amount.toString()).to.equal("1");
-    expect(mintTokenAccount.isFrozen).to.be.true;
+    expect(mintTokenAccount.amount.toString()).toEqual("1");
+    expect(mintTokenAccount.isFrozen).toBeTruthy();
 
-    const tokenManagerId = findTokenManagerAddress(tokenMint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(tokenMint);
     const tokenManagerData = await getTokenManager(
       provider.connection,
       tokenManagerId
@@ -194,11 +177,10 @@ describe("Release wrapped token", () => {
       tokenManagerData.parsed.invalidators
         .map((inv) => inv.toString())
         .toString()
-    ).to.eq([transferAuthorityId.toString()].toString());
+    ).toEqual([transferAuthorityId.toString()].toString());
   });
 
   it("Release token", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     const transferAuthorityId = findTransferAuthorityAddress(
@@ -209,7 +191,7 @@ describe("Release wrapped token", () => {
       transaction,
       provider.connection,
       new Wallet(lister),
-      tokenMint.publicKey,
+      tokenMint,
       transferAuthorityId,
       listerTokenAccountId
     );
@@ -219,16 +201,12 @@ describe("Release wrapped token", () => {
       new Wallet(lister)
     );
 
-    const mintTokenAccountId = await findAta(
-      tokenMint.publicKey,
-      lister.publicKey,
-      true
-    );
+    const mintTokenAccountId = await findAta(tokenMint, lister.publicKey, true);
     const mintTokenAccount = await getAccount(
       provider.connection,
       mintTokenAccountId
     );
-    expect(mintTokenAccount.amount.toString()).to.equal("1");
-    expect(mintTokenAccount.isFrozen).to.be.false;
+    expect(mintTokenAccount.amount.toString()).toEqual("1");
+    expect(mintTokenAccount.isFrozen).toBeFalsy();
   });
 });

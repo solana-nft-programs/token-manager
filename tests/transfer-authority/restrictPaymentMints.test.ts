@@ -1,11 +1,13 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -15,9 +17,9 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
-import { expect } from "chai";
 
 import {
   withAcceptListing,
@@ -36,13 +38,14 @@ import {
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
 
 describe("Restrict Payment Mints", () => {
+  let provider: CardinalProvider;
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
-  const customPaymentMint: Keypair = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let customPaymentMint: PublicKey;
+  let rentalMint: PublicKey;
   const rentalPaymentAmount = new BN(100);
 
   const paymentManagerName = `pm-${Math.random()}`;
@@ -52,7 +55,7 @@ describe("Restrict Payment Mints", () => {
   const BASIS_POINTS_DIVISOR = new BN(10000);
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,
@@ -66,35 +69,16 @@ describe("Restrict Payment Mints", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
-      provider.connection,
-      rentalMint.publicKey,
-      lister.publicKey
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(lister)
-    );
+    [, rentalMint] = await createMint(provider.connection, new Wallet(lister));
 
     // create custom payment mint
-    const transaction2 = new Transaction();
-    const [ixs2] = await createMintIxs(
+    [, customPaymentMint] = await createMint(
       provider.connection,
-      customPaymentMint.publicKey,
-      buyer.publicKey,
+      new Wallet(buyer),
       { amount: 100000 }
     );
-    transaction2.instructions = ixs2;
-    await executeTransaction(
-      provider.connection,
-      transaction2,
-      provider.wallet
-    );
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(rentalMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: lister.publicKey },
       {
@@ -109,19 +93,19 @@ describe("Restrict Payment Mints", () => {
           uses: null,
         }),
         updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: lister.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(rentalMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: lister.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: lister.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: lister.publicKey,
         maxSupply: new BN(1),
       }
@@ -147,7 +131,6 @@ describe("Restrict Payment Mints", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -163,22 +146,21 @@ describe("Restrict Payment Mints", () => {
       transferAuthorityName
     );
 
-    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
-    expect(checkTransferAuthority.parsed.authority.toString()).to.eq(
+    expect(checkTransferAuthority.parsed.name).toEqual(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).toBeNull();
   });
 
   it("Wrap Token", async () => {
-    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
       wrapTransaction,
       provider.connection,
       new Wallet(lister),
-      rentalMint.publicKey,
+      rentalMint,
       { transferAuthorityName: transferAuthorityName }
     );
     await executeTransaction(
@@ -187,7 +169,7 @@ describe("Restrict Payment Mints", () => {
       new Wallet(lister)
     );
     const mintTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       lister.publicKey,
       true
     );
@@ -195,12 +177,11 @@ describe("Restrict Payment Mints", () => {
       provider.connection,
       mintTokenAccountId
     );
-    expect(mintTokenAccount.amount.toString()).to.equal("1");
-    expect(mintTokenAccount.isFrozen).to.be.true;
+    expect(mintTokenAccount.amount.toString()).toEqual("1");
+    expect(mintTokenAccount.isFrozen).toBeTruthy();
   });
 
   it("Create Marketplace", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -209,7 +190,7 @@ describe("Restrict Payment Mints", () => {
       provider.wallet,
       marketplaceName,
       paymentManagerName,
-      [customPaymentMint.publicKey]
+      [customPaymentMint]
     );
     await executeTransaction(provider.connection, transaction, provider.wallet);
 
@@ -218,49 +199,45 @@ describe("Restrict Payment Mints", () => {
       marketplaceName
     );
 
-    expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
+    expect(checkMarketplace.parsed.name).toEqual(marketplaceName);
     const paymentManagerId = findPaymentManagerAddress(paymentManagerName);
-    expect(checkMarketplace.parsed.paymentManager.toString()).to.eq(
+    expect(checkMarketplace.parsed.paymentManager.toString()).toEqual(
       paymentManagerId.toString()
     );
-    expect(checkMarketplace.parsed.authority.toString()).to.eq(
+    expect(checkMarketplace.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkMarketplace.parsed.paymentMints).to.eql([
-      customPaymentMint.publicKey,
-    ]);
+    expect(checkMarketplace.parsed.paymentMints).toEqual([customPaymentMint]);
   });
 
   it("Fail to Create Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
       transaction,
       provider.connection,
       new Wallet(lister),
-      rentalMint.publicKey,
+      rentalMint,
       marketplaceName,
       rentalPaymentAmount,
       WSOL_MINT
     );
-    expect(
+    await expect(
       executeTransaction(provider.connection, transaction, new Wallet(lister))
-    ).to.throw();
+    ).rejects.toThrow();
   });
 
   it("Create Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
       transaction,
       provider.connection,
       new Wallet(lister),
-      rentalMint.publicKey,
+      rentalMint,
       marketplaceName,
       rentalPaymentAmount,
-      customPaymentMint.publicKey
+      customPaymentMint
     );
     await executeTransaction(
       provider.connection,
@@ -268,51 +245,48 @@ describe("Restrict Payment Mints", () => {
       new Wallet(lister)
     );
 
-    const checkListing = await getListing(
-      provider.connection,
-      rentalMint.publicKey
-    );
+    const checkListing = await getListing(provider.connection, rentalMint);
 
-    expect(checkListing.parsed.lister.toString()).to.eq(
+    expect(checkListing.parsed.lister.toString()).toEqual(
       lister.publicKey.toString()
     );
-    const tokenManagerId = findTokenManagerAddress(rentalMint.publicKey);
-    expect(checkListing.parsed.tokenManager.toString()).to.eq(
+    const tokenManagerId = findTokenManagerAddress(rentalMint);
+    expect(checkListing.parsed.tokenManager.toString()).toEqual(
       tokenManagerId.toString()
     );
     const marketplaceId = findMarketplaceAddress(marketplaceName);
-    expect(checkListing.parsed.marketplace.toString()).to.eq(
+    expect(checkListing.parsed.marketplace.toString()).toEqual(
       marketplaceId.toString()
     );
-    expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
+    expect(checkListing.parsed.paymentAmount.toNumber()).toEqual(
       rentalPaymentAmount.toNumber()
     );
-    expect(checkListing.parsed.paymentMint.toString()).to.eq(
-      customPaymentMint.publicKey.toString()
+    expect(checkListing.parsed.paymentMint.toString()).toEqual(
+      customPaymentMint.toString()
     );
   });
 
   it("Accept Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
-    const checkListing = await getListing(
-      provider.connection,
-      rentalMint.publicKey
-    );
+    const checkListing = await getListing(provider.connection, rentalMint);
 
     await withAcceptListing(
       transaction,
       provider.connection,
       new Wallet(buyer),
       buyer.publicKey,
-      rentalMint.publicKey,
+      rentalMint,
       checkListing.parsed.paymentAmount,
       checkListing.parsed.paymentMint
     );
-    await executeTransaction(provider.connection, transaction, provider.wallet);
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(buyer)
+    );
 
     const buyerMintTokenAccountId = await findAta(
-      rentalMint.publicKey,
+      rentalMint,
       buyer.publicKey,
       true
     );
@@ -320,8 +294,8 @@ describe("Restrict Payment Mints", () => {
       provider.connection,
       buyerMintTokenAccountId
     );
-    expect(buyerRentalMintTokenAccount.amount.toString()).to.eq("1");
-    expect(buyerRentalMintTokenAccount.isFrozen).to.be.true;
+    expect(buyerRentalMintTokenAccount.amount.toString()).toEqual("1");
+    expect(buyerRentalMintTokenAccount.isFrozen).toBeTruthy();
 
     const makerFee = rentalPaymentAmount
       .mul(MAKER_FEE)
@@ -332,12 +306,12 @@ describe("Restrict Payment Mints", () => {
     const totalFees = makerFee.add(takerFee);
 
     const listerMintTokenAccountId = await findAta(
-      customPaymentMint.publicKey,
+      customPaymentMint,
       lister.publicKey,
       true
     );
     const feeCollectorTokenAccountId = await findAta(
-      customPaymentMint.publicKey,
+      customPaymentMint,
       feeCollector.publicKey,
       true
     );
@@ -345,7 +319,7 @@ describe("Restrict Payment Mints", () => {
       provider.connection,
       listerMintTokenAccountId
     );
-    expect(listerPaymentMintTokenAccount.amount.toString()).to.eq(
+    expect(listerPaymentMintTokenAccount.amount.toString()).toEqual(
       rentalPaymentAmount.sub(makerFee).toString()
     );
 
@@ -353,7 +327,7 @@ describe("Restrict Payment Mints", () => {
       provider.connection,
       feeCollectorTokenAccountId
     );
-    expect(feeCollectorTokenAccount.amount.toString()).to.eq(
+    expect(feeCollectorTokenAccount.amount.toString()).toEqual(
       totalFees.toString()
     );
   });

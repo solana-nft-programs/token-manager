@@ -1,11 +1,12 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
-import { findMintManagerId } from "@cardinal/creator-standard";
+import { beforeAll, expect } from "@jest/globals";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -15,7 +16,6 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { claimToken, withTransfer } from "../../src";
 import { tokenManager } from "../../src/programs";
@@ -27,21 +27,23 @@ import {
 } from "../../src/programs/tokenManager";
 import {
   findMintCounterId,
+  findMintManagerId,
   findTokenManagerAddress,
   findTransferReceiptId,
 } from "../../src/programs/tokenManager/pda";
 
 describe("Transfer receipt transfer", () => {
+  let provider: CardinalProvider;
   const recipient = Keypair.generate();
   const target = Keypair.generate();
   const incorrectTarget = Keypair.generate();
   const user = Keypair.generate();
   const transferAuthority = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  const mint: Keypair = Keypair.generate();
+  let mint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -73,27 +75,21 @@ describe("Transfer receipt transfer", () => {
     await provider.connection.confirmTransaction(airdropIncorrectTarget);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [issuerTokenAccountId, mint] = await createMint(
       provider.connection,
-      mint.publicKey,
-      user.publicKey
+      new Wallet(user)
     );
-    issuerTokenAccountId = await findAta(mint.publicKey, user.publicKey, true);
-    transaction.instructions = ixs;
-    await executeTransaction(provider.connection, transaction, provider.wallet);
   });
 
   it("Issue token with transfer authority", async () => {
-    const provider = await getProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
     );
 
     const transaction = new Transaction();
-    const tokenManagerId = findTokenManagerAddress(mint.publicKey);
-    const mintCounterId = findMintCounterId(mint.publicKey);
+    const tokenManagerId = findTokenManagerAddress(mint);
+    const mintCounterId = findMintCounterId(mint);
     const tokenManagerInitIx = await tmManagerProgram.methods
       .init({
         amount: new BN(1),
@@ -104,7 +100,7 @@ describe("Transfer receipt transfer", () => {
       .accounts({
         tokenManager: tokenManagerId,
         mintCounter: mintCounterId,
-        mint: mint.publicKey,
+        mint: mint,
         issuer: user.publicKey,
         payer: user.publicKey,
         issuerTokenAccount: issuerTokenAccountId,
@@ -124,17 +120,17 @@ describe("Transfer receipt transfer", () => {
       await withFindOrInitAssociatedTokenAccount(
         transaction,
         provider.connection,
-        mint.publicKey,
+        mint,
         tokenManagerId,
         user.publicKey,
         true
       );
-    const mintManagerId = findMintManagerId(mint.publicKey);
+    const mintManagerId = findMintManagerId(mint);
     const createMintManagerIx = await tmManagerProgram.methods
       .createMintManager()
       .accounts({
         mintManager: mintManagerId,
-        mint: mint.publicKey,
+        mint: mint,
         freezeAuthority: user.publicKey,
         payer: user.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -167,15 +163,13 @@ describe("Transfer receipt transfer", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      mint.publicKey.toString()
-    );
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(mint.toString());
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
-    expect(tokenManagerData.parsed.transferAuthority?.toString()).to.eq(
+    expect(tokenManagerData.parsed.transferAuthority?.toString()).toEqual(
       transferAuthority.publicKey.toString()
     );
 
@@ -183,15 +177,11 @@ describe("Transfer receipt transfer", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
   });
 
   it("Claim", async () => {
-    const provider = await getProvider();
-
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      mint.publicKey
-    );
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(mint);
 
     const transaction = await claimToken(
       provider.connection,
@@ -208,37 +198,31 @@ describe("Transfer receipt transfer", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientTokenAccountId = await findAta(
-      mint.publicKey,
-      recipient.publicKey
-    );
+    const recipientTokenAccountId = await findAta(mint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientTokenAccountId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
   });
 
   it("Create transfer receipt", async () => {
-    const provider = await getProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      mint.publicKey
-    );
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(mint);
     const transferReceiptId = findTransferReceiptId(tokenManagerId);
     const createTransferReceiptIx = await tmManagerProgram.methods
       .createTransferReceipt(target.publicKey)
@@ -262,81 +246,70 @@ describe("Transfer receipt transfer", () => {
       provider.connection,
       transferReceiptId
     );
-    expect(transferReceipt.parsed.target.toString()).to.eq(
+    expect(transferReceipt.parsed.target.toString()).toEqual(
       target.publicKey.toString()
     );
-    expect(transferReceipt.parsed.tokenManager.toString()).to.eq(
+    expect(transferReceipt.parsed.tokenManager.toString()).toEqual(
       tokenManagerId.toString()
     );
-    expect(transferReceipt.parsed.mintCount.toString()).to.eq(
+    expect(transferReceipt.parsed.mintCount.toString()).toEqual(
       new BN(1).toString()
     );
   });
 
   it("Fail transfer", async () => {
-    const provider = await getProvider();
-
     const tx = await withTransfer(
       new Transaction(),
       provider.connection,
       new Wallet(incorrectTarget),
-      mint.publicKey,
+      mint,
       incorrectTarget.publicKey
     );
-    expect(
+    await expect(
       executeTransaction(provider.connection, tx, new Wallet(incorrectTarget))
-    ).to.throw();
+    ).rejects.toThrow();
   });
 
   it("Transfer", async () => {
-    const provider = await getProvider();
     const tx = await withTransfer(
       new Transaction(),
       provider.connection,
       new Wallet(target),
-      mint.publicKey
+      mint
     );
     await executeTransaction(provider.connection, tx, new Wallet(target));
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      mint.publicKey
-    );
+    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(mint);
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientTokenAccountId = await findAta(
-      mint.publicKey,
-      recipient.publicKey
-    );
+    const recipientTokenAccountId = await findAta(mint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientTokenAccountId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("0");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(false);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("0");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(false);
 
-    const targetTokenAccountId = await findAta(
-      mint.publicKey,
-      target.publicKey
-    );
+    const targetTokenAccountId = await findAta(mint, target.publicKey);
     const targetTokenAccount = await getAccount(
       provider.connection,
       targetTokenAccountId
     );
-    expect(targetTokenAccount.amount.toString()).to.eq("1");
-    expect(targetTokenAccount.isFrozen).to.eq(true);
+    expect(targetTokenAccount.amount.toString()).toEqual("1");
+    expect(targetTokenAccount.isFrozen).toEqual(true);
 
-    expect(tokenManagerData.parsed.recipientTokenAccount.toString()).to.eq(
+    expect(tokenManagerData.parsed.recipientTokenAccount.toString()).toEqual(
       targetTokenAccount.address.toString()
     );
   });

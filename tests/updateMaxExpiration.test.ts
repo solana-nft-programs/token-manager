@@ -1,30 +1,32 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
   tryGetAccount,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { invalidate, rentals, withUpdateMaxExpiration } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
 import { TokenManagerState } from "../src/programs/tokenManager";
 
 describe("Update max expiration", () => {
+  let provider: CardinalProvider;
   const recipient = Keypair.generate();
   const user = Keypair.generate();
-  const durationSeconds = 1;
+  const durationSeconds = 3;
   let newMaxExpiration = new BN(0); // setting below to not set on runtime
   let issuerTokenAccountId: PublicKey;
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -38,27 +40,14 @@ describe("Update max expiration", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      user.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      user.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
       new Wallet(user)
     );
   });
 
   it("Create rental", async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -66,7 +55,7 @@ describe("Update max expiration", () => {
         timeInvalidation: {
           durationSeconds,
         },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
       }
@@ -81,13 +70,15 @@ describe("Update max expiration", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
 
@@ -96,18 +87,17 @@ describe("Update max expiration", () => {
         provider.connection,
         timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
-    expect(checkTimeInvalidator.parsed.expiration).to.eq(null);
-    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
+    expect(checkTimeInvalidator.parsed.expiration).toEqual(null);
+    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).toEqual(
       durationSeconds
     );
   });
 
   it("Claim rental", async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = await rentals.claimRental(
       provider.connection,
@@ -124,49 +114,45 @@ describe("Update max expiration", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkMintManager = await tokenManager.accounts.getMintManager(
       provider.connection,
-      tokenManager.pda.findMintManagerId(rentalMint.publicKey)
+      tokenManager.pda.findMintManagerId(rentalMint)
     );
-    expect(checkMintManager.parsed.tokenManagers?.toNumber()).to.eq(1);
+    expect(checkMintManager.parsed.tokenManagers?.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
 
     const checkTimeInvalidator =
       await timeInvalidator.accounts.getTimeInvalidator(
         provider.connection,
         timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
-    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).to.eq(
+    expect(checkTimeInvalidator.parsed.durationSeconds?.toNumber()).toEqual(
       durationSeconds
     );
   });
 
   it("Fail to update max expiration", async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
-    newMaxExpiration = new BN(Date.now() / 1000 + 5);
+    newMaxExpiration = new BN(Date.now() / 1000 + 4);
     const transaction = new Transaction();
     await withUpdateMaxExpiration(
       transaction,
@@ -175,17 +161,16 @@ describe("Update max expiration", () => {
       tokenManagerId,
       newMaxExpiration.sub(new BN(1000))
     );
-    expect(
+    await expect(
       executeTransaction(provider.connection, transaction, new Wallet(user))
-    ).to.throw();
+    ).rejects.toThrow();
   });
 
   it("Update Max Expiration", async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = new Transaction();
     await withUpdateMaxExpiration(
@@ -206,31 +191,32 @@ describe("Update max expiration", () => {
         provider.connection,
         timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId)
       );
-    expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).to.eq(
+    expect(checkTimeInvalidator.parsed.maxExpiration?.toNumber()).toEqual(
       newMaxExpiration.toNumber()
     );
   });
 
   it("Invalidate early", async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
+
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),
-      rentalMint.publicKey
+      rentalMint
     );
-    expect(
+    await expect(
       executeTransaction(provider.connection, transaction, new Wallet(user))
-    ).to.throw();
+    ).rejects.toThrow();
   });
 
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 7000));
 
-    const provider = await getProvider();
+    provider = await getProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),
-      rentalMint.publicKey
+      rentalMint
     );
     await executeTransaction(
       provider.connection,
@@ -238,19 +224,18 @@ describe("Update max expiration", () => {
       new Wallet(user)
     );
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const tokenManagerData = await tryGetAccount(() =>
       tokenManager.accounts.getTokenManager(provider.connection, tokenManagerId)
     );
-    expect(tokenManagerData).to.eq(null);
+    expect(tokenManagerData).toEqual(null);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("1");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("1");
   });
 });

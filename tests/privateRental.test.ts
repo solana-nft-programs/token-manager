@@ -1,9 +1,11 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
 } from "@cardinal/common";
+import { beforeAll, expect } from "@jest/globals";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -13,7 +15,6 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { claimLinks, claimToken, rentals, useTransaction } from "../src";
 import { fromLink } from "../src/claimLinks";
@@ -24,15 +25,16 @@ import {
 } from "../src/programs/tokenManager";
 
 describe("Private rental", () => {
+  let provider: CardinalProvider;
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;
-  const rentalMint: Keypair = Keypair.generate();
+  let rentalMint: PublicKey;
   let claimLink: string;
   let serializedUsage: string;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -46,28 +48,18 @@ describe("Private rental", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      provider.wallet.publicKey
+      new Wallet(user)
     );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      provider.wallet.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(provider.connection, transaction, provider.wallet);
   });
 
   it("Create link", async () => {
-    const provider = await getProvider();
     const [transaction, tokenManagerId, otp] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
       {
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId,
         useInvalidation: { totalUsages: 4 },
         kind: TokenManagerKind.Managed,
@@ -86,17 +78,19 @@ describe("Private rental", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(0);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      0
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       user.publicKey.toString()
     );
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(tokenManagerData.parsed.claimApprover?.toString()).to.eq(
+    expect(tokenManagerData.parsed.claimApprover?.toString()).toEqual(
       otp!.publicKey.toString()
     );
 
@@ -104,14 +98,12 @@ describe("Private rental", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     console.log("Link created: ", claimLink);
   });
 
   it("Claim from link", async () => {
-    const provider = await getProvider();
-
     const [tokenManagerId, otpKeypair] = fromLink(claimLink);
 
     const transaction = await claimToken(
@@ -130,33 +122,29 @@ describe("Private rental", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
   });
 
   it("Get use tx", async () => {
-    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey,
+      rentalMint,
       1
     );
     transaction.feePayer = recipient.publicKey;
@@ -168,31 +156,28 @@ describe("Private rental", () => {
   });
 
   it("Execute use tx", async () => {
-    const provider = await getProvider();
     const buffer = Buffer.from(serializedUsage, "base64");
     const transaction = Transaction.from(buffer);
     await sendAndConfirmRawTransaction(
       provider.connection,
       transaction.serialize()
     );
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
     const useInvalidatorId =
       useInvalidator.pda.findUseInvalidatorAddress(tokenManagerId);
     const useInvalidatorData = await useInvalidator.accounts.getUseInvalidator(
       provider.connection,
       useInvalidatorId
     );
-    expect(useInvalidatorData.parsed.usages.toNumber()).to.eq(1);
+    expect(useInvalidatorData.parsed.usages.toNumber()).toEqual(1);
   });
 
   it("Get new use tx", async () => {
-    const provider = await getProvider();
     const transaction = await useTransaction(
       provider.connection,
       new Wallet(recipient),
-      rentalMint.publicKey,
+      rentalMint,
       2
     );
     transaction.feePayer = recipient.publicKey;

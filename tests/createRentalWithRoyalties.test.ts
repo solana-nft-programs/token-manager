@@ -1,5 +1,6 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   executeTransaction,
   findAta,
   getProvider,
@@ -8,6 +9,7 @@ import {
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -20,7 +22,6 @@ import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
-import { expect } from "chai";
 
 import { rentals } from "../src";
 import { timeInvalidator, tokenManager } from "../src/programs";
@@ -30,6 +31,7 @@ import {
 } from "../src/programs/tokenManager";
 
 describe("Create Rental With Royalties", () => {
+  let provider: CardinalProvider;
   const MAKER_FEE = new BN(500);
   const TAKER_FEE = new BN(300);
   const BASIS_POINTS_DIVISOR = new BN(10000);
@@ -48,11 +50,11 @@ describe("Create Rental With Royalties", () => {
   const creator2Share = new BN(55);
   let recipientPaymentTokenAccountId: PublicKey;
   let issuerTokenAccountId: PublicKey;
-  const paymentMint: Keypair = Keypair.generate();
-  const rentalMint: Keypair = Keypair.generate();
+  let paymentMint: PublicKey;
+  let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL
@@ -66,44 +68,19 @@ describe("Create Rental With Royalties", () => {
     await provider.connection.confirmTransaction(airdropRecipient);
 
     // create payment mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
+    [recipientPaymentTokenAccountId, paymentMint] = await createMint(
       provider.connection,
-      paymentMint.publicKey,
-      recipient.publicKey,
-      { amount: RECIPIENT_START_PAYMENT_AMOUNT }
-    );
-    recipientPaymentTokenAccountId = await findAta(
-      paymentMint.publicKey,
-      recipient.publicKey,
-      true
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(recipient)
+      new Wallet(tokenCreator),
+      { target: recipient.publicKey, amount: RECIPIENT_START_PAYMENT_AMOUNT }
     );
 
-    const transaction2 = new Transaction();
-    const [ixs2] = await createMintIxs(
+    [issuerTokenAccountId, rentalMint] = await createMint(
       provider.connection,
-      rentalMint.publicKey,
-      tokenCreator.publicKey
-    );
-    issuerTokenAccountId = await findAta(
-      rentalMint.publicKey,
-      tokenCreator.publicKey,
-      true
-    );
-    transaction2.instructions = ixs2;
-    await executeTransaction(
-      provider.connection,
-      transaction2,
-      new Wallet(tokenCreator)
+      new Wallet(tokenCreator),
+      { target: provider.wallet.publicKey }
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint.publicKey);
+    const metadataId = await Metadata.getPDA(rentalMint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: tokenCreator.publicKey },
       {
@@ -134,19 +111,19 @@ describe("Create Rental With Royalties", () => {
           uses: null,
         }),
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint.publicKey);
+    const masterEditionId = await MasterEdition.getPDA(rentalMint);
     const masterEditionTx = new CreateMasterEditionV3(
       { feePayer: tokenCreator.publicKey },
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: tokenCreator.publicKey,
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
         maxSupply: new BN(1),
       }
@@ -160,9 +137,6 @@ describe("Create Rental With Royalties", () => {
   });
 
   it("Create payment manager", async () => {
-    const provider = await getProvider();
-    const transaction = new Transaction();
-
     const pmtx = new Transaction();
     await withInit(pmtx, provider.connection, provider.wallet, {
       paymentManagerName: paymentManagerName,
@@ -170,27 +144,25 @@ describe("Create Rental With Royalties", () => {
       makerFeeBasisPoints: MAKER_FEE.toNumber(),
       takerFeeBasisPoints: TAKER_FEE.toNumber(),
       includeSellerFeeBasisPoints: false,
-      royaltyFeeShare: new BN(0),
       payer: provider.wallet.publicKey,
     });
-    await executeTransaction(provider.connection, transaction, provider.wallet);
+    await executeTransaction(provider.connection, pmtx, provider.wallet);
 
     const checkPaymentManagerId = findPaymentManagerAddress(paymentManagerName);
     const paymentManagerData = await getPaymentManager(
       provider.connection,
       checkPaymentManagerId
     );
-    expect(paymentManagerData.parsed.name).to.eq(paymentManagerName);
-    expect(paymentManagerData.parsed.makerFeeBasisPoints).to.eq(
+    expect(paymentManagerData.parsed.name).toEqual(paymentManagerName);
+    expect(paymentManagerData.parsed.makerFeeBasisPoints).toEqual(
       MAKER_FEE.toNumber()
     );
-    expect(paymentManagerData.parsed.takerFeeBasisPoints).to.eq(
+    expect(paymentManagerData.parsed.takerFeeBasisPoints).toEqual(
       TAKER_FEE.toNumber()
     );
   });
 
   it("Create rental", async () => {
-    const provider = await getProvider();
     const paymentManager = findPaymentManagerAddress(paymentManagerName);
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
@@ -198,7 +170,7 @@ describe("Create Rental With Royalties", () => {
       {
         claimPayment: {
           paymentAmount: RENTAL_PAYMENT_AMONT,
-          paymentMint: paymentMint.publicKey,
+          paymentMint: paymentMint,
           paymentManager: paymentManager,
         },
         timeInvalidation: {
@@ -207,11 +179,11 @@ describe("Create Rental With Royalties", () => {
           extension: {
             extensionPaymentAmount: 1, // Pay 1 lamport to add 1000 seconds of expiration time
             extensionDurationSeconds: 1000,
-            extensionPaymentMint: paymentMint.publicKey,
+            extensionPaymentMint: paymentMint,
             disablePartialExtension: true,
           },
         },
-        mint: rentalMint.publicKey,
+        mint: rentalMint,
         issuerTokenAccountId: issuerTokenAccountId,
         amount: new BN(1),
         kind: TokenManagerKind.Edition,
@@ -223,13 +195,15 @@ describe("Create Rental With Royalties", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Issued);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
-    expect(tokenManagerData.parsed.mint.toString()).to.eq(
-      rentalMint.publicKey.toString()
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Issued);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(
+      rentalMint.toString()
     );
-    expect(tokenManagerData.parsed.invalidators).length.greaterThanOrEqual(1);
-    expect(tokenManagerData.parsed.issuer.toString()).to.eq(
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
 
@@ -237,42 +211,32 @@ describe("Create Rental With Royalties", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     // check receipt-index
     const tokenManagers = await tokenManager.accounts.getTokenManagersForIssuer(
       provider.connection,
       provider.wallet.publicKey
     );
-    expect(tokenManagers.map((i) => i.pubkey.toString())).to.include(
+    expect(tokenManagers.map((i) => i.pubkey.toString())).toContain(
       tokenManagerId.toString()
     );
   });
 
   it("Claim rental", async () => {
-    const provider = await getProvider();
-    const myAta = await findAta(
-      paymentMint.publicKey,
-      tokenCreator.publicKey,
-      true
-    );
-    const creator1Ata = await findAta(
-      paymentMint.publicKey,
-      creator1.publicKey,
-      true
-    );
-    const creator2Ata = await findAta(
-      paymentMint.publicKey,
-      creator2.publicKey,
-      true
-    );
+    const myAta = await findAta(paymentMint, tokenCreator.publicKey, true);
+    const creator1Ata = await findAta(paymentMint, creator1.publicKey, true);
+    const creator2Ata = await findAta(paymentMint, creator2.publicKey, true);
 
-    expect(getAccount(provider.connection, creator1Ata)).to.throw();
-    expect(getAccount(provider.connection, creator2Ata)).to.throw();
+    await expect(
+      getAccount(provider.connection, creator1Ata)
+    ).rejects.toThrow();
+    await expect(
+      getAccount(provider.connection, creator2Ata)
+    ).rejects.toThrow();
 
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     const transaction = await rentals.claimRental(
       provider.connection,
@@ -289,25 +253,22 @@ describe("Create Rental With Royalties", () => {
       provider.connection,
       tokenManagerId
     );
-    expect(tokenManagerData.parsed.state).to.eq(TokenManagerState.Claimed);
-    expect(tokenManagerData.parsed.amount.toNumber()).to.eq(1);
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
 
     const checkIssuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).to.eq("0");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
-    const recipientAtaId = await findAta(
-      rentalMint.publicKey,
-      recipient.publicKey
-    );
+    const recipientAtaId = await findAta(rentalMint, recipient.publicKey);
     const checkRecipientTokenAccount = await getAccount(
       provider.connection,
       recipientAtaId
     );
-    expect(checkRecipientTokenAccount.amount.toString()).to.eq("1");
-    expect(checkRecipientTokenAccount.isFrozen).to.eq(true);
+    expect(checkRecipientTokenAccount.amount.toString()).toEqual("1");
+    expect(checkRecipientTokenAccount.isFrozen).toEqual(true);
 
     const checkRecipientPaymentTokenAccount = await getAccount(
       provider.connection,
@@ -322,7 +283,7 @@ describe("Create Rental With Royalties", () => {
     const totalFees = makerFee.add(takerFee);
     const splitFees = totalFees.mul(FEE_SPLIT).div(new BN(100));
 
-    expect(checkRecipientPaymentTokenAccount.amount.toString()).to.eq(
+    expect(checkRecipientPaymentTokenAccount.amount.toString()).toEqual(
       (
         RECIPIENT_START_PAYMENT_AMOUNT -
         RENTAL_PAYMENT_AMONT -
@@ -332,22 +293,20 @@ describe("Create Rental With Royalties", () => {
 
     const myFunds = splitFees.mul(myShare).div(new BN(100));
     const myAtaInfo = await getAccount(provider.connection, myAta);
-    expect(myAtaInfo.amount.toString()).to.eq(myFunds.toString());
+    expect(myAtaInfo.amount.toString()).toEqual(myFunds.toString());
 
     const creator1Funds = splitFees.mul(creator1Share).div(new BN(100));
     const creator1AtaInfo = await getAccount(provider.connection, creator1Ata);
-    expect(creator1AtaInfo.amount.toString()).to.eq(creator1Funds.toString());
+    expect(creator1AtaInfo.amount.toString()).toEqual(creator1Funds.toString());
 
     const creator2Funds = splitFees.mul(creator2Share).div(new BN(100));
     const creator2AtaInfo = await getAccount(provider.connection, creator2Ata);
-    expect(creator2AtaInfo.amount.toString()).to.eq(creator2Funds.toString());
+    expect(creator2AtaInfo.amount.toString()).toEqual(creator2Funds.toString());
   });
 
   it("Extend Rental", async () => {
-    const provider = await getProvider();
-    const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(
-      rentalMint.publicKey
-    );
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
     await tryGetAccount(async () =>
       timeInvalidator.accounts.getTimeInvalidator(

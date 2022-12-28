@@ -1,5 +1,6 @@
+import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMintIxs,
+  createMint,
   emptyWallet,
   executeTransaction,
   findAta,
@@ -7,6 +8,7 @@ import {
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { beforeAll, expect } from "@jest/globals";
 import {
   CreateMetadataV2,
   DataV2,
@@ -21,7 +23,6 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { BN } from "bn.js";
-import { expect } from "chai";
 
 import {
   withAcceptListing,
@@ -39,12 +40,13 @@ import {
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
 
 describe("Accept Listing Permissioned", () => {
+  let provider: CardinalProvider;
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();
-  const mint: Keypair = Keypair.generate();
+  let mint: PublicKey;
   const rentalPaymentAmount = new BN(100);
 
   const paymentManagerName = `pm-${Math.random()}`;
@@ -54,7 +56,7 @@ describe("Accept Listing Permissioned", () => {
   const BASIS_POINTS_DIVISOR = new BN(10000);
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    provider = await getProvider();
 
     const feeCollectorInfo = await provider.connection.requestAirdrop(
       feeCollector.publicKey,
@@ -73,20 +75,9 @@ describe("Accept Listing Permissioned", () => {
     await provider.connection.confirmTransaction(airdropBuyer);
 
     // create rental mint
-    const transaction = new Transaction();
-    const [ixs] = await createMintIxs(
-      provider.connection,
-      mint.publicKey,
-      lister.publicKey
-    );
-    transaction.instructions = ixs;
-    await executeTransaction(
-      provider.connection,
-      transaction,
-      new Wallet(lister)
-    );
+    [, mint] = await createMint(provider.connection, new Wallet(lister));
 
-    const metadataId = await Metadata.getPDA(mint.publicKey);
+    const metadataId = await Metadata.getPDA(mint);
     const metadataTx = new CreateMetadataV2(
       { feePayer: lister.publicKey },
       {
@@ -101,7 +92,7 @@ describe("Accept Listing Permissioned", () => {
           uses: null,
         }),
         updateAuthority: lister.publicKey,
-        mint: mint.publicKey,
+        mint: mint,
         mintAuthority: lister.publicKey,
       }
     );
@@ -123,7 +114,6 @@ describe("Accept Listing Permissioned", () => {
   });
 
   it("Create Transfer Authority", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitTransferAuthority(
@@ -139,45 +129,39 @@ describe("Accept Listing Permissioned", () => {
       transferAuthorityName
     );
 
-    expect(checkTransferAuthority.parsed.name).to.eq(transferAuthorityName);
-    expect(checkTransferAuthority.parsed.authority.toString()).to.eq(
+    expect(checkTransferAuthority.parsed.name).toEqual(transferAuthorityName);
+    expect(checkTransferAuthority.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkTransferAuthority.parsed.allowedMarketplaces).to.be.null;
+    expect(checkTransferAuthority.parsed.allowedMarketplaces).toBeNull();
   });
 
   it("Wrap Token", async () => {
-    const provider = await getProvider();
     const wrapTransaction = new Transaction();
 
     await withWrapToken(
       wrapTransaction,
       provider.connection,
       emptyWallet(lister.publicKey),
-      mint.publicKey,
+      mint,
       { transferAuthorityName: transferAuthorityName }
     );
 
     await executeTransaction(
       provider.connection,
       wrapTransaction,
-      new Wallet(buyer)
+      new Wallet(lister)
     );
-    const mintTokenAccountId = await findAta(
-      mint.publicKey,
-      lister.publicKey,
-      true
-    );
+    const mintTokenAccountId = await findAta(mint, lister.publicKey, true);
     const mintTokenAccount = await getAccount(
       provider.connection,
       mintTokenAccountId
     );
-    expect(mintTokenAccount.amount.toString()).to.equal("1");
-    expect(mintTokenAccount.isFrozen).to.be.true;
+    expect(mintTokenAccount.amount.toString()).toEqual("1");
+    expect(mintTokenAccount.isFrozen).toBeTruthy();
   });
 
   it("Create Marketplace", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withInitMarketplace(
@@ -194,26 +178,25 @@ describe("Accept Listing Permissioned", () => {
       marketplaceName
     );
 
-    expect(checkMarketplace.parsed.name).to.eq(marketplaceName);
+    expect(checkMarketplace.parsed.name).toEqual(marketplaceName);
     const paymentManagerId = findPaymentManagerAddress(paymentManagerName);
-    expect(checkMarketplace.parsed.paymentManager.toString()).to.eq(
+    expect(checkMarketplace.parsed.paymentManager.toString()).toEqual(
       paymentManagerId.toString()
     );
-    expect(checkMarketplace.parsed.authority.toString()).to.eq(
+    expect(checkMarketplace.parsed.authority.toString()).toEqual(
       provider.wallet.publicKey.toString()
     );
-    expect(checkMarketplace.parsed.paymentMints).to.be.null;
+    expect(checkMarketplace.parsed.paymentMints).toBeNull();
   });
 
   it("Create Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
 
     await withCreateListing(
       transaction,
       provider.connection,
       emptyWallet(lister.publicKey),
-      mint.publicKey,
+      mint,
       marketplaceName,
       rentalPaymentAmount,
       PublicKey.default
@@ -224,44 +207,39 @@ describe("Accept Listing Permissioned", () => {
       new Wallet(lister)
     );
 
-    const checkListing = await getListing(provider.connection, mint.publicKey);
-    expect(checkListing.parsed.lister.toString()).to.eq(
+    const checkListing = await getListing(provider.connection, mint);
+    expect(checkListing.parsed.lister.toString()).toEqual(
       lister.publicKey.toString()
     );
-    const tokenManagerId = findTokenManagerAddress(mint.publicKey);
-    expect(checkListing.parsed.tokenManager.toString()).to.eq(
+    const tokenManagerId = findTokenManagerAddress(mint);
+    expect(checkListing.parsed.tokenManager.toString()).toEqual(
       tokenManagerId.toString()
     );
     const marketplaceId = findMarketplaceAddress(marketplaceName);
-    expect(checkListing.parsed.marketplace.toString()).to.eq(
+    expect(checkListing.parsed.marketplace.toString()).toEqual(
       marketplaceId.toString()
     );
-    expect(checkListing.parsed.paymentAmount.toNumber()).to.eq(
+    expect(checkListing.parsed.paymentAmount.toNumber()).toEqual(
       rentalPaymentAmount.toNumber()
     );
-    expect(checkListing.parsed.paymentMint.toString()).to.eq(
+    expect(checkListing.parsed.paymentMint.toString()).toEqual(
       PublicKey.default.toString()
     );
 
-    const issuerTokenAccountId = await findAta(
-      mint.publicKey,
-      lister.publicKey,
-      true
-    );
+    const issuerTokenAccountId = await findAta(mint, lister.publicKey, true);
     const issuerTokenAccount = await getAccount(
       provider.connection,
       issuerTokenAccountId
     );
-    expect(issuerTokenAccount.delegate?.toString()).to.eq(
+    expect(issuerTokenAccount.delegate?.toString()).toEqual(
       tokenManagerId.toString()
     );
-    expect(issuerTokenAccount.amount.toString()).to.eq("1");
+    expect(issuerTokenAccount.amount.toString()).toEqual("1");
   });
 
   it("Accept Listing", async () => {
-    const provider = await getProvider();
     const transaction = new Transaction();
-    const checkListing = await getListing(provider.connection, mint.publicKey);
+    const checkListing = await getListing(provider.connection, mint);
 
     const listingInfo = await provider.connection.getAccountInfo(
       checkListing.pubkey
@@ -278,7 +256,7 @@ describe("Accept Listing Permissioned", () => {
       provider.connection,
       new Wallet(buyer),
       buyer.publicKey,
-      mint.publicKey,
+      mint,
       checkListing.parsed.paymentAmount,
       checkListing.parsed.paymentMint
     );
@@ -288,17 +266,13 @@ describe("Accept Listing Permissioned", () => {
       new Wallet(buyer)
     );
 
-    const buyerMintTokenAccountId = await findAta(
-      mint.publicKey,
-      buyer.publicKey,
-      true
-    );
+    const buyerMintTokenAccountId = await findAta(mint, buyer.publicKey, true);
     const buyermintTokenAccount = await getAccount(
       provider.connection,
       buyerMintTokenAccountId
     );
-    expect(buyermintTokenAccount.amount.toString()).to.eq("1");
-    expect(buyermintTokenAccount.isFrozen).to.be.true;
+    expect(buyermintTokenAccount.amount.toString()).toEqual("1");
+    expect(buyermintTokenAccount.isFrozen).toBeTruthy();
 
     const makerFee = rentalPaymentAmount
       .mul(MAKER_FEE)
@@ -311,7 +285,7 @@ describe("Accept Listing Permissioned", () => {
     const listerInfo = await provider.connection.getAccountInfo(
       lister.publicKey
     );
-    expect(listerInfo?.lamports).to.eq(
+    expect(listerInfo?.lamports).toEqual(
       beforeListerAmount +
         rentalPaymentAmount.sub(makerFee).toNumber() +
         (listingInfo?.lamports || 0)
@@ -320,19 +294,15 @@ describe("Accept Listing Permissioned", () => {
     const feeCollectorInfo = await provider.connection.getAccountInfo(
       feeCollector.publicKey
     );
-    expect(feeCollectorInfo?.lamports).to.eq(
+    expect(feeCollectorInfo?.lamports).toEqual(
       beforeFeeCollectorAmount + totalFees.toNumber()
     );
 
-    const checkBuyerTokenAccountId = await findAta(
-      mint.publicKey,
-      buyer.publicKey,
-      true
-    );
+    const checkBuyerTokenAccountId = await findAta(mint, buyer.publicKey, true);
     const checkBuyerTokenAccount = await getAccount(
       provider.connection,
       checkBuyerTokenAccountId
     );
-    expect(checkBuyerTokenAccount.delegate).to.be.null;
+    expect(checkBuyerTokenAccount.delegate).toBeNull();
   });
 });

@@ -84,7 +84,7 @@ export const withInvalidate = async (
       tokenManagerData?.pubkey.toString(),
       tokenManagerData?.parsed.state
     );
-    const transferAccounts = await getRemainingAccountsForKind(
+    const transferAccounts = getRemainingAccountsForKind(
       tokenManagerData.parsed.mint,
       tokenManagerData.parsed.kind
     );
@@ -186,7 +186,7 @@ export const withInvalidateTokenManager = async (
     tokenManagerData?.parsed.state,
     remainingAccountsForReturn
   );
-  const transferAccounts = await getRemainingAccountsForKind(
+  const transferAccounts = getRemainingAccountsForKind(
     tokenManagerData.parsed.mint,
     tokenManagerData.parsed.kind
   );

@@ -1,9 +1,9 @@
 import type { AccountData } from "@cardinal/common";
-import { withFindOrInitAssociatedTokenAccount } from "@cardinal/common";
 import {
-  Edition,
-  MetadataProgram,
-} from "@metaplex-foundation/mpl-token-metadata";
+  findMintEditionId,
+  METADATA_PROGRAM_ID,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { getAccount } from "@solana/spl-token";
 import type {
@@ -17,10 +17,10 @@ import type { TokenManagerData } from ".";
 import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
 import { findMintManagerId, findTransferReceiptId } from "./pda";
 
-export const getRemainingAccountsForKind = async (
+export const getRemainingAccountsForKind = (
   mintId: PublicKey,
   tokenManagerKind: TokenManagerKind
-): Promise<AccountMeta[]> => {
+): AccountMeta[] => {
   if (
     tokenManagerKind === TokenManagerKind.Managed ||
     tokenManagerKind === TokenManagerKind.Permissioned
@@ -34,7 +34,7 @@ export const getRemainingAccountsForKind = async (
       },
     ];
   } else if (tokenManagerKind === TokenManagerKind.Edition) {
-    const editionId = await Edition.getPDA(mintId);
+    const editionId = findMintEditionId(mintId);
     return [
       {
         pubkey: editionId,
@@ -42,7 +42,7 @@ export const getRemainingAccountsForKind = async (
         isWritable: false,
       },
       {
-        pubkey: MetadataProgram.PUBKEY,
+        pubkey: METADATA_PROGRAM_ID,
         isSigner: false,
         isWritable: false,
       },

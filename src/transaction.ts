@@ -1,6 +1,7 @@
 import type { AccountData } from "@cardinal/common";
 import {
   findAta,
+  findMintMetadataId,
   METADATA_PROGRAM_ID,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
@@ -12,7 +13,6 @@ import {
 } from "@cardinal/creator-standard";
 import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
 import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
-import { Metadata } from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
@@ -462,7 +462,7 @@ export const withIssueToken = async (
   //////////////////////////////
   if (receiptOptions) {
     const { receiptMintKeypair } = receiptOptions;
-    const receiptMintMetadataId = await Metadata.getPDA(
+    const receiptMintMetadataId = findMintMetadataId(
       receiptMintKeypair.publicKey
     );
     const recipientTokenAccountId = await findAta(
@@ -608,7 +608,7 @@ export const withClaimToken = async (
   );
 
   // claim
-  const remainingAccounts = await getRemainingAccountsForKind(
+  const remainingAccounts = getRemainingAccountsForKind(
     tokenManagerData.parsed.mint,
     tokenManagerData.parsed.kind
   );
@@ -725,7 +725,7 @@ export const withInvalidate = async (
     tokenManagerData
   );
 
-  const transferAccounts = await getRemainingAccountsForKind(
+  const transferAccounts = getRemainingAccountsForKind(
     mintId,
     tokenManagerData.parsed.kind
   );
@@ -848,7 +848,7 @@ export const withReturn = async (
     wallet,
     tokenManagerData
   );
-  const transferAccounts = await getRemainingAccountsForKind(
+  const transferAccounts = getRemainingAccountsForKind(
     tokenManagerData.parsed.mint,
     tokenManagerData.parsed.kind
   );
@@ -961,7 +961,7 @@ export const withUse = async (
       tokenManagerData
     );
 
-    const remainingAccountsForKind = await getRemainingAccountsForKind(
+    const remainingAccountsForKind = getRemainingAccountsForKind(
       mintId,
       tokenManagerData.parsed.kind
     );
@@ -1220,7 +1220,7 @@ export const withTransfer = async (
     true
   );
 
-  const remainingAccountsForKind = await getRemainingAccountsForKind(
+  const remainingAccountsForKind = getRemainingAccountsForKind(
     mintId,
     tokenManagerData.parsed.kind
   );
@@ -1384,7 +1384,7 @@ export const withMigrate = async (
   const mintManagerId = findCCSMintManagerId(mintId);
   const tokenManagerId = findTokenManagerAddress(mintId);
   const rulesetId = findRulesetId(rulesetName);
-  const mintMetadataId = await Metadata.getPDA(mintId);
+  const mintMetadataId = findMintMetadataId(mintId);
 
   const migrateIx = await tmManagerProgram.methods
     .migrate()

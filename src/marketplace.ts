@@ -1,6 +1,8 @@
 import {
   emptyWallet,
   findAta,
+  findMintEditionId,
+  findMintMetadataId,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
   withWrapSol,
@@ -9,10 +11,6 @@ import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withRemainingAccountsForHandlePaymentWithRoyalties } from "@cardinal/payment-manager/dist/cjs/utils";
-import {
-  MasterEdition,
-  Metadata,
-} from "@metaplex-foundation/mpl-token-metadata";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import {
@@ -79,7 +77,7 @@ export const withWrapToken = async (
   }
   const issuerTokenAccountId = await findAta(mintId, wallet.publicKey, true);
   let kind = TokenManagerKind.Edition;
-  const masterEditionId = await MasterEdition.getPDA(mintId);
+  const masterEditionId = findMintEditionId(mintId);
   const accountInfo = await connection.getAccountInfo(masterEditionId);
   if (!accountInfo) kind = TokenManagerKind.Permissioned;
 
@@ -116,7 +114,7 @@ export const withWrapToken = async (
     true
   );
 
-  const remainingAccounts = await getRemainingAccountsForKind(mintId, kind);
+  const remainingAccounts = getRemainingAccountsForKind(mintId, kind);
   const claimIx = await tmManagerProgram.methods
     .claim()
     .accounts({
@@ -472,7 +470,7 @@ export const withAcceptListing = async (
         true
       );
 
-  const mintMetadataId = await Metadata.getPDA(mintId);
+  const mintMetadataId = findMintMetadataId(mintId);
   const tokenManagerId = findTokenManagerAddress(mintId);
   const transferReceiptId = findTransferReceiptId(tokenManagerId);
 
@@ -494,7 +492,7 @@ export const withAcceptListing = async (
   if (!tokenManagerData.parsed.transferAuthority) {
     throw `No transfer authority for token manager`;
   }
-  const remainingAccountsForKind = await getRemainingAccountsForKind(
+  const remainingAccountsForKind = getRemainingAccountsForKind(
     mintId,
     tokenManagerData.parsed.kind
   );
@@ -657,10 +655,7 @@ export const withAcceptTransfer = async (
   }
   const recipientTokenAccountId = await findAta(mintId, recipient, true);
   const remainingAccountsForTransfer = [
-    ...(await getRemainingAccountsForKind(
-      mintId,
-      tokenManagerData.parsed.kind
-    )),
+    ...getRemainingAccountsForKind(mintId, tokenManagerData.parsed.kind),
     {
       pubkey: transferReceiptId,
       isSigner: false,
@@ -721,7 +716,7 @@ export const withRelease = async (
     true
   );
   const tokenManagerData = await getTokenManager(connection, tokenManagerId);
-  const remainingAccountsForKind = await getRemainingAccountsForKind(
+  const remainingAccountsForKind = getRemainingAccountsForKind(
     mintId,
     tokenManagerData.parsed.kind
   );

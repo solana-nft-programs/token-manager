@@ -54,8 +54,8 @@ export const getUseInvalidators = async (
   } catch (e) {
     console.log(e);
   }
-  return useInvalidators.map((tm, i) => ({
-    parsed: tm,
+  return useInvalidators.map((parsed, i) => ({
+    parsed,
     pubkey: useInvalidatorIds[i]!,
   }));
 };

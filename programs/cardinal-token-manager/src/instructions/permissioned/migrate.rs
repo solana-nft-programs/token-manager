@@ -10,7 +10,7 @@ use solana_program::program::invoke_signed;
 
 use anchor_lang::{prelude::*, AccountsClose};
 
-#[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
+#[derive(Accounts)]
 
 pub struct MigrateCtx<'info> {
     current_mint_manager: Box<Account<'info, MintManager>>,

@@ -2,7 +2,7 @@ import type { CardinalProvider } from "@cardinal/common";
 import {
   createMint,
   executeTransaction,
-  getProvider,
+  getTestProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
@@ -28,7 +28,7 @@ describe("Issue Claim Close Mint Manager", () => {
   let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL

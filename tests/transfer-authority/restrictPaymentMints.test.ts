@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
@@ -55,7 +55,7 @@ describe("Restrict Payment Mints", () => {
   const BASIS_POINTS_DIVISOR = new BN(10000);
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,

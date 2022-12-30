@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
@@ -24,7 +24,7 @@ describe("Time invalidation", () => {
   let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL

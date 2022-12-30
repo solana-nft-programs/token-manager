@@ -4,7 +4,7 @@ import {
   emptyWallet,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
@@ -55,7 +55,7 @@ describe("Private Transfer", () => {
   const TAKER_FEE = new BN(0);
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       from.publicKey,

@@ -1,5 +1,9 @@
 import type { CardinalProvider } from "@cardinal/common";
-import { createMint, executeTransaction, getProvider } from "@cardinal/common";
+import {
+  createMint,
+  executeTransaction,
+  getTestProvider,
+} from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
 import { Wallet } from "@project-serum/anchor";
 import type { PublicKey } from "@solana/web3.js";
@@ -15,7 +19,7 @@ describe("Issue no mint manager", () => {
   let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL

@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
 } from "@cardinal/common";
 import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
@@ -74,7 +74,7 @@ describe("Accept Listing", () => {
   const creator5Share = new BN(23);
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const feeCollectorInfo = await provider.connection.requestAirdrop(
       feeCollector.publicKey,

@@ -1,5 +1,9 @@
 import type { CardinalProvider } from "@cardinal/common";
-import { createMint, executeTransaction, getProvider } from "@cardinal/common";
+import {
+  createMint,
+  executeTransaction,
+  getTestProvider,
+} from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import { beforeAll, expect } from "@jest/globals";
@@ -52,7 +56,7 @@ describe("Create Listing", () => {
   //   const BASIS_POINTS_DIVISOR = 10000;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL

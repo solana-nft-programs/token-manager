@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
@@ -40,7 +40,7 @@ describe("Create rental with payment manager and extend", () => {
   let paymentManagerId: PublicKey;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -68,7 +68,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Create payment manager", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     paymentManagerId = findPaymentManagerAddress(paymentManagerName);
 
     const pmtx = new Transaction();
@@ -92,7 +92,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Create rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -164,7 +164,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Claim rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
@@ -236,7 +236,7 @@ describe("Create rental with payment manager and extend", () => {
   });
 
   it("Extend Rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 

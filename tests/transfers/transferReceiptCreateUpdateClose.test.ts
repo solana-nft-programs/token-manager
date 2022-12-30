@@ -2,7 +2,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
@@ -43,7 +43,7 @@ describe("Transfer receipt create update close", () => {
   let mint: PublicKey;
 
   beforeAll(async () => {
-    const provider = await getProvider();
+    const provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -70,7 +70,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Issue token with transfer authority", async () => {
-    const provider = await getProvider();
+    const provider = await getTestProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
@@ -172,7 +172,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Claim", async () => {
-    const provider = await getProvider();
+    const provider = await getTestProvider();
 
     const tokenManagerId = tokenManager.pda.tokenManagerAddressFromMint(mint);
 
@@ -210,7 +210,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Fail transfer receipt", async () => {
-    const provider = await getProvider();
+    const provider = await getTestProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
@@ -236,7 +236,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Create transfer receipt", async () => {
-    const provider = await getProvider();
+    const provider = await getTestProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
@@ -278,7 +278,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Update transfer receipt", async () => {
-    const provider = await getProvider();
+    const provider = await getTestProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet
@@ -317,7 +317,7 @@ describe("Transfer receipt create update close", () => {
   });
 
   it("Close transfer receipt", async () => {
-    const provider = await getProvider();
+    const provider = await getTestProvider();
     const tmManagerProgram = tokenManagerProgram(
       provider.connection,
       provider.wallet

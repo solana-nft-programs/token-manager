@@ -3,6 +3,7 @@ import {
   findAta,
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
+  withWrapSol,
 } from "@cardinal/common";
 import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
 import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
@@ -56,7 +57,6 @@ import {
   findTransferAuthorityAddress,
 } from "./programs/transferAuthority/pda";
 import { withIssueToken } from "./transaction";
-import { withWrapSol } from "./wrappedSol";
 
 export const withWrapToken = async (
   transaction: Transaction,

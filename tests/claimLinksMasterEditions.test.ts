@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
 import {
@@ -46,7 +46,7 @@ describe("Claim links master editions", () => {
   let serializedUsage: string;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       tokenCreator.publicKey,
       LAMPORTS_PER_SOL

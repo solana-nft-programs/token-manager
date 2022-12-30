@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
@@ -26,7 +26,7 @@ describe("Update max expiration", () => {
   let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -47,7 +47,7 @@ describe("Update max expiration", () => {
   });
 
   it("Create rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -94,7 +94,7 @@ describe("Update max expiration", () => {
   });
 
   it("Claim rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
@@ -147,7 +147,7 @@ describe("Update max expiration", () => {
   });
 
   it("Fail to update max expiration", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
@@ -167,7 +167,7 @@ describe("Update max expiration", () => {
   });
 
   it("Update Max Expiration", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
@@ -197,7 +197,7 @@ describe("Update max expiration", () => {
   });
 
   it("Invalidate early", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const transaction = await invalidate(
       provider.connection,
@@ -212,7 +212,7 @@ describe("Update max expiration", () => {
   it("Invalidate", async () => {
     await new Promise((r) => setTimeout(r, 7000));
 
-    provider = await getProvider();
+    provider = await getTestProvider();
     const transaction = await invalidate(
       provider.connection,
       new Wallet(user),

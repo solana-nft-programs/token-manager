@@ -40,7 +40,7 @@
     "*.{js,json,jsx,html,css,md}": "prettier --write"
   },
   "dependencies": {
-    "@cardinal/common": "^5.0.5",
+    "@cardinal/common": "^5.0.7",
     "@cardinal/creator-standard": "^2.1.7",
     "@cardinal/payment-manager": "^2.1.1",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.5",

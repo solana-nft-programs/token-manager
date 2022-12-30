@@ -317,10 +317,10 @@
     polished "^4.2.2"
     tslib "^2.4.0"
 
-"@cardinal/common@^5.0.5":
-  version "5.0.5"
-  resolved "https://registry.yarnpkg.com/@cardinal/common/-/common-5.0.5.tgz#432784b62ebacce8b3fd7ae9a8ac98b2d28ac638"
-  integrity sha512-EzHDFTV9k29U8KJzWKjctx2KCp6Xaef3Z2mlwP8yEjujbeNf8LMz/t6Cmt2Enk9MV3LUM1GYycCcX0rpKhiWrw==
+"@cardinal/common@^5.0.7":
+  version "5.0.7"
+  resolved "https://registry.yarnpkg.com/@cardinal/common/-/common-5.0.7.tgz#f225b9eb4a8e7d780a14d80a1c0ba4c495be2d06"
+  integrity sha512-7sZDczfvNFq9uSiYO94Mfjhf8GIk/644xTFawNtCau127GBK2BBsu06TEGLwfELc9dc0b22g4MWQJC0yoU90ow==
   dependencies:
     "@project-serum/anchor" "^0.25.0"
     "@solana/buffer-layout" "^4.0.0"

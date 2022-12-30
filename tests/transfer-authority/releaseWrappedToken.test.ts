@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
 } from "@cardinal/common";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import { beforeAll, expect } from "@jest/globals";
@@ -45,7 +45,7 @@ describe("Release wrapped token", () => {
   const TAKER_FEE = new BN(0);
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const airdropLister = await provider.connection.requestAirdrop(
       lister.publicKey,

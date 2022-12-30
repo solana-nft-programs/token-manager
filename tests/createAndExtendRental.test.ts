@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
   tryGetAccount,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
@@ -29,7 +29,7 @@ describe("Create and Extend Rental", () => {
   let expiration: number;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL
@@ -57,7 +57,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Create rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const [transaction, tokenManagerId] = await rentals.createRental(
       provider.connection,
       new Wallet(user),
@@ -120,7 +120,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Claim rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
 
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
@@ -168,7 +168,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Extend Rental", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
@@ -210,7 +210,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Exceed Max Expiration", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
@@ -230,7 +230,7 @@ describe("Create and Extend Rental", () => {
   });
 
   it("Invalid Partial Expiration", async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const tokenManagerId =
       tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 

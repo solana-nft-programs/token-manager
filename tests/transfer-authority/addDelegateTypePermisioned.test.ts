@@ -3,7 +3,7 @@ import {
   createMint,
   executeTransaction,
   findAta,
-  getProvider,
+  getTestProvider,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
 import {
@@ -36,7 +36,7 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
   let rentalMint: PublicKey;
 
   beforeAll(async () => {
-    provider = await getProvider();
+    provider = await getTestProvider();
     const airdropCreator = await provider.connection.requestAirdrop(
       user.publicKey,
       LAMPORTS_PER_SOL

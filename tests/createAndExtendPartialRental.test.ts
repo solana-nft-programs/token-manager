@@ -226,22 +226,22 @@ describe("Create and Extend Rental", () => {
     ).rejects.toThrow();
   });
 
-  // it("Invalid Partial Expiration", async () => {
-  //   const tokenManagerId =
-  //     tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
+  it("Invalid Partial Expiration", async () => {
+    const tokenManagerId =
+      tokenManager.pda.tokenManagerAddressFromMint(rentalMint);
 
-  //   const transaction = await rentals.extendRentalExpiration(
-  //     provider.connection,
-  //     new Wallet(recipient),
-  //     tokenManagerId,
-  //     250
-  //   );
-  //   expect(
-  //     executeTransaction(
-  //       provider.connection,
-  //       transaction,
-  //       new Wallet(recipient)
-  //     )
-  //   ).to.throw();
-  // });
+    const transaction = await rentals.extendRentalExpiration(
+      provider.connection,
+      new Wallet(recipient),
+      tokenManagerId,
+      250
+    );
+    await expect(
+      executeTransaction(
+        provider.connection,
+        transaction,
+        new Wallet(recipient)
+      )
+    ).rejects.toThrow();
+  });
 });

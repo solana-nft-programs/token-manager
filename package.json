@@ -26,7 +26,7 @@
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
     "lint:ci": "eslint . --max-warnings=0",
     "prepare": "husky install",
-    "test": "jest --setupFiles dotenv/config --watchAll --no-cache --detectOpenHandles"
+    "test": "jest --setupFiles dotenv/config --detectOpenHandles"
   },
   "publishConfig": {
     "access": "public"

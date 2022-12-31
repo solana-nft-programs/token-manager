@@ -14,7 +14,6 @@ const wallet = new anchor.Wallet(
   )
 ); // your wallet's secret key
 const rulesetName = "ruleset-no-checks";
-const collector = new PublicKey("gmdS6fDgVbeCCYwwvTPJRKM9bFbAgSZh6MTDUT2DcgV");
 
 const main = async (cluster = "devnet") => {
   const connection = connectionFor(cluster);

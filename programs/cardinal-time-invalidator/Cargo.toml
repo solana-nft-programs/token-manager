@@ -23,7 +23,7 @@ default = []
 anchor-lang = { version = "0.25.0", features = ["init-if-needed"] }
 anchor-spl = "0.25.0"
 spl-associated-token-account = "1.0.5"
-spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
+spl-token = { version = "3.3.1", features = ["no-entrypoint"] }
 solana-program = "1.10.29"
 cardinal-token-manager = { version = "^3.0.0", path = "../cardinal-token-manager", features = ["cpi"] }
 cardinal-payment-manager = { version = "^2.0.0", features = ["cpi"] }

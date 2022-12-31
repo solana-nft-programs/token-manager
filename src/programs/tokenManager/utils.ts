@@ -1,32 +1,31 @@
+import type { AccountData } from "@cardinal/common";
 import {
-  Edition,
-  MetadataProgram,
-} from "@metaplex-foundation/mpl-token-metadata";
-import type { Wallet } from "@saberhq/solana-contrib";
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+  findMintEditionId,
+  METADATA_PROGRAM_ID,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { getAccount } from "@solana/spl-token";
 import type {
   AccountMeta,
   Connection,
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
-import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../..";
-import { withFindOrInitAssociatedTokenAccount } from "../..";
 import type { TokenManagerData } from ".";
 import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
 import { findMintManagerId, findTransferReceiptId } from "./pda";
 
-export const getRemainingAccountsForKind = async (
+export const getRemainingAccountsForKind = (
   mintId: PublicKey,
   tokenManagerKind: TokenManagerKind
-): Promise<AccountMeta[]> => {
+): AccountMeta[] => {
   if (
     tokenManagerKind === TokenManagerKind.Managed ||
     tokenManagerKind === TokenManagerKind.Permissioned
   ) {
-    const [mintManagerId] = await findMintManagerId(mintId);
+    const mintManagerId = findMintManagerId(mintId);
     return [
       {
         pubkey: mintManagerId,
@@ -35,7 +34,7 @@ export const getRemainingAccountsForKind = async (
       },
     ];
   } else if (tokenManagerKind === TokenManagerKind.Edition) {
-    const editionId = await Edition.getPDA(mintId);
+    const editionId = findMintEditionId(mintId);
     return [
       {
         pubkey: editionId,
@@ -43,7 +42,7 @@ export const getRemainingAccountsForKind = async (
         isWritable: false,
       },
       {
-        pubkey: MetadataProgram.PUBKEY,
+        pubkey: METADATA_PROGRAM_ID,
         isSigner: false,
         isWritable: false,
       },
@@ -94,13 +93,8 @@ export const withRemainingAccountsForReturn = async (
       // get holder of receipt mint
       const receiptTokenAccountId = receiptMintLargestAccount.value[0]?.address;
       if (!receiptTokenAccountId) throw new Error("No token accounts found");
-      const receiptMintToken = new Token(
+      const receiptTokenAccount = await getAccount(
         connection,
-        receiptMint,
-        TOKEN_PROGRAM_ID,
-        Keypair.generate()
-      );
-      const receiptTokenAccount = await receiptMintToken.getAccountInfo(
         receiptTokenAccountId
       );
 
@@ -147,12 +141,12 @@ export const withRemainingAccountsForReturn = async (
   }
 };
 
-export const getRemainingAccountsForTransfer = async (
+export const getRemainingAccountsForTransfer = (
   transferAuthority: PublicKey | null,
   tokenManagerId: PublicKey
-): Promise<AccountMeta[]> => {
+): AccountMeta[] => {
   if (transferAuthority) {
-    const [transferReceiptId] = await findTransferReceiptId(tokenManagerId);
+    const transferReceiptId = findTransferReceiptId(tokenManagerId);
     return [
       {
         pubkey: transferReceiptId,

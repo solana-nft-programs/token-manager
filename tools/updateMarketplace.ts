@@ -1,15 +1,14 @@
-import * as anchor from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
+import { executeTransaction, tryGetAccount } from "@cardinal/common";
+import { utils, Wallet } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import * as web3Js from "@solana/web3.js";
 
-import { executeTransaction } from "./utils";
-import { tryGetAccount, withUpdateMarketplace } from "../src";
-import { connectionFor } from "./connection";
+import { withUpdateMarketplace } from "../src";
 import { getMarketplaceByName } from "../src/programs/transferAuthority/accounts";
+import { connectionFor } from "./connection";
 
 const wallet = web3Js.Keypair.fromSecretKey(
-  anchor.utils.bytes.bs58.decode(anchor.utils.bytes.bs58.encode([]))
+  utils.bytes.bs58.decode(utils.bytes.bs58.encode([]))
 ); // your wallet's secret key
 export type PaymentManagerParams = {
   feeCollector: PublicKey;
@@ -29,20 +28,16 @@ const main = async (
   await withUpdateMarketplace(
     transaction,
     connection,
-    new SignerWallet(wallet),
+    new Wallet(wallet),
     marketplaceName,
     paymentManagerName,
     new PublicKey("cpmaMZyBQiPxpeuxNsQhW7N8z1o9yaNdLgiPhWGUEiX"),
     []
   );
   try {
-    await executeTransaction(
-      connection,
-      new SignerWallet(wallet),
-      transaction,
-      {}
-    );
+    await executeTransaction(connection, transaction, new Wallet(wallet), {});
   } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     console.log(`Transactionn failed: ${e}`);
   }
   const marketplaceData = await tryGetAccount(() =>

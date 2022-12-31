@@ -1,9 +1,8 @@
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
+import type { AccountData } from "@cardinal/common";
+import { AnchorProvider, Program, Wallet } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type { USE_INVALIDATOR_PROGRAM, UseInvalidatorData } from "./constants";
 import { USE_INVALIDATOR_ADDRESS, USE_INVALIDATOR_IDL } from "./constants";
 
@@ -13,7 +12,7 @@ export const getUseInvalidator = async (
 ): Promise<AccountData<UseInvalidatorData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const useInvalidatorProgram = new Program<USE_INVALIDATOR_PROGRAM>(
@@ -34,10 +33,10 @@ export const getUseInvalidator = async (
 export const getUseInvalidators = async (
   connection: Connection,
   useInvalidatorIds: PublicKey[]
-): Promise<AccountData<UseInvalidatorData>[]> => {
+): Promise<AccountData<UseInvalidatorData | null>[]> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const useInvalidatorProgram = new Program<USE_INVALIDATOR_PROGRAM>(
@@ -55,8 +54,8 @@ export const getUseInvalidators = async (
   } catch (e) {
     console.log(e);
   }
-  return useInvalidators.map((tm, i) => ({
-    parsed: tm!,
+  return useInvalidators.map((parsed, i) => ({
+    parsed,
     pubkey: useInvalidatorIds[i]!,
   }));
 };

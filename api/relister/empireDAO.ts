@@ -1,8 +1,7 @@
 import { getBatchedMultipleAccounts } from "@cardinal/common";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
-import { utils } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { utils, Wallet } from "@project-serum/anchor";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
   AccountInfo,
   Connection,
@@ -220,30 +219,25 @@ export const relistNFTs = async (cluster = "devnet") => {
         const expiration = getExpirationForSymbol(
           tokenData.metaplexData!.data.data.symbol
         );
-        await withIssueToken(
-          transaction,
-          connection,
-          new SignerWallet(wallet),
-          {
-            mint: new PublicKey(
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-              tokenData.tokenAccount!.account.data.parsed.info.mint
+        await withIssueToken(transaction, connection, new Wallet(wallet), {
+          mint: new PublicKey(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+            tokenData.tokenAccount!.account.data.parsed.info.mint
+          ),
+          kind: TokenManagerKind.Edition,
+          issuerTokenAccountId: tokenData.tokenAccount!.pubkey,
+          claimPayment: {
+            paymentAmount: getPriceForSymbolAndName(
+              tokenData.metaplexData!.data.data.symbol,
+              tokenData.metaplexData!.data.data.name
             ),
-            kind: TokenManagerKind.Edition,
-            issuerTokenAccountId: tokenData.tokenAccount!.pubkey,
-            claimPayment: {
-              paymentAmount: getPriceForSymbolAndName(
-                tokenData.metaplexData!.data.data.symbol,
-                tokenData.metaplexData!.data.data.name
-              ),
-              paymentMint: PAYMENT_MINT,
-            },
-            timeInvalidation: {
-              maxExpiration: expiration,
-            },
-            invalidationType: InvalidationType.Return,
-          }
-        );
+            paymentMint: PAYMENT_MINT,
+          },
+          timeInvalidation: {
+            maxExpiration: expiration,
+          },
+          invalidationType: InvalidationType.Return,
+        });
         accountsInTx.push(tokenData);
       } catch (e) {
         console.log(e);

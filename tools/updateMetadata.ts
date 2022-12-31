@@ -5,12 +5,13 @@ import {
   UpdateMetadataV2,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { utils } from "@project-serum/anchor";
-import { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
+  PublicKey,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+
 import { connectionFor } from "./connection";
 
 const wallet = Keypair.fromSecretKey(

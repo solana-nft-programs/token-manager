@@ -1,5 +1,4 @@
 import { utils } from "@project-serum/anchor";
-import type { Connection } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 
 import {
@@ -18,12 +17,11 @@ import {
  * Finds the token manager address for a given mint
  * @returns
  */
-export const tryTokenManagerAddressFromMint = async (
-  connection: Connection,
+export const tryTokenManagerAddressFromMint = (
   mint: PublicKey
-): Promise<PublicKey | null> => {
+): PublicKey | null => {
   try {
-    const tokenManagerId = await tokenManagerAddressFromMint(connection, mint);
+    const tokenManagerId = tokenManagerAddressFromMint(mint);
     return tokenManagerId;
   } catch (e) {
     return null;
@@ -34,11 +32,8 @@ export const tryTokenManagerAddressFromMint = async (
  * Finds the token manager address for a given mint
  * @returns
  */
-export const tokenManagerAddressFromMint = async (
-  _connection: Connection,
-  mint: PublicKey
-): Promise<PublicKey> => {
-  const [tokenManagerId] = await findTokenManagerAddress(mint);
+export const tokenManagerAddressFromMint = (mint: PublicKey): PublicKey => {
+  const tokenManagerId = findTokenManagerAddress(mint);
   return tokenManagerId;
 };
 
@@ -46,81 +41,71 @@ export const tokenManagerAddressFromMint = async (
  * Finds the token manager address for a given mint and mint counter
  * @returns
  */
-export const findTokenManagerAddress = async (
-  mint: PublicKey
-): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
+export const findTokenManagerAddress = (mint: PublicKey): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(TOKEN_MANAGER_SEED), mint.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the claim receipt id.
  * @returns
  */
-export const findClaimReceiptId = async (
-  tokenManagerKey: PublicKey,
+export const findClaimReceiptId = (
+  tokenManagerId: PublicKey,
   recipientKey: PublicKey
-): Promise<[PublicKey, number]> => {
-  return PublicKey.findProgramAddress(
+): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [
       utils.bytes.utf8.encode(CLAIM_RECEIPT_SEED),
-      tokenManagerKey.toBuffer(),
+      tokenManagerId.toBuffer(),
       recipientKey.toBuffer(),
     ],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the transfer receipt id.
  * @returns
  */
-export const findTransferReceiptId = async (
-  tokenManagerId: PublicKey
-): Promise<[PublicKey, number]> => {
-  return PublicKey.findProgramAddress(
+export const findTransferReceiptId = (tokenManagerId: PublicKey): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(TRANSFER_RECEIPT_SEED), tokenManagerId.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the mint manager id.
  * @returns
  */
-export const findMintManagerId = async (
-  mintId: PublicKey
-): Promise<[PublicKey, number]> => {
-  return PublicKey.findProgramAddress(
+export const findMintManagerId = (mintId: PublicKey): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(MINT_MANAGER_SEED), mintId.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the mint counter id.
  * @returns
  */
-export const findMintCounterId = async (
-  mintId: PublicKey
-): Promise<[PublicKey, number]> => {
-  return PublicKey.findProgramAddress(
+export const findMintCounterId = (mintId: PublicKey): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(MINT_COUNTER_SEED), mintId.toBuffer()],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the receipt mint manager id.
  * @returns
  */
-export const findReceiptMintManagerId = async (): Promise<
-  [PublicKey, number]
-> => {
-  return PublicKey.findProgramAddress(
+export const findReceiptMintManagerId = (): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(RECEIPT_MINT_MANAGER_SEED)],
     TOKEN_MANAGER_ADDRESS
-  );
+  )[0];
 };

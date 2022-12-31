@@ -1,15 +1,15 @@
+import type { AccountData } from "@cardinal/common";
 import {
   AnchorProvider,
   BN,
   BorshAccountsCoder,
   Program,
   utils,
+  Wallet,
 } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type { TokenManagerState } from ".";
 import type {
   MintCounterData,
@@ -26,7 +26,7 @@ export const getTokenManager = async (
 ): Promise<AccountData<TokenManagerData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -47,10 +47,10 @@ export const getTokenManager = async (
 export const getTokenManagers = async (
   connection: Connection,
   tokenManagerIds: PublicKey[]
-): Promise<AccountData<TokenManagerData>[]> => {
+): Promise<AccountData<TokenManagerData | null>[]> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -59,23 +59,18 @@ export const getTokenManagers = async (
     provider
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  let tokenManagers = [];
+  let tokenManagers: (TokenManagerData | null)[] = [];
   try {
     tokenManagers =
-      await tokenManagerProgram.account.tokenManager.fetchMultiple(
+      (await tokenManagerProgram.account.tokenManager.fetchMultiple(
         tokenManagerIds
-      );
+      )) as (TokenManagerData | null)[];
   } catch (e) {
     console.log(e);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   return tokenManagers.map((tm, i) => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     parsed: tm,
-    pubkey: tokenManagerIds[i],
+    pubkey: tokenManagerIds[i]!,
   }));
 };
 
@@ -140,7 +135,7 @@ export const getMintManager = async (
 ): Promise<AccountData<MintManagerData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -164,7 +159,7 @@ export const getMintCounter = async (
 ): Promise<AccountData<MintCounterData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
@@ -233,7 +228,7 @@ export const getTransferReceipt = async (
 ): Promise<AccountData<TransferReceiptData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(

@@ -1,13 +1,13 @@
+import type { AccountData } from "@cardinal/common";
 import {
   AnchorProvider,
   BorshAccountsCoder,
   Program,
+  Wallet,
 } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type {
   CLAIM_APPROVER_PROGRAM,
   PaidClaimApproverData,
@@ -21,7 +21,7 @@ export const getClaimApprover = async (
 ): Promise<AccountData<PaidClaimApproverData>> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
@@ -30,7 +30,7 @@ export const getClaimApprover = async (
     provider
   );
 
-  const [claimApproverId] = await findClaimApproverAddress(tokenManagerId);
+  const claimApproverId = findClaimApproverAddress(tokenManagerId);
 
   const parsed = await claimApproverProgram.account.paidClaimApprover.fetch(
     claimApproverId
@@ -44,10 +44,10 @@ export const getClaimApprover = async (
 export const getClaimApprovers = async (
   connection: Connection,
   claimApproverIds: PublicKey[]
-): Promise<AccountData<PaidClaimApproverData>[]> => {
+): Promise<AccountData<PaidClaimApproverData | null>[]> => {
   const provider = new AnchorProvider(
     connection,
-    new SignerWallet(Keypair.generate()),
+    new Wallet(Keypair.generate()),
     {}
   );
   const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
@@ -66,7 +66,7 @@ export const getClaimApprovers = async (
     console.log(e);
   }
   return claimApprovers.map((tm, i) => ({
-    parsed: tm!,
+    parsed: tm,
     pubkey: claimApproverIds[i]!,
   }));
 };

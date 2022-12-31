@@ -10,7 +10,7 @@ use solana_program::program::invoke_signed;
 
 use anchor_lang::{prelude::*, AccountsClose};
 
-#[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
+#[derive(Accounts)]
 
 pub struct MigrateCtx<'info> {
     current_mint_manager: Box<Account<'info, MintManager>>,
@@ -33,12 +33,6 @@ pub struct MigrateCtx<'info> {
     /// CHECK: no checks required
     token_authority: UncheckedAccount<'info>,
 
-    /// CHECK: no checks required
-    #[account(mut)]
-    ruleset_collector: UncheckedAccount<'info>,
-    /// CHECK: no checks required
-    #[account(mut)]
-    collector: UncheckedAccount<'info>,
     /// CHECK: no checks required
     authority: UncheckedAccount<'info>,
 

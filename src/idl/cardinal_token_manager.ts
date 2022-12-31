@@ -830,16 +830,6 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
-          name: "rulesetCollector";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "collector";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "authority";
           isMut: false;
           isSigner: false;
@@ -1068,110 +1058,6 @@ export type CardinalTokenManager = {
           {
             name: "numInvalidators";
             type: "u8";
-          }
-        ];
-      };
-    },
-    {
-      name: "MigrateCtx";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "currentMintManager";
-            type: {
-              defined: "Account<'info,MintManager>";
-            };
-          },
-          {
-            name: "mintManager";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "mint";
-            type: {
-              defined: "Account<'info,Mint>";
-            };
-          },
-          {
-            name: "mintMetadata";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "ruleset";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "tokenManager";
-            type: {
-              defined: "Account<'info,TokenManager>";
-            };
-          },
-          {
-            name: "holderTokenAccount";
-            type: {
-              defined: "Account<'info,TokenAccount>";
-            };
-          },
-          {
-            name: "tokenAuthority";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "rulesetCollector";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "collector";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "authority";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
-          },
-          {
-            name: "payer";
-            type: {
-              defined: "Signer<'info>";
-            };
-          },
-          {
-            name: "rent";
-            type: {
-              defined: "Sysvar<'info,Rent>";
-            };
-          },
-          {
-            name: "tokenProgram";
-            type: {
-              defined: "Program<'info,Token>";
-            };
-          },
-          {
-            name: "systemProgram";
-            type: {
-              defined: "Program<'info,System>";
-            };
-          },
-          {
-            name: "cardinalCreatorStandard";
-            type: {
-              defined: "UncheckedAccount<'info>";
-            };
           }
         ];
       };
@@ -2271,16 +2157,6 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
         {
-          name: "rulesetCollector",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "collector",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "authority",
           isMut: false,
           isSigner: false,
@@ -2509,110 +2385,6 @@ export const IDL: CardinalTokenManager = {
           {
             name: "numInvalidators",
             type: "u8",
-          },
-        ],
-      },
-    },
-    {
-      name: "MigrateCtx",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "currentMintManager",
-            type: {
-              defined: "Account<'info,MintManager>",
-            },
-          },
-          {
-            name: "mintManager",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "mint",
-            type: {
-              defined: "Account<'info,Mint>",
-            },
-          },
-          {
-            name: "mintMetadata",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "ruleset",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "tokenManager",
-            type: {
-              defined: "Account<'info,TokenManager>",
-            },
-          },
-          {
-            name: "holderTokenAccount",
-            type: {
-              defined: "Account<'info,TokenAccount>",
-            },
-          },
-          {
-            name: "tokenAuthority",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "rulesetCollector",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "collector",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "authority",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
-          },
-          {
-            name: "payer",
-            type: {
-              defined: "Signer<'info>",
-            },
-          },
-          {
-            name: "rent",
-            type: {
-              defined: "Sysvar<'info,Rent>",
-            },
-          },
-          {
-            name: "tokenProgram",
-            type: {
-              defined: "Program<'info,Token>",
-            },
-          },
-          {
-            name: "systemProgram",
-            type: {
-              defined: "Program<'info,System>",
-            },
-          },
-          {
-            name: "cardinalCreatorStandard",
-            type: {
-              defined: "UncheckedAccount<'info>",
-            },
           },
         ],
       },

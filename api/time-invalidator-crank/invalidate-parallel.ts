@@ -9,8 +9,7 @@ import {
   TokenManagerData,
   withRemainingAccountsForReturn,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
-import { utils } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
+import { utils, Wallet } from "@project-serum/anchor";
 import {
   Connection,
   Keypair,
@@ -162,7 +161,7 @@ const main = async (cluster: string) => {
             transaction.add(
               timeInvalidator.instruction.close(
                 connection,
-                new SignerWallet(wallet),
+                new Wallet(wallet),
                 timeInvalidatorData.pubkey,
                 timeInvalidatorData.parsed.tokenManager
               )
@@ -198,13 +197,13 @@ const main = async (cluster: string) => {
                 tokenManagerData?.parsed.receiptMint
                   ? secondaryConnectionFor(cluster)
                   : connection,
-                new SignerWallet(wallet),
+                new Wallet(wallet),
                 tokenManagerData
               );
             transaction.add(
               await timeInvalidator.instruction.invalidate(
                 connection,
-                new SignerWallet(wallet),
+                new Wallet(wallet),
                 tokenManagerData.parsed.mint,
                 tokenManagerData.pubkey,
                 tokenManagerData.parsed.kind,
@@ -217,7 +216,7 @@ const main = async (cluster: string) => {
             transaction.add(
               timeInvalidator.instruction.close(
                 connection,
-                new SignerWallet(wallet),
+                new Wallet(wallet),
                 timeInvalidatorData.pubkey,
                 timeInvalidatorData.parsed.tokenManager,
                 timeInvalidatorData.parsed.collector

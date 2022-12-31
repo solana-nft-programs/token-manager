@@ -18,7 +18,7 @@ pub struct AcceptListingIx {
     pub payment_amount: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Accounts)]
+#[derive(Accounts)]
 pub struct AcceptListingCtx<'info> {
     #[account(mut, constraint = transfer_authority.key() == token_manager.transfer_authority.expect("No transfer authority for token manager") @ ErrorCode::InvalidTransferAuthority)]
     transfer_authority: Box<Account<'info, TransferAuthority>>,

@@ -14,55 +14,47 @@ import {
  * Finds the address of the transfer authority.
  * @returns
  */
-export const findTransferAuthorityAddress = async (
-  name: string
-): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
+export const findTransferAuthorityAddress = (name: string): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [
       utils.bytes.utf8.encode(TRANSFER_AUTHORITY_SEED),
       utils.bytes.utf8.encode(name),
     ],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the address of the marketplace.
  * @returns
  */
-export const findMarketplaceAddress = async (
-  name: string
-): Promise<[PublicKey, number]> => {
-  return await PublicKey.findProgramAddress(
+export const findMarketplaceAddress = (name: string): PublicKey => {
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(MARKETPLACE_SEED), utils.bytes.utf8.encode(name)],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the address of the listing.
  * @returns
  */
-export const findListingAddress = async (
-  mintId: PublicKey
-): Promise<[PublicKey, number]> => {
-  const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  return await PublicKey.findProgramAddress(
+export const findListingAddress = (mintId: PublicKey): PublicKey => {
+  const tokenManagerId = findTokenManagerAddress(mintId);
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(LISTING_SEED), tokenManagerId.toBytes()],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };
 
 /**
  * Finds the address of the transfer.
  * @returns
  */
-export const findTransferAddress = async (
-  mintId: PublicKey
-): Promise<[PublicKey, number]> => {
-  const [tokenManagerId] = await findTokenManagerAddress(mintId);
-  return await PublicKey.findProgramAddress(
+export const findTransferAddress = (mintId: PublicKey): PublicKey => {
+  const tokenManagerId = findTokenManagerAddress(mintId);
+  return PublicKey.findProgramAddressSync(
     [utils.bytes.utf8.encode(TRANSFER_SEED), tokenManagerId.toBytes()],
     TRANSFER_AUTHORITY_ADDRESS
-  );
+  )[0];
 };

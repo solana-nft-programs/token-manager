@@ -1,5 +1,12 @@
-import type { AnchorTypes } from "@saberhq/anchor-contrib";
-import { PublicKey } from "@solana/web3.js";
+import type { ParsedIdlAccountData } from "@cardinal/common";
+import {
+  AnchorProvider,
+  Program,
+  Wallet as AWallet,
+} from "@project-serum/anchor";
+import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import type { ConfirmOptions, Connection } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 import * as TIME_INVALIDATOR_TYPES from "../../idl/cardinal_time_invalidator";
 
@@ -14,12 +21,36 @@ export const TIME_INVALIDATOR_IDL = TIME_INVALIDATOR_TYPES.IDL;
 export type TIME_INVALIDATOR_PROGRAM =
   TIME_INVALIDATOR_TYPES.CardinalTimeInvalidator;
 
-export type TimeInvalidatorTypes = AnchorTypes<
-  TIME_INVALIDATOR_PROGRAM,
-  {
-    tokenManager: TimeInvalidatorData;
-  }
+export type TimeInvalidatorData = ParsedIdlAccountData<
+  "timeInvalidator",
+  TIME_INVALIDATOR_PROGRAM
 >;
 
-type Accounts = TimeInvalidatorTypes["Accounts"];
-export type TimeInvalidatorData = Accounts["timeInvalidator"];
+export type TimeInvalidationParams = {
+  collector?: PublicKey;
+  paymentManager?: PublicKey;
+  durationSeconds?: number;
+  maxExpiration?: number;
+  extension?: {
+    extensionPaymentAmount: number;
+    extensionDurationSeconds: number;
+    extensionPaymentMint: PublicKey;
+    disablePartialExtension?: boolean;
+  };
+};
+
+export const timeInvalidatorProgram = (
+  connection: Connection,
+  wallet?: Wallet,
+  confirmOptions?: ConfirmOptions
+) => {
+  return new Program<TIME_INVALIDATOR_PROGRAM>(
+    TIME_INVALIDATOR_IDL,
+    TIME_INVALIDATOR_ADDRESS,
+    new AnchorProvider(
+      connection,
+      wallet ?? new AWallet(Keypair.generate()),
+      confirmOptions ?? {}
+    )
+  );
+};

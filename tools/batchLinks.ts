@@ -1,3 +1,4 @@
+import { createMintIxs, executeTransaction, findAta } from "@cardinal/common";
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
@@ -8,12 +9,7 @@ import {
   Metadata,
   MintNewEditionFromMasterEditionViaToken,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { BN, utils } from "@project-serum/anchor";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
+import { BN, utils, Wallet } from "@project-serum/anchor";
 import {
   Keypair,
   sendAndConfirmRawTransaction,
@@ -27,7 +23,6 @@ import {
   TokenManagerKind,
 } from "../src/programs/tokenManager";
 import { connectionFor } from "./connection";
-import { createMintTransaction } from "./utils";
 
 // twLqUrEvBPdtWFusa4MSWqkyE7TyhJTv3xBXiLYUNcX
 const wallet = Keypair.fromSecretKey(
@@ -55,14 +50,20 @@ export const getEditionLinks = async (
   // );
   const masterEditionTransaction = new Transaction();
   const masterEditionMint = Keypair.generate();
-  const [masterEditionTokenAccountId] = await createMintTransaction(
-    masterEditionTransaction,
+  const [ixs] = await createMintIxs(
     connection,
-    new SignerWallet(wallet),
-    wallet.publicKey,
     masterEditionMint.publicKey,
-    1
+    wallet.publicKey
   );
+  const masterEditionTokenAccountId = await findAta(
+    masterEditionMint.publicKey,
+    wallet.publicKey,
+    true
+  );
+  masterEditionTransaction.instructions = [
+    ...masterEditionTransaction.instructions,
+    ...ixs,
+  ];
 
   const masterEditionMetadataId = await Metadata.getPDA(
     masterEditionMint.publicKey
@@ -103,23 +104,15 @@ export const getEditionLinks = async (
       maxSupply: new BN(numLinks),
     }
   );
-  const txEnvelope = new TransactionEnvelope(
-    SolanaProvider.init({
-      connection: connection,
-      wallet: new SignerWallet(wallet),
-      opts: {
-        commitment: "finalized",
-      },
-    }),
-    [
-      ...masterEditionTransaction.instructions,
-      ...metadataTx.instructions,
-      ...masterEditionTx.instructions,
-    ],
-    [masterEditionMint]
-  );
-  await txEnvelope.send({
-    commitment: "finalized",
+
+  const tx = new Transaction();
+  tx.instructions = [
+    ...masterEditionTransaction.instructions,
+    ...metadataTx.instructions,
+    ...masterEditionTx.instructions,
+  ];
+  await executeTransaction(connection, tx, new Wallet(wallet), {
+    signers: [masterEditionMint],
   });
   console.log(
     `Master edition (${masterEditionId.toString()}) created with metadata (${masterEditionMetadataId.toString()})`
@@ -139,14 +132,17 @@ export const getEditionLinks = async (
     // );
     const editionMint = Keypair.generate();
     const editionTransaction = new Transaction();
-    const [editionTokenAccountId] = await createMintTransaction(
-      editionTransaction,
+    const [ixs] = await createMintIxs(
       connection,
-      new SignerWallet(wallet),
-      wallet.publicKey,
       editionMint.publicKey,
-      1
+      wallet.publicKey
     );
+    const editionTokenAccountId = await findAta(
+      editionMint.publicKey,
+      wallet.publicKey,
+      true
+    );
+    editionTransaction.instructions = [...ixs];
 
     console.log(`Edition mint created (${editionMint.publicKey.toString()})`);
 
@@ -178,7 +174,7 @@ export const getEditionLinks = async (
     );
     const [transaction, tokenManagerId, otp] = await claimLinks.issueToken(
       connection,
-      new SignerWallet(wallet),
+      new Wallet(wallet),
       {
         mint: editionMint.publicKey,
         issuerTokenAccountId: editionTokenAccountId,
@@ -188,23 +184,14 @@ export const getEditionLinks = async (
       }
     );
 
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: connection,
-        wallet: new SignerWallet(wallet),
-        opts: {
-          commitment: "finalized",
-        },
-      }),
-      [
-        ...editionTransaction.instructions,
-        ...editionTx.instructions,
-        ...transaction.instructions,
-      ],
-      [editionMint]
-    );
-    await txEnvelope.send({
-      commitment: "finalized",
+    const tx2 = new Transaction();
+    tx2.instructions = [
+      ...editionTransaction.instructions,
+      ...editionTx.instructions,
+      ...transaction.instructions,
+    ];
+    await executeTransaction(connection, tx2, new Wallet(wallet), {
+      signers: [editionMint],
     });
     console.log(
       `Edition data created editionId=(${editionId.toString()}) marker=(${editionMarkerId.toString()})`
@@ -235,14 +222,20 @@ export const getMasterEditionLinks = async (
     try {
       const masterEditionTransaction = new Transaction();
       const masterEditionMint = Keypair.generate();
-      const [masterEditionTokenAccountId] = await createMintTransaction(
-        masterEditionTransaction,
+      const [ixs] = await createMintIxs(
         connection,
-        new SignerWallet(wallet),
-        wallet.publicKey,
         masterEditionMint.publicKey,
-        1
+        wallet.publicKey
       );
+      const masterEditionTokenAccountId = await findAta(
+        masterEditionMint.publicKey,
+        wallet.publicKey,
+        true
+      );
+      masterEditionTransaction.instructions = [
+        ...masterEditionTransaction.instructions,
+        ...ixs,
+      ];
 
       const masterEditionMetadataId = await Metadata.getPDA(
         masterEditionMint.publicKey
@@ -287,7 +280,7 @@ export const getMasterEditionLinks = async (
       );
 
       const [issueTransaction, tokenManagerId, otp] =
-        await claimLinks.issueToken(connection, new SignerWallet(wallet), {
+        await claimLinks.issueToken(connection, new Wallet(wallet), {
           mint: masterEditionMint.publicKey,
           issuerTokenAccountId: masterEditionTokenAccountId,
           useInvalidation: { totalUsages: 1 },

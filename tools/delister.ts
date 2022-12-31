@@ -1,16 +1,15 @@
-import { utils } from "@project-serum/anchor";
-import { SignerWallet } from "@saberhq/solana-contrib";
-import { PublicKey } from "@solana/web3.js";
+import { chunkArray } from "@cardinal/common";
+import { utils, Wallet } from "@project-serum/anchor";
 import {
   Keypair,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+
 import { withUnissueToken } from "../src";
 import { TokenManagerState } from "../src/programs/tokenManager";
 import { getTokenManagersForIssuer } from "../src/programs/tokenManager/accounts";
 import { connectionFor } from "./connection";
-import { chunkArray } from "./utils";
 
 const wallet = Keypair.fromSecretKey(
   utils.bytes.bs58.decode(process.env.AIRDROP_KEY || "")
@@ -28,7 +27,7 @@ const delist = async (cluster: string): Promise<string[]> => {
       (tokenManagers) => tokenManagers.parsed.state === TokenManagerState.Issued
     )
     .map((tokenManager) => tokenManager.parsed.mint);
-  const chunkedEntries = chunkArray(mintIds, BATCH_SIZE) as PublicKey[][];
+  const chunkedEntries = chunkArray(mintIds, BATCH_SIZE);
   const allMintIds: string[] = [];
   for (let i = 0; i < chunkedEntries.length; i++) {
     console.log(`\n--------- Batch ${i}/${chunkedEntries.length} ---------`);
@@ -41,11 +40,13 @@ const delist = async (cluster: string): Promise<string[]> => {
         await withUnissueToken(
           transaction,
           connection,
-          new SignerWallet(wallet),
+          new Wallet(wallet),
           mintId
         );
         allMintIds.push(mintId.toString());
-      } catch (e) {}
+      } catch (e) {
+        /* empty */
+      }
     }
     try {
       transaction.feePayer = wallet.publicKey;
@@ -64,6 +65,7 @@ const delist = async (cluster: string): Promise<string[]> => {
         `Successful transaction for https://explorer.solana.com/tx/${txid}?cluster=${cluster}`
       );
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       console.log(`Failed to delist ${e}`);
     }
   }

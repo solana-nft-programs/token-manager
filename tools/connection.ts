@@ -2,8 +2,11 @@ import { Connection } from "@solana/web3.js";
 
 const networkURLs: { [key: string]: string } = {
   ["mainnet-beta"]:
-    process.env.MAINNET_PRIMARY || "https://ssc-dao.genesysgo.net/",
-  mainnet: process.env.MAINNET_PRIMARY || "https://ssc-dao.genesysgo.net/",
+    process.env.MAINNET_PRIMARY ||
+    "https://explorer-api.mainnet-beta.solana.com/",
+  mainnet:
+    process.env.MAINNET_PRIMARY ||
+    "https://explorer-api.mainnet-beta.solana.com/",
   devnet: "https://api.devnet.solana.com/",
   testnet: "https://api.testnet.solana.com/",
   localnet: "http://localhost:8899/",

@@ -1,15 +1,23 @@
 import {
-  programs,
+  AccountData,
   withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/token-manager";
+} from "@cardinal/common";
+import { programs } from "@cardinal/token-manager";
 import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
+import { timeInvalidatorProgram } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator";
 import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
-import { withRemainingAccountsForReturn } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import {
+  TokenManagerData,
+  TOKEN_MANAGER_ADDRESS,
+  withRemainingAccountsForReturn,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import { utils, Wallet } from "@project-serum/anchor";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   Connection,
   Keypair,
   sendAndConfirmRawTransaction,
+  SYSVAR_RENT_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
 
@@ -32,6 +40,10 @@ const getSolanaClock = async (
 
 const main = async (cluster: string) => {
   const connection = connectionFor(cluster);
+  const tmeInvalidatorProgram = timeInvalidatorProgram(
+    connection,
+    new Wallet(wallet)
+  );
   const startTime = Date.now() / 1000;
   let solanaClock = await getSolanaClock(connection);
   if (!solanaClock) {
@@ -48,10 +60,12 @@ const main = async (cluster: string) => {
     (timeInvalidator) => timeInvalidator.parsed.tokenManager
   );
 
-  const tokenManagers = await programs.tokenManager.accounts.getTokenManagers(
-    connection,
-    tokenManagerIds
-  );
+  const tokenManagers = (
+    await programs.tokenManager.accounts.getTokenManagers(
+      connection,
+      tokenManagerIds
+    )
+  ).filter((x): x is AccountData<TokenManagerData> => x !== null);
 
   console.log(
     `--------------- ${wallet.publicKey.toString()} found ${
@@ -77,14 +91,16 @@ const main = async (cluster: string) => {
 
       const transaction = new Transaction();
       if (!tokenManagerData) {
-        transaction.add(
-          timeInvalidator.instruction.close(
-            connection,
-            new Wallet(wallet),
-            timeInvalidatorData.pubkey,
-            timeInvalidatorData.parsed.tokenManager
-          )
-        );
+        const closeIx = await tmeInvalidatorProgram.methods
+          .close()
+          .accounts({
+            tokenManager: timeInvalidatorData.parsed.tokenManager,
+            timeInvalidator: timeInvalidatorData.pubkey,
+            collector: timeInvalidatorData.parsed.collector,
+            closer: wallet.publicKey,
+          })
+          .instruction();
+        transaction.add(closeIx);
       } else if (
         shouldTimeInvalidate(
           tokenManagerData,
@@ -109,28 +125,33 @@ const main = async (cluster: string) => {
           new Wallet(wallet),
           tokenManagerData
         );
-        transaction.add(
-          await timeInvalidator.instruction.invalidate(
-            connection,
-            new Wallet(wallet),
-            tokenManagerData.parsed.mint,
-            tokenManagerData.pubkey,
-            tokenManagerData.parsed.kind,
-            tokenManagerData.parsed.state,
-            tokenManagerTokenAccountId,
-            tokenManagerData?.parsed.recipientTokenAccount,
-            remainingAccountsForReturn
-          )
-        );
-        transaction.add(
-          timeInvalidator.instruction.close(
-            connection,
-            new Wallet(wallet),
-            timeInvalidatorData.pubkey,
-            timeInvalidatorData.parsed.tokenManager,
-            timeInvalidatorData.parsed.collector
-          )
-        );
+        const invalidateIx = await tmeInvalidatorProgram.methods
+          .invalidate()
+          .accounts({
+            tokenManager: timeInvalidatorData.parsed.tokenManager,
+            timeInvalidator: timeInvalidatorData.pubkey,
+            invalidator: wallet.publicKey,
+            cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            tokenManagerTokenAccount: tokenManagerTokenAccountId,
+            mint: tokenManagerData.parsed.mint,
+            recipientTokenAccount:
+              tokenManagerData?.parsed.recipientTokenAccount,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .remainingAccounts(remainingAccountsForReturn)
+          .instruction();
+        transaction.add(invalidateIx);
+        const closeIx = await tmeInvalidatorProgram.methods
+          .close()
+          .accounts({
+            tokenManager: timeInvalidatorData.parsed.tokenManager,
+            timeInvalidator: timeInvalidatorData.pubkey,
+            collector: timeInvalidatorData.parsed.collector,
+            closer: wallet.publicKey,
+          })
+          .instruction();
+        transaction.add(closeIx);
       } else {
         console.log(
           `Skipping this time invalidator for mint (${tokenManagerData.parsed.mint.toString()})`

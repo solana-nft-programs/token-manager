@@ -5,7 +5,7 @@ frameworkVersion: "2 || 3"
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs16.x
   lambdaHashingVersion: "20201221"
   environment:
     MAINNET_PRIMARY: ${param:MAINNET_PRIMARY}

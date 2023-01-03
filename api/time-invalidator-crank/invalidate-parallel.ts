@@ -7,7 +7,9 @@ import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
 import { timeInvalidatorProgram } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator";
 import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
 import {
+  getRemainingAccountsForKind,
   TokenManagerData,
+  TokenManagerState,
   TOKEN_MANAGER_ADDRESS,
   withRemainingAccountsForReturn,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
@@ -100,7 +102,7 @@ const main = async (cluster: string) => {
         connection,
         tokenManagerIds
       )
-    ).filter((x): x is AccountData<TokenManagerData> => x !== null);
+    ).filter((x): x is AccountData<TokenManagerData> => x.parsed !== null);
     tokenManagers.push(...singleBatch);
     await new Promise((r) => setTimeout(r, BATCH_LOOKUP_WAIT_TIME_SECONDS));
   }
@@ -203,6 +205,14 @@ const main = async (cluster: string) => {
                 wallet.publicKey,
                 true
               );
+
+            if (tokenManagerData?.parsed.receiptMint) {
+              throw "[skip] receipt mint not automated";
+            }
+            const transferAccounts = getRemainingAccountsForKind(
+              tokenManagerData.parsed.mint,
+              tokenManagerData.parsed.kind
+            );
             const remainingAccountsForReturn =
               await withRemainingAccountsForReturn(
                 transaction,
@@ -226,7 +236,12 @@ const main = async (cluster: string) => {
                   tokenManagerData?.parsed.recipientTokenAccount,
                 rent: SYSVAR_RENT_PUBKEY,
               })
-              .remainingAccounts(remainingAccountsForReturn)
+              .remainingAccounts([
+                ...(tokenManagerData.parsed.state === TokenManagerState.Claimed
+                  ? transferAccounts
+                  : []),
+                ...remainingAccountsForReturn,
+              ])
               .instruction();
             transaction.add(invalidateIx);
             const closeIx = await tmeInvalidatorProgram.methods

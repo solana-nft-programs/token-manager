@@ -1,38 +1,21 @@
 import type { AccountData } from "@cardinal/common";
-import {
-  AnchorProvider,
-  BN,
-  BorshAccountsCoder,
-  Program,
-  Wallet,
-} from "@project-serum/anchor";
+import { BN, BorshAccountsCoder } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
-import { Keypair } from "@solana/web3.js";
 
-import type {
-  TIME_INVALIDATOR_PROGRAM,
-  TimeInvalidatorData,
+import type { TimeInvalidatorData } from "./constants";
+import {
+  TIME_INVALIDATOR_ADDRESS,
+  TIME_INVALIDATOR_IDL,
+  timeInvalidatorProgram,
 } from "./constants";
-import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_IDL } from "./constants";
 
 export const getTimeInvalidator = async (
   connection: Connection,
   timeInvalidatorId: PublicKey
 ): Promise<AccountData<TimeInvalidatorData>> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
-    TIME_INVALIDATOR_IDL,
-    TIME_INVALIDATOR_ADDRESS,
-    provider
-  );
+  const program = timeInvalidatorProgram(connection);
 
-  const parsed = await timeInvalidatorProgram.account.timeInvalidator.fetch(
-    timeInvalidatorId
-  );
+  const parsed = await program.account.timeInvalidator.fetch(timeInvalidatorId);
   return {
     parsed,
     pubkey: timeInvalidatorId,
@@ -43,23 +26,13 @@ export const getTimeInvalidators = async (
   connection: Connection,
   timeInvalidatorIds: PublicKey[]
 ): Promise<AccountData<TimeInvalidatorData | null>[]> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const timeInvalidatorProgram = new Program<TIME_INVALIDATOR_PROGRAM>(
-    TIME_INVALIDATOR_IDL,
-    TIME_INVALIDATOR_ADDRESS,
-    provider
-  );
+  const program = timeInvalidatorProgram(connection);
 
   let timeInvalidators: (TimeInvalidatorData | null)[] = [];
   try {
-    timeInvalidators =
-      (await timeInvalidatorProgram.account.timeInvalidator.fetchMultiple(
-        timeInvalidatorIds
-      )) as (TimeInvalidatorData | null)[];
+    timeInvalidators = (await program.account.timeInvalidator.fetchMultiple(
+      timeInvalidatorIds
+    )) as (TimeInvalidatorData | null)[];
   } catch (e) {
     console.log(e);
   }

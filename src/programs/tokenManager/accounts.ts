@@ -1,43 +1,26 @@
 import type { AccountData } from "@cardinal/common";
-import {
-  AnchorProvider,
-  BN,
-  BorshAccountsCoder,
-  Program,
-  utils,
-  Wallet,
-} from "@project-serum/anchor";
+import { BN, BorshAccountsCoder, utils } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
-import { Keypair } from "@solana/web3.js";
 
 import type { TokenManagerState } from ".";
 import type {
   MintCounterData,
   MintManagerData,
-  TOKEN_MANAGER_PROGRAM,
   TokenManagerData,
   TransferReceiptData,
 } from "./constants";
-import { TOKEN_MANAGER_ADDRESS, TOKEN_MANAGER_IDL } from "./constants";
+import {
+  TOKEN_MANAGER_ADDRESS,
+  TOKEN_MANAGER_IDL,
+  tokenManagerProgram,
+} from "./constants";
 
 export const getTokenManager = async (
   connection: Connection,
   tokenManagerId: PublicKey
 ): Promise<AccountData<TokenManagerData>> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
-    TOKEN_MANAGER_IDL,
-    TOKEN_MANAGER_ADDRESS,
-    provider
-  );
-
-  const parsed = await tokenManagerProgram.account.tokenManager.fetch(
-    tokenManagerId
-  );
+  const program = tokenManagerProgram(connection);
+  const parsed = await program.account.tokenManager.fetch(tokenManagerId);
   return {
     parsed,
     pubkey: tokenManagerId,
@@ -48,23 +31,13 @@ export const getTokenManagers = async (
   connection: Connection,
   tokenManagerIds: PublicKey[]
 ): Promise<AccountData<TokenManagerData | null>[]> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
-    TOKEN_MANAGER_IDL,
-    TOKEN_MANAGER_ADDRESS,
-    provider
-  );
+  const program = tokenManagerProgram(connection);
 
   let tokenManagers: (TokenManagerData | null)[] = [];
   try {
-    tokenManagers =
-      (await tokenManagerProgram.account.tokenManager.fetchMultiple(
-        tokenManagerIds
-      )) as (TokenManagerData | null)[];
+    tokenManagers = (await program.account.tokenManager.fetchMultiple(
+      tokenManagerIds
+    )) as (TokenManagerData | null)[];
   } catch (e) {
     console.log(e);
   }
@@ -133,20 +106,9 @@ export const getMintManager = async (
   connection: Connection,
   mintManagerId: PublicKey
 ): Promise<AccountData<MintManagerData>> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
-    TOKEN_MANAGER_IDL,
-    TOKEN_MANAGER_ADDRESS,
-    provider
-  );
+  const program = tokenManagerProgram(connection);
 
-  const parsed = await tokenManagerProgram.account.mintManager.fetch(
-    mintManagerId
-  );
+  const parsed = await program.account.mintManager.fetch(mintManagerId);
   return {
     parsed,
     pubkey: mintManagerId,
@@ -157,20 +119,9 @@ export const getMintCounter = async (
   connection: Connection,
   mintCounterId: PublicKey
 ): Promise<AccountData<MintCounterData>> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
-    TOKEN_MANAGER_IDL,
-    TOKEN_MANAGER_ADDRESS,
-    provider
-  );
+  const program = tokenManagerProgram(connection);
 
-  const parsed = await tokenManagerProgram.account.mintCounter.fetch(
-    mintCounterId
-  );
+  const parsed = await program.account.mintCounter.fetch(mintCounterId);
   return {
     parsed,
     pubkey: mintCounterId,
@@ -226,20 +177,9 @@ export const getTransferReceipt = async (
   connection: Connection,
   transferReceiptId: PublicKey
 ): Promise<AccountData<TransferReceiptData>> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const tokenManagerProgram = new Program<TOKEN_MANAGER_PROGRAM>(
-    TOKEN_MANAGER_IDL,
-    TOKEN_MANAGER_ADDRESS,
-    provider
-  );
+  const program = tokenManagerProgram(connection);
 
-  const parsed = await tokenManagerProgram.account.transferReceipt.fetch(
-    transferReceiptId
-  );
+  const parsed = await program.account.transferReceipt.fetch(transferReceiptId);
   return {
     parsed,
     pubkey: transferReceiptId,

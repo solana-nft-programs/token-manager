@@ -1,11 +1,8 @@
 import type { ParsedIdlAccountData } from "@cardinal/common";
+import { emptyWallet } from "@cardinal/common";
 import { DEFAULT_PAYMENT_MANAGER_NAME } from "@cardinal/payment-manager";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import {
-  AnchorProvider,
-  Program,
-  Wallet as AWallet,
-} from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import type { ConfirmOptions, Connection } from "@solana/web3.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
@@ -49,7 +46,7 @@ export const claimApproverProgram = (
     CLAIM_APPROVER_ADDRESS,
     new AnchorProvider(
       connection,
-      wallet ?? new AWallet(Keypair.generate()),
+      wallet ?? emptyWallet(Keypair.generate().publicKey),
       confirmOptions ?? {}
     )
   );

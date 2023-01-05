@@ -1,40 +1,23 @@
 import type { AccountData } from "@cardinal/common";
-import {
-  AnchorProvider,
-  BorshAccountsCoder,
-  Program,
-  Wallet,
-} from "@project-serum/anchor";
+import { BorshAccountsCoder } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
-import { Keypair } from "@solana/web3.js";
 
-import type {
-  CLAIM_APPROVER_PROGRAM,
-  PaidClaimApproverData,
+import type { PaidClaimApproverData } from "./constants";
+import {
+  CLAIM_APPROVER_ADDRESS,
+  CLAIM_APPROVER_IDL,
+  claimApproverProgram,
 } from "./constants";
-import { CLAIM_APPROVER_ADDRESS, CLAIM_APPROVER_IDL } from "./constants";
 import { findClaimApproverAddress } from "./pda";
 
 export const getClaimApprover = async (
   connection: Connection,
   tokenManagerId: PublicKey
 ): Promise<AccountData<PaidClaimApproverData>> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
-    CLAIM_APPROVER_IDL,
-    CLAIM_APPROVER_ADDRESS,
-    provider
-  );
-
+  const program = claimApproverProgram(connection);
   const claimApproverId = findClaimApproverAddress(tokenManagerId);
 
-  const parsed = await claimApproverProgram.account.paidClaimApprover.fetch(
-    claimApproverId
-  );
+  const parsed = await program.account.paidClaimApprover.fetch(claimApproverId);
   return {
     parsed,
     pubkey: claimApproverId,
@@ -45,23 +28,12 @@ export const getClaimApprovers = async (
   connection: Connection,
   claimApproverIds: PublicKey[]
 ): Promise<AccountData<PaidClaimApproverData | null>[]> => {
-  const provider = new AnchorProvider(
-    connection,
-    new Wallet(Keypair.generate()),
-    {}
-  );
-  const claimApproverProgram = new Program<CLAIM_APPROVER_PROGRAM>(
-    CLAIM_APPROVER_IDL,
-    CLAIM_APPROVER_ADDRESS,
-    provider
-  );
-
+  const program = claimApproverProgram(connection);
   let claimApprovers: (PaidClaimApproverData | null)[] = [];
   try {
-    claimApprovers =
-      (await claimApproverProgram.account.paidClaimApprover.fetchMultiple(
-        claimApproverIds
-      )) as (PaidClaimApproverData | null)[];
+    claimApprovers = (await program.account.paidClaimApprover.fetchMultiple(
+      claimApproverIds
+    )) as (PaidClaimApproverData | null)[];
   } catch (e) {
     console.log(e);
   }

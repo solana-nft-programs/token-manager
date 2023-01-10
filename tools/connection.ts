@@ -1,4 +1,7 @@
 import { Connection } from "@solana/web3.js";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const networkURLs: { [key: string]: string } = {
   ["mainnet-beta"]:

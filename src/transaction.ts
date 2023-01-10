@@ -1388,7 +1388,7 @@ export const withMigrate = async (
 
   const migrateIx = await tmManagerProgram.methods
     .migrate()
-    .accounts({
+    .accountsStrict({
       currentMintManager: currentMintManagerId,
       mintManager: mintManagerId,
       mint: mintId,

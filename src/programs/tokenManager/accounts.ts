@@ -185,3 +185,28 @@ export const getTransferReceipt = async (
     pubkey: transferReceiptId,
   };
 };
+
+export const getAllTokenManagerIds = async (
+  connection: Connection
+): Promise<PublicKey[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    TOKEN_MANAGER_ADDRESS,
+    {
+      dataSlice: {
+        offset: 0,
+        length: 0,
+      },
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("tokenManager")
+            ),
+          },
+        },
+      ],
+    }
+  );
+  return programAccounts.map((pa) => pa.pubkey);
+};

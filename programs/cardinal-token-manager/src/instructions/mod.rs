@@ -41,3 +41,4 @@ pub use permissioned::delegate::*;
 pub use permissioned::migrate::*;
 pub use permissioned::send::*;
 pub use permissioned::undelegate::*;
+pub use permissioned::unwrap::*;

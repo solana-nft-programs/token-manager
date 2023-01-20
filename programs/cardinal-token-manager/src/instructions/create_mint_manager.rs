@@ -44,7 +44,7 @@ pub fn handler(ctx: Context<CreateMintManagerCtx>) -> Result<()> {
         return Err(error!(ErrorCode::InvalidMintAuthority));
     }
 
-    // set freeze authority of mint to mint manager
+    // set mint authority of mint to mint manager
     let cpi_accounts = SetAuthority {
         account_or_mint: ctx.accounts.mint.to_account_info(),
         current_authority: ctx.accounts.freeze_authority.to_account_info(),

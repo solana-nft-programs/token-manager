@@ -3,7 +3,6 @@ import {
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
 import { programs } from "@cardinal/token-manager";
-import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
 import { timeInvalidatorProgram } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator";
 import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
 import {

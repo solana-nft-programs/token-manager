@@ -82,6 +82,4 @@ pub enum ErrorCode {
     CannotMigrateDelegatedToken,
     #[msg("Invalid mint manager")]
     InvalidMintManager,
-    #[msg("Invalid mint")]
-    InvalidMint,
 }

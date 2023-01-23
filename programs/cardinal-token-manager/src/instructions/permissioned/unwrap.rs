@@ -43,7 +43,8 @@ pub fn handler(ctx: Context<UnwrapCtx>) -> Result<()> {
     //     return Err(error!(ErrorCode::InvalidMigrateAuthority));
     // }
 
-    let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.key().as_ref(), &[ctx.accounts.mint_manager.bump]];
+    let token_manager_key = ctx.accounts.token_manager.key();
+    let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.mint_manager.bump]];
     let mint_manager_signer = &[&mint_manager_seeds[..]];
     invoke_signed(
         &create_master_edition_v3(

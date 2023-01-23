@@ -20,7 +20,7 @@ pub struct RemoveListingCtx<'info> {
         lister_mint_token_account.mint == token_manager.mint &&
         lister_mint_token_account.owner == lister.key() @ ErrorCode::InvalidListerMintTokenAccount)]
     lister_mint_token_account: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
+    #[account(mut, constraint = lister.key() == listing.lister @ ErrorCode::InvalidLister)]
     lister: Signer<'info>,
 
     /// CHECK: This is not dangerous because this account is not read in this instruction

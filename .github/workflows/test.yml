@@ -19,7 +19,7 @@ env:
   RUST_TOOLCHAIN: nightly
   SOTERIA_VERSION: 0.0.0
   ANCHOR_GIT: https://github.com/project-serum/anchor
-  ANCHOR_VERSION: 0.25.0
+  ANCHOR_VERSION: 0.26.0
 
 jobs:
   rust-clippy:

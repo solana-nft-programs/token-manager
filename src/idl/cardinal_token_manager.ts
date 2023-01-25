@@ -1098,6 +1098,9 @@ export type CardinalTokenManager = {
           },
           {
             name: "Permissioned";
+          },
+          {
+            name: "Programmable";
           }
         ];
       };
@@ -2425,6 +2428,9 @@ export const IDL: CardinalTokenManager = {
           },
           {
             name: "Permissioned",
+          },
+          {
+            name: "Programmable",
           },
         ],
       },

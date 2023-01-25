@@ -64,6 +64,7 @@ import {
   tokenManagerAddressFromMint,
 } from "./programs/tokenManager/pda";
 import {
+  getRemainingAccountsForIssue,
   getRemainingAccountsForKind,
   getRemainingAccountsForTransfer,
   withRemainingAccountsForReturn,
@@ -444,15 +445,12 @@ export const withIssueToken = async (
       systemProgram: SystemProgram.programId,
     })
     .remainingAccounts(
-      kind === TokenManagerKind.Permissioned
-        ? [
-            {
-              pubkey: CRANK_KEY,
-              isSigner: false,
-              isWritable: true,
-            },
-          ]
-        : []
+      getRemainingAccountsForIssue(
+        kind,
+        mint,
+        issuerTokenAccountId,
+        tokenManagerTokenAccountId
+      )
     )
     .instruction();
   transaction.add(issueIx);

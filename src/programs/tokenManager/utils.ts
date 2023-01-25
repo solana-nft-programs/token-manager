@@ -1,20 +1,23 @@
 import type { AccountData } from "@cardinal/common";
 import {
   findMintEditionId,
+  findMintMetadataId,
   METADATA_PROGRAM_ID,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
+import { PROGRAM_ID as TOKEN_AUTH_RULES_ID } from "@metaplex-foundation/mpl-token-auth-rules";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
-import { getAccount } from "@solana/spl-token";
-import type {
-  AccountMeta,
-  Connection,
-  PublicKey,
-  Transaction,
-} from "@solana/web3.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, getAccount } from "@solana/spl-token";
+import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
+import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
 
 import type { TokenManagerData } from ".";
-import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
+import {
+  CRANK_KEY,
+  InvalidationType,
+  TokenManagerKind,
+  TokenManagerState,
+} from ".";
 import { findMintManagerId, findTransferReceiptId } from "./pda";
 
 export const getRemainingAccountsForKind = (
@@ -158,3 +161,86 @@ export const getRemainingAccountsForTransfer = (
     return [];
   }
 };
+
+export const getRemainingAccountsForIssue = (
+  tokenManagerKind: TokenManagerKind,
+  mintId: PublicKey,
+  issuerTokenAccountId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey
+): AccountMeta[] => {
+  if (tokenManagerKind === TokenManagerKind.Permissioned) {
+    return [
+      {
+        pubkey: CRANK_KEY,
+        isSigner: false,
+        isWritable: true,
+      },
+    ];
+  } else if (tokenManagerKind === TokenManagerKind.Programmable) {
+    return [
+      {
+        pubkey: mintId,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: findMintMetadataId(mintId),
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: findMintEditionId(mintId),
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: findTokenRecordPda(mintId, issuerTokenAccountId),
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: findTokenRecordPda(mintId, tokenManagerTokenAccountId),
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: SYSVAR_INSTRUCTIONS_PUBKEY,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: TOKEN_AUTH_RULES_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: PublicKey.default, // TODO
+        isSigner: false,
+        isWritable: false,
+      },
+    ];
+  } else {
+    return [];
+  }
+};
+
+export function findTokenRecordPda(
+  mint: PublicKey,
+  token: PublicKey
+): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("metadata"),
+      METADATA_PROGRAM_ID.toBuffer(),
+      mint.toBuffer(),
+      Buffer.from("token_record"),
+      token.toBuffer(),
+    ],
+    METADATA_PROGRAM_ID
+  )[0];
+}

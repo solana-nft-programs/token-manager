@@ -3,28 +3,35 @@ import {
   createMint,
   executeTransaction,
   getTestProvider,
+  newAccountWithLamports,
   tryGetAccount,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import type { Keypair, PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { invalidate, issueToken } from "../../src";
 import { timeInvalidator, tokenManager } from "../../src/programs";
-import { TokenManagerState } from "../../src/programs/tokenManager";
+import {
+  TokenManagerKind,
+  TokenManagerState,
+} from "../../src/programs/tokenManager";
 
 describe("Programmable issue invalidate", () => {
   let provider: CardinalProvider;
-  const recipient = Keypair.generate();
-  const issuer = Keypair.generate();
-  const invalidator = Keypair.generate();
+  let recipient: Keypair;
+  let issuer: Keypair;
+  let invalidator: Keypair;
   let issuerTokenAccountId: PublicKey;
   let mintId: PublicKey;
 
   beforeAll(async () => {
     provider = await getTestProvider();
+    recipient = await newAccountWithLamports(provider.connection);
+    issuer = await newAccountWithLamports(provider.connection);
+    invalidator = await newAccountWithLamports(provider.connection);
     const airdropCreator = await provider.connection.requestAirdrop(
       issuer.publicKey,
       LAMPORTS_PER_SOL
@@ -51,6 +58,7 @@ describe("Programmable issue invalidate", () => {
       {
         mint: mintId,
         issuerTokenAccountId: issuerTokenAccountId,
+        kind: TokenManagerKind.Programmable,
         customInvalidators: [invalidator.publicKey],
       }
     );

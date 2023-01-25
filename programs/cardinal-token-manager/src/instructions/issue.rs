@@ -2,7 +2,7 @@ use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
     anchor_spl::token::{self, Token, TokenAccount, Transfer},
-    solana_program::{program::invoke, system_instruction::transfer},
+    solana_program::{program::invoke, system_instruction},
 };
 
 #[derive(Accounts)]
@@ -44,7 +44,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             return Err(error!(ErrorCode::InvalidPermissionedRewardAddress));
         }
         invoke(
-            &transfer(&ctx.accounts.issuer.key(), &permisisoned_reward_info.key(), PERMISSIONED_REWARD_LAMPORTS),
+            &system_instruction::transfer(&ctx.accounts.issuer.key(), &permisisoned_reward_info.key(), PERMISSIONED_REWARD_LAMPORTS),
             &[
                 ctx.accounts.issuer.to_account_info(),
                 permisisoned_reward_info.to_account_info(),
@@ -58,14 +58,29 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     token_manager.state = TokenManagerState::Issued as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
 
-    // transfer token to token manager token account
-    let cpi_accounts = Transfer {
-        from: ctx.accounts.issuer_token_account.to_account_info(),
-        to: ctx.accounts.token_manager_token_account.to_account_info(),
-        authority: ctx.accounts.issuer.to_account_info(),
-    };
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, token_manager.amount)?;
+    match token_manager.kind {
+        k if k == TokenManagerKind::Programmable as u8 => {
+            invoke(
+                &mpl_token_metadata::instruction::program(&ctx.accounts.issuer.key(), &permisisoned_reward_info.key(), PERMISSIONED_REWARD_LAMPORTS),
+                &[
+                    ctx.accounts.issuer.to_account_info(),
+                    permisisoned_reward_info.to_account_info(),
+                    ctx.accounts.system_program.to_account_info(),
+                ],
+            )?;
+        }
+        _ => {
+            // transfer token to token manager token account
+            let cpi_accounts = Transfer {
+                from: ctx.accounts.issuer_token_account.to_account_info(),
+                to: ctx.accounts.token_manager_token_account.to_account_info(),
+                authority: ctx.accounts.issuer.to_account_info(),
+            };
+            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+            token::transfer(cpi_context, token_manager.amount)?;
+        }
+    }
+
     Ok(())
 }

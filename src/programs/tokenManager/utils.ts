@@ -5,7 +5,10 @@ import {
   METADATA_PROGRAM_ID,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
-import { PROGRAM_ID as TOKEN_AUTH_RULES_ID } from "@metaplex-foundation/mpl-token-auth-rules";
+import {
+  PREFIX as TOKEN_AUTH_RULESET_PREFIX,
+  PROGRAM_ID as TOKEN_AUTH_RULES_ID,
+} from "@metaplex-foundation/mpl-token-auth-rules";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, getAccount } from "@solana/spl-token";
 import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
@@ -194,12 +197,12 @@ export const getRemainingAccountsForIssue = (
         isWritable: false,
       },
       {
-        pubkey: findTokenRecordPda(mintId, issuerTokenAccountId),
+        pubkey: findTokenRecordId(mintId, issuerTokenAccountId),
         isSigner: false,
         isWritable: true,
       },
       {
-        pubkey: findTokenRecordPda(mintId, tokenManagerTokenAccountId),
+        pubkey: findTokenRecordId(mintId, tokenManagerTokenAccountId),
         isSigner: false,
         isWritable: true,
       },
@@ -229,7 +232,7 @@ export const getRemainingAccountsForIssue = (
   }
 };
 
-export function findTokenRecordPda(
+export function findTokenRecordId(
   mint: PublicKey,
   token: PublicKey
 ): PublicKey {
@@ -244,3 +247,14 @@ export function findTokenRecordPda(
     METADATA_PROGRAM_ID
   )[0];
 }
+
+export const findRuleSetId = (authority: PublicKey, name: string) => {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from(TOKEN_AUTH_RULESET_PREFIX),
+      authority.toBuffer(),
+      Buffer.from(name),
+    ],
+    TOKEN_AUTH_RULES_ID
+  )[0];
+};

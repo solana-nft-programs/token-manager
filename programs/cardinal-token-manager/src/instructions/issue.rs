@@ -72,7 +72,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let associated_token_program_info = next_account_info(remaining_accs)?;
             let authorization_rules_program_info = next_account_info(remaining_accs)?;
             let authorization_rules_info = next_account_info(remaining_accs)?;
-
             let accounts = vec![
                 AccountMeta::new(ctx.accounts.issuer_token_account.key(), false),
                 AccountMeta::new_readonly(ctx.accounts.issuer_token_account.owner.key(), false),

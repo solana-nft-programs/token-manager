@@ -1,6 +1,5 @@
 import type { CardinalProvider } from "@cardinal/common";
 import {
-  createMint,
   executeTransaction,
   getTestProvider,
   newAccountWithLamports,
@@ -18,6 +17,7 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../../src/programs/tokenManager";
+import { createProgrammableAsset } from "../utils";
 
 describe("Programmable issue invalidate", () => {
   let provider: CardinalProvider;
@@ -43,15 +43,13 @@ describe("Programmable issue invalidate", () => {
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropRecipient);
-
-    // create rental mint
-    [issuerTokenAccountId, mintId] = await createMint(
+    [issuerTokenAccountId, mintId] = await createProgrammableAsset(
       provider.connection,
       new Wallet(issuer)
     );
   });
 
-  it("Create rental", async () => {
+  it("Issue token", async () => {
     const [transaction, tokenManagerId] = await issueToken(
       provider.connection,
       new Wallet(issuer),

@@ -27,7 +27,7 @@ spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 solana-program = "1.10.29"
 cardinal-token-manager = { version = "^3.0.0", path = "../cardinal-token-manager", features = ["cpi"] }
 cardinal-payment-manager = { version = "^3.0.0", features = ["cpi"] }
-mpl-token-metadata = { version = "1.3.3", features = ["no-entrypoint"] }
+mpl-token-metadata = { version = "1.7.0", features = ["no-entrypoint"] }
 arrayref = "0.3.6"
 
 [dev-dependencies]

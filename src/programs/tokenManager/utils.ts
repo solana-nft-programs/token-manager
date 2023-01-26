@@ -165,11 +165,72 @@ export const getRemainingAccountsForTransfer = (
   }
 };
 
+export const remainingAccountForProgrammable = (
+  mintId: PublicKey,
+  fromTokenAccountId: PublicKey,
+  toTokenAccountId: PublicKey,
+  rulesetId: PublicKey
+): AccountMeta[] => {
+  return [
+    {
+      pubkey: mintId,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findMintMetadataId(mintId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findMintEditionId(mintId),
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: findTokenRecordId(mintId, fromTokenAccountId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findTokenRecordId(mintId, toTokenAccountId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SYSVAR_INSTRUCTIONS_PUBKEY,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: TOKEN_AUTH_RULES_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: rulesetId,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: METADATA_PROGRAM_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+  ];
+};
+
 export const getRemainingAccountsForIssue = (
   tokenManagerKind: TokenManagerKind,
   mintId: PublicKey,
   issuerTokenAccountId: PublicKey,
-  tokenManagerTokenAccountId: PublicKey
+  tokenManagerTokenAccountId: PublicKey,
+  rulesetId?: PublicKey
 ): AccountMeta[] => {
   if (tokenManagerKind === TokenManagerKind.Permissioned) {
     return [
@@ -180,56 +241,68 @@ export const getRemainingAccountsForIssue = (
       },
     ];
   } else if (tokenManagerKind === TokenManagerKind.Programmable) {
-    return [
-      {
-        pubkey: mintId,
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: findMintMetadataId(mintId),
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: findMintEditionId(mintId),
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: findTokenRecordId(mintId, issuerTokenAccountId),
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: findTokenRecordId(mintId, tokenManagerTokenAccountId),
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: SYSVAR_INSTRUCTIONS_PUBKEY,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: TOKEN_AUTH_RULES_ID,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: PublicKey.default, // TODO
-        isSigner: false,
-        isWritable: false,
-      },
-    ];
+    if (!rulesetId) throw "Ruleset not specified";
+    return remainingAccountForProgrammable(
+      mintId,
+      issuerTokenAccountId,
+      tokenManagerTokenAccountId,
+      rulesetId
+    );
   } else {
     return [];
   }
+};
+
+export const getRemainingAccountsForClaim = (
+  tokenManagerKind: TokenManagerKind,
+  mintId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey,
+  recipientTokenAccountId: PublicKey,
+  rulesetId?: PublicKey,
+  claimReceiptId?: PublicKey
+): AccountMeta[] => {
+  const remainingAccounts: AccountMeta[] = [];
+  if (
+    tokenManagerKind === TokenManagerKind.Managed ||
+    tokenManagerKind === TokenManagerKind.Permissioned
+  ) {
+    const mintManagerId = findMintManagerId(mintId);
+    remainingAccounts.push({
+      pubkey: mintManagerId,
+      isSigner: false,
+      isWritable: true,
+    });
+  } else if (tokenManagerKind === TokenManagerKind.Edition) {
+    const editionId = findMintEditionId(mintId);
+    remainingAccounts.push(
+      {
+        pubkey: editionId,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: METADATA_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      }
+    );
+  } else if (tokenManagerKind === TokenManagerKind.Programmable) {
+    if (!rulesetId) throw "Ruleset not specified";
+    remainingAccounts.push(
+      ...remainingAccountForProgrammable(
+        mintId,
+        tokenManagerTokenAccountId,
+        recipientTokenAccountId,
+        rulesetId
+      )
+    );
+  }
+  return claimReceiptId
+    ? [
+        ...remainingAccounts,
+        { pubkey: claimReceiptId, isSigner: false, isWritable: true },
+      ]
+    : remainingAccounts;
 };
 
 export function findTokenRecordId(

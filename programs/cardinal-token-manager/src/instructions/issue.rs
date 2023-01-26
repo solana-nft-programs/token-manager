@@ -118,6 +118,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                     sysvar_instructions_info.to_account_info(),
                     ctx.accounts.token_program.to_account_info(),
                     associated_token_program_info.to_account_info(),
+                    authorization_rules_program_info.to_account_info(),
+                    authorization_rules_info.to_account_info(),
                 ],
             )?;
         }

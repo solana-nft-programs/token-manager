@@ -708,10 +708,10 @@
     "@solana/web3.js" "^1.31.0"
     bs58 "^4.0.1"
 
-"@metaplex-foundation/mpl-token-auth-rules@^0.2.9":
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-token-auth-rules/-/mpl-token-auth-rules-0.2.9.tgz#e995dff5aaa3bc2ebf0214c6e8f5d5ba105542eb"
-  integrity sha512-Eamv9UxN1cPG/bk/slrHlJc1QQDbYlW1K3seH3ksYONjHa4260RS0VcgyADCYB8hGleRFp4t+cfuHgc98DIvPA==
+"@metaplex-foundation/mpl-token-auth-rules@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-token-auth-rules/-/mpl-token-auth-rules-1.0.0.tgz#67a07ed99685b2243ee088287848d837f1018940"
+  integrity sha512-728NPITYx+Vr+5uQJRNLJDLb451KzD8o/C3WRtwk5mQ59XtnMgsxijEoNhDa9DVmyrfIkcwTLNOy6zPqN7cGLA==
   dependencies:
     "@metaplex-foundation/beet" "^0.7.1"
     "@metaplex-foundation/beet-solana" "^0.4.0"
@@ -3451,10 +3451,10 @@ mkdirp@^1.0.4:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-"mplx-beta@npm:@metaplex-foundation/mpl-token-metadata@2.7.0-beta.2":
-  version "2.7.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-token-metadata/-/mpl-token-metadata-2.7.0-beta.2.tgz#8e11929988f8ff08655931b982ec4c7e8a2dc3a3"
-  integrity sha512-OznU4NOer7sxb9nMoVKSyeiDzC+9/3zlMysWu1HHA75mSmm1QyN9DNWVzRjmRPcKQyzozv8MaOxMAJ4UsA7QnQ==
+"mplx-beta@npm:@metaplex-foundation/mpl-token-metadata@2.7.0":
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-token-metadata/-/mpl-token-metadata-2.7.0.tgz#3d404d27fb65c638263bff115e10115c30f94c96"
+  integrity sha512-dF20BAD5Kvd/qNOa8xmANO5//xvsmleCsD98HHeqBiz20HwC01y6VMkfwjXgVmrg8WSLpzojlQgMYO6jKhuZtg==
   dependencies:
     "@metaplex-foundation/beet" "^0.7.1"
     "@metaplex-foundation/beet-solana" "^0.4.0"

@@ -7,16 +7,17 @@ import {
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
 import { Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import type { Keypair, PublicKey } from "@solana/web3.js";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
-import { invalidate, issueToken } from "../../src";
+import { claimToken, invalidate, issueToken } from "../../src";
 import { timeInvalidator, tokenManager } from "../../src/programs";
 import {
   TokenManagerKind,
   TokenManagerState,
 } from "../../src/programs/tokenManager";
+import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { createProgrammableAsset } from "../utils";
 
 describe("Programmable issue invalidate", () => {
@@ -26,6 +27,7 @@ describe("Programmable issue invalidate", () => {
   let invalidator: Keypair;
   let issuerTokenAccountId: PublicKey;
   let mintId: PublicKey;
+  let rulesetId: PublicKey;
 
   beforeAll(async () => {
     provider = await getTestProvider();
@@ -43,7 +45,7 @@ describe("Programmable issue invalidate", () => {
       LAMPORTS_PER_SOL
     );
     await provider.connection.confirmTransaction(airdropRecipient);
-    [issuerTokenAccountId, mintId] = await createProgrammableAsset(
+    [issuerTokenAccountId, mintId, rulesetId] = await createProgrammableAsset(
       provider.connection,
       new Wallet(issuer)
     );
@@ -57,6 +59,7 @@ describe("Programmable issue invalidate", () => {
         mint: mintId,
         issuerTokenAccountId: issuerTokenAccountId,
         kind: TokenManagerKind.Programmable,
+        rulesetId: rulesetId,
         customInvalidators: [invalidator.publicKey],
       }
     );
@@ -96,9 +99,45 @@ describe("Programmable issue invalidate", () => {
     );
   });
 
-  it("Invalidate", async () => {
-    await new Promise((r) => setTimeout(r, 2000));
+  it("Claim token", async () => {
+    const tokenManagerId = findTokenManagerAddress(mintId);
+    const transaction = await claimToken(
+      provider.connection,
+      new Wallet(recipient),
+      tokenManagerId
+    );
+    await executeTransaction(
+      provider.connection,
+      transaction,
+      new Wallet(recipient)
+    );
 
+    const tokenManagerData = await tokenManager.accounts.getTokenManager(
+      provider.connection,
+      tokenManagerId
+    );
+    expect(tokenManagerData.parsed.state).toEqual(TokenManagerState.Claimed);
+    expect(tokenManagerData.parsed.amount.toNumber()).toEqual(1);
+    expect(tokenManagerData.parsed.mint.toString()).toEqual(mintId.toString());
+    expect(tokenManagerData.parsed.invalidators.length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(tokenManagerData.parsed.issuer.toString()).toEqual(
+      issuer.publicKey.toString()
+    );
+
+    const recipientTokenAccountId = getAssociatedTokenAddressSync(
+      mintId,
+      recipient.publicKey
+    );
+    const receipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientTokenAccountId
+    );
+    expect(receipientTokenAccount.amount.toString()).toEqual("1");
+  });
+
+  it("Invalidate", async () => {
     const transaction = await invalidate(
       provider.connection,
       new Wallet(invalidator),
@@ -129,5 +168,15 @@ describe("Programmable issue invalidate", () => {
       issuerTokenAccountId
     );
     expect(checkIssuerTokenAccount.amount.toString()).toEqual("1");
+
+    const recipientTokenAccountId = getAssociatedTokenAddressSync(
+      mintId,
+      recipient.publicKey
+    );
+    const receipientTokenAccount = await getAccount(
+      provider.connection,
+      recipientTokenAccountId
+    );
+    expect(receipientTokenAccount.amount.toString()).toEqual("0");
   });
 });

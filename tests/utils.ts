@@ -31,21 +31,21 @@ import { findRuleSetId, findTokenRecordId } from "../src/programs/tokenManager";
 export const createProgrammableAsset = async (
   connection: Connection,
   wallet: Wallet
-): Promise<[PublicKey, PublicKey]> => {
+): Promise<[PublicKey, PublicKey, PublicKey]> => {
   const mintKeypair = Keypair.generate();
   const mintId = mintKeypair.publicKey;
-  const [tx, ata] = createProgrammableAssetTx(
+  const [tx, ata, rulesetId] = createProgrammableAssetTx(
     mintKeypair.publicKey,
     wallet.publicKey
   );
   await executeTransaction(connection, tx, wallet, { signers: [mintKeypair] });
-  return [ata, mintId];
+  return [ata, mintId, rulesetId];
 };
 
 export const createProgrammableAssetTx = (
   mintId: PublicKey,
   authority: PublicKey
-): [Transaction, PublicKey] => {
+): [Transaction, PublicKey, PublicKey] => {
   const metadataId = findMintMetadataId(mintId);
   const masterEditionId = findMintEditionId(mintId);
   const ataId = getAssociatedTokenAddressSync(mintId, authority);
@@ -61,15 +61,14 @@ export const createProgrammableAssetTx = (
         __kind: "V1",
         serializedRuleSet: encode([
           1,
-          rulesetName,
           authority.toBuffer().reduce((acc, i) => {
             acc.push(i);
             return acc;
           }, [] as number[]),
+          rulesetName,
           {
-            Transfer: {
-              Any: [["Pass"]],
-            },
+            "Transfer:WalletToWallet": "Pass",
+            "Transfer:Owner": "Pass",
           },
         ]),
       },
@@ -94,7 +93,6 @@ export const createProgrammableAssetTx = (
           symbol: "PNF",
           uri: "uri",
           sellerFeeBasisPoints: 0,
-          updateAuthority: authority,
           creators: [
             {
               address: authority,
@@ -145,5 +143,9 @@ export const createProgrammableAssetTx = (
       },
     }
   );
-  return [new Transaction().add(rulesetIx, createIxWithSigner, mintIx), ataId];
+  return [
+    new Transaction().add(rulesetIx, createIxWithSigner, mintIx),
+    ataId,
+    rulesetId,
+  ];
 };

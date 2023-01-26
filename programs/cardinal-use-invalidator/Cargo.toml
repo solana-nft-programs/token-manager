@@ -26,8 +26,8 @@ spl-associated-token-account = "1.1.2"
 spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 solana-program = "1.10.29"
 cardinal-token-manager = { version = "^3.0.0", path = "../cardinal-token-manager", features = ["cpi"] }
-cardinal-payment-manager = { version = "^3.0.1-beta.0", features = ["cpi"] }
-mpl-token-metadata = { version = "1.7.0-beta.2", features = ["no-entrypoint"] }
+cardinal-payment-manager = { version = "^3.0.0", features = ["cpi"] }
+mpl-token-metadata = { version = "1.7.0", features = ["no-entrypoint"] }
 arrayref = "0.3.6"
 
 [dev-dependencies]

@@ -253,17 +253,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 ],
                 token_manager_signer,
             )?;
-
-            // todo lock
-            // // freeze recipient token account
-            // let cpi_accounts = FreezeAccount {
-            //     account: ctx.accounts.recipient_token_account.to_account_info(),
-            //     mint: ctx.accounts.mint.to_account_info(),
-            //     authority: mint_manager_info.to_account_info(),
-            // };
-            // let cpi_program = ctx.accounts.token_program.to_account_info();
-            // let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);
-            // token::freeze_account(cpi_context)?;
         }
         _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
     }

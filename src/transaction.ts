@@ -19,6 +19,7 @@ import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAccount,
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
@@ -690,7 +691,7 @@ export const withInvalidate = async (
   const timeInvalidatorId =
     timeInvalidator.pda.findTimeInvalidatorAddress(tokenManagerId);
 
-  const [useInvalidatorData, timeInvalidatorData, tokenManagerData] =
+  const [useInvalidatorData, timeInvalidatorData, tokenManagerData, metadata] =
     await Promise.all([
       tryGetAccount(() =>
         useInvalidator.accounts.getUseInvalidator(connection, useInvalidatorId)
@@ -704,9 +705,16 @@ export const withInvalidate = async (
       tryGetAccount(() =>
         tokenManager.accounts.getTokenManager(connection, tokenManagerId)
       ),
+      tryNull(
+        Metadata.fromAccountAddress(connection, findMintMetadataId(mintId))
+      ),
     ]);
 
   if (!tokenManagerData) return transaction;
+  const recipientTokenAccount = await getAccount(
+    connection,
+    tokenManagerData.parsed.recipientTokenAccount
+  );
 
   const tokenManagerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
     transaction,
@@ -721,7 +729,9 @@ export const withInvalidate = async (
     transaction,
     connection,
     wallet,
-    tokenManagerData
+    tokenManagerData,
+    recipientTokenAccount.owner,
+    metadata?.programmableConfig?.ruleSet ?? undefined
   );
 
   const transferAccounts = getRemainingAccountsForKind(

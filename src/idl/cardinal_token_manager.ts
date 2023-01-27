@@ -1324,6 +1324,11 @@ export type CardinalTokenManager = {
       code: 6038;
       name: "CannotMigrateDelegatedToken";
       msg: "Cannot migrate delegated token";
+    },
+    {
+      code: 6039;
+      name: "InvalidReturnTarget";
+      msg: "Invalid return target";
     }
   ];
 };
@@ -2654,6 +2659,11 @@ export const IDL: CardinalTokenManager = {
       code: 6038,
       name: "CannotMigrateDelegatedToken",
       msg: "Cannot migrate delegated token",
+    },
+    {
+      code: 6039,
+      name: "InvalidReturnTarget",
+      msg: "Invalid return target",
     },
   ],
 };

@@ -12,7 +12,11 @@ import {
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, getAccount } from "@solana/spl-token";
 import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
-import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
+import {
+  PublicKey,
+  SystemProgram,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+} from "@solana/web3.js";
 
 import type { TokenManagerData } from ".";
 import {
@@ -63,10 +67,19 @@ export const withRemainingAccountsForReturn = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerData: AccountData<TokenManagerData>,
-  allowOwnerOffCurve = true
+  recipientTokenAccountOwnerId?: PublicKey,
+  rulesetId?: PublicKey
 ): Promise<AccountMeta[]> => {
-  const { issuer, mint, claimApprover, invalidationType, receiptMint, state } =
-    tokenManagerData.parsed;
+  const {
+    issuer,
+    mint,
+    claimApprover,
+    recipientTokenAccount,
+    invalidationType,
+    kind,
+    receiptMint,
+    state,
+  } = tokenManagerData.parsed;
   if (
     invalidationType === InvalidationType.Vest &&
     state === TokenManagerState.Issued
@@ -79,7 +92,7 @@ export const withRemainingAccountsForReturn = async (
         mint,
         claimApprover,
         wallet.publicKey,
-        allowOwnerOffCurve
+        true
       );
     return [
       {
@@ -92,55 +105,145 @@ export const withRemainingAccountsForReturn = async (
     invalidationType === InvalidationType.Return ||
     state === TokenManagerState.Issued
   ) {
-    if (receiptMint) {
-      const receiptMintLargestAccount =
-        await connection.getTokenLargestAccounts(receiptMint);
+    if (kind === TokenManagerKind.Programmable) {
+      if (!rulesetId) throw "Ruleset not specified";
+      if (!recipientTokenAccountOwnerId)
+        throw "Recipient token account owner not specified";
+      const remainingAccounts: AccountMeta[] = [];
+      let returnTokenAccountId;
+      if (receiptMint) {
+        const receiptMintLargestAccount =
+          await connection.getTokenLargestAccounts(receiptMint);
 
-      // get holder of receipt mint
-      const receiptTokenAccountId = receiptMintLargestAccount.value[0]?.address;
-      if (!receiptTokenAccountId) throw new Error("No token accounts found");
-      const receiptTokenAccount = await getAccount(
-        connection,
-        receiptTokenAccountId
-      );
+        // get holder of receipt mint
+        const receiptTokenAccountId =
+          receiptMintLargestAccount.value[0]?.address;
+        if (!receiptTokenAccountId) throw new Error("No token accounts found");
+        const receiptTokenAccount = await getAccount(
+          connection,
+          receiptTokenAccountId
+        );
 
-      // get ATA for this mint of receipt mint holder
-      const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        mint,
-        receiptTokenAccount.owner,
-        wallet.publicKey,
-        allowOwnerOffCurve
-      );
-      return [
+        // get ATA for this mint of receipt mint holder
+        returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          receiptTokenAccount.owner,
+          wallet.publicKey,
+          true
+        );
+        remainingAccounts.push(
+          {
+            pubkey: returnTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: receiptTokenAccount.owner,
+            isSigner: false,
+            isWritable: false,
+          },
+          {
+            pubkey: receiptTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          }
+        );
+      } else {
+        returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          issuer,
+          wallet.publicKey,
+          true
+        );
+        remainingAccounts.push(
+          {
+            pubkey: returnTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: issuer,
+            isSigner: false,
+            isWritable: false,
+          }
+        );
+      }
+      remainingAccounts.push(
         {
-          pubkey: returnTokenAccountId,
+          pubkey: recipientTokenAccountOwnerId,
           isSigner: false,
-          isWritable: true,
+          isWritable: false,
         },
         {
-          pubkey: receiptTokenAccountId,
+          pubkey: SystemProgram.programId,
           isSigner: false,
-          isWritable: true,
+          isWritable: false,
         },
-      ];
+        ...remainingAccountForProgrammable(
+          mint,
+          recipientTokenAccount,
+          returnTokenAccountId,
+          rulesetId
+        )
+      );
+      console.log(remainingAccounts.map((r) => r.pubkey.toString()));
+      return remainingAccounts;
     } else {
-      const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        mint,
-        issuer,
-        wallet.publicKey,
-        allowOwnerOffCurve
-      );
-      return [
-        {
-          pubkey: issuerTokenAccountId,
-          isSigner: false,
-          isWritable: true,
-        },
-      ];
+      if (receiptMint) {
+        const receiptMintLargestAccount =
+          await connection.getTokenLargestAccounts(receiptMint);
+
+        // get holder of receipt mint
+        const receiptTokenAccountId =
+          receiptMintLargestAccount.value[0]?.address;
+        if (!receiptTokenAccountId) throw new Error("No token accounts found");
+        const receiptTokenAccount = await getAccount(
+          connection,
+          receiptTokenAccountId
+        );
+
+        // get ATA for this mint of receipt mint holder
+        const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          receiptTokenAccount.owner,
+          wallet.publicKey,
+          true
+        );
+        return [
+          {
+            pubkey: returnTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: receiptTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+        ];
+      } else {
+        const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          issuer,
+          wallet.publicKey,
+          true
+        );
+        return [
+          {
+            pubkey: issuerTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+        ];
+      }
     }
   } else {
     return [];

@@ -190,7 +190,6 @@ export const withRemainingAccountsForReturn = async (
           rulesetId
         )
       );
-      console.log(remainingAccounts.map((r) => r.pubkey.toString()));
       return remainingAccounts;
     } else {
       if (receiptMint) {

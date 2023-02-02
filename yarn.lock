@@ -3451,10 +3451,10 @@ mkdirp@^1.0.4:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-"mplx-beta@npm:@metaplex-foundation/mpl-token-metadata@2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-token-metadata/-/mpl-token-metadata-2.7.0.tgz#3d404d27fb65c638263bff115e10115c30f94c96"
-  integrity sha512-dF20BAD5Kvd/qNOa8xmANO5//xvsmleCsD98HHeqBiz20HwC01y6VMkfwjXgVmrg8WSLpzojlQgMYO6jKhuZtg==
+"mplx-beta@npm:@metaplex-foundation/mpl-token-metadata@2.8.0":
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-token-metadata/-/mpl-token-metadata-2.8.0.tgz#a83997e37cd7dbcf571286ac93841c6b27d8a2e8"
+  integrity sha512-Mby7ijTL1rcuRsNElD+Y180G2dJePaTKDJGR2yVAnBfn6SwQD1HTV8Ta5bswhh3fRONPbM8+7kxYGm1iXqtB5A==
   dependencies:
     "@metaplex-foundation/beet" "^0.7.1"
     "@metaplex-foundation/beet-solana" "^0.4.0"

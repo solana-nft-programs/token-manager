@@ -10,7 +10,11 @@ import {
   PROGRAM_ID as TOKEN_AUTH_RULES_ID,
 } from "@metaplex-foundation/mpl-token-auth-rules";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAccount } from "@solana/spl-token";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAccount,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
 import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
 import {
   PublicKey,
@@ -182,6 +186,14 @@ export const withRemainingAccountsForReturn = async (
           pubkey: SystemProgram.programId,
           isSigner: false,
           isWritable: false,
+        },
+        {
+          pubkey: findTokenRecordId(
+            mint,
+            getAssociatedTokenAddressSync(mint, tokenManagerData.pubkey, true)
+          ),
+          isSigner: false,
+          isWritable: true,
         },
         ...remainingAccountForProgrammable(
           mint,

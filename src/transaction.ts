@@ -25,6 +25,7 @@ import {
 } from "@solana/spl-token";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import {
+  ComputeBudgetProgram,
   Keypair,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -711,6 +712,14 @@ export const withInvalidate = async (
     ]);
 
   if (!tokenManagerData) return transaction;
+  if (tokenManagerData.parsed.kind === TokenManagerKind.Programmable) {
+    transaction.add(
+      ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400000,
+      })
+    );
+  }
+
   const recipientTokenAccount = await getAccount(
     connection,
     tokenManagerData.parsed.recipientTokenAccount

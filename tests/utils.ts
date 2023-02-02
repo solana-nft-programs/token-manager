@@ -70,6 +70,7 @@ export const createProgrammableAssetTx = (
             "Transfer:WalletToWallet": "Pass",
             "Transfer:Owner": "Pass",
             "Transfer:Delegate": "Pass",
+            "Transfer:TransferDelegate": "Pass",
           },
         ]),
       },

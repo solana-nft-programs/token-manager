@@ -253,63 +253,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 token_manager_signer,
             )?;
 
-            // invoke(
-            //     &Instruction {
-            //         program_id: mpl_token_metadata::id(),
-            //         accounts: vec![
-            //             // 0. `[writable]` Delegate record account
-            //             AccountMeta::new_readonly(mpl_token_metadata::id(), false),
-            //             // 1. `[]` Delegated owner
-            //             AccountMeta::new_readonly(token_manager.key(), false),
-            //             // 2. `[writable]` Metadata account
-            //             AccountMeta::new(mint_metadata_info.key(), false),
-            //             // 3. `[optional]` Master Edition account
-            //             AccountMeta::new_readonly(mint_edition_info.key(), false),
-            //             // 4. `[]` Token record
-            //             AccountMeta::new(recipient_token_record_info.key(), false),
-            //             // 5. `[]` Mint account
-            //             AccountMeta::new_readonly(mint_info.key(), false),
-            //             // 6. `[optional, writable]` Token account
-            //             AccountMeta::new(ctx.accounts.recipient_token_account.key(), false),
-            //             // 7. `[signer]` Approver (update authority or token owner) to approve the delegation
-            //             AccountMeta::new_readonly(ctx.accounts.recipient.key(), true),
-            //             // 8. `[signer, writable]` Payer
-            //             AccountMeta::new(ctx.accounts.recipient.key(), true),
-            //             // 9. `[]` System Program
-            //             AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
-            //             // 10. `[]` Instructions sysvar account
-            //             AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
-            //             // 11. `[optional]` SPL Token Program
-            //             AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-            //             // 12. `[optional]` Token Authorization Rules program
-            //             AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
-            //             // 13. `[optional]` Token Authorization Rules account
-            //             AccountMeta::new_readonly(authorization_rules_info.key(), false),
-            //         ],
-            //         data: MetadataInstruction::Delegate(DelegateArgs::TransferV1 {
-            //             amount: token_manager.amount,
-            //             authorization_data: None,
-            //         })
-            //         .try_to_vec()
-            //         .unwrap(),
-            //     },
-            //     &[
-            //         token_manager.to_account_info(),
-            //         mint_metadata_info.to_account_info(),
-            //         mint_edition_info.to_account_info(),
-            //         recipient_token_record_info.to_account_info(),
-            //         mint_info.to_account_info(),
-            //         ctx.accounts.recipient_token_account.to_account_info(),
-            //         ctx.accounts.recipient.to_account_info(),
-            //         ctx.accounts.recipient.to_account_info(),
-            //         ctx.accounts.system_program.to_account_info(),
-            //         sysvar_instructions_info.to_account_info(),
-            //         ctx.accounts.token_program.to_account_info(),
-            //         authorization_rules_program_info.to_account_info(),
-            //         authorization_rules_info.to_account_info(),
-            //     ],
-            // )?;
-
             invoke(
                 &Instruction {
                     program_id: mpl_token_metadata::id(),
@@ -343,8 +286,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                         // 13. `[optional]` Token Authorization Rules account
                         AccountMeta::new_readonly(authorization_rules_info.key(), false),
                     ],
-                    data: MetadataInstruction::Delegate(DelegateArgs::UtilityV1 {
+                    data: MetadataInstruction::Delegate(DelegateArgs::LockedTransferV1 {
                         amount: token_manager.amount,
+                        locked_address: token_manager.key(),
                         authorization_data: None,
                     })
                     .try_to_vec()

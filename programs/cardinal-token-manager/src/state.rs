@@ -24,6 +24,8 @@ pub enum TokenManagerKind {
     Edition = 3,
     /// Token is owned by the user but permissioned and they can choose to delegate or not allowing transfers
     Permissioned = 4,
+    /// Token is a metaplex programmable nft
+    Programmable = 5,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]

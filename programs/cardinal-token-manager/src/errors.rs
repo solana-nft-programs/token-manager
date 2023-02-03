@@ -80,4 +80,6 @@ pub enum ErrorCode {
     InvalidMigrateAuthority,
     #[msg("Cannot migrate delegated token")]
     CannotMigrateDelegatedToken,
+    #[msg("Invalid return target")]
+    InvalidReturnTarget,
 }

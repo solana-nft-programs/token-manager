@@ -1,3 +1,6 @@
+use mpl_token_metadata::instruction::{MetadataInstruction, TransferArgs, UnlockArgs};
+use solana_program::instruction::Instruction;
+
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::{prelude::*, solana_program::program::invoke_signed, AccountsClose},
@@ -98,6 +101,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                     &[token_manager_seeds],
                 )?;
             }
+            k if k == TokenManagerKind::Programmable as u8 => {}
             _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
         }
     }
@@ -159,48 +163,257 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token_manager.close(ctx.accounts.collector.to_account_info())?;
         }
         t if t == InvalidationType::Return as u8 || token_manager.state == TokenManagerState::Issued as u8 => {
-            // find receipt holder
-            let return_token_account_info = next_account_info(remaining_accs)?;
-            let return_token_account = Account::<TokenAccount>::try_from(return_token_account_info)?;
-            if token_manager.receipt_mint.is_none() {
-                if return_token_account.owner != token_manager.issuer {
-                    return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+            match token_manager.kind {
+                k if k == TokenManagerKind::Programmable as u8 => {
+                    // find receipt holder
+                    let return_token_account_info = next_account_info(remaining_accs)?;
+                    let return_token_account = Account::<TokenAccount>::try_from(return_token_account_info)?;
+                    let return_token_account_owner_info = next_account_info(remaining_accs)?;
+                    if return_token_account.owner != return_token_account_owner_info.key() {
+                        return Err(error!(ErrorCode::InvalidReturnTarget));
+                    }
+
+                    if token_manager.receipt_mint.is_none() {
+                        if return_token_account.owner != token_manager.issuer {
+                            return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+                        }
+                    } else {
+                        let receipt_token_account_info = next_account_info(remaining_accs)?;
+                        let receipt_token_account = Account::<TokenAccount>::try_from(receipt_token_account_info)?;
+                        if !(receipt_token_account.mint == token_manager.receipt_mint.expect("No receipt mint") && receipt_token_account.amount > 0) {
+                            return Err(error!(ErrorCode::InvalidReceiptMintAccount));
+                        }
+                        if receipt_token_account.owner != return_token_account.owner {
+                            return Err(error!(ErrorCode::InvalidReceiptMintOwner));
+                        }
+                    }
+
+                    let recipient_token_account_owner_info = next_account_info(remaining_accs)?;
+                    let system_program_info = next_account_info(remaining_accs)?;
+                    let token_manager_token_record = next_account_info(remaining_accs)?;
+                    let mint_info = next_account_info(remaining_accs)?;
+                    let mint_metadata_info = next_account_info(remaining_accs)?;
+                    let mint_edition_info = next_account_info(remaining_accs)?;
+                    let from_token_record = next_account_info(remaining_accs)?;
+                    let to_token_record = next_account_info(remaining_accs)?;
+                    let sysvar_instructions_info = next_account_info(remaining_accs)?;
+                    let associated_token_program_info = next_account_info(remaining_accs)?;
+                    let authorization_rules_program_info = next_account_info(remaining_accs)?;
+                    let authorization_rules_info = next_account_info(remaining_accs)?;
+
+                    invoke_signed(
+                        &Instruction {
+                            program_id: mpl_token_metadata::id(),
+                            accounts: vec![
+                                // 0. `[signer]` Delegate
+                                AccountMeta::new_readonly(token_manager.key(), true),
+                                // 1. `[optional]` Token owner
+                                AccountMeta::new_readonly(recipient_token_account_owner_info.key(), false),
+                                // 2. `[writable]` Token account
+                                AccountMeta::new(ctx.accounts.recipient_token_account.key(), false),
+                                // 3. `[]` Mint account
+                                AccountMeta::new_readonly(mint_info.key(), false),
+                                // 4. `[writable]` Metadata account
+                                AccountMeta::new(mint_metadata_info.key(), false),
+                                // 5. `[optional]` Edition account
+                                AccountMeta::new_readonly(mint_edition_info.key(), false),
+                                // 6. `[optional, writable]` Token record account
+                                AccountMeta::new(from_token_record.key(), false),
+                                // 7. `[signer, writable]` Payer
+                                AccountMeta::new(ctx.accounts.invalidator.key(), true),
+                                // 8. `[]` System Program
+                                AccountMeta::new_readonly(system_program_info.key(), false),
+                                // 9. `[]` Instructions sysvar account
+                                AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
+                                // 10. `[optional]` SPL Token Program
+                                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+                                // 11. `[optional]` Token Authorization Rules program
+                                AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
+                                // 12. `[optional]` Token Authorization Rules account
+                                AccountMeta::new_readonly(authorization_rules_info.key(), false),
+                            ],
+                            data: MetadataInstruction::Unlock(UnlockArgs::V1 { authorization_data: None }).try_to_vec().unwrap(),
+                        },
+                        &[
+                            token_manager.to_account_info(),
+                            recipient_token_account_owner_info.to_account_info(),
+                            ctx.accounts.recipient_token_account.to_account_info(),
+                            mint_info.to_account_info(),
+                            ctx.accounts.recipient_token_account.to_account_info(),
+                            mint_info.to_account_info(),
+                            mint_metadata_info.to_account_info(),
+                            mint_edition_info.to_account_info(),
+                            from_token_record.to_account_info(),
+                            ctx.accounts.invalidator.to_account_info(),
+                            system_program_info.to_account_info(),
+                            sysvar_instructions_info.to_account_info(),
+                            ctx.accounts.token_program.to_account_info(),
+                            authorization_rules_program_info.to_account_info(),
+                            authorization_rules_info.to_account_info(),
+                        ],
+                        token_manager_signer,
+                    )?;
+
+                    invoke_signed(
+                        &Instruction {
+                            program_id: mpl_token_metadata::id(),
+                            accounts: vec![
+                                AccountMeta::new(ctx.accounts.recipient_token_account.key(), false),
+                                AccountMeta::new_readonly(ctx.accounts.recipient_token_account.owner.key(), false),
+                                AccountMeta::new(ctx.accounts.token_manager_token_account.key(), false),
+                                AccountMeta::new_readonly(token_manager.key(), false),
+                                AccountMeta::new_readonly(mint_info.key(), false),
+                                AccountMeta::new(mint_metadata_info.key(), false),
+                                AccountMeta::new_readonly(mint_edition_info.key(), false),
+                                AccountMeta::new(from_token_record.key(), false),
+                                AccountMeta::new(token_manager_token_record.key(), false),
+                                AccountMeta::new_readonly(token_manager.key(), true),
+                                AccountMeta::new(ctx.accounts.invalidator.key(), true),
+                                AccountMeta::new_readonly(system_program_info.key(), false),
+                                AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
+                                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+                                AccountMeta::new_readonly(associated_token_program_info.key(), false),
+                                AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
+                                AccountMeta::new_readonly(authorization_rules_info.key(), false),
+                            ],
+                            data: MetadataInstruction::Transfer(TransferArgs::V1 {
+                                amount: token_manager.amount,
+                                authorization_data: None,
+                            })
+                            .try_to_vec()
+                            .unwrap(),
+                        },
+                        &[
+                            ctx.accounts.recipient_token_account.to_account_info(),
+                            recipient_token_account_owner_info.to_account_info(),
+                            ctx.accounts.token_manager_token_account.to_account_info(),
+                            token_manager.to_account_info(),
+                            mint_info.to_account_info(),
+                            mint_metadata_info.to_account_info(),
+                            mint_edition_info.to_account_info(),
+                            from_token_record.to_account_info(),
+                            token_manager_token_record.to_account_info(),
+                            ctx.accounts.invalidator.to_account_info(),
+                            system_program_info.to_account_info(),
+                            sysvar_instructions_info.to_account_info(),
+                            ctx.accounts.token_program.to_account_info(),
+                            associated_token_program_info.to_account_info(),
+                            authorization_rules_program_info.to_account_info(),
+                            authorization_rules_info.to_account_info(),
+                        ],
+                        token_manager_signer,
+                    )?;
+
+                    invoke_signed(
+                        &Instruction {
+                            program_id: mpl_token_metadata::id(),
+                            accounts: vec![
+                                AccountMeta::new(ctx.accounts.token_manager_token_account.key(), false),
+                                AccountMeta::new_readonly(token_manager.key(), false),
+                                AccountMeta::new(return_token_account_info.key(), false),
+                                AccountMeta::new_readonly(return_token_account_owner_info.key(), false),
+                                AccountMeta::new_readonly(mint_info.key(), false),
+                                AccountMeta::new(mint_metadata_info.key(), false),
+                                AccountMeta::new_readonly(mint_edition_info.key(), false),
+                                AccountMeta::new(token_manager_token_record.key(), false),
+                                AccountMeta::new(to_token_record.key(), false),
+                                AccountMeta::new_readonly(token_manager.key(), true),
+                                AccountMeta::new(ctx.accounts.invalidator.key(), true),
+                                AccountMeta::new_readonly(system_program_info.key(), false),
+                                AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
+                                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+                                AccountMeta::new_readonly(associated_token_program_info.key(), false),
+                                AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
+                                AccountMeta::new_readonly(authorization_rules_info.key(), false),
+                            ],
+                            data: MetadataInstruction::Transfer(TransferArgs::V1 {
+                                amount: token_manager.amount,
+                                authorization_data: None,
+                            })
+                            .try_to_vec()
+                            .unwrap(),
+                        },
+                        &[
+                            ctx.accounts.token_manager_token_account.to_account_info(),
+                            token_manager.to_account_info(),
+                            return_token_account_info.to_account_info(),
+                            return_token_account_owner_info.to_account_info(),
+                            mint_info.to_account_info(),
+                            mint_metadata_info.to_account_info(),
+                            mint_edition_info.to_account_info(),
+                            token_manager_token_record.to_account_info(),
+                            to_token_record.to_account_info(),
+                            ctx.accounts.invalidator.to_account_info(),
+                            system_program_info.to_account_info(),
+                            sysvar_instructions_info.to_account_info(),
+                            ctx.accounts.token_program.to_account_info(),
+                            associated_token_program_info.to_account_info(),
+                            authorization_rules_program_info.to_account_info(),
+                            authorization_rules_info.to_account_info(),
+                        ],
+                        token_manager_signer,
+                    )?;
+
+                    // close token_manager_token_account
+                    let cpi_accounts = CloseAccount {
+                        account: ctx.accounts.token_manager_token_account.to_account_info(),
+                        destination: ctx.accounts.collector.to_account_info(),
+                        authority: token_manager.to_account_info(),
+                    };
+                    let cpi_program = ctx.accounts.token_program.to_account_info();
+                    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+                    token::close_account(cpi_context)?;
+
+                    // close token_manager
+                    token_manager.state = TokenManagerState::Invalidated as u8;
+                    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+                    token_manager.close(ctx.accounts.collector.to_account_info())?;
                 }
-            } else {
-                let receipt_token_account_info = next_account_info(remaining_accs)?;
-                let receipt_token_account = Account::<TokenAccount>::try_from(receipt_token_account_info)?;
-                if !(receipt_token_account.mint == token_manager.receipt_mint.expect("No receipt mint") && receipt_token_account.amount > 0) {
-                    return Err(error!(ErrorCode::InvalidReceiptMintAccount));
-                }
-                if receipt_token_account.owner != return_token_account.owner {
-                    return Err(error!(ErrorCode::InvalidReceiptMintOwner));
+                _ => {
+                    // find receipt holder
+                    let return_token_account_info = next_account_info(remaining_accs)?;
+                    let return_token_account = Account::<TokenAccount>::try_from(return_token_account_info)?;
+                    if token_manager.receipt_mint.is_none() {
+                        if return_token_account.owner != token_manager.issuer {
+                            return Err(error!(ErrorCode::InvalidIssuerTokenAccount));
+                        }
+                    } else {
+                        let receipt_token_account_info = next_account_info(remaining_accs)?;
+                        let receipt_token_account = Account::<TokenAccount>::try_from(receipt_token_account_info)?;
+                        if !(receipt_token_account.mint == token_manager.receipt_mint.expect("No receipt mint") && receipt_token_account.amount > 0) {
+                            return Err(error!(ErrorCode::InvalidReceiptMintAccount));
+                        }
+                        if receipt_token_account.owner != return_token_account.owner {
+                            return Err(error!(ErrorCode::InvalidReceiptMintOwner));
+                        }
+                    }
+
+                    // transfer back to issuer or receipt holder
+                    let cpi_accounts = Transfer {
+                        from: ctx.accounts.recipient_token_account.to_account_info(),
+                        to: return_token_account_info.to_account_info(),
+                        authority: token_manager.to_account_info(),
+                    };
+                    let cpi_program = ctx.accounts.token_program.to_account_info();
+                    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+                    token::transfer(cpi_context, token_manager.amount)?;
+
+                    // close token_manager_token_account
+                    let cpi_accounts = CloseAccount {
+                        account: ctx.accounts.token_manager_token_account.to_account_info(),
+                        destination: ctx.accounts.collector.to_account_info(),
+                        authority: token_manager.to_account_info(),
+                    };
+                    let cpi_program = ctx.accounts.token_program.to_account_info();
+                    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+                    token::close_account(cpi_context)?;
+
+                    // close token_manager
+                    token_manager.state = TokenManagerState::Invalidated as u8;
+                    token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+                    token_manager.close(ctx.accounts.collector.to_account_info())?;
                 }
             }
-
-            // transfer back to issuer or receipt holder
-            let cpi_accounts = Transfer {
-                from: ctx.accounts.recipient_token_account.to_account_info(),
-                to: return_token_account_info.to_account_info(),
-                authority: token_manager.to_account_info(),
-            };
-            let cpi_program = ctx.accounts.token_program.to_account_info();
-            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-            token::transfer(cpi_context, token_manager.amount)?;
-
-            // close token_manager_token_account
-            let cpi_accounts = CloseAccount {
-                account: ctx.accounts.token_manager_token_account.to_account_info(),
-                destination: ctx.accounts.collector.to_account_info(),
-                authority: token_manager.to_account_info(),
-            };
-            let cpi_program = ctx.accounts.token_program.to_account_info();
-            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-            token::close_account(cpi_context)?;
-
-            // close token_manager
-            token_manager.state = TokenManagerState::Invalidated as u8;
-            token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
-            token_manager.close(ctx.accounts.collector.to_account_info())?;
         }
         t if t == InvalidationType::Invalidate as u8 => {
             // close token_manager_token_account

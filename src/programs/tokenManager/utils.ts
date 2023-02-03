@@ -1,20 +1,34 @@
 import type { AccountData } from "@cardinal/common";
 import {
   findMintEditionId,
+  findMintMetadataId,
   METADATA_PROGRAM_ID,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
+import {
+  PREFIX as TOKEN_AUTH_RULESET_PREFIX,
+  PROGRAM_ID as TOKEN_AUTH_RULES_ID,
+} from "@metaplex-foundation/mpl-token-auth-rules";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
-import { getAccount } from "@solana/spl-token";
-import type {
-  AccountMeta,
-  Connection,
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAccount,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
+import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
+import {
   PublicKey,
-  Transaction,
+  SystemProgram,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
 } from "@solana/web3.js";
 
 import type { TokenManagerData } from ".";
-import { InvalidationType, TokenManagerKind, TokenManagerState } from ".";
+import {
+  CRANK_KEY,
+  InvalidationType,
+  TokenManagerKind,
+  TokenManagerState,
+} from ".";
 import { findMintManagerId, findTransferReceiptId } from "./pda";
 
 export const getRemainingAccountsForKind = (
@@ -57,10 +71,19 @@ export const withRemainingAccountsForReturn = async (
   connection: Connection,
   wallet: Wallet,
   tokenManagerData: AccountData<TokenManagerData>,
-  allowOwnerOffCurve = true
+  recipientTokenAccountOwnerId?: PublicKey,
+  rulesetId?: PublicKey
 ): Promise<AccountMeta[]> => {
-  const { issuer, mint, claimApprover, invalidationType, receiptMint, state } =
-    tokenManagerData.parsed;
+  const {
+    issuer,
+    mint,
+    claimApprover,
+    recipientTokenAccount,
+    invalidationType,
+    kind,
+    receiptMint,
+    state,
+  } = tokenManagerData.parsed;
   if (
     invalidationType === InvalidationType.Vest &&
     state === TokenManagerState.Issued
@@ -73,7 +96,7 @@ export const withRemainingAccountsForReturn = async (
         mint,
         claimApprover,
         wallet.publicKey,
-        allowOwnerOffCurve
+        true
       );
     return [
       {
@@ -86,55 +109,152 @@ export const withRemainingAccountsForReturn = async (
     invalidationType === InvalidationType.Return ||
     state === TokenManagerState.Issued
   ) {
-    if (receiptMint) {
-      const receiptMintLargestAccount =
-        await connection.getTokenLargestAccounts(receiptMint);
+    if (kind === TokenManagerKind.Programmable) {
+      if (!rulesetId) throw "Ruleset not specified";
+      if (!recipientTokenAccountOwnerId)
+        throw "Recipient token account owner not specified";
+      const remainingAccounts: AccountMeta[] = [];
+      let returnTokenAccountId;
+      if (receiptMint) {
+        const receiptMintLargestAccount =
+          await connection.getTokenLargestAccounts(receiptMint);
 
-      // get holder of receipt mint
-      const receiptTokenAccountId = receiptMintLargestAccount.value[0]?.address;
-      if (!receiptTokenAccountId) throw new Error("No token accounts found");
-      const receiptTokenAccount = await getAccount(
-        connection,
-        receiptTokenAccountId
-      );
+        // get holder of receipt mint
+        const receiptTokenAccountId =
+          receiptMintLargestAccount.value[0]?.address;
+        if (!receiptTokenAccountId) throw new Error("No token accounts found");
+        const receiptTokenAccount = await getAccount(
+          connection,
+          receiptTokenAccountId
+        );
 
-      // get ATA for this mint of receipt mint holder
-      const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        mint,
-        receiptTokenAccount.owner,
-        wallet.publicKey,
-        allowOwnerOffCurve
-      );
-      return [
+        // get ATA for this mint of receipt mint holder
+        returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          receiptTokenAccount.owner,
+          wallet.publicKey,
+          true
+        );
+        remainingAccounts.push(
+          {
+            pubkey: returnTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: receiptTokenAccount.owner,
+            isSigner: false,
+            isWritable: false,
+          },
+          {
+            pubkey: receiptTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          }
+        );
+      } else {
+        returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          issuer,
+          wallet.publicKey,
+          true
+        );
+        remainingAccounts.push(
+          {
+            pubkey: returnTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: issuer,
+            isSigner: false,
+            isWritable: false,
+          }
+        );
+      }
+      remainingAccounts.push(
         {
-          pubkey: returnTokenAccountId,
+          pubkey: recipientTokenAccountOwnerId,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: SystemProgram.programId,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: findTokenRecordId(
+            mint,
+            getAssociatedTokenAddressSync(mint, tokenManagerData.pubkey, true)
+          ),
           isSigner: false,
           isWritable: true,
         },
-        {
-          pubkey: receiptTokenAccountId,
-          isSigner: false,
-          isWritable: true,
-        },
-      ];
+        ...remainingAccountForProgrammable(
+          mint,
+          recipientTokenAccount,
+          returnTokenAccountId,
+          rulesetId
+        )
+      );
+      return remainingAccounts;
     } else {
-      const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        mint,
-        issuer,
-        wallet.publicKey,
-        allowOwnerOffCurve
-      );
-      return [
-        {
-          pubkey: issuerTokenAccountId,
-          isSigner: false,
-          isWritable: true,
-        },
-      ];
+      if (receiptMint) {
+        const receiptMintLargestAccount =
+          await connection.getTokenLargestAccounts(receiptMint);
+
+        // get holder of receipt mint
+        const receiptTokenAccountId =
+          receiptMintLargestAccount.value[0]?.address;
+        if (!receiptTokenAccountId) throw new Error("No token accounts found");
+        const receiptTokenAccount = await getAccount(
+          connection,
+          receiptTokenAccountId
+        );
+
+        // get ATA for this mint of receipt mint holder
+        const returnTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          receiptTokenAccount.owner,
+          wallet.publicKey,
+          true
+        );
+        return [
+          {
+            pubkey: returnTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+          {
+            pubkey: receiptTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+        ];
+      } else {
+        const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
+          transaction,
+          connection,
+          mint,
+          issuer,
+          wallet.publicKey,
+          true
+        );
+        return [
+          {
+            pubkey: issuerTokenAccountId,
+            isSigner: false,
+            isWritable: true,
+          },
+        ];
+      }
     }
   } else {
     return [];
@@ -157,4 +277,171 @@ export const getRemainingAccountsForTransfer = (
   } else {
     return [];
   }
+};
+
+export const remainingAccountForProgrammable = (
+  mintId: PublicKey,
+  fromTokenAccountId: PublicKey,
+  toTokenAccountId: PublicKey,
+  rulesetId: PublicKey
+): AccountMeta[] => {
+  return [
+    {
+      pubkey: mintId,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findMintMetadataId(mintId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findMintEditionId(mintId),
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: findTokenRecordId(mintId, fromTokenAccountId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findTokenRecordId(mintId, toTokenAccountId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SYSVAR_INSTRUCTIONS_PUBKEY,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: TOKEN_AUTH_RULES_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: rulesetId,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: METADATA_PROGRAM_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+  ];
+};
+
+export const getRemainingAccountsForIssue = (
+  tokenManagerKind: TokenManagerKind,
+  mintId: PublicKey,
+  issuerTokenAccountId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey,
+  rulesetId?: PublicKey
+): AccountMeta[] => {
+  if (tokenManagerKind === TokenManagerKind.Permissioned) {
+    return [
+      {
+        pubkey: CRANK_KEY,
+        isSigner: false,
+        isWritable: true,
+      },
+    ];
+  } else if (tokenManagerKind === TokenManagerKind.Programmable) {
+    if (!rulesetId) throw "Ruleset not specified";
+    return remainingAccountForProgrammable(
+      mintId,
+      issuerTokenAccountId,
+      tokenManagerTokenAccountId,
+      rulesetId
+    );
+  } else {
+    return [];
+  }
+};
+
+export const getRemainingAccountsForClaim = (
+  tokenManagerKind: TokenManagerKind,
+  mintId: PublicKey,
+  tokenManagerTokenAccountId: PublicKey,
+  recipientTokenAccountId: PublicKey,
+  rulesetId?: PublicKey,
+  claimReceiptId?: PublicKey
+): AccountMeta[] => {
+  const remainingAccounts: AccountMeta[] = [];
+  if (
+    tokenManagerKind === TokenManagerKind.Managed ||
+    tokenManagerKind === TokenManagerKind.Permissioned
+  ) {
+    const mintManagerId = findMintManagerId(mintId);
+    remainingAccounts.push({
+      pubkey: mintManagerId,
+      isSigner: false,
+      isWritable: true,
+    });
+  } else if (tokenManagerKind === TokenManagerKind.Edition) {
+    const editionId = findMintEditionId(mintId);
+    remainingAccounts.push(
+      {
+        pubkey: editionId,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: METADATA_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      }
+    );
+  } else if (tokenManagerKind === TokenManagerKind.Programmable) {
+    if (!rulesetId) throw "Ruleset not specified";
+    remainingAccounts.push(
+      ...remainingAccountForProgrammable(
+        mintId,
+        tokenManagerTokenAccountId,
+        recipientTokenAccountId,
+        rulesetId
+      )
+    );
+  }
+  return claimReceiptId
+    ? [
+        ...remainingAccounts,
+        { pubkey: claimReceiptId, isSigner: false, isWritable: true },
+      ]
+    : remainingAccounts;
+};
+
+export function findTokenRecordId(
+  mint: PublicKey,
+  token: PublicKey
+): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("metadata"),
+      METADATA_PROGRAM_ID.toBuffer(),
+      mint.toBuffer(),
+      Buffer.from("token_record"),
+      token.toBuffer(),
+    ],
+    METADATA_PROGRAM_ID
+  )[0];
+}
+
+export const findRuleSetId = (authority: PublicKey, name: string) => {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from(TOKEN_AUTH_RULESET_PREFIX),
+      authority.toBuffer(),
+      Buffer.from(name),
+    ],
+    TOKEN_AUTH_RULES_ID
+  )[0];
 };

@@ -51,7 +51,7 @@
     "mplx-beta": "npm:@metaplex-foundation/mpl-token-metadata@2.8.0"
   },
   "devDependencies": {
-    "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
+    "@metaplex-foundation/mpl-token-metadata": "^2.8.0",
     "@types/bn.js": "^5.1.0",
     "@types/jest": "^29.2.4",
     "@types/node-fetch": "^2.6.2",

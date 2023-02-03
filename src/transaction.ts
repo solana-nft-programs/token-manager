@@ -529,7 +529,10 @@ export const withClaimToken = async (
     Metadata.fromAccountAddress(connection, metadataId)
   );
 
-  let claimReceiptId;
+  let claimReceiptId = tokenManager.pda.findClaimReceiptId(
+    tokenManagerId,
+    wallet.publicKey
+  );
   // pay claim approver
   if (
     claimApproverData &&
@@ -587,7 +590,7 @@ export const withClaimToken = async (
   } else if (tokenManagerData.parsed.claimApprover) {
     const createClaimReceiptIx = await tokenManagerProgram(connection, wallet)
       .methods.createClaimReceipt(wallet.publicKey)
-      .accounts({
+      .accountsStrict({
         tokenManager: tokenManagerId,
         claimApprover: tokenManagerData.parsed.claimApprover,
         claimReceipt: claimReceiptId,

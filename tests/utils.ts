@@ -71,6 +71,7 @@ export const createProgrammableAssetTx = (
             "Transfer:Owner": "Pass",
             "Transfer:Delegate": "Pass",
             "Transfer:TransferDelegate": "Pass",
+            "Delegate:LockedTransfer": "Pass",
           },
         ]),
       },

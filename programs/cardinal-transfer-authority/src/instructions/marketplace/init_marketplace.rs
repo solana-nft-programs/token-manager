@@ -1,9 +1,8 @@
 use cardinal_payment_manager::state::PaymentManager;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitMarketplaceIx {

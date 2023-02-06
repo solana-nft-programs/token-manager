@@ -1,10 +1,9 @@
 use anchor_spl::token::TokenAccount;
 use cardinal_token_manager::state::TokenManager;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdateListingIx {

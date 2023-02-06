@@ -1,11 +1,9 @@
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    cardinal_token_manager::{
-        program::CardinalTokenManager,
-        state::{TokenManager, TokenManagerState},
-    },
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use cardinal_token_manager::program::CardinalTokenManager;
+use cardinal_token_manager::state::TokenManager;
+use cardinal_token_manager::state::TokenManagerState;
 
 #[derive(Accounts)]
 pub struct InvalidateCtx<'info> {

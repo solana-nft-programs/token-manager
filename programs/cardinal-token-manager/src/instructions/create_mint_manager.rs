@@ -1,9 +1,11 @@
-use anchor_spl::token::{self, Mint, SetAuthority, Token};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::Mint;
+use anchor_spl::token::SetAuthority;
+use anchor_spl::token::Token;
+use anchor_spl::token::{self};
 use spl_token::instruction::AuthorityType;
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-};
 
 #[derive(Accounts)]
 pub struct CreateMintManagerCtx<'info> {

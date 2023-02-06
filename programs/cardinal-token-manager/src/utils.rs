@@ -1,8 +1,7 @@
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    anchor_spl::token::TokenAccount,
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::TokenAccount;
 
 pub fn assert_payment_token_account(token_account: &Account<TokenAccount>, token_manager: &Account<TokenManager>, remaining_accounts: &mut std::slice::Iter<AccountInfo>) -> Result<()> {
     if token_manager.receipt_mint.is_none() {

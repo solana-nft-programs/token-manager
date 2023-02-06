@@ -1,4 +1,5 @@
-use {crate::state::*, anchor_lang::prelude::*};
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitTransferAuthorityIx {

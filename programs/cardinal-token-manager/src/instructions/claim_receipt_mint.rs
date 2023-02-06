@@ -1,16 +1,16 @@
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::{
-        prelude::*,
-        solana_program::program::{invoke, invoke_signed},
-    },
-    anchor_spl::{
-        associated_token::{self, AssociatedToken},
-        token::{self, Token},
-    },
-    mpl_token_metadata::{instruction::create_metadata_accounts_v2, state::Creator},
-    solana_program::{program_pack::Pack, system_instruction::create_account},
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program::invoke;
+use anchor_lang::solana_program::program::invoke_signed;
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::associated_token::{self};
+use anchor_spl::token::Token;
+use anchor_spl::token::{self};
+use mpl_token_metadata::instruction::create_metadata_accounts_v2;
+use mpl_token_metadata::state::Creator;
+use solana_program::program_pack::Pack;
+use solana_program::system_instruction::create_account;
 
 #[derive(Accounts)]
 pub struct ClaimReceiptMintCtx<'info> {

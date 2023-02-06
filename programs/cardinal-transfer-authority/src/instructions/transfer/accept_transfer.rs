@@ -1,22 +1,20 @@
 use anchor_lang::AccountsClose;
-use anchor_spl::{
-    associated_token::{self, AssociatedToken},
-    token::{Mint, Token, TokenAccount},
-};
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::associated_token::{self};
+use anchor_spl::token::Mint;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    cardinal_token_manager::{
-        program::CardinalTokenManager,
-        state::{TokenManager, TokenManagerState},
-    },
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use cardinal_token_manager::program::CardinalTokenManager;
+use cardinal_token_manager::state::TokenManager;
+use cardinal_token_manager::state::TokenManagerState;
 
-use solana_program::sysvar::{
-    self,
-    instructions::{get_instruction_relative, load_current_index_checked},
-};
+use solana_program::sysvar::instructions::get_instruction_relative;
+use solana_program::sysvar::instructions::load_current_index_checked;
+use solana_program::sysvar::{self};
 use spl_associated_token_account::get_associated_token_address;
 
 #[derive(Accounts)]

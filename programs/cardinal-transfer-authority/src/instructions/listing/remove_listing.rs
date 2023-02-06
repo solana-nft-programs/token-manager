@@ -1,12 +1,11 @@
-use anchor_spl::token::{Token, TokenAccount};
-use cardinal_token_manager::{
-    program::CardinalTokenManager,
-    state::{TokenManager, TokenManagerKind},
-};
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+use cardinal_token_manager::program::CardinalTokenManager;
+use cardinal_token_manager::state::TokenManager;
+use cardinal_token_manager::state::TokenManagerKind;
 
 #[derive(Accounts)]
 pub struct RemoveListingCtx<'info> {

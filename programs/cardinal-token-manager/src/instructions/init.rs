@@ -1,8 +1,8 @@
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    anchor_spl::token::{Mint, TokenAccount},
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::Mint;
+use anchor_spl::token::TokenAccount;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitIx {

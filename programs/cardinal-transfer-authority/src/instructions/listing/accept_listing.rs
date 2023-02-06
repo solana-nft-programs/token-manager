@@ -1,15 +1,14 @@
-use anchor_spl::{associated_token::AssociatedToken, token::TokenAccount};
-use cardinal_token_manager::{
-    program::CardinalTokenManager,
-    state::{TokenManager, TokenManagerKind},
-};
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token::TokenAccount;
+use cardinal_token_manager::program::CardinalTokenManager;
+use cardinal_token_manager::state::TokenManager;
+use cardinal_token_manager::state::TokenManagerKind;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    anchor_spl::token::Token,
-    cardinal_payment_manager::program::CardinalPaymentManager,
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::Token;
+use cardinal_payment_manager::program::CardinalPaymentManager;
 
 use solana_program::sysvar::{self};
 

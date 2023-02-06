@@ -1,9 +1,8 @@
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    anchor_spl::token::TokenAccount,
-    cardinal_token_manager::state::TokenManager,
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::TokenAccount;
+use cardinal_token_manager::state::TokenManager;
 
 #[derive(Accounts)]
 #[instruction(num_usages: u64)]

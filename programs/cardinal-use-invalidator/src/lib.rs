@@ -2,7 +2,8 @@ pub mod errors;
 pub mod instructions;
 pub mod state;
 
-use {anchor_lang::prelude::*, instructions::*};
+use anchor_lang::prelude::*;
+use instructions::*;
 
 declare_id!("useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp");
 

@@ -1,10 +1,15 @@
-use anchor_spl::token::{self, Approve, FreezeAccount, Mint, ThawAccount, Token, TokenAccount};
+use anchor_spl::token::Approve;
+use anchor_spl::token::FreezeAccount;
+use anchor_spl::token::Mint;
+use anchor_spl::token::ThawAccount;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+use anchor_spl::token::{self};
 use mpl_token_metadata::utils::assert_derivation;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct DelegateCtx<'info> {

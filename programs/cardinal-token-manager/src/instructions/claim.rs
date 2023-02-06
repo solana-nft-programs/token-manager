@@ -1,19 +1,25 @@
-use mpl_token_metadata::instruction::{DelegateArgs, LockArgs, MetadataInstruction, TransferArgs};
+use mpl_token_metadata::instruction::DelegateArgs;
+use mpl_token_metadata::instruction::LockArgs;
+use mpl_token_metadata::instruction::MetadataInstruction;
+use mpl_token_metadata::instruction::TransferArgs;
 use solana_program::instruction::Instruction;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::{
-        prelude::*,
-        solana_program::{
-            program::{invoke, invoke_signed},
-            system_instruction::transfer,
-        },
-        AccountsClose,
-    },
-    anchor_spl::token::{self, Approve, FreezeAccount, Mint, Token, TokenAccount, Transfer},
-    mpl_token_metadata::{instruction::freeze_delegated_account, utils::assert_derivation},
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program::invoke;
+use anchor_lang::solana_program::program::invoke_signed;
+use anchor_lang::solana_program::system_instruction::transfer;
+use anchor_lang::AccountsClose;
+use anchor_spl::token::Approve;
+use anchor_spl::token::FreezeAccount;
+use anchor_spl::token::Mint;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+use anchor_spl::token::Transfer;
+use anchor_spl::token::{self};
+use mpl_token_metadata::instruction::freeze_delegated_account;
+use mpl_token_metadata::utils::assert_derivation;
 
 #[derive(Accounts)]
 pub struct ClaimCtx<'info> {

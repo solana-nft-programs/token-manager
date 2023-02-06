@@ -1,12 +1,16 @@
-use mpl_token_metadata::instruction::{MetadataInstruction, TransferArgs};
+use mpl_token_metadata::instruction::MetadataInstruction;
+use mpl_token_metadata::instruction::TransferArgs;
 use solana_program::instruction::Instruction;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    anchor_spl::token::{self, Token, TokenAccount, Transfer},
-    solana_program::{program::invoke, system_instruction},
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+use anchor_spl::token::Transfer;
+use anchor_spl::token::{self};
+use solana_program::program::invoke;
+use solana_program::system_instruction;
 
 #[derive(Accounts)]
 pub struct IssueCtx<'info> {

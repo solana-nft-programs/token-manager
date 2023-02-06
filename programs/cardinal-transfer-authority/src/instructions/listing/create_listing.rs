@@ -1,10 +1,11 @@
-use anchor_spl::token::{Token, TokenAccount};
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
 
-use {
-    crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
-    cardinal_token_manager::state::{TokenManager, TokenManagerState},
-};
+use crate::errors::ErrorCode;
+use crate::state::*;
+use anchor_lang::prelude::*;
+use cardinal_token_manager::state::TokenManager;
+use cardinal_token_manager::state::TokenManagerState;
 
 use cardinal_token_manager::program::CardinalTokenManager;
 use solana_program::sysvar::{self};

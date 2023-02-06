@@ -1,14 +1,19 @@
 use std::str::FromStr;
 
-use crate::{
-    errors::ErrorCode,
-    state::{MintManager, TokenManager, MINT_MANAGER_SEED},
-};
-use anchor_spl::token::{self, Mint, ThawAccount, Token, TokenAccount};
+use crate::errors::ErrorCode;
+use crate::state::MintManager;
+use crate::state::TokenManager;
+use crate::state::MINT_MANAGER_SEED;
+use anchor_spl::token::Mint;
+use anchor_spl::token::ThawAccount;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+use anchor_spl::token::{self};
 use cardinal_creator_standard::instructions::init_mint_manager;
 use solana_program::program::invoke_signed;
 
-use anchor_lang::{prelude::*, AccountsClose};
+use anchor_lang::prelude::*;
+use anchor_lang::AccountsClose;
 
 #[derive(Accounts)]
 

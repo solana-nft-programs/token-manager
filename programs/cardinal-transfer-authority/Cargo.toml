@@ -30,4 +30,4 @@ cardinal-token-manager = { version = "^4.0.0", path = "../cardinal-token-manager
 cardinal-payment-manager = { version = "^3.0.0", features = ["cpi"] }
 
 [dev-dependencies]
-proptest = { version = "1.0" }
+proptest = { version = "1.1" }

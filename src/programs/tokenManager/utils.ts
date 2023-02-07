@@ -1,5 +1,7 @@
 import type { AccountData } from "@cardinal/common";
 import {
+  decodeIdlAccount,
+  emptyWallet,
   findMintEditionId,
   findMintMetadataId,
   METADATA_PROGRAM_ID,
@@ -15,21 +17,30 @@ import {
   getAccount,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
-import type { AccountMeta, Connection, Transaction } from "@solana/web3.js";
+import type { AccountMeta, Connection } from "@solana/web3.js";
 import {
+  Keypair,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
+  Transaction,
 } from "@solana/web3.js";
+import { Metadata, TokenStandard } from "mplx-beta";
 
+import type { CardinalTokenManager } from "../../idl/cardinal_token_manager";
 import type { TokenManagerData } from ".";
 import {
   CRANK_KEY,
   InvalidationType,
+  TOKEN_MANAGER_IDL,
   TokenManagerKind,
   TokenManagerState,
 } from ".";
-import { findMintManagerId, findTransferReceiptId } from "./pda";
+import {
+  findMintManagerId,
+  findTokenManagerAddress,
+  findTransferReceiptId,
+} from "./pda";
 
 export const getRemainingAccountsForKind = (
   mintId: PublicKey,
@@ -64,6 +75,86 @@ export const getRemainingAccountsForKind = (
   } else {
     return [];
   }
+};
+
+/**
+ * Convenience method to get remaining accounts for invalidation
+ * NOTE: This ignores token account creation and assumes that is handled outside. Use withRemainingAccountsForInvalidate
+ * to include token account creation in the current transaction
+ * @param connection
+ * @param mintId
+ * @returns
+ */
+export const getRemainingAccountsForInvalidate = async (
+  connection: Connection,
+  mintId: PublicKey
+) => {
+  const tokenManagerId = findTokenManagerAddress(mintId);
+  const [tokenManagerInfo, metadataInfo] =
+    await connection.getMultipleAccountsInfo([
+      tokenManagerId,
+      findMintMetadataId(mintId),
+    ]);
+  if (!tokenManagerInfo) throw "Token manager not found";
+  const tokenManagerData = decodeIdlAccount<
+    "tokenManager",
+    CardinalTokenManager
+  >(tokenManagerInfo, "tokenManager", TOKEN_MANAGER_IDL);
+  if (!metadataInfo) throw "Metadata not found";
+  const metadata = Metadata.deserialize(metadataInfo.data)[0];
+
+  const receipientTokenAccount = await getAccount(
+    connection,
+    tokenManagerData.parsed.recipientTokenAccount
+  );
+
+  return await withRemainingAccountsForInvalidate(
+    new Transaction(),
+    connection,
+    emptyWallet(Keypair.generate().publicKey),
+    mintId,
+    { ...tokenManagerData, pubkey: tokenManagerId },
+    receipientTokenAccount.owner,
+    metadata
+  );
+};
+
+export const withRemainingAccountsForInvalidate = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  tokenManagerData: AccountData<TokenManagerData>,
+  recipientTokenAccountOwnerId: PublicKey,
+  metadata: Metadata | null
+): Promise<AccountMeta[]> => {
+  const remainingAccounts: AccountMeta[] = [];
+  if (tokenManagerData.parsed.state === TokenManagerState.Claimed) {
+    if (
+      tokenManagerData.parsed.kind === TokenManagerKind.Edition &&
+      metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
+    ) {
+      remainingAccounts.push({
+        pubkey: findMintMetadataId(mintId),
+        isSigner: false,
+        isWritable: false,
+      });
+    } else {
+      remainingAccounts.push(
+        ...getRemainingAccountsForKind(mintId, tokenManagerData.parsed.kind)
+      );
+    }
+  }
+  const returnAccounts = await withRemainingAccountsForReturn(
+    transaction,
+    connection,
+    wallet,
+    tokenManagerData,
+    recipientTokenAccountOwnerId,
+    metadata?.programmableConfig?.ruleSet ?? undefined
+  );
+  remainingAccounts.push(...returnAccounts);
+  return remainingAccounts;
 };
 
 export const withRemainingAccountsForReturn = async (
@@ -109,7 +200,7 @@ export const withRemainingAccountsForReturn = async (
     invalidationType === InvalidationType.Return ||
     state === TokenManagerState.Issued
   ) {
-    if (kind === TokenManagerKind.Programmable) {
+    if (kind === TokenManagerKind.Programmable || rulesetId) {
       if (!rulesetId) throw "Ruleset not specified";
       if (!recipientTokenAccountOwnerId)
         throw "Recipient token account owner not specified";

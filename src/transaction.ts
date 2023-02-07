@@ -31,7 +31,7 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
-import { Metadata } from "mplx-beta";
+import { Metadata, TokenStandard } from "mplx-beta";
 
 import {
   claimApprover,
@@ -71,6 +71,7 @@ import {
   getRemainingAccountsForIssue,
   getRemainingAccountsForKind,
   getRemainingAccountsForTransfer,
+  withRemainingAccountsForInvalidate,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager/utils";
 import {
@@ -715,7 +716,10 @@ export const withInvalidate = async (
     ]);
 
   if (!tokenManagerData) return transaction;
-  if (tokenManagerData.parsed.kind === TokenManagerKind.Programmable) {
+  if (
+    tokenManagerData.parsed.kind === TokenManagerKind.Programmable ||
+    metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
+  ) {
     transaction.add(
       ComputeBudgetProgram.setComputeUnitLimit({
         units: 400000,
@@ -737,20 +741,15 @@ export const withInvalidate = async (
     true
   );
 
-  const remainingAccountsForReturn = await withRemainingAccountsForReturn(
+  const remainingAccounts = await withRemainingAccountsForInvalidate(
     transaction,
     connection,
     wallet,
+    mintId,
     tokenManagerData,
     recipientTokenAccount.owner,
-    metadata?.programmableConfig?.ruleSet ?? undefined
+    metadata
   );
-
-  const transferAccounts = getRemainingAccountsForKind(
-    mintId,
-    tokenManagerData.parsed.kind
-  );
-
   if (
     useInvalidatorData &&
     useInvalidatorData.parsed.totalUsages &&
@@ -769,7 +768,7 @@ export const withInvalidate = async (
         recipientTokenAccount: tokenManagerData.parsed.recipientTokenAccount,
         rent: SYSVAR_RENT_PUBKEY,
       })
-      .remainingAccounts(remainingAccountsForReturn)
+      .remainingAccounts(remainingAccounts)
       .instruction();
     transaction.add(invalidateIx);
     const closeIx = await usgInvalidatorProgram.methods
@@ -799,12 +798,7 @@ export const withInvalidate = async (
         recipientTokenAccount: tokenManagerData.parsed.recipientTokenAccount,
         rent: SYSVAR_RENT_PUBKEY,
       })
-      .remainingAccounts([
-        ...(tokenManagerData.parsed.state === TokenManagerState.Claimed
-          ? transferAccounts
-          : []),
-        ...remainingAccountsForReturn,
-      ])
+      .remainingAccounts(remainingAccounts)
       .instruction();
     transaction.add(invalidateIx);
     const closeIx = await tmeInvalidatorProgram.methods
@@ -836,12 +830,7 @@ export const withInvalidate = async (
         tokenProgram: TOKEN_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,
       })
-      .remainingAccounts([
-        ...(tokenManagerData.parsed.state === TokenManagerState.Claimed
-          ? transferAccounts
-          : []),
-        ...remainingAccountsForReturn,
-      ])
+      .remainingAccounts(remainingAccounts)
       .instruction();
     transaction.add(invalidateIx);
   }

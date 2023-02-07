@@ -1,6 +1,8 @@
 use mpl_token_metadata::instruction::MetadataInstruction;
 use mpl_token_metadata::instruction::TransferArgs;
 use mpl_token_metadata::instruction::UnlockArgs;
+use mpl_token_metadata::state::Metadata;
+use mpl_token_metadata::state::TokenStandard;
 use solana_program::instruction::Instruction;
 
 use crate::errors::ErrorCode;
@@ -87,29 +89,47 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             }
             k if k == TokenManagerKind::Edition as u8 => {
                 let edition_info = next_account_info(remaining_accs)?;
-                let metadata_program = next_account_info(remaining_accs)?;
-                // edition will be validated by metadata_program
-                if metadata_program.key() != mpl_token_metadata::id() {
-                    return Err(error!(ErrorCode::InvalidMetadataProgramId));
+                match assert_derivation(
+                    &mpl_token_metadata::id(),
+                    &edition_info.to_account_info(),
+                    &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), ctx.accounts.mint.key().as_ref()],
+                ) {
+                    // migrated pnft
+                    Ok(_) => {
+                        let mint_metadata_data = edition_info.try_borrow_mut_data().expect("Failed to borrow data");
+                        let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
+                        match metadata.token_standard {
+                            Some(TokenStandard::ProgrammableNonFungible) => {
+                                token_manager.kind = TokenManagerKind::Programmable as u8;
+                            }
+                            _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
+                        }
+                    }
+                    // regular edition
+                    _ => {
+                        let metadata_program = next_account_info(remaining_accs)?;
+                        // edition will be validated by metadata_program
+                        if metadata_program.key() != mpl_token_metadata::id() {
+                            return Err(error!(ErrorCode::InvalidMetadataProgramId));
+                        }
+                        invoke_signed(
+                            &thaw_delegated_account(
+                                *metadata_program.key,
+                                token_manager.key(),
+                                ctx.accounts.recipient_token_account.key(),
+                                *edition_info.key,
+                                ctx.accounts.mint.key(),
+                            ),
+                            &[
+                                token_manager.to_account_info(),
+                                ctx.accounts.recipient_token_account.to_account_info(),
+                                edition_info.to_account_info(),
+                                ctx.accounts.mint.to_account_info(),
+                            ],
+                            &[token_manager_seeds],
+                        )?;
+                    }
                 }
-                // assert_keys_eq!(metadata_program.key(), mpl_token_metadata::id());
-
-                invoke_signed(
-                    &thaw_delegated_account(
-                        *metadata_program.key,
-                        token_manager.key(),
-                        ctx.accounts.recipient_token_account.key(),
-                        *edition_info.key,
-                        ctx.accounts.mint.key(),
-                    ),
-                    &[
-                        token_manager.to_account_info(),
-                        ctx.accounts.recipient_token_account.to_account_info(),
-                        edition_info.to_account_info(),
-                        ctx.accounts.mint.to_account_info(),
-                    ],
-                    &[token_manager_seeds],
-                )?;
             }
             k if k == TokenManagerKind::Programmable as u8 => {}
             _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),

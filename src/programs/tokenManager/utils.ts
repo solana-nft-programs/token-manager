@@ -21,6 +21,8 @@ import {
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
 } from "@solana/web3.js";
+import type { Metadata } from "mplx-beta";
+import { TokenStandard } from "mplx-beta";
 
 import type { TokenManagerData } from ".";
 import {
@@ -66,6 +68,44 @@ export const getRemainingAccountsForKind = (
   }
 };
 
+export const withRemainingAccountsForInvalidate = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  tokenManagerData: AccountData<TokenManagerData>,
+  recipientTokenAccountOwnerId: PublicKey,
+  metadata: Metadata | null
+): Promise<AccountMeta[]> => {
+  const remainingAccounts: AccountMeta[] = [];
+  if (tokenManagerData.parsed.state === TokenManagerState.Claimed) {
+    if (
+      tokenManagerData.parsed.kind === TokenManagerKind.Edition &&
+      metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
+    ) {
+      remainingAccounts.push({
+        pubkey: findMintMetadataId(mintId),
+        isSigner: false,
+        isWritable: false,
+      });
+    } else {
+      remainingAccounts.push(
+        ...getRemainingAccountsForKind(mintId, tokenManagerData.parsed.kind)
+      );
+    }
+  }
+  const returnAccounts = await withRemainingAccountsForReturn(
+    transaction,
+    connection,
+    wallet,
+    tokenManagerData,
+    recipientTokenAccountOwnerId,
+    metadata?.programmableConfig?.ruleSet ?? undefined
+  );
+  remainingAccounts.push(...returnAccounts);
+  return remainingAccounts;
+};
+
 export const withRemainingAccountsForReturn = async (
   transaction: Transaction,
   connection: Connection,
@@ -109,7 +149,7 @@ export const withRemainingAccountsForReturn = async (
     invalidationType === InvalidationType.Return ||
     state === TokenManagerState.Issued
   ) {
-    if (kind === TokenManagerKind.Programmable) {
+    if (kind === TokenManagerKind.Programmable || rulesetId) {
       if (!rulesetId) throw "Ruleset not specified";
       if (!recipientTokenAccountOwnerId)
         throw "Recipient token account owner not specified";

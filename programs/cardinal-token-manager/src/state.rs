@@ -13,6 +13,17 @@ pub enum TokenManagerState {
     Invalidated = 3,
 }
 
+impl From<u8> for TokenManagerState {
+    fn from(orig: u8) -> Self {
+        match orig {
+            0 => TokenManagerState::Initialized,
+            1 => TokenManagerState::Issued,
+            2 => TokenManagerState::Claimed,
+            _ => TokenManagerState::Invalidated,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum TokenManagerKind {
@@ -28,6 +39,18 @@ pub enum TokenManagerKind {
     Programmable = 5,
 }
 
+impl From<u8> for TokenManagerKind {
+    fn from(orig: u8) -> Self {
+        match orig {
+            1 => TokenManagerKind::Managed,
+            2 => TokenManagerKind::Unmanaged,
+            3 => TokenManagerKind::Edition,
+            4 => TokenManagerKind::Permissioned,
+            _ => TokenManagerKind::Programmable,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 #[repr(u8)]
 pub enum InvalidationType {
@@ -41,6 +64,18 @@ pub enum InvalidationType {
     Reissue = 4,
     /// Vest for vesting tokens that release to the claim_approver automatically if not yet claimed
     Vest = 5,
+}
+
+impl From<u8> for InvalidationType {
+    fn from(orig: u8) -> Self {
+        match orig {
+            1 => InvalidationType::Return,
+            2 => InvalidationType::Invalidate,
+            3 => InvalidationType::Release,
+            4 => InvalidationType::Reissue,
+            _ => InvalidationType::Vest,
+        }
+    }
 }
 
 pub const INVALIDATION_REWARD_LAMPORTS: u64 = 5_000_000;

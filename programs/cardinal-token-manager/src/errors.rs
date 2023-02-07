@@ -82,4 +82,6 @@ pub enum ErrorCode {
     CannotMigrateDelegatedToken,
     #[msg("Invalid return target")]
     InvalidReturnTarget,
+    #[msg("Invalid token manager state and/or invalidation type")]
+    InvalidTokenManagerInvalidationOrKind,
 }

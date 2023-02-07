@@ -1,7 +1,6 @@
 import type { AccountData } from "@cardinal/common";
 import {
   decodeIdlAccount,
-  emptyWallet,
   findMintEditionId,
   findMintMetadataId,
   METADATA_PROGRAM_ID,
@@ -19,7 +18,6 @@ import {
 } from "@solana/spl-token";
 import type { AccountMeta, Connection } from "@solana/web3.js";
 import {
-  Keypair,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -87,6 +85,7 @@ export const getRemainingAccountsForKind = (
  */
 export const getRemainingAccountsForInvalidate = async (
   connection: Connection,
+  wallet: Wallet,
   mintId: PublicKey
 ) => {
   const tokenManagerId = findTokenManagerAddress(mintId);
@@ -111,7 +110,7 @@ export const getRemainingAccountsForInvalidate = async (
   return await withRemainingAccountsForInvalidate(
     new Transaction(),
     connection,
-    emptyWallet(Keypair.generate().publicKey),
+    wallet,
     mintId,
     { ...tokenManagerData, pubkey: tokenManagerId },
     receipientTokenAccount.owner,

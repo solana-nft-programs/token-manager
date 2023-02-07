@@ -274,6 +274,11 @@ export const withRemainingAccountsForReturn = async (
           isWritable: false,
         },
         {
+          pubkey: wallet.publicKey,
+          isSigner: true,
+          isWritable: true,
+        },
+        {
           pubkey: SystemProgram.programId,
           isSigner: false,
           isWritable: false,

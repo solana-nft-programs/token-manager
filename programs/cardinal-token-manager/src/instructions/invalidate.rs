@@ -1,25 +1,25 @@
-use anchor_spl::token;
-use mpl_token_metadata::instruction::MetadataInstruction;
-use mpl_token_metadata::instruction::RevokeArgs;
-use mpl_token_metadata::instruction::TransferArgs;
-use mpl_token_metadata::instruction::UnlockArgs;
-use mpl_token_metadata::state::Metadata;
-use mpl_token_metadata::state::TokenStandard;
-use solana_program::instruction::Instruction;
-
 use crate::errors::ErrorCode;
 use crate::state::*;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_lang::AccountsClose;
+use anchor_spl::token;
 use anchor_spl::token::CloseAccount;
 use anchor_spl::token::Mint;
 use anchor_spl::token::ThawAccount;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
+use core::slice::Iter;
 use mpl_token_metadata::instruction::thaw_delegated_account;
+use mpl_token_metadata::instruction::MetadataInstruction;
+use mpl_token_metadata::instruction::RevokeArgs;
+use mpl_token_metadata::instruction::TransferArgs;
+use mpl_token_metadata::instruction::UnlockArgs;
+use mpl_token_metadata::state::Metadata;
+use mpl_token_metadata::state::TokenStandard;
 use mpl_token_metadata::utils::assert_derivation;
+use solana_program::instruction::Instruction;
 
 #[derive(Accounts)]
 pub struct InvalidateCtx<'info> {
@@ -54,12 +54,66 @@ pub struct InvalidateCtx<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
+impl<'info> InvalidateCtx<'info> {
+    fn release_unclaimed_vesting(&self, remaining_accs: &mut Iter<AccountInfo<'info>>) -> Result<()> {
+        // get PDA seeds to sign with
+        let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), self.token_manager.mint.as_ref(), &[self.token_manager.bump]];
+        let token_manager_signer = &[&token_manager_seeds[..]];
+
+        // find claim_approver token account
+        let claim_approver_token_account_info = next_account_info(remaining_accs)?;
+        let claim_approver_token_account = Account::<TokenAccount>::try_from(claim_approver_token_account_info)?;
+        if claim_approver_token_account.owner != self.token_manager.claim_approver.expect("No claim approver found") {
+            return Err(error!(ErrorCode::InvalidReceiptMintOwner));
+        }
+
+        // transfer to claim_approver
+        let cpi_accounts = Transfer {
+            from: self.token_manager_token_account.to_account_info(),
+            to: claim_approver_token_account.to_account_info(),
+            authority: self.token_manager.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+        token::transfer(cpi_context, self.token_manager.amount)?;
+
+        Ok(())
+    }
+
+    fn thaw_non_edition(&self, program_id: &Pubkey, remaining_accs: &mut Iter<AccountInfo<'info>>) -> Result<()> {
+        let mint_manager_info = next_account_info(remaining_accs)?;
+
+        // update mint manager
+        let mut mint_manager = Account::<MintManager>::try_from(mint_manager_info)?;
+        mint_manager.token_managers = mint_manager.token_managers.checked_sub(1).expect("Sub error");
+        mint_manager.exit(program_id)?;
+
+        let path = &[MINT_MANAGER_SEED.as_bytes(), self.token_manager.mint.as_ref()];
+        let bump_seed = assert_derivation(program_id, mint_manager_info, path)?;
+        let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), self.token_manager.mint.as_ref(), &[bump_seed]];
+        let mint_manager_signer = &[&mint_manager_seeds[..]];
+
+        // thaw recipient account
+        let cpi_accounts = ThawAccount {
+            account: self.recipient_token_account.to_account_info(),
+            mint: self.mint.to_account_info(),
+            authority: mint_manager_info.to_account_info(),
+        };
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(mint_manager_signer);
+        token::thaw_account(cpi_context)?;
+
+        Ok(())
+    }
+}
+
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     // state x kind
+    let remaining_accs = &mut ctx.remaining_accounts.iter();
     match (TokenManagerState::from(ctx.accounts.token_manager.state), TokenManagerKind::from(ctx.accounts.token_manager.kind)) {
-        (TokenManagerState::Claimed, TokenManagerKind::Managed) => thaw_non_edition(&ctx)?,
-        (TokenManagerState::Claimed, TokenManagerKind::Permissioned) => thaw_non_edition(&ctx)?,
-        (TokenManagerState::Claimed, TokenManagerKind::Edition) => thaw_edition(&ctx)?,
+        (TokenManagerState::Claimed, TokenManagerKind::Managed) => ctx.accounts.thaw_non_edition(ctx.program_id, remaining_accs)?,
+        (TokenManagerState::Claimed, TokenManagerKind::Permissioned) => ctx.accounts.thaw_non_edition(ctx.program_id, remaining_accs)?,
+        // (TokenManagerState::Claimed, TokenManagerKind::Edition) => thaw_edition(ctx, remaining_accs)?,
         _ => return Err(error!(ErrorCode::InvalidTokenManagerState)),
     }
 
@@ -68,48 +122,45 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         TokenManagerState::from(ctx.accounts.token_manager.state),
         InvalidationType::from(ctx.accounts.token_manager.invalidation_type),
     ) {
-        (TokenManagerState::Issued, InvalidationType::Vest) => release_unclaimed_vesting(&ctx)?,
-        (TokenManagerState::Issued, _) => return_invalidation(&ctx)?,
+        (TokenManagerState::Issued, InvalidationType::Vest) => ctx.accounts.release_unclaimed_vesting(remaining_accs)?,
+        // (TokenManagerState::Issued, _) => return_invalidation(ctx, remaining_accs)?,
         _ => return Err(error!(ErrorCode::InvalidTokenManagerState)),
     }
 
     // kind x invalidation type
-    match (
-        TokenManagerKind::from(ctx.accounts.token_manager.kind),
-        InvalidationType::from(ctx.accounts.token_manager.invalidation_type),
-    ) {
-        // Managed
-        (TokenManagerKind::Managed, InvalidationType::Return) => return_invalidation(&ctx)?,
-        (TokenManagerKind::Managed, InvalidationType::Invalidate) => invalidate_invalidation(&ctx)?,
-        (TokenManagerKind::Managed, InvalidationType::Release) => release_invalidation(&ctx)?,
-        (TokenManagerKind::Managed, InvalidationType::Reissue) => reissue_invalidation(&ctx)?,
-        (TokenManagerKind::Managed, InvalidationType::Vest) => vest_invalidation(&ctx)?,
-        // Editions
-        (TokenManagerKind::Edition, InvalidationType::Return) => return_invalidation(&ctx)?,
-        (TokenManagerKind::Edition, InvalidationType::Invalidate) => invalidate_invalidation(&ctx)?,
-        (TokenManagerKind::Edition, InvalidationType::Release) => release_invalidation(&ctx)?,
-        (TokenManagerKind::Edition, InvalidationType::Reissue) => reissue_invalidation(&ctx)?,
-        (TokenManagerKind::Edition, InvalidationType::Vest) => vest_invalidation(&ctx)?,
-        // Programmable
-        (TokenManagerKind::Programmable, InvalidationType::Return) => reutrn_pnft_invalidation(&ctx)?,
-        (TokenManagerKind::Programmable, InvalidationType::Release) => release_pnft_invalidation(&ctx)?,
-        // (TokenManagerKind::Programmable, InvalidationType::Invalidate) => todo!(),
-        // (TokenManagerKind::Programmable, InvalidationType::Reissue) => todo!(),
-        // (TokenManagerKind::Programmable, InvalidationType::Vest) => todo!(),
-        // Permissioned
-        (TokenManagerKind::Permissioned, InvalidationType::Return) => return_invalidation(&ctx)?,
-        (TokenManagerKind::Permissioned, InvalidationType::Invalidate) => invalidate_invalidation(&ctx)?,
-        (TokenManagerKind::Permissioned, InvalidationType::Release) => release_invalidation(&ctx)?,
-        (TokenManagerKind::Permissioned, InvalidationType::Reissue) => reissue_invalidation(&ctx)?,
-        (TokenManagerKind::Permissioned, InvalidationType::Vest) => vest_invalidation(&ctx)?,
-        // Unmanaged
-        (TokenManagerKind::Unmanaged, InvalidationType::Return) => return_invalidation(&ctx)?,
-        (TokenManagerKind::Unmanaged, InvalidationType::Invalidate) => invalidate_invalidation(&ctx)?,
-        (TokenManagerKind::Unmanaged, InvalidationType::Release) => release_invalidation(&ctx)?,
-        (TokenManagerKind::Unmanaged, InvalidationType::Reissue) => reissue_invalidation(&ctx)?,
-        (TokenManagerKind::Unmanaged, InvalidationType::Vest) => reissue_invalidation(&ctx)?,
-        _ => return Err(error!(ErrorCode::InvalidTokenManagerInvalidationOrKind)),
-    };
+    // match (TokenManagerKind::from(kind), InvalidationType::from(invalidation_type)) {
+    //     // Managed
+    //     (TokenManagerKind::Managed, InvalidationType::Return) => return_invalidation(ctx, remaining_accs)?,
+    //     (TokenManagerKind::Managed, InvalidationType::Invalidate) => invalidate_invalidation(ctx)?,
+    //     (TokenManagerKind::Managed, InvalidationType::Release) => release_invalidation(ctx)?,
+    //     (TokenManagerKind::Managed, InvalidationType::Reissue) => reissue_invalidation(ctx)?,
+    //     (TokenManagerKind::Managed, InvalidationType::Vest) => vest_invalidation(ctx, remaining_accs)?,
+    //     // Editions
+    //     (TokenManagerKind::Edition, InvalidationType::Return) => return_invalidation(ctx, remaining_accs)?,
+    //     (TokenManagerKind::Edition, InvalidationType::Invalidate) => invalidate_invalidation(ctx)?,
+    //     (TokenManagerKind::Edition, InvalidationType::Release) => release_invalidation(ctx)?,
+    //     (TokenManagerKind::Edition, InvalidationType::Reissue) => reissue_invalidation(ctx)?,
+    //     (TokenManagerKind::Edition, InvalidationType::Vest) => vest_invalidation(ctx, remaining_accs)?,
+    //     // Programmable
+    //     (TokenManagerKind::Programmable, InvalidationType::Return) => return_pnft_invalidation(ctx, remaining_accs)?,
+    //     (TokenManagerKind::Programmable, InvalidationType::Release) => release_pnft_invalidation(ctx, remaining_accs)?,
+    //     (TokenManagerKind::Programmable, InvalidationType::Invalidate) => todo!(),
+    //     (TokenManagerKind::Programmable, InvalidationType::Reissue) => todo!(),
+    //     (TokenManagerKind::Programmable, InvalidationType::Vest) => todo!(),
+    //     // Permissioned
+    //     (TokenManagerKind::Permissioned, InvalidationType::Return) => return_invalidation(ctx, remaining_accs)?,
+    //     (TokenManagerKind::Permissioned, InvalidationType::Invalidate) => invalidate_invalidation(ctx)?,
+    //     (TokenManagerKind::Permissioned, InvalidationType::Release) => release_invalidation(ctx)?,
+    //     (TokenManagerKind::Permissioned, InvalidationType::Reissue) => reissue_invalidation(ctx)?,
+    //     (TokenManagerKind::Permissioned, InvalidationType::Vest) => vest_invalidation(ctx, remaining_accs)?,
+    //     // Unmanaged
+    //     (TokenManagerKind::Unmanaged, InvalidationType::Return) => return_invalidation(ctx, remaining_accs)?,
+    //     (TokenManagerKind::Unmanaged, InvalidationType::Invalidate) => invalidate_invalidation(ctx)?,
+    //     (TokenManagerKind::Unmanaged, InvalidationType::Release) => release_invalidation(ctx)?,
+    //     (TokenManagerKind::Unmanaged, InvalidationType::Reissue) => reissue_invalidation(ctx)?,
+    //     (TokenManagerKind::Unmanaged, InvalidationType::Vest) => reissue_invalidation(ctx)?,
+    //     _ => return Err(error!(ErrorCode::InvalidTokenManagerInvalidationOrKind)),
+    // };
 
     Ok(())
 }
@@ -120,11 +171,13 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
 /// KIND x INVALIDATION HANDLERS
 
-pub fn release_unclaimed_vesting<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn release_unclaimed_vesting<'key, 'accounts, 'remaining, 'info>(
+    ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>,
+    remaining_accs: &mut Iter<AccountInfo<'info>>,
+) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // find claim_approver token account
     let claim_approver_token_account_info = next_account_info(remaining_accs)?;
@@ -146,8 +199,7 @@ pub fn release_unclaimed_vesting<'key, 'accounts, 'remaining, 'info>(ctx: &Conte
     Ok(())
 }
 
-pub fn thaw_non_edition<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
+pub fn thaw_non_edition<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>, remaining_accs: &mut Iter<AccountInfo<'info>>) -> Result<()> {
     let mint_manager_info = next_account_info(remaining_accs)?;
 
     // update mint manager
@@ -173,10 +225,9 @@ pub fn thaw_non_edition<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 
     Ok(())
 }
 
-pub fn thaw_edition<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn thaw_edition<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>, remaining_accs: &mut Iter<AccountInfo<'info>>) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
     let edition_info = next_account_info(remaining_accs)?;
 
     match assert_derivation(
@@ -224,7 +275,7 @@ pub fn thaw_edition<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'acc
     Ok(())
 }
 
-pub fn reissue_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn reissue_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
@@ -254,11 +305,13 @@ pub fn reissue_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'k
     Ok(())
 }
 
-pub fn release_pnft_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn release_pnft_invalidation<'key, 'accounts, 'remaining, 'info>(
+    ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>,
+    remaining_accs: &mut Iter<AccountInfo<'info>>,
+) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // find receipt holder
     let return_token_account_info = next_account_info(remaining_accs)?;
@@ -417,11 +470,13 @@ pub fn release_pnft_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Conte
     Ok(())
 }
 
-pub fn reutrn_pnft_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn return_pnft_invalidation<'key, 'accounts, 'remaining, 'info>(
+    ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>,
+    remaining_accs: &mut Iter<AccountInfo<'info>>,
+) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
 
     // find receipt holder
     let return_token_account_info = next_account_info(remaining_accs)?;
@@ -665,7 +720,7 @@ pub fn reutrn_pnft_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Contex
     Ok(())
 }
 
-pub fn release_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn release_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
@@ -708,7 +763,7 @@ pub fn release_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'k
     Ok(())
 }
 
-pub fn invalidate_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
+pub fn invalidate_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
@@ -738,9 +793,7 @@ pub fn invalidate_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context
     Ok(())
 }
 
-pub fn return_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
-
+pub fn return_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>, remaining_accs: &mut Iter<AccountInfo<'info>>) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
@@ -791,9 +844,7 @@ pub fn return_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'ke
     Ok(())
 }
 
-pub fn vest_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: &Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
-
+pub fn vest_invalidation<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>, remaining_accs: &mut Iter<AccountInfo<'info>>) -> Result<()> {
     // get PDA seeds to sign with
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), ctx.accounts.token_manager.mint.as_ref(), &[ctx.accounts.token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];

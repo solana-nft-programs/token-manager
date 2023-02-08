@@ -31,7 +31,7 @@ jobs:
       - name: Install Yarn dependencies
         run: yarn install
       - run: yarn docs:generate
-      - run: cp -R images/ site/
+      - run: cp -R doc-assets/ site/
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.5

@@ -131,6 +131,7 @@ export const withRemainingAccountsForInvalidate = async (
   metadata: Metadata | null
 ): Promise<AccountMeta[]> => {
   const remainingAccounts: AccountMeta[] = [];
+  console.log(tokenManagerData.parsed.state);
   if (tokenManagerData.parsed.state === TokenManagerState.Claimed) {
     if (
       tokenManagerData.parsed.kind === TokenManagerKind.Edition &&
@@ -147,17 +148,7 @@ export const withRemainingAccountsForInvalidate = async (
       );
     }
   }
-  if (tokenManagerData.parsed.invalidationType === InvalidationType.Return) {
-    const returnAccounts = await withRemainingAccountsForReturn(
-      transaction,
-      connection,
-      wallet,
-      tokenManagerData,
-      recipientTokenAccountOwnerId,
-      metadata?.programmableConfig?.ruleSet ?? undefined
-    );
-    remainingAccounts.push(...returnAccounts);
-  } else if (
+  if (
     tokenManagerData.parsed.invalidationType === InvalidationType.Release &&
     tokenManagerData.parsed.kind === TokenManagerKind.Programmable
   ) {
@@ -170,6 +161,16 @@ export const withRemainingAccountsForInvalidate = async (
       metadata?.programmableConfig?.ruleSet
     );
     remainingAccounts.push(...releaseAccounts);
+  } else {
+    const returnAccounts = await withRemainingAccountsForReturn(
+      transaction,
+      connection,
+      wallet,
+      tokenManagerData,
+      recipientTokenAccountOwnerId,
+      metadata?.programmableConfig?.ruleSet ?? undefined
+    );
+    remainingAccounts.push(...returnAccounts);
   }
 
   return remainingAccounts;

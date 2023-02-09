@@ -14,6 +14,10 @@ import {
 } from "@cardinal/creator-standard";
 import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
 import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
+import {
+  Metadata,
+  TokenStandard,
+} from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
@@ -31,7 +35,6 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
-import { Metadata, TokenStandard } from "mplx-beta";
 
 import {
   claimApprover,

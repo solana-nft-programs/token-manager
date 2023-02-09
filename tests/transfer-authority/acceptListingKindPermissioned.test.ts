@@ -4,16 +4,13 @@ import {
   emptyWallet,
   executeTransaction,
   findAta,
+  findMintMetadataId,
   getTestProvider,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import { beforeAll, expect } from "@jest/globals";
-import {
-  CreateMetadataV2,
-  DataV2,
-  Metadata,
-} from "@metaplex-foundation/mpl-token-metadata";
+import { createCreateMetadataAccountV3Instruction } from "@metaplex-foundation/mpl-token-metadata";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import {
@@ -77,27 +74,34 @@ describe("Accept Listing Permissioned", () => {
     // create rental mint
     [, mint] = await createMint(provider.connection, new Wallet(lister));
 
-    const metadataId = await Metadata.getPDA(mint);
-    const metadataTx = new CreateMetadataV2(
-      { feePayer: lister.publicKey },
+    const metadataId = findMintMetadataId(mint);
+    const metadataIx = createCreateMetadataAccountV3Instruction(
       {
         metadata: metadataId,
-        metadataData: new DataV2({
-          name: "test",
-          symbol: "TST",
-          uri: "http://test/",
-          sellerFeeBasisPoints: 10,
-          creators: null,
-          collection: null,
-          uses: null,
-        }),
         updateAuthority: lister.publicKey,
         mint: mint,
         mintAuthority: lister.publicKey,
+        payer: lister.publicKey,
+      },
+      {
+        createMetadataAccountArgsV3: {
+          data: {
+            name: "test",
+            symbol: "TST",
+            uri: "http://test/",
+            sellerFeeBasisPoints: 10,
+            creators: null,
+            collection: null,
+            uses: null,
+          },
+          isMutable: true,
+          collectionDetails: null,
+        },
       }
     );
+
     const tx = new Transaction();
-    tx.instructions = [...metadataTx.instructions];
+    tx.instructions = [metadataIx];
     await executeTransaction(provider.connection, tx, new Wallet(lister));
 
     const pmtx = new Transaction();

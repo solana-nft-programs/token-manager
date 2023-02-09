@@ -2,17 +2,16 @@ import type { CardinalProvider } from "@cardinal/common";
 import {
   createMint,
   executeTransaction,
+  findMintEditionId,
+  findMintMetadataId,
   getTestProvider,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import { beforeAll, expect } from "@jest/globals";
 import {
-  CreateMasterEditionV3,
-  CreateMetadataV2,
-  DataV2,
-  MasterEdition,
-  Metadata,
+  createCreateMasterEditionV3Instruction,
+  createCreateMetadataAccountV3Instruction,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { Wallet } from "@project-serum/anchor";
 import {
@@ -72,43 +71,50 @@ describe("Create Listing", () => {
       }
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint);
-    const metadataTx = new CreateMetadataV2(
-      { feePayer: tokenCreator.publicKey },
+    const metadataId = findMintMetadataId(rentalMint);
+    const metadataIx = createCreateMetadataAccountV3Instruction(
       {
         metadata: metadataId,
-        metadataData: new DataV2({
-          name: "test",
-          symbol: "TST",
-          uri: "http://test/",
-          sellerFeeBasisPoints: 10,
-          creators: null,
-          collection: null,
-          uses: null,
-        }),
         updateAuthority: tokenCreator.publicKey,
         mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
+        payer: tokenCreator.publicKey,
+      },
+      {
+        createMetadataAccountArgsV3: {
+          data: {
+            name: "test",
+            symbol: "TST",
+            uri: "http://test/",
+            sellerFeeBasisPoints: 10,
+            creators: null,
+            collection: null,
+            uses: null,
+          },
+          isMutable: true,
+          collectionDetails: null,
+        },
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint);
-    const masterEditionTx = new CreateMasterEditionV3(
-      { feePayer: tokenCreator.publicKey },
+    const masterEditionId = findMintEditionId(rentalMint);
+    const masterEditionIx = createCreateMasterEditionV3Instruction(
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: tokenCreator.publicKey,
         mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
-        maxSupply: new BN(1),
+        payer: tokenCreator.publicKey,
+      },
+      {
+        createMasterEditionArgs: {
+          maxSupply: new BN(1),
+        },
       }
     );
     const tx = new Transaction();
-    tx.instructions = [
-      ...metadataTx.instructions,
-      ...masterEditionTx.instructions,
-    ];
+    tx.instructions = [metadataIx, masterEditionIx];
     await executeTransaction(provider.connection, tx, new Wallet(tokenCreator));
 
     const pmtx = new Transaction();

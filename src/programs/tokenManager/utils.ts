@@ -10,6 +10,10 @@ import {
   PREFIX as TOKEN_AUTH_RULESET_PREFIX,
   PROGRAM_ID as TOKEN_AUTH_RULES_ID,
 } from "@metaplex-foundation/mpl-token-auth-rules";
+import {
+  Metadata,
+  TokenStandard,
+} from "@metaplex-foundation/mpl-token-metadata";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -23,7 +27,6 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
-import { Metadata, TokenStandard } from "mplx-beta";
 
 import type { CardinalTokenManager } from "../../idl/cardinal_token_manager";
 import type { TokenManagerData } from ".";

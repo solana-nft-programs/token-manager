@@ -2,13 +2,22 @@ import {
   executeTransaction,
   findMintEditionId,
   findMintMetadataId,
+  METADATA_PROGRAM_ID,
 } from "@cardinal/common";
 import {
   createCreateOrUpdateInstruction,
   PROGRAM_ID as TOKEN_AUTH_RULES_ID,
 } from "@metaplex-foundation/mpl-token-auth-rules";
+import {
+  createCreateInstruction,
+  createMintInstruction,
+  TokenStandard,
+} from "@metaplex-foundation/mpl-token-metadata";
 import { encode } from "@msgpack/msgpack";
+import type { BN } from "@project-serum/anchor";
+import { utils } from "@project-serum/anchor";
 import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
@@ -20,11 +29,6 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
-import {
-  createCreateInstruction,
-  createMintInstruction,
-  TokenStandard,
-} from "mplx-beta";
 
 import { findRuleSetId, findTokenRecordId } from "../src/programs/tokenManager";
 
@@ -151,4 +155,20 @@ export const createProgrammableAssetTx = (
     ataId,
     rulesetId,
   ];
+};
+
+export const findEditionMarkerId = (
+  mintId: PublicKey,
+  editionNumber: BN
+): PublicKey => {
+  return findProgramAddressSync(
+    [
+      utils.bytes.utf8.encode("metadata"),
+      METADATA_PROGRAM_ID.toBuffer(),
+      mintId.toBuffer(),
+      utils.bytes.utf8.encode("edition"),
+      Buffer.from(editionNumber.toString()),
+    ],
+    METADATA_PROGRAM_ID
+  )[0];
 };

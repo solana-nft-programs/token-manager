@@ -3,14 +3,11 @@ import {
   createMint,
   executeTransaction,
   findAta,
+  findMintMetadataId,
   getTestProvider,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
-import {
-  CreateMetadataV2,
-  DataV2,
-  Metadata,
-} from "@metaplex-foundation/mpl-token-metadata";
+import { createCreateMetadataAccountV3Instruction } from "@metaplex-foundation/mpl-token-metadata";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
@@ -46,27 +43,33 @@ describe("Add and Remove Delegate for Type Permissioned", () => {
     // create rental mint
     [, rentalMint] = await createMint(provider.connection, new Wallet(user));
 
-    const metadataId = await Metadata.getPDA(rentalMint);
-    const metadataTx = new CreateMetadataV2(
-      { feePayer: user.publicKey },
+    const metadataId = findMintMetadataId(rentalMint);
+    const metadataIx = createCreateMetadataAccountV3Instruction(
       {
         metadata: metadataId,
-        metadataData: new DataV2({
-          name: "test",
-          symbol: "TST",
-          uri: "http://test/",
-          sellerFeeBasisPoints: 10,
-          creators: null,
-          collection: null,
-          uses: null,
-        }),
         updateAuthority: user.publicKey,
         mint: rentalMint,
         mintAuthority: user.publicKey,
+        payer: user.publicKey,
+      },
+      {
+        createMetadataAccountArgsV3: {
+          data: {
+            name: "test",
+            symbol: "TST",
+            uri: "http://test/",
+            sellerFeeBasisPoints: 10,
+            creators: null,
+            collection: null,
+            uses: null,
+          },
+          isMutable: true,
+          collectionDetails: null,
+        },
       }
     );
     const tx = new Transaction();
-    tx.instructions = [...metadataTx.instructions];
+    tx.instructions = [metadataIx];
     await executeTransaction(provider.connection, tx, new Wallet(user));
   });
 

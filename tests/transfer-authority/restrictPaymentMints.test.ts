@@ -3,17 +3,16 @@ import {
   createMint,
   executeTransaction,
   findAta,
+  findMintEditionId,
+  findMintMetadataId,
   getTestProvider,
 } from "@cardinal/common";
 import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
 import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
 import { beforeAll, expect } from "@jest/globals";
 import {
-  CreateMasterEditionV3,
-  CreateMetadataV2,
-  DataV2,
-  MasterEdition,
-  Metadata,
+  createCreateMasterEditionV3Instruction,
+  createCreateMetadataAccountV3Instruction,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
@@ -78,43 +77,51 @@ describe("Restrict Payment Mints", () => {
       { amount: 100000 }
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint);
-    const metadataTx = new CreateMetadataV2(
-      { feePayer: lister.publicKey },
+    const metadataId = findMintMetadataId(rentalMint);
+    const metadataIx = createCreateMetadataAccountV3Instruction(
       {
         metadata: metadataId,
-        metadataData: new DataV2({
-          name: "test",
-          symbol: "TST",
-          uri: "http://test/",
-          sellerFeeBasisPoints: 10,
-          creators: null,
-          collection: null,
-          uses: null,
-        }),
         updateAuthority: lister.publicKey,
         mint: rentalMint,
         mintAuthority: lister.publicKey,
+        payer: lister.publicKey,
+      },
+      {
+        createMetadataAccountArgsV3: {
+          data: {
+            name: "test",
+            symbol: "TST",
+            uri: "http://test/",
+            sellerFeeBasisPoints: 10,
+            creators: null,
+            collection: null,
+            uses: null,
+          },
+          isMutable: true,
+          collectionDetails: null,
+        },
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint);
-    const masterEditionTx = new CreateMasterEditionV3(
-      { feePayer: lister.publicKey },
+    const masterEditionId = findMintEditionId(rentalMint);
+    const masterEditionIx = createCreateMasterEditionV3Instruction(
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: lister.publicKey,
         mint: rentalMint,
         mintAuthority: lister.publicKey,
-        maxSupply: new BN(1),
+        payer: lister.publicKey,
+      },
+      {
+        createMasterEditionArgs: {
+          maxSupply: new BN(0),
+        },
       }
     );
+
     const tx = new Transaction();
-    tx.instructions = [
-      ...metadataTx.instructions,
-      ...masterEditionTx.instructions,
-    ];
+    tx.instructions = [metadataIx, masterEditionIx];
     await executeTransaction(provider.connection, tx, new Wallet(lister));
 
     const pmtx = new Transaction();

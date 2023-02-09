@@ -3,18 +3,15 @@ import {
   createMint,
   executeTransaction,
   findAta,
+  findMintEditionId,
+  findMintMetadataId,
   getTestProvider,
 } from "@cardinal/common";
 import { beforeAll, expect } from "@jest/globals";
 import {
-  CreateMasterEditionV3,
-  CreateMetadataV2,
-  DataV2,
-  Edition,
-  EditionMarker,
-  MasterEdition,
-  Metadata,
-  MintNewEditionFromMasterEditionViaToken,
+  createCreateMasterEditionV3Instruction,
+  createCreateMetadataAccountV3Instruction,
+  createMintNewEditionFromMasterEditionViaTokenInstruction,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
@@ -34,6 +31,7 @@ import {
   TokenManagerKind,
   TokenManagerState,
 } from "../../src/programs/tokenManager";
+import { findEditionMarkerId } from "../utils";
 
 describe("Claim links master editions invalidate", () => {
   let provider: CardinalProvider;
@@ -65,36 +63,46 @@ describe("Claim links master editions invalidate", () => {
       new Wallet(tokenCreator)
     );
 
-    const metadataId = await Metadata.getPDA(rentalMint);
-    const metadataTx = new CreateMetadataV2(
-      { feePayer: tokenCreator.publicKey },
+    const metadataId = findMintMetadataId(rentalMint);
+    const metadataIx = createCreateMetadataAccountV3Instruction(
       {
         metadata: metadataId,
-        metadataData: new DataV2({
-          name: "test",
-          symbol: "TST",
-          uri: "http://test/",
-          sellerFeeBasisPoints: 10,
-          creators: null,
-          collection: null,
-          uses: null,
-        }),
         updateAuthority: tokenCreator.publicKey,
         mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
+        payer: tokenCreator.publicKey,
+      },
+      {
+        createMetadataAccountArgsV3: {
+          data: {
+            name: "test",
+            symbol: "TST",
+            uri: "http://test/",
+            sellerFeeBasisPoints: 10,
+            creators: null,
+            collection: null,
+            uses: null,
+          },
+          isMutable: true,
+          collectionDetails: null,
+        },
       }
     );
 
-    const masterEditionId = await MasterEdition.getPDA(rentalMint);
-    const masterEditionTx = new CreateMasterEditionV3(
-      { feePayer: tokenCreator.publicKey },
+    const masterEditionId = findMintEditionId(rentalMint);
+    const masterEditionIx = createCreateMasterEditionV3Instruction(
       {
         edition: masterEditionId,
         metadata: metadataId,
         updateAuthority: tokenCreator.publicKey,
         mint: rentalMint,
         mintAuthority: tokenCreator.publicKey,
-        maxSupply: new BN(1),
+        payer: tokenCreator.publicKey,
+      },
+      {
+        createMasterEditionArgs: {
+          maxSupply: new BN(1),
+        },
       }
     );
 
@@ -107,31 +115,31 @@ describe("Claim links master editions invalidate", () => {
       }
     );
 
-    const editionMetadataId = await Metadata.getPDA(editionMint);
-    const editionId = await Edition.getPDA(editionMint);
-    const editionMarkerId = await EditionMarker.getPDA(rentalMint, new BN(0));
-    const editionTx = new MintNewEditionFromMasterEditionViaToken(
-      { feePayer: tokenCreator.publicKey },
+    const editionMetadataId = findMintMetadataId(editionMint);
+    const editionId = findMintEditionId(editionMint);
+    const editionMarkerId = findEditionMarkerId(rentalMint, new BN(0));
+    const editionIx = createMintNewEditionFromMasterEditionViaTokenInstruction(
       {
-        edition: editionId,
-        metadata: editionMetadataId,
-        updateAuthority: tokenCreator.publicKey,
-        mint: editionMint,
-        mintAuthority: tokenCreator.publicKey,
+        metadata: metadataId,
         masterEdition: masterEditionId,
-        masterMetadata: metadataId,
-        editionMarker: editionMarkerId,
-        tokenOwner: tokenCreator.publicKey,
+        payer: tokenCreator.publicKey,
+        newMetadata: editionMetadataId,
+        newEdition: editionId,
+        newMint: editionMint,
+        editionMarkPda: editionMarkerId,
+        newMintAuthority: tokenCreator.publicKey,
+        tokenAccountOwner: tokenCreator.publicKey,
         tokenAccount: issuerTokenAccountId,
-        editionValue: new BN(1),
+        newMetadataUpdateAuthority: tokenCreator.publicKey,
+      },
+      {
+        mintNewEditionFromMasterEditionViaTokenArgs: {
+          edition: new BN(1),
+        },
       }
     );
     const tx = new Transaction();
-    tx.instructions = [
-      ...metadataTx.instructions,
-      ...masterEditionTx.instructions,
-      ...editionTx.instructions,
-    ];
+    tx.instructions = [metadataIx, masterEditionIx, editionIx];
     await executeTransaction(provider.connection, tx, new Wallet(tokenCreator));
   });
 

@@ -14,13 +14,14 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { claimToken, invalidate, issueToken } from "../../src";
 import { timeInvalidator, tokenManager } from "../../src/programs";
 import {
+  InvalidationType,
   TokenManagerKind,
   TokenManagerState,
 } from "../../src/programs/tokenManager";
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { createProgrammableAsset } from "../utils";
 
-describe("Programmable issue invalidate", () => {
+describe("Programmable issue invalidate release", () => {
   let provider: CardinalProvider;
   let recipient: Keypair;
   let issuer: Keypair;
@@ -60,6 +61,7 @@ describe("Programmable issue invalidate", () => {
         issuerTokenAccountId: issuerTokenAccountId,
         kind: TokenManagerKind.Programmable,
         rulesetId: rulesetId,
+        invalidationType: InvalidationType.Release,
         customInvalidators: [invalidator.publicKey],
       }
     );
@@ -167,7 +169,7 @@ describe("Programmable issue invalidate", () => {
       provider.connection,
       issuerTokenAccountId
     );
-    expect(checkIssuerTokenAccount.amount.toString()).toEqual("1");
+    expect(checkIssuerTokenAccount.amount.toString()).toEqual("0");
 
     const recipientTokenAccountId = getAssociatedTokenAddressSync(
       mintId,
@@ -177,6 +179,6 @@ describe("Programmable issue invalidate", () => {
       provider.connection,
       recipientTokenAccountId
     );
-    expect(receipientTokenAccount.amount.toString()).toEqual("0");
+    expect(receipientTokenAccount.amount.toString()).toEqual("1");
   });
 });

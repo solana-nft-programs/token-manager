@@ -131,6 +131,7 @@ export const withRemainingAccountsForInvalidate = async (
   metadata: Metadata | null
 ): Promise<AccountMeta[]> => {
   const remainingAccounts: AccountMeta[] = [];
+  console.log(tokenManagerData.parsed.state);
   if (tokenManagerData.parsed.state === TokenManagerState.Claimed) {
     if (
       tokenManagerData.parsed.kind === TokenManagerKind.Edition &&
@@ -147,15 +148,31 @@ export const withRemainingAccountsForInvalidate = async (
       );
     }
   }
-  const returnAccounts = await withRemainingAccountsForReturn(
-    transaction,
-    connection,
-    wallet,
-    tokenManagerData,
-    recipientTokenAccountOwnerId,
-    metadata?.programmableConfig?.ruleSet ?? undefined
-  );
-  remainingAccounts.push(...returnAccounts);
+  if (
+    tokenManagerData.parsed.invalidationType === InvalidationType.Release &&
+    tokenManagerData.parsed.kind === TokenManagerKind.Programmable
+  ) {
+    if (!metadata?.programmableConfig?.ruleSet) throw "Ruleset not specified";
+    const releaseAccounts = remainingAccountForProgrammableRelease(
+      recipientTokenAccountOwnerId,
+      wallet.publicKey,
+      mintId,
+      tokenManagerData.parsed.recipientTokenAccount,
+      metadata?.programmableConfig?.ruleSet
+    );
+    remainingAccounts.push(...releaseAccounts);
+  } else {
+    const returnAccounts = await withRemainingAccountsForReturn(
+      transaction,
+      connection,
+      wallet,
+      tokenManagerData,
+      recipientTokenAccountOwnerId,
+      metadata?.programmableConfig?.ruleSet ?? undefined
+    );
+    remainingAccounts.push(...returnAccounts);
+  }
+
   return remainingAccounts;
 };
 
@@ -406,6 +423,89 @@ export const remainingAccountForProgrammable = (
     },
     {
       pubkey: findTokenRecordId(mintId, toTokenAccountId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: SYSVAR_INSTRUCTIONS_PUBKEY,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: TOKEN_AUTH_RULES_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: rulesetId,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: METADATA_PROGRAM_ID,
+      isSigner: false,
+      isWritable: false,
+    },
+  ];
+};
+
+export const remainingAccountForProgrammableRelease = (
+  recipient: PublicKey,
+  payer: PublicKey,
+  mintId: PublicKey,
+  fromTokenAccountId: PublicKey,
+  rulesetId: PublicKey
+): AccountMeta[] => {
+  return [
+    {
+      pubkey: recipient,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: payer,
+      isSigner: true,
+      isWritable: true,
+    },
+    {
+      pubkey: SystemProgram.programId,
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: findTokenRecordId(
+        mintId,
+        getAssociatedTokenAddressSync(
+          mintId,
+          findTokenManagerAddress(mintId),
+          true
+        )
+      ),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: mintId,
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findMintMetadataId(mintId),
+      isSigner: false,
+      isWritable: true,
+    },
+    {
+      pubkey: findMintEditionId(mintId),
+      isSigner: false,
+      isWritable: false,
+    },
+    {
+      pubkey: findTokenRecordId(mintId, fromTokenAccountId),
       isSigner: false,
       isWritable: true,
     },

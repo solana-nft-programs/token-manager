@@ -51,19 +51,17 @@ export const getRemainingAccountsForKind = (
     tokenManagerKind === TokenManagerKind.Managed ||
     tokenManagerKind === TokenManagerKind.Permissioned
   ) {
-    const mintManagerId = findMintManagerId(mintId);
     return [
       {
-        pubkey: mintManagerId,
+        pubkey: findMintManagerId(mintId),
         isSigner: false,
         isWritable: true,
       },
     ];
   } else if (tokenManagerKind === TokenManagerKind.Edition) {
-    const editionId = findMintEditionId(mintId);
     return [
       {
-        pubkey: editionId,
+        pubkey: findMintEditionId(mintId),
         isSigner: false,
         isWritable: false,
       },
@@ -173,16 +171,21 @@ export const withRemainingAccountsForInvalidate = async (
     tokenManagerData.parsed.kind !== TokenManagerKind.Programmable &&
     metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
   ) {
+    // update kind
+    tokenManagerData.parsed.kind = TokenManagerKind.Programmable;
     remainingAccounts.push({
       pubkey: findMintMetadataId(mintId),
       isSigner: false,
       isWritable: false,
     });
-  } else {
+  }
+
+  if (tokenManagerData.parsed.state === TokenManagerState.Claimed) {
     remainingAccounts.push(
       ...getRemainingAccountsForKind(mintId, tokenManagerData.parsed.kind)
     );
   }
+
   if (
     tokenManagerData.parsed.invalidationType === InvalidationType.Release &&
     tokenManagerData.parsed.kind === TokenManagerKind.Programmable
@@ -207,7 +210,6 @@ export const withRemainingAccountsForInvalidate = async (
     );
     remainingAccounts.push(...returnAccounts);
   }
-
   return remainingAccounts;
 };
 

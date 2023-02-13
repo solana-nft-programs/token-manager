@@ -32,7 +32,7 @@ pub struct UnissueCtx<'info> {
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, UnissueCtx<'info>>) -> Result<()> {
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    let remaining_accs = &mut ctx.remaining_accounts.iter().peekable();
     let token_manager = &mut ctx.accounts.token_manager;
 
     // get PDA seeds to sign with
@@ -42,8 +42,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     if token_manager.kind != TokenManagerKind::Programmable as u8 {
         // look at next account
-        let mut peek_remaining_accs = remaining_accs.peekable();
-        if let Some(next_account) = peek_remaining_accs.peek() {
+        if let Some(next_account) = remaining_accs.peek() {
             match assert_derivation(
                 &mpl_token_metadata::id(),
                 &next_account.to_account_info(),

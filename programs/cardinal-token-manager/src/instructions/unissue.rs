@@ -41,25 +41,30 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let token_manager_signer = &[&token_manager_seeds[..]];
 
     if token_manager.kind == TokenManagerKind::Edition as u8 {
-        let edition_info = next_account_info(remaining_accs)?;
-        match assert_derivation(
-            &mpl_token_metadata::id(),
-            &edition_info.to_account_info(),
-            &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), mint.as_ref()],
-        ) {
-            // migrated pnft
-            Ok(_) => {
-                let mint_metadata_data = edition_info.try_borrow_mut_data().expect("Failed to borrow data");
-                let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
-                match metadata.token_standard {
-                    Some(TokenStandard::ProgrammableNonFungible) => {
-                        token_manager.kind = TokenManagerKind::Programmable as u8;
+        // look at next account
+        let mut peek_remaining_accs = remaining_accs.peekable();
+        if let Some(next_account) = peek_remaining_accs.peek() {
+            match assert_derivation(
+                &mpl_token_metadata::id(),
+                &next_account.to_account_info(),
+                &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), mint.as_ref()],
+            ) {
+                // migrated pnft
+                Ok(_) => {
+                    // pop the account
+                    let mint_metadata_info = next_account_info(remaining_accs)?;
+                    let mint_metadata_data = mint_metadata_info.try_borrow_mut_data().expect("Failed to borrow data");
+                    let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
+                    match metadata.token_standard {
+                        Some(TokenStandard::ProgrammableNonFungible) => {
+                            token_manager.kind = TokenManagerKind::Programmable as u8;
+                        }
+                        _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
                     }
-                    _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
                 }
+                // regular edition
+                _ => {}
             }
-            // regular edition
-            _ => {}
         }
     }
 

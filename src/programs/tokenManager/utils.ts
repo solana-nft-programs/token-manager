@@ -78,6 +78,44 @@ export const getRemainingAccountsForKind = (
   }
 };
 
+export const getRemainingAccountsForUnissue = (
+  tokenManagerId: PublicKey,
+  tokenManagerData: TokenManagerData,
+  metadata: Metadata | null
+): AccountMeta[] => {
+  const remainingAccounts: AccountMeta[] = [];
+  if (
+    tokenManagerData.kind === TokenManagerKind.Edition &&
+    metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
+  ) {
+    remainingAccounts.push({
+      pubkey: findMintMetadataId(tokenManagerData.mint),
+      isSigner: false,
+      isWritable: false,
+    });
+  }
+  if (metadata?.programmableConfig?.ruleSet) {
+    remainingAccounts.push(
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ...remainingAccountForProgrammable(
+        tokenManagerData.mint,
+        getAssociatedTokenAddressSync(
+          tokenManagerData.mint,
+          tokenManagerId,
+          true
+        ),
+        getAssociatedTokenAddressSync(
+          tokenManagerData.mint,
+          tokenManagerData.issuer,
+          true
+        ),
+        metadata?.programmableConfig?.ruleSet ?? undefined
+      )
+    );
+  }
+  return remainingAccounts;
+};
+
 /**
  * Convenience method to get remaining accounts for invalidation
  * NOTE: This ignores token account creation and assumes that is handled outside. Use withRemainingAccountsForInvalidate
@@ -131,7 +169,6 @@ export const withRemainingAccountsForInvalidate = async (
   metadata: Metadata | null
 ): Promise<AccountMeta[]> => {
   const remainingAccounts: AccountMeta[] = [];
-  console.log(tokenManagerData.parsed.state);
   if (tokenManagerData.parsed.state === TokenManagerState.Claimed) {
     if (
       tokenManagerData.parsed.kind === TokenManagerKind.Edition &&

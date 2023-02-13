@@ -169,21 +169,19 @@ export const withRemainingAccountsForInvalidate = async (
   metadata: Metadata | null
 ): Promise<AccountMeta[]> => {
   const remainingAccounts: AccountMeta[] = [];
-  if (tokenManagerData.parsed.state === TokenManagerState.Claimed) {
-    if (
-      tokenManagerData.parsed.kind === TokenManagerKind.Edition &&
-      metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
-    ) {
-      remainingAccounts.push({
-        pubkey: findMintMetadataId(mintId),
-        isSigner: false,
-        isWritable: false,
-      });
-    } else {
-      remainingAccounts.push(
-        ...getRemainingAccountsForKind(mintId, tokenManagerData.parsed.kind)
-      );
-    }
+  if (
+    tokenManagerData.parsed.kind === TokenManagerKind.Edition &&
+    metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
+  ) {
+    remainingAccounts.push({
+      pubkey: findMintMetadataId(mintId),
+      isSigner: false,
+      isWritable: false,
+    });
+  } else {
+    remainingAccounts.push(
+      ...getRemainingAccountsForKind(mintId, tokenManagerData.parsed.kind)
+    );
   }
   if (
     tokenManagerData.parsed.invalidationType === InvalidationType.Release &&

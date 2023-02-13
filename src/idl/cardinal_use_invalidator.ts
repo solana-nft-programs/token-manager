@@ -1,5 +1,5 @@
 export type CardinalUseInvalidator = {
-  version: "4.0.3";
+  version: "4.2.0";
   name: "cardinal_use_invalidator";
   instructions: [
     {
@@ -410,7 +410,7 @@ export type CardinalUseInvalidator = {
 };
 
 export const IDL: CardinalUseInvalidator = {
-  version: "4.0.3",
+  version: "4.2.0",
   name: "cardinal_use_invalidator",
   instructions: [
     {

@@ -85,7 +85,7 @@ export const getRemainingAccountsForUnissue = (
 ): AccountMeta[] => {
   const remainingAccounts: AccountMeta[] = [];
   if (
-    tokenManagerData.kind === TokenManagerKind.Edition &&
+    tokenManagerData.kind !== TokenManagerKind.Programmable &&
     metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
   ) {
     remainingAccounts.push({
@@ -170,7 +170,7 @@ export const withRemainingAccountsForInvalidate = async (
 ): Promise<AccountMeta[]> => {
   const remainingAccounts: AccountMeta[] = [];
   if (
-    tokenManagerData.parsed.kind === TokenManagerKind.Edition &&
+    tokenManagerData.parsed.kind !== TokenManagerKind.Programmable &&
     metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
   ) {
     remainingAccounts.push({

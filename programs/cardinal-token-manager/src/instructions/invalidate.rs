@@ -62,7 +62,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 
-    if token_manager.kind == TokenManagerKind::Edition as u8 {
+    if token_manager.kind != TokenManagerKind::Programmable as u8 {
         // look at next account
         let mut peek_remaining_accs = remaining_accs.peekable();
         if let Some(next_account) = peek_remaining_accs.peek() {
@@ -73,12 +73,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             ) {
                 // migrated pnft
                 Ok(_) => {
-                    // pop the account
-                    let mint_metadata_info = next_account_info(remaining_accs)?;
-                    let mint_metadata_data = mint_metadata_info.try_borrow_mut_data().expect("Failed to borrow data");
+                    let mint_metadata_data = next_account.try_borrow_mut_data().expect("Failed to borrow data");
                     let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
                     match metadata.token_standard {
                         Some(TokenStandard::ProgrammableNonFungible) => {
+                            // pop this account and update type
+                            next_account_info(remaining_accs)?;
                             token_manager.kind = TokenManagerKind::Programmable as u8;
                         }
                         _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),

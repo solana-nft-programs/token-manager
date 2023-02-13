@@ -48,7 +48,7 @@ pub mod cardinal_token_manager {
         issue::handler(ctx)
     }
 
-    pub fn unissue(ctx: Context<UnissueCtx>) -> Result<()> {
+    pub fn unissue<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, UnissueCtx<'info>>) -> Result<()> {
         unissue::handler(ctx)
     }
 

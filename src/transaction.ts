@@ -1,7 +1,9 @@
 import type { AccountData } from "@cardinal/common";
 import {
+  decodeIdlAccount,
   findAta,
   findMintMetadataId,
+  getBatchedMultipleAccounts,
   METADATA_PROGRAM_ID,
   tryGetAccount,
   tryNull,
@@ -23,6 +25,7 @@ import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
   getAccount,
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
@@ -36,6 +39,7 @@ import {
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 
+import type { CardinalTokenManager } from "./idl/cardinal_token_manager";
 import {
   claimApprover,
   timeInvalidator,
@@ -57,6 +61,7 @@ import {
   CRANK_KEY,
   InvalidationType,
   TOKEN_MANAGER_ADDRESS,
+  TOKEN_MANAGER_IDL,
   TokenManagerKind,
   tokenManagerProgram,
   TokenManagerState,
@@ -74,6 +79,7 @@ import {
   getRemainingAccountsForIssue,
   getRemainingAccountsForKind,
   getRemainingAccountsForTransfer,
+  getRemainingAccountsForUnissue,
   withRemainingAccountsForInvalidate,
   withRemainingAccountsForReturn,
 } from "./programs/tokenManager/utils";
@@ -652,33 +658,55 @@ export const withUnissueToken = async (
   mintId: PublicKey
 ): Promise<Transaction> => {
   const tokenManagerId = tokenManagerAddressFromMint(mintId);
-
-  const tokenManagerTokenAccountId = await findAta(
-    mintId,
-    tokenManagerId,
-    true
-  );
-
-  const issuerTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
+  const [tokenManagerInfo, metadataInfo] = await getBatchedMultipleAccounts(
     connection,
-    mintId,
-    wallet.publicKey,
-    wallet.publicKey
+    [tokenManagerId, findMintMetadataId(mintId)]
   );
 
-  const program = tokenManagerProgram(connection, wallet);
-  const ix = await program.methods
-    .unissue()
-    .accounts({
-      tokenManager: tokenManagerId,
-      tokenManagerTokenAccount: tokenManagerTokenAccountId,
-      issuer: wallet.publicKey,
-      issuerTokenAccount: issuerTokenAccountId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    })
-    .instruction();
-  transaction.add(ix);
+  const metadata = metadataInfo
+    ? Metadata.deserialize(metadataInfo.data)[0]
+    : null;
+  if (!tokenManagerInfo) throw "Token manager not found";
+  const tokenManager = decodeIdlAccount<"tokenManager", CardinalTokenManager>(
+    tokenManagerInfo,
+    "tokenManager",
+    TOKEN_MANAGER_IDL
+  );
+
+  transaction.add(
+    createAssociatedTokenAccountIdempotentInstruction(
+      wallet.publicKey,
+      getAssociatedTokenAddressSync(mintId, wallet.publicKey),
+      wallet.publicKey,
+      mintId
+    )
+  );
+  transaction.add(
+    await tokenManagerProgram(connection, wallet)
+      .methods.unissue()
+      .accounts({
+        tokenManager: tokenManagerId,
+        tokenManagerTokenAccount: getAssociatedTokenAddressSync(
+          mintId,
+          tokenManagerId,
+          true
+        ),
+        issuer: wallet.publicKey,
+        issuerTokenAccount: getAssociatedTokenAddressSync(
+          mintId,
+          wallet.publicKey
+        ),
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .remainingAccounts(
+        getRemainingAccountsForUnissue(
+          tokenManagerId,
+          tokenManager.parsed,
+          metadata
+        )
+      )
+      .instruction()
+  );
   return transaction;
 };
 

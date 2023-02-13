@@ -32,7 +32,7 @@ pub struct UnissueCtx<'info> {
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, UnissueCtx<'info>>) -> Result<()> {
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    let remaining_accs = &mut ctx.remaining_accounts.iter().peekable();
     let token_manager = &mut ctx.accounts.token_manager;
 
     // get PDA seeds to sign with
@@ -40,26 +40,30 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
 
-    if token_manager.kind == TokenManagerKind::Edition as u8 {
-        let edition_info = next_account_info(remaining_accs)?;
-        match assert_derivation(
-            &mpl_token_metadata::id(),
-            &edition_info.to_account_info(),
-            &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), mint.as_ref()],
-        ) {
-            // migrated pnft
-            Ok(_) => {
-                let mint_metadata_data = edition_info.try_borrow_mut_data().expect("Failed to borrow data");
-                let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
-                match metadata.token_standard {
-                    Some(TokenStandard::ProgrammableNonFungible) => {
-                        token_manager.kind = TokenManagerKind::Programmable as u8;
+    if token_manager.kind != TokenManagerKind::Programmable as u8 {
+        // look at next account
+        if let Some(next_account) = remaining_accs.peek() {
+            match assert_derivation(
+                &mpl_token_metadata::id(),
+                &next_account.to_account_info(),
+                &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), mint.as_ref()],
+            ) {
+                // migrated pnft
+                Ok(_) => {
+                    let mint_metadata_data = next_account.try_borrow_mut_data().expect("Failed to borrow data");
+                    let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
+                    match metadata.token_standard {
+                        Some(TokenStandard::ProgrammableNonFungible) => {
+                            // pop this account and update type
+                            next_account_info(remaining_accs)?;
+                            token_manager.kind = TokenManagerKind::Programmable as u8;
+                        }
+                        _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
                     }
-                    _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
                 }
+                // regular edition
+                _ => {}
             }
-            // regular edition
-            _ => {}
         }
     }
 

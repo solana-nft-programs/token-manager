@@ -55,12 +55,39 @@ pub struct InvalidateCtx<'info> {
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InvalidateCtx<'info>>) -> Result<()> {
     let token_manager = &mut ctx.accounts.token_manager;
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    let remaining_accs = &mut ctx.remaining_accounts.iter().peekable();
 
     // get PDA seeds to sign with
     let mint = token_manager.mint;
     let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
+
+    if token_manager.kind != TokenManagerKind::Programmable as u8 {
+        // look at next account
+        if let Some(next_account) = remaining_accs.peek() {
+            match assert_derivation(
+                &mpl_token_metadata::id(),
+                &next_account.to_account_info(),
+                &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), mint.as_ref()],
+            ) {
+                // migrated pnft
+                Ok(_) => {
+                    let mint_metadata_data = next_account.try_borrow_mut_data().expect("Failed to borrow data");
+                    let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
+                    match metadata.token_standard {
+                        Some(TokenStandard::ProgrammableNonFungible) => {
+                            // pop this account and update type
+                            next_account_info(remaining_accs)?;
+                            token_manager.kind = TokenManagerKind::Programmable as u8;
+                        }
+                        _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
+                    }
+                }
+                // regular edition
+                _ => {}
+            }
+        }
+    }
 
     if token_manager.state == TokenManagerState::Claimed as u8 {
         match token_manager.kind {
@@ -89,47 +116,27 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             }
             k if k == TokenManagerKind::Edition as u8 => {
                 let edition_info = next_account_info(remaining_accs)?;
-                match assert_derivation(
-                    &mpl_token_metadata::id(),
-                    &edition_info.to_account_info(),
-                    &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), ctx.accounts.mint.key().as_ref()],
-                ) {
-                    // migrated pnft
-                    Ok(_) => {
-                        let mint_metadata_data = edition_info.try_borrow_mut_data().expect("Failed to borrow data");
-                        let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
-                        match metadata.token_standard {
-                            Some(TokenStandard::ProgrammableNonFungible) => {
-                                token_manager.kind = TokenManagerKind::Programmable as u8;
-                            }
-                            _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
-                        }
-                    }
-                    // regular edition
-                    _ => {
-                        let metadata_program = next_account_info(remaining_accs)?;
-                        // edition will be validated by metadata_program
-                        if metadata_program.key() != mpl_token_metadata::id() {
-                            return Err(error!(ErrorCode::InvalidMetadataProgramId));
-                        }
-                        invoke_signed(
-                            &thaw_delegated_account(
-                                *metadata_program.key,
-                                token_manager.key(),
-                                ctx.accounts.recipient_token_account.key(),
-                                *edition_info.key,
-                                ctx.accounts.mint.key(),
-                            ),
-                            &[
-                                token_manager.to_account_info(),
-                                ctx.accounts.recipient_token_account.to_account_info(),
-                                edition_info.to_account_info(),
-                                ctx.accounts.mint.to_account_info(),
-                            ],
-                            &[token_manager_seeds],
-                        )?;
-                    }
+                let metadata_program = next_account_info(remaining_accs)?;
+                // edition will be validated by metadata_program
+                if metadata_program.key() != mpl_token_metadata::id() {
+                    return Err(error!(ErrorCode::InvalidMetadataProgramId));
                 }
+                invoke_signed(
+                    &thaw_delegated_account(
+                        *metadata_program.key,
+                        token_manager.key(),
+                        ctx.accounts.recipient_token_account.key(),
+                        *edition_info.key,
+                        ctx.accounts.mint.key(),
+                    ),
+                    &[
+                        token_manager.to_account_info(),
+                        ctx.accounts.recipient_token_account.to_account_info(),
+                        edition_info.to_account_info(),
+                        ctx.accounts.mint.to_account_info(),
+                    ],
+                    &[token_manager_seeds],
+                )?;
             }
             k if k == TokenManagerKind::Programmable as u8 => {}
             _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),

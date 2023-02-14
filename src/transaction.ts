@@ -561,6 +561,18 @@ export const withClaimToken = async (
     tokenManagerId,
     wallet.publicKey
   );
+
+  if (
+    tokenManagerData.parsed.kind === TokenManagerKind.Programmable ||
+    metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
+  ) {
+    transaction.add(
+      ComputeBudgetProgram.setComputeUnitLimit({
+        units: 400000,
+      })
+    );
+  }
+
   // pay claim approver
   if (
     claimApproverData?.parsed &&

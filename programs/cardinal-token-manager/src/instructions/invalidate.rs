@@ -766,15 +766,157 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token_manager.close(ctx.accounts.collector.to_account_info())?;
         }
         t if t == InvalidationType::Reissue as u8 => {
-            // transfer back to token_manager
-            let cpi_accounts = Transfer {
-                from: ctx.accounts.recipient_token_account.to_account_info(),
-                to: ctx.accounts.token_manager_token_account.to_account_info(),
-                authority: token_manager.to_account_info(),
-            };
-            let cpi_program = ctx.accounts.token_program.to_account_info();
-            let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
-            token::transfer(cpi_context, token_manager.amount)?;
+            match token_manager.kind {
+                k if k == TokenManagerKind::Programmable as u8 => {
+                    // get PDA seeds to sign with
+                    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
+                    let token_manager_signer = &[&token_manager_seeds[..]];
+
+                    let recipient_token_account_owner_info = next_account_info(remaining_accs)?;
+                    let payer_info = next_account_info(remaining_accs)?;
+                    let system_program_info = next_account_info(remaining_accs)?;
+                    let token_manager_token_record = next_account_info(remaining_accs)?;
+                    let mint_info = next_account_info(remaining_accs)?;
+                    let mint_metadata_info = next_account_info(remaining_accs)?;
+                    let mint_edition_info = next_account_info(remaining_accs)?;
+                    let from_token_record = next_account_info(remaining_accs)?;
+                    let sysvar_instructions_info = next_account_info(remaining_accs)?;
+                    let associated_token_program_info = next_account_info(remaining_accs)?;
+                    let authorization_rules_program_info = next_account_info(remaining_accs)?;
+                    let authorization_rules_info = next_account_info(remaining_accs)?;
+
+                    invoke_signed(
+                        &Instruction {
+                            program_id: mpl_token_metadata::id(),
+                            accounts: vec![
+                                // 0. `[signer]` Delegate
+                                AccountMeta::new_readonly(token_manager.key(), true),
+                                // 1. `[optional]` Token owner
+                                AccountMeta::new_readonly(recipient_token_account_owner_info.key(), false),
+                                // 2. `[writable]` Token account
+                                AccountMeta::new(ctx.accounts.recipient_token_account.key(), false),
+                                // 3. `[]` Mint account
+                                AccountMeta::new_readonly(mint_info.key(), false),
+                                // 4. `[writable]` Metadata account
+                                AccountMeta::new(mint_metadata_info.key(), false),
+                                // 5. `[optional]` Edition account
+                                AccountMeta::new_readonly(mint_edition_info.key(), false),
+                                // 6. `[optional, writable]` Token record account
+                                AccountMeta::new(from_token_record.key(), false),
+                                // 7. `[signer, writable]` Payer
+                                AccountMeta::new(payer_info.key(), true),
+                                // 8. `[]` System Program
+                                AccountMeta::new_readonly(system_program_info.key(), false),
+                                // 9. `[]` Instructions sysvar account
+                                AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
+                                // 10. `[optional]` SPL Token Program
+                                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+                                // 11. `[optional]` Token Authorization Rules program
+                                AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
+                                // 12. `[optional]` Token Authorization Rules account
+                                AccountMeta::new_readonly(authorization_rules_info.key(), false),
+                            ],
+                            data: MetadataInstruction::Unlock(UnlockArgs::V1 { authorization_data: None }).try_to_vec().unwrap(),
+                        },
+                        &[
+                            token_manager.to_account_info(),
+                            recipient_token_account_owner_info.to_account_info(),
+                            ctx.accounts.recipient_token_account.to_account_info(),
+                            mint_info.to_account_info(),
+                            ctx.accounts.recipient_token_account.to_account_info(),
+                            mint_info.to_account_info(),
+                            mint_metadata_info.to_account_info(),
+                            mint_edition_info.to_account_info(),
+                            from_token_record.to_account_info(),
+                            payer_info.to_account_info(),
+                            system_program_info.to_account_info(),
+                            sysvar_instructions_info.to_account_info(),
+                            ctx.accounts.token_program.to_account_info(),
+                            authorization_rules_program_info.to_account_info(),
+                            authorization_rules_info.to_account_info(),
+                        ],
+                        token_manager_signer,
+                    )?;
+
+                    invoke_signed(
+                        &Instruction {
+                            program_id: mpl_token_metadata::id(),
+                            accounts: vec![
+                                // #[account(0, writable, name="token", desc="Token account")]
+                                AccountMeta::new(ctx.accounts.recipient_token_account.key(), false),
+                                // #[account(1, name="token_owner", desc="Token account owner")]
+                                AccountMeta::new_readonly(ctx.accounts.recipient_token_account.owner.key(), false),
+                                // #[account(2, writable, name="destination", desc="Destination token account")]
+                                AccountMeta::new(ctx.accounts.token_manager_token_account.key(), false),
+                                // #[account(3, name="destination_owner", desc="Destination token account owner")]
+                                AccountMeta::new_readonly(token_manager.key(), false),
+                                // #[account(4, name="mint", desc="Mint of token asset")]
+                                AccountMeta::new_readonly(mint_info.key(), false),
+                                // #[account(5, writable, name="metadata", desc="Metadata (pda of ['metadata', program id, mint id])")]
+                                AccountMeta::new(mint_metadata_info.key(), false),
+                                // #[account(6, optional, name="edition", desc="Edition of token asset")]
+                                AccountMeta::new_readonly(mint_edition_info.key(), false),
+                                // #[account(7, optional, writable, name="recipient_token_record", desc="Owner token record account")]
+                                AccountMeta::new(from_token_record.key(), false),
+                                // #[account(8, optional, writable, name="destination_token_record", desc="Destination token record account")]
+                                AccountMeta::new(token_manager_token_record.key(), false),
+                                // #[account(9, signer, name="authority", desc="Transfer authority (token owner or delegate)")]
+                                AccountMeta::new_readonly(token_manager.key(), true),
+                                // #[account(10, signer, writable, name="payer", desc="Payer")]
+                                AccountMeta::new(payer_info.key(), true),
+                                // #[account(11, name="system_program", desc="System Program")]
+                                AccountMeta::new_readonly(system_program_info.key(), false),
+                                // #[account(12, name="sysvar_instructions", desc="Instructions sysvar account")]
+                                AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
+                                // #[account(13, name="spl_token_program", desc="SPL Token Program")]
+                                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+                                // #[account(14, name="spl_ata_program", desc="SPL Associated Token Account program")]
+                                AccountMeta::new_readonly(associated_token_program_info.key(), false),
+                                // #[account(15, optional, name="authorization_rules_program", desc="Token Authorization Rules Program")]
+                                AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
+                                // #[account(16, optional, name="authorization_rules", desc="Token Authorization Rules account")]
+                                AccountMeta::new_readonly(authorization_rules_info.key(), false),
+                            ],
+                            data: MetadataInstruction::Transfer(TransferArgs::V1 {
+                                amount: token_manager.amount,
+                                authorization_data: None,
+                            })
+                            .try_to_vec()
+                            .unwrap(),
+                        },
+                        &[
+                            ctx.accounts.recipient_token_account.to_account_info(),
+                            recipient_token_account_owner_info.to_account_info(),
+                            ctx.accounts.token_manager_token_account.to_account_info(),
+                            token_manager.to_account_info(),
+                            mint_info.to_account_info(),
+                            mint_metadata_info.to_account_info(),
+                            mint_edition_info.to_account_info(),
+                            from_token_record.to_account_info(),
+                            token_manager_token_record.to_account_info(),
+                            payer_info.to_account_info(),
+                            system_program_info.to_account_info(),
+                            sysvar_instructions_info.to_account_info(),
+                            ctx.accounts.token_program.to_account_info(),
+                            associated_token_program_info.to_account_info(),
+                            authorization_rules_program_info.to_account_info(),
+                            authorization_rules_info.to_account_info(),
+                        ],
+                        token_manager_signer,
+                    )?;
+                }
+                _ => {
+                    // transfer back to token_manager
+                    let cpi_accounts = Transfer {
+                        from: ctx.accounts.recipient_token_account.to_account_info(),
+                        to: ctx.accounts.token_manager_token_account.to_account_info(),
+                        authority: token_manager.to_account_info(),
+                    };
+                    let cpi_program = ctx.accounts.token_program.to_account_info();
+                    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+                    token::transfer(cpi_context, token_manager.amount)?;
+                }
+            }
 
             token_manager.state = TokenManagerState::Issued as u8;
             token_manager.recipient_token_account = ctx.accounts.token_manager_token_account.key();

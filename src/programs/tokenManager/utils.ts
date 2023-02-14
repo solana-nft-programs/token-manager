@@ -187,11 +187,12 @@ export const withRemainingAccountsForInvalidate = async (
   }
 
   if (
-    tokenManagerData.parsed.invalidationType === InvalidationType.Release &&
-    tokenManagerData.parsed.kind === TokenManagerKind.Programmable
+    tokenManagerData.parsed.kind === TokenManagerKind.Programmable &&
+    (tokenManagerData.parsed.invalidationType === InvalidationType.Release ||
+      tokenManagerData.parsed.invalidationType === InvalidationType.Reissue)
   ) {
     if (!metadata?.programmableConfig?.ruleSet) throw "Ruleset not specified";
-    const releaseAccounts = remainingAccountForProgrammableRelease(
+    const releaseAccounts = remainingAccountForProgrammableUnlockAndTransfer(
       recipientTokenAccountOwnerId,
       wallet.publicKey,
       mintId,
@@ -491,7 +492,7 @@ export const remainingAccountForProgrammable = (
   ];
 };
 
-export const remainingAccountForProgrammableRelease = (
+export const remainingAccountForProgrammableUnlockAndTransfer = (
   recipient: PublicKey,
   payer: PublicKey,
   mintId: PublicKey,

@@ -1,5 +1,5 @@
 export type CardinalTimeInvalidator = {
-  version: "4.2.1";
+  version: "4.3.0";
   name: "cardinal_time_invalidator";
   instructions: [
     {
@@ -452,7 +452,7 @@ export type CardinalTimeInvalidator = {
 };
 
 export const IDL: CardinalTimeInvalidator = {
-  version: "4.2.1",
+  version: "4.3.0",
   name: "cardinal_time_invalidator",
   instructions: [
     {

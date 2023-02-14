@@ -91,10 +91,10 @@
     "@solana/spl-token" "^0.3.6"
     "@solana/web3.js" "^1.66.2"
 
-"@cardinal/token-manager@^4.2.1":
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/@cardinal/token-manager/-/token-manager-4.2.1.tgz#a3222d4336df95010f1180179ba4cdf8e605bd39"
-  integrity sha512-uCUXQjDmaI6NORrm2m5KV9N7KgXWRWQq98mdnoXe5cXkM28pSc/sN1iWndgzVpqaB/hhmhHvUo54PbJ6X6PEjw==
+"@cardinal/token-manager@^4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@cardinal/token-manager/-/token-manager-4.3.0.tgz#5e1d1522380eadeb09d2e90c0ba58579b4700c1a"
+  integrity sha512-0WfDR0EAg6y9F2HfjzA2mT/RSxrbJLPxFdtFJilnULgg0M1BjZLD9AODJjecRAipVbYByt4FpsUtM/K5eeTJuw==
   dependencies:
     "@cardinal/common" "^6.1.5"
     "@cardinal/creator-standard" "^2.1.7"

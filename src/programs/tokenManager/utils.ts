@@ -603,26 +603,37 @@ export const getRemainingAccountsForIssue = (
 };
 
 export const getRemainingAccountsForClaim = (
-  tokenManagerKind: TokenManagerKind,
-  mintId: PublicKey,
-  tokenManagerTokenAccountId: PublicKey,
+  tokenManagerData: AccountData<TokenManagerData>,
   recipientTokenAccountId: PublicKey,
-  rulesetId?: PublicKey,
+  metadata: Metadata | null,
   claimReceiptId?: PublicKey
 ): AccountMeta[] => {
   const remainingAccounts: AccountMeta[] = [];
   if (
-    tokenManagerKind === TokenManagerKind.Managed ||
-    tokenManagerKind === TokenManagerKind.Permissioned
+    tokenManagerData.parsed.kind !== TokenManagerKind.Programmable &&
+    metadata?.tokenStandard === TokenStandard.ProgrammableNonFungible
   ) {
-    const mintManagerId = findMintManagerId(mintId);
+    // update kind
+    tokenManagerData.parsed.kind = TokenManagerKind.Programmable;
+    remainingAccounts.push({
+      pubkey: findMintMetadataId(tokenManagerData.parsed.mint),
+      isSigner: false,
+      isWritable: false,
+    });
+  }
+
+  if (
+    tokenManagerData.parsed.kind === TokenManagerKind.Managed ||
+    tokenManagerData.parsed.kind === TokenManagerKind.Permissioned
+  ) {
+    const mintManagerId = findMintManagerId(tokenManagerData.parsed.mint);
     remainingAccounts.push({
       pubkey: mintManagerId,
       isSigner: false,
       isWritable: true,
     });
-  } else if (tokenManagerKind === TokenManagerKind.Edition) {
-    const editionId = findMintEditionId(mintId);
+  } else if (tokenManagerData.parsed.kind === TokenManagerKind.Edition) {
+    const editionId = findMintEditionId(tokenManagerData.parsed.mint);
     remainingAccounts.push(
       {
         pubkey: editionId,
@@ -635,14 +646,18 @@ export const getRemainingAccountsForClaim = (
         isWritable: false,
       }
     );
-  } else if (tokenManagerKind === TokenManagerKind.Programmable) {
-    if (!rulesetId) throw "Ruleset not specified";
+  } else if (tokenManagerData.parsed.kind === TokenManagerKind.Programmable) {
+    if (!metadata?.programmableConfig?.ruleSet) throw "Ruleset not specified";
     remainingAccounts.push(
       ...remainingAccountForProgrammable(
-        mintId,
-        tokenManagerTokenAccountId,
+        tokenManagerData.parsed.mint,
+        getAssociatedTokenAddressSync(
+          tokenManagerData.parsed.mint,
+          tokenManagerData.pubkey,
+          true
+        ),
         recipientTokenAccountId,
-        rulesetId
+        metadata?.programmableConfig?.ruleSet
       )
     );
   }

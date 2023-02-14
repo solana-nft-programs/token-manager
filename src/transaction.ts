@@ -1,10 +1,12 @@
 import type { AccountData } from "@cardinal/common";
 import {
   decodeIdlAccount,
+  fetchAccountDataById,
   findAta,
   findMintMetadataId,
   getBatchedMultipleAccounts,
   METADATA_PROGRAM_ID,
+  tryDecodeIdlAccount,
   tryGetAccount,
   tryNull,
   withFindOrInitAssociatedTokenAccount,
@@ -40,14 +42,13 @@ import {
 } from "@solana/web3.js";
 
 import type { CardinalTokenManager } from "./idl/cardinal_token_manager";
+import { timeInvalidator, tokenManager, useInvalidator } from "./programs";
+import type {
+  CLAIM_APPROVER_PROGRAM,
+  ClaimApproverParams,
+} from "./programs/claimApprover";
 import {
-  claimApprover,
-  timeInvalidator,
-  tokenManager,
-  useInvalidator,
-} from "./programs";
-import type { ClaimApproverParams } from "./programs/claimApprover";
-import {
+  CLAIM_APPROVER_IDL,
   claimApproverProgram,
   defaultPaymentManagerId,
 } from "./programs/claimApprover";
@@ -56,7 +57,10 @@ import type { TimeInvalidationParams } from "./programs/timeInvalidator";
 import { timeInvalidatorProgram } from "./programs/timeInvalidator";
 import { findTimeInvalidatorAddress } from "./programs/timeInvalidator/pda";
 import { shouldTimeInvalidate } from "./programs/timeInvalidator/utils";
-import type { TokenManagerData } from "./programs/tokenManager";
+import type {
+  TOKEN_MANAGER_PROGRAM,
+  TokenManagerData,
+} from "./programs/tokenManager";
 import {
   CRANK_KEY,
   InvalidationType,
@@ -527,38 +531,48 @@ export const withClaimToken = async (
   },
   buySideTokenAccountId?: PublicKey
 ): Promise<Transaction> => {
-  const [tokenManagerData, claimApproverData] = await Promise.all([
-    tokenManager.accounts.getTokenManager(connection, tokenManagerId),
-    tryGetAccount(() =>
-      claimApprover.accounts.getClaimApprover(connection, tokenManagerId)
-    ),
+  const claimApproverId = findClaimApproverAddress(tokenManagerId);
+  const accountData = await fetchAccountDataById(connection, [
+    tokenManagerId,
+    claimApproverId,
   ]);
+  const tokenManagerInfo = accountData[tokenManagerId.toString()];
+  if (!tokenManagerInfo?.data) throw "Token manager not found";
+  const tokenManagerData = decodeIdlAccount<
+    "tokenManager",
+    TOKEN_MANAGER_PROGRAM
+  >(tokenManagerInfo, "tokenManager", TOKEN_MANAGER_IDL);
+
+  const claimApproverInfo = accountData[claimApproverId.toString()];
+  const claimApproverData = claimApproverInfo
+    ? tryDecodeIdlAccount<"paidClaimApprover", CLAIM_APPROVER_PROGRAM>(
+        claimApproverInfo,
+        "paidClaimApprover",
+        CLAIM_APPROVER_IDL
+      )
+    : null;
 
   const metadataId = findMintMetadataId(tokenManagerData.parsed.mint);
   const metadata = await tryNull(
     Metadata.fromAccountAddress(connection, metadataId)
   );
 
-  let claimReceiptId = tokenManager.pda.findClaimReceiptId(
+  const claimReceiptId = tokenManager.pda.findClaimReceiptId(
     tokenManagerId,
     wallet.publicKey
   );
   // pay claim approver
   if (
-    claimApproverData &&
+    claimApproverData?.parsed &&
     tokenManagerData.parsed.claimApprover &&
     tokenManagerData.parsed.claimApprover.toString() ===
-      claimApproverData.pubkey.toString()
+      claimApproverId.toString()
   ) {
     const payerTokenAccountId = getAssociatedTokenAddressSync(
       claimApproverData.parsed.paymentMint,
       wallet.publicKey
     );
 
-    claimReceiptId = tokenManager.pda.findClaimReceiptId(
-      tokenManagerId,
-      wallet.publicKey
-    );
     const [
       issuerTokenAccountId,
       feeCollectorTokenAccountId,
@@ -585,7 +599,7 @@ export const withClaimToken = async (
         paymentTokenAccount: issuerTokenAccountId,
         feeCollectorTokenAccount: feeCollectorTokenAccountId,
         paymentManager: claimApproverData.parsed.paymentManager,
-        claimApprover: claimApproverData.pubkey,
+        claimApprover: claimApproverId,
         payer: wallet.publicKey,
         payerTokenAccount: payerTokenAccountId,
         claimReceipt: claimReceiptId,
@@ -616,14 +630,18 @@ export const withClaimToken = async (
     tokenManagerId,
     true
   );
-  const recipientTokenAccountId = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
+  const recipientTokenAccountId = getAssociatedTokenAddressSync(
     tokenManagerData.parsed.mint,
-    wallet.publicKey,
-    additionalOptions?.payer ?? wallet.publicKey
+    wallet.publicKey
   );
-
+  transaction.add(
+    createAssociatedTokenAccountIdempotentInstruction(
+      additionalOptions?.payer ?? wallet.publicKey,
+      recipientTokenAccountId,
+      wallet.publicKey,
+      tokenManagerData.parsed.mint
+    )
+  );
   // claim
   const claimIx = await tokenManagerProgram(connection, wallet)
     .methods.claim()
@@ -638,11 +656,9 @@ export const withClaimToken = async (
     })
     .remainingAccounts(
       getRemainingAccountsForClaim(
-        tokenManagerData.parsed.kind,
-        tokenManagerData.parsed.mint,
-        tokenManagerTokenAccountId,
+        { parsed: tokenManagerData.parsed, pubkey: tokenManagerId },
         recipientTokenAccountId,
-        metadata?.programmableConfig?.ruleSet ?? undefined,
+        metadata,
         claimReceiptId
       )
     )

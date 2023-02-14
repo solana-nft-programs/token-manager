@@ -2,6 +2,8 @@ use mpl_token_metadata::instruction::DelegateArgs;
 use mpl_token_metadata::instruction::LockArgs;
 use mpl_token_metadata::instruction::MetadataInstruction;
 use mpl_token_metadata::instruction::TransferArgs;
+use mpl_token_metadata::state::Metadata;
+use mpl_token_metadata::state::TokenStandard;
 use solana_program::instruction::Instruction;
 
 use crate::errors::ErrorCode;
@@ -52,11 +54,39 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     token_manager.recipient_token_account = ctx.accounts.recipient_token_account.key();
     token_manager.state = TokenManagerState::Claimed as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
+    let remaining_accs = &mut ctx.remaining_accounts.iter().peekable();
 
     // get PDA seeds to sign with
-    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), token_manager.mint.as_ref(), &[token_manager.bump]];
+    let mint = token_manager.mint;
+    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[token_manager.bump]];
     let token_manager_signer = &[&token_manager_seeds[..]];
+
+    if token_manager.kind != TokenManagerKind::Programmable as u8 {
+        // look at next account
+        if let Some(next_account) = remaining_accs.peek() {
+            match assert_derivation(
+                &mpl_token_metadata::id(),
+                &next_account.to_account_info(),
+                &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), mint.as_ref()],
+            ) {
+                // migrated pnft
+                Ok(_) => {
+                    let mint_metadata_data = next_account.try_borrow_mut_data().expect("Failed to borrow data");
+                    let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
+                    match metadata.token_standard {
+                        Some(TokenStandard::ProgrammableNonFungible) => {
+                            // pop this account and update type
+                            next_account_info(remaining_accs)?;
+                            token_manager.kind = TokenManagerKind::Programmable as u8;
+                        }
+                        _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
+                    }
+                }
+                // regular edition
+                _ => {}
+            }
+        }
+    }
 
     // if this is a managed token, this means we will revoke it at the end of life, so we need to delegate and freeze
     match token_manager.kind {

@@ -11,7 +11,6 @@ use mpl_token_metadata::instruction::MetadataInstruction;
 use mpl_token_metadata::instruction::TransferArgs;
 use mpl_token_metadata::state::Metadata;
 use mpl_token_metadata::state::TokenStandard;
-use mpl_token_metadata::utils::assert_derivation;
 use solana_program::instruction::Instruction;
 use solana_program::program::invoke_signed;
 
@@ -43,26 +42,16 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.kind != TokenManagerKind::Programmable as u8 {
         // look at next account
         if let Some(next_account) = remaining_accs.peek() {
-            match assert_derivation(
-                &mpl_token_metadata::id(),
-                &next_account.to_account_info(),
-                &[mpl_token_metadata::state::PREFIX.as_bytes(), mpl_token_metadata::id().as_ref(), mint.as_ref()],
-            ) {
-                // migrated pnft
-                Ok(_) => {
-                    let mint_metadata_data = next_account.try_borrow_mut_data().expect("Failed to borrow data");
-                    let metadata = Metadata::deserialize(&mut mint_metadata_data.as_ref()).expect("Failed to deserialize metadata");
-                    match metadata.token_standard {
-                        Some(TokenStandard::ProgrammableNonFungible) => {
-                            // pop this account and update type
-                            next_account_info(remaining_accs)?;
-                            token_manager.kind = TokenManagerKind::Programmable as u8;
-                        }
-                        _ => return Err(error!(ErrorCode::InvalidTokenManagerKind)),
+            if next_account.owner == &mpl_token_metadata::id() {
+                let mint_metadata_data = next_account.try_borrow_mut_data().expect("Failed to borrow data");
+                if let Ok(metadata) = Metadata::deserialize(&mut mint_metadata_data.as_ref()) {
+                    // migrated pnft
+                    if metadata.token_standard == Some(TokenStandard::ProgrammableNonFungible) && metadata.mint == mint {
+                        // pop this account and update type
+                        next_account_info(remaining_accs)?;
+                        token_manager.kind = TokenManagerKind::Programmable as u8;
                     }
                 }
-                // regular edition
-                _ => {}
             }
         }
     }

@@ -568,7 +568,7 @@ export const withClaimToken = async (
   ) {
     transaction.add(
       ComputeBudgetProgram.setComputeUnitLimit({
-        units: 400000,
+        units: 1000000,
       })
     );
   }
@@ -781,7 +781,7 @@ export const withInvalidate = async (
   ) {
     transaction.add(
       ComputeBudgetProgram.setComputeUnitLimit({
-        units: 400000,
+        units: 1000000,
       })
     );
   }

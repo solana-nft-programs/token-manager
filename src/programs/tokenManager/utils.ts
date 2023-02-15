@@ -662,12 +662,14 @@ export const getRemainingAccountsForClaim = (
       )
     );
   }
-  return claimReceiptId
-    ? [
-        ...remainingAccounts,
-        { pubkey: claimReceiptId, isSigner: false, isWritable: true },
-      ]
-    : remainingAccounts;
+  if (claimReceiptId) {
+    remainingAccounts.push({
+      pubkey: claimReceiptId,
+      isSigner: false,
+      isWritable: true,
+    });
+  }
+  return remainingAccounts;
 };
 
 export function findTokenRecordId(

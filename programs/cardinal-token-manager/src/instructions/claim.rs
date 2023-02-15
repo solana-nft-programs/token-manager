@@ -228,6 +228,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let associated_token_program_info = next_account_info(remaining_accs)?;
             let authorization_rules_program_info = next_account_info(remaining_accs)?;
             let authorization_rules_info = next_account_info(remaining_accs)?;
+            let _token_metadata_program = next_account_info(remaining_accs)?;
             invoke_signed(
                 &Instruction {
                     program_id: mpl_token_metadata::id(),
@@ -327,7 +328,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                     recipient_token_record_info.to_account_info(),
                     mint_info.to_account_info(),
                     ctx.accounts.recipient_token_account.to_account_info(),
-                    ctx.accounts.recipient.to_account_info(),
                     ctx.accounts.recipient.to_account_info(),
                     ctx.accounts.system_program.to_account_info(),
                     sysvar_instructions_info.to_account_info(),

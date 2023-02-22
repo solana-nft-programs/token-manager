@@ -1329,6 +1329,11 @@ export type CardinalTokenManager = {
       code: 6039;
       name: "InvalidReturnTarget";
       msg: "Invalid return target";
+    },
+    {
+      code: 6040;
+      name: "InvalidTokenManagerInvalidationOrKind";
+      msg: "Invalid token manager state and/or invalidation type";
     }
   ];
 };
@@ -2664,6 +2669,11 @@ export const IDL: CardinalTokenManager = {
       code: 6039,
       name: "InvalidReturnTarget",
       msg: "Invalid return target",
+    },
+    {
+      code: 6040,
+      name: "InvalidTokenManagerInvalidationOrKind",
+      msg: "Invalid token manager state and/or invalidation type",
     },
   ],
 };

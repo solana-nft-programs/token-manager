@@ -85,7 +85,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         (TokenManagerState::Claimed, TokenManagerKind::Managed) => thaw_non_edition(mutable_ctx, remaining_accs)?,
         (TokenManagerState::Claimed, TokenManagerKind::Permissioned) => thaw_non_edition(mutable_ctx, remaining_accs)?,
         (TokenManagerState::Claimed, TokenManagerKind::Edition) => thaw_edition(mutable_ctx, remaining_accs)?,
-        _ => return Err(error!(ErrorCode::InvalidTokenManagerState)),
+        _ => (),
     }
 
     // state x invalidation type
@@ -95,7 +95,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     ) {
         (TokenManagerState::Issued, InvalidationType::Vest) => release_unclaimed_vesting(mutable_ctx, remaining_accs)?,
         (TokenManagerState::Issued, _) => return_invalidation(mutable_ctx, remaining_accs)?,
-        _ => return Err(error!(ErrorCode::InvalidTokenManagerState)),
+        _ => (),
     }
 
     // // kind x invalidation type
@@ -118,9 +118,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         // Programmable
         (TokenManagerKind::Programmable, InvalidationType::Return) => return_pnft_invalidation(mutable_ctx, remaining_accs)?,
         (TokenManagerKind::Programmable, InvalidationType::Release) => release_pnft_invalidation(mutable_ctx, remaining_accs)?,
-        (TokenManagerKind::Programmable, InvalidationType::Invalidate) => todo!(),
+        (TokenManagerKind::Programmable, InvalidationType::Invalidate) => return Err(error!(ErrorCode::CodePathNotSupported)),
         (TokenManagerKind::Programmable, InvalidationType::Reissue) => reissue_pnft_invalidation(mutable_ctx, remaining_accs)?,
-        (TokenManagerKind::Programmable, InvalidationType::Vest) => todo!(),
+        (TokenManagerKind::Programmable, InvalidationType::Vest) => return Err(error!(ErrorCode::CodePathNotSupported)),
         // Permissioned
         (TokenManagerKind::Permissioned, InvalidationType::Return) => return_invalidation(mutable_ctx, remaining_accs)?,
         (TokenManagerKind::Permissioned, InvalidationType::Invalidate) => invalidate_invalidation(mutable_ctx)?,

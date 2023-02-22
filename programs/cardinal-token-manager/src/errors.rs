@@ -84,4 +84,6 @@ pub enum ErrorCode {
     InvalidReturnTarget,
     #[msg("Invalid token manager state and/or invalidation type")]
     InvalidTokenManagerInvalidationOrKind,
+    #[msg("Code path is not supported")]
+    CodePathNotSupported,
 }

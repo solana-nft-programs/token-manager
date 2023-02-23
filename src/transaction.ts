@@ -1478,3 +1478,35 @@ export const withMigrate = async (
 
   return transaction;
 };
+
+export const withUpdateInvalidators = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  mintId: PublicKey,
+  newInvalidators: PublicKey[]
+): Promise<Transaction> => {
+  const tmManagerProgram = tokenManagerProgram(connection, wallet);
+
+  const tokenManagerId = tokenManagerAddressFromMint(mintId);
+
+  const tokenManagerData = await tryGetAccount(() =>
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId)
+  );
+
+  if (!tokenManagerData) return transaction;
+
+  if (newInvalidators.length === 0) return transaction;
+
+  const updateInvalidatorsIx = await tmManagerProgram.methods
+    .updateInvalidators(newInvalidators)
+    .accounts({
+      tokenManager: tokenManagerId,
+      invalidator: wallet.publicKey,
+    })
+    .instruction();
+
+  transaction.add(updateInvalidatorsIx);
+
+  return transaction;
+};

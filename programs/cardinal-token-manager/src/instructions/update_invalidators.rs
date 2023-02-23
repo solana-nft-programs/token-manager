@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct UpdateInvalidatorsCtx<'info> {
-    #[account(mut, constraint = token_manager.state == TokenManagerState::Initialized as u8 @ ErrorCode::InvalidTokenManagerState)]
+    #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(constraint =

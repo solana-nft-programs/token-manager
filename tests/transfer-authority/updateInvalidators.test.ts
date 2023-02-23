@@ -31,6 +31,7 @@ describe("Update Invalidators on Token Manager", () => {
   const invalidator = Keypair.generate();
   let mint: PublicKey;
   let issuerTokenAccountId: PublicKey;
+  let tokenManagerId: PublicKey;
 
   beforeAll(async () => {
     provider = await getTestProvider();
@@ -52,7 +53,7 @@ describe("Update Invalidators on Token Manager", () => {
     );
 
     const transaction = new Transaction();
-    const tokenManagerId = findTokenManagerAddress(mint);
+    tokenManagerId = findTokenManagerAddress(mint);
     const mintCounterId = findMintCounterId(mint);
 
     const tokenManagerInitIx = await tmManagerProgram.methods
@@ -99,7 +100,7 @@ describe("Update Invalidators on Token Manager", () => {
       transaction,
       provider.connection,
       new Wallet(invalidator),
-      mint,
+      tokenManagerId,
       [newInvalidator.publicKey]
     );
 
@@ -108,8 +109,6 @@ describe("Update Invalidators on Token Manager", () => {
       transaction,
       new Wallet(invalidator)
     );
-
-    const tokenManagerId = findTokenManagerAddress(mint);
 
     const tokenManagerData = await tokenManager.accounts.getTokenManager(
       provider.connection,
@@ -134,7 +133,7 @@ describe("Update Invalidators on Token Manager", () => {
       transaction,
       provider.connection,
       new Wallet(otherSigner),
-      mint,
+      tokenManagerId,
       [Keypair.generate().publicKey]
     );
     await expect(
@@ -153,10 +152,17 @@ describe("Update Invalidators on Token Manager", () => {
       transaction,
       provider.connection,
       new Wallet(invalidator),
-      mint,
+      tokenManagerId,
       []
     );
-    expect(transaction.instructions.length).toEqual(0);
+
+    await expect(
+      executeTransaction(
+        provider.connection,
+        transaction,
+        new Wallet(invalidator)
+      )
+    ).rejects.toThrow();
   });
 
   it("Fail To Update Invalidators on Token Manager because of too big number of invalidators", async () => {
@@ -166,7 +172,7 @@ describe("Update Invalidators on Token Manager", () => {
       transaction,
       provider.connection,
       new Wallet(invalidator),
-      mint,
+      tokenManagerId,
       [Keypair.generate().publicKey, Keypair.generate().publicKey]
     );
     await expect(

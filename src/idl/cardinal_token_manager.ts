@@ -1350,6 +1350,16 @@ export type CardinalTokenManager = {
       code: 6039;
       name: "InvalidReturnTarget";
       msg: "Invalid return target";
+    },
+    {
+      code: 6040;
+      name: "EmptyInvalidators";
+      msg: "Invalidators can't be empty";
+    },
+    {
+      code: 6041;
+      name: "InvalidatorsTooBig";
+      msg: "Invalidators can't be higher than max number allowed";
     }
   ];
 };
@@ -2706,6 +2716,16 @@ export const IDL: CardinalTokenManager = {
       code: 6039,
       name: "InvalidReturnTarget",
       msg: "Invalid return target",
+    },
+    {
+      code: 6040,
+      name: "EmptyInvalidators",
+      msg: "Invalidators can't be empty",
+    },
+    {
+      code: 6041,
+      name: "InvalidatorsTooBig",
+      msg: "Invalidators can't be higher than max number allowed",
     },
   ],
 };

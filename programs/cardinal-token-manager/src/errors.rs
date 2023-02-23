@@ -82,8 +82,4 @@ pub enum ErrorCode {
     CannotMigrateDelegatedToken,
     #[msg("Invalid return target")]
     InvalidReturnTarget,
-    #[msg("Invalidators can't be empty")]
-    EmptyInvalidators,
-    #[msg("Invalidators can't be higher than max number allowed")]
-    InvalidatorsTooBig,
 }

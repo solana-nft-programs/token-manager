@@ -36,8 +36,8 @@ pub mod cardinal_token_manager {
         add_invalidator::handler(ctx, invalidator)
     }
 
-    pub fn update_invalidators(ctx: Context<UpdateInvalidatorsCtx>, new_invalidators: Vec<Pubkey>) -> Result<()> {
-        update_invalidators::handler(ctx, new_invalidators)
+    pub fn replace_invalidator(ctx: Context<ReplaceInvalidatorCtx>, new_invalidator: Pubkey) -> Result<()> {
+        replace_invalidator::handler(ctx, new_invalidator)
     }
 
     pub fn create_claim_receipt(ctx: Context<CreateClaimReceiptCtx>, target: Pubkey) -> Result<()> {

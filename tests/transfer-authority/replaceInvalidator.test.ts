@@ -14,7 +14,7 @@ import {
   Transaction,
 } from "@solana/web3.js";
 
-import { withUpdateInvalidators } from "../../src";
+import { withReplaceInvalidator } from "../../src";
 import { tokenManager } from "../../src/programs";
 import {
   InvalidationType,
@@ -96,12 +96,12 @@ describe("Update Invalidators on Token Manager", () => {
 
     const transaction = new Transaction();
 
-    await withUpdateInvalidators(
+    await withReplaceInvalidator(
       transaction,
       provider.connection,
       new Wallet(invalidator),
       tokenManagerId,
-      [newInvalidator.publicKey]
+      newInvalidator.publicKey
     );
 
     await executeTransaction(
@@ -129,57 +129,18 @@ describe("Update Invalidators on Token Manager", () => {
     );
     await provider.connection.confirmTransaction(airdropCreator);
 
-    await withUpdateInvalidators(
+    await withReplaceInvalidator(
       transaction,
       provider.connection,
       new Wallet(otherSigner),
       tokenManagerId,
-      [Keypair.generate().publicKey]
+      Keypair.generate().publicKey
     );
     await expect(
       executeTransaction(
         provider.connection,
         transaction,
         new Wallet(otherSigner)
-      )
-    ).rejects.toThrow();
-  });
-
-  it("Fail To Update Invalidators on Token Manager because of empty invalidators", async () => {
-    const transaction = new Transaction();
-
-    await withUpdateInvalidators(
-      transaction,
-      provider.connection,
-      new Wallet(invalidator),
-      tokenManagerId,
-      []
-    );
-
-    await expect(
-      executeTransaction(
-        provider.connection,
-        transaction,
-        new Wallet(invalidator)
-      )
-    ).rejects.toThrow();
-  });
-
-  it("Fail To Update Invalidators on Token Manager because of too big number of invalidators", async () => {
-    const transaction = new Transaction();
-
-    await withUpdateInvalidators(
-      transaction,
-      provider.connection,
-      new Wallet(invalidator),
-      tokenManagerId,
-      [Keypair.generate().publicKey, Keypair.generate().publicKey]
-    );
-    await expect(
-      executeTransaction(
-        provider.connection,
-        transaction,
-        new Wallet(invalidator)
       )
     ).rejects.toThrow();
   });

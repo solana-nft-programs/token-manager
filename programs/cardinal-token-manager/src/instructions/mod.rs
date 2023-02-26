@@ -8,12 +8,12 @@ pub mod init;
 pub mod init_mint_counter;
 pub mod invalidate;
 pub mod issue;
+pub mod replace_invalidator;
 pub mod set_claim_approver;
 pub mod set_transfer_authority;
 pub mod uninit;
 pub mod unissue;
 pub mod update_invalidation_type;
-pub mod update_invalidators;
 
 pub use add_invalidator::*;
 pub use claim::*;
@@ -25,12 +25,12 @@ pub use init::*;
 pub use init_mint_counter::*;
 pub use invalidate::*;
 pub use issue::*;
+pub use replace_invalidator::*;
 pub use set_claim_approver::*;
 pub use set_transfer_authority::*;
 pub use uninit::*;
 pub use unissue::*;
 pub use update_invalidation_type::*;
-pub use update_invalidators::*;
 
 pub mod transfers;
 pub use transfers::close_transfer_receipt::*;

@@ -54,3 +54,6 @@ site/
 .vscode
 
 .env
+
+#Jetbrains IDE
+.idea

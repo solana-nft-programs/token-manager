@@ -1479,24 +1479,24 @@ export const withMigrate = async (
   return transaction;
 };
 
-export const withUpdateInvalidators = async (
+export const withReplaceInvalidator = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
   tokenManagerId: PublicKey,
-  newInvalidators: PublicKey[]
+  newInvalidator: PublicKey
 ): Promise<Transaction> => {
   const tmManagerProgram = tokenManagerProgram(connection, wallet);
 
-  const updateInvalidatorsIx = await tmManagerProgram.methods
-    .updateInvalidators(newInvalidators)
+  const replaceInvalidatorIx = await tmManagerProgram.methods
+    .replaceInvalidator(newInvalidator)
     .accounts({
       tokenManager: tokenManagerId,
       invalidator: wallet.publicKey,
     })
     .instruction();
 
-  transaction.add(updateInvalidatorsIx);
+  transaction.add(replaceInvalidatorIx);
 
   return transaction;
 };

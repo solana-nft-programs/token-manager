@@ -50,6 +50,7 @@ pub fn handler(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
     time_invalidator.token_manager = ctx.accounts.token_manager.key();
     time_invalidator.collector = ix.collector;
     time_invalidator.payment_manager = ix.payment_manager;
+    time_invalidator.expiration = None;
     time_invalidator.duration_seconds = ix.duration_seconds;
     time_invalidator.extension_payment_amount = ix.extension_payment_amount;
     time_invalidator.extension_duration_seconds = ix.extension_duration_seconds;

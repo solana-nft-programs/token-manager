@@ -43,6 +43,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let token_manager_key = ctx.accounts.token_manager.key();
     let time_invalidator_seeds = &[TIME_INVALIDATOR_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.time_invalidator.bump]];
     let time_invalidator_signer = &[&time_invalidator_seeds[..]];
+    ctx.accounts.time_invalidator.expiration = None;
 
     // invalidate
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InvalidateCtx {

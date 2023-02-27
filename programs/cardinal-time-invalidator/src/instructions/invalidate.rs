@@ -11,9 +11,9 @@ pub struct InvalidateCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     #[account(mut,
-        constraint = time_invalidator.max_expiration.is_some() && Clock::get().unwrap().unix_timestamp >= time_invalidator.max_expiration.unwrap()
-        || time_invalidator.expiration.is_some() && token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration.unwrap()
-        || time_invalidator.expiration.is_none() && token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= token_manager.state_changed_at.checked_add(time_invalidator.duration_seconds.expect("No extension duration")).expect("Addition error")
+        constraint = (time_invalidator.max_expiration.is_some() && Clock::get().unwrap().unix_timestamp >= time_invalidator.max_expiration.unwrap())
+        || (time_invalidator.expiration.is_some() && token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= time_invalidator.expiration.unwrap())
+        || (time_invalidator.expiration.is_none() && token_manager.state == TokenManagerState::Claimed as u8 && Clock::get().unwrap().unix_timestamp >= token_manager.state_changed_at.checked_add(time_invalidator.duration_seconds.expect("No extension duration")).expect("Addition error"))
         @ ErrorCode::InvalidTimeInvalidator
     )]
     time_invalidator: Box<Account<'info, TimeInvalidator>>,
@@ -43,6 +43,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let token_manager_key = ctx.accounts.token_manager.key();
     let time_invalidator_seeds = &[TIME_INVALIDATOR_SEED.as_bytes(), token_manager_key.as_ref(), &[ctx.accounts.time_invalidator.bump]];
     let time_invalidator_signer = &[&time_invalidator_seeds[..]];
+    ctx.accounts.time_invalidator.expiration = None;
 
     // invalidate
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InvalidateCtx {

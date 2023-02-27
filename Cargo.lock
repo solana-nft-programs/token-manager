@@ -499,9 +499,9 @@ dependencies = [
 
 [[package]]
 name = "cardinal-payment-manager"
-version = "3.0.0"
+version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1a3365098530a358a4f9583570bd4bcec1b5e309596ea80d79a823b6b747db5"
+checksum = "979feb87df36ecfa388949718d2dccb60de2210ea351f47f9acfbb6b0cf288d7"
 dependencies = [
  "anchor-lang",
  "anchor-spl",

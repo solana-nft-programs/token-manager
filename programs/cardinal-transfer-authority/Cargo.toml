@@ -1,6 +1,6 @@
 [package]
 name = "cardinal-transfer-authority"
-version = "4.3.2"
+version = "4.4.0"
 description = "Cardinal transfer authority"
 edition = "2021"
 homepage = "https://cardinal.so"
@@ -26,7 +26,7 @@ spl-associated-token-account = "1.1.2"
 spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 mpl-token-metadata = { version = "1.7.0", features = ["no-entrypoint"] }
 solana-program = "1.10.29"
-cardinal-token-manager = { version = "^4.3.2", path = "../cardinal-token-manager", features = ["cpi"] }
+cardinal-token-manager = { version = "^4.4.0", path = "../cardinal-token-manager", features = ["cpi"] }
 cardinal-payment-manager = { version = "^3.0.0", features = ["cpi"] }
 
 [dev-dependencies]

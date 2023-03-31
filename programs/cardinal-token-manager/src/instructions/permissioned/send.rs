@@ -8,14 +8,17 @@ use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use anchor_spl::token::{self};
 use mpl_token_metadata::utils::assert_derivation;
+use solana_program::serialize_utils::read_u16;
 
 use crate::errors::ErrorCode;
 use crate::state::*;
 use anchor_lang::prelude::*;
-use solana_program::sysvar::instructions::get_instruction_relative;
-use solana_program::sysvar::instructions::load_current_index_checked;
+use solana_program::sysvar::instructions::load_instruction_at_checked;
 use solana_program::sysvar::{self};
 use spl_associated_token_account::get_associated_token_address;
+
+///////////// CONSTANTS /////////////
+pub const ALLOWED_PROGRAMS: [&str; 1] = ["ComputeBudget111111111111111111111111111111"];
 
 #[derive(Accounts)]
 pub struct SendCtx<'info> {
@@ -54,21 +57,15 @@ pub struct SendCtx<'info> {
 }
 
 pub fn handler(ctx: Context<SendCtx>) -> Result<()> {
-    let instructions_account_info = ctx.accounts.instructions.to_account_info();
-    // check instruction is first
-    let current_ix_index = load_current_index_checked(&instructions_account_info).expect("Error computing current index");
-    if current_ix_index != 0_u16 {
-        return Err(error!(ErrorCode::InstructionsDisallowed));
-    }
-    // check no cpi
-    let current_ix = get_instruction_relative(0, &instructions_account_info);
-    if current_ix.is_ok() && current_ix?.program_id != *ctx.program_id {
-        return Err(error!(ErrorCode::NoCPIAllowed));
-    }
-    // check no next instruction
-    let next_ix = get_instruction_relative(1, &instructions_account_info);
-    if next_ix.is_ok() {
-        return Err(error!(ErrorCode::InstructionsDisallowed));
+    // check allowed programs
+    let instruction_sysvar = ctx.accounts.instructions.try_borrow_data()?;
+    let mut current: usize = 0;
+    let num_instructions = read_u16(&mut current, &instruction_sysvar).expect("Invalid instruction");
+    for i in 0..num_instructions {
+        let ix = load_instruction_at_checked(i.into(), &ctx.accounts.instructions.to_account_info()).expect("Failed to get instruction");
+        if ix.program_id != *ctx.program_id && !ALLOWED_PROGRAMS.contains(&&ix.program_id.to_string()[..]) {
+            return Err(error!(ErrorCode::InstructionsDisallowed));
+        }
     }
 
     // update token manager recipient token account

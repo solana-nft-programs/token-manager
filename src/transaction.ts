@@ -31,6 +31,7 @@ import {
   getAccount,
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
+  unpackAccount,
 } from "@solana/spl-token";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import {
@@ -911,11 +912,29 @@ export const withReturn = async (
     wallet.publicKey,
     true
   );
+  const [recipientTokenAccountInfo, metadataInfo] =
+    await connection.getMultipleAccountsInfo([
+      tokenManagerData.parsed.recipientTokenAccount,
+      findMintMetadataId(tokenManagerData.parsed.mint),
+    ]);
+  const metadata = metadataInfo
+    ? Metadata.deserialize(metadataInfo.data)[0]
+    : null;
+
+  const receipientTokenAccount = recipientTokenAccountInfo
+    ? unpackAccount(
+        tokenManagerData.parsed.recipientTokenAccount,
+        recipientTokenAccountInfo
+      )
+    : null;
+
   const remainingAccountsForReturn = await withRemainingAccountsForReturn(
     transaction,
     connection,
     wallet,
-    tokenManagerData
+    tokenManagerData,
+    receipientTokenAccount?.owner,
+    metadata?.programmableConfig?.ruleSet ?? undefined
   );
   const transferAccounts = getRemainingAccountsForKind(
     tokenManagerData.parsed.mint,

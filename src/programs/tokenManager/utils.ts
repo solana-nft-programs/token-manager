@@ -191,7 +191,6 @@ export const withRemainingAccountsForInvalidate = async (
     (tokenManagerData.parsed.invalidationType === InvalidationType.Release ||
       tokenManagerData.parsed.invalidationType === InvalidationType.Reissue)
   ) {
-    if (!metadata?.programmableConfig?.ruleSet) throw "Ruleset not specified";
     const releaseAccounts = remainingAccountForProgrammableUnlockAndTransfer(
       recipientTokenAccountOwnerId,
       wallet.publicKey,
@@ -258,7 +257,6 @@ export const withRemainingAccountsForReturn = async (
     state === TokenManagerState.Issued
   ) {
     if (kind === TokenManagerKind.Programmable || rulesetId) {
-      if (!rulesetId) throw "Ruleset not specified";
       if (!recipientTokenAccountOwnerId)
         throw "Recipient token account owner not specified";
       const remainingAccounts: AccountMeta[] = [];
@@ -436,7 +434,7 @@ export const remainingAccountForProgrammable = (
   mintId: PublicKey,
   fromTokenAccountId: PublicKey,
   toTokenAccountId: PublicKey,
-  rulesetId: PublicKey
+  rulesetId: PublicKey | undefined | null
 ): AccountMeta[] => {
   return [
     {
@@ -480,7 +478,7 @@ export const remainingAccountForProgrammable = (
       isWritable: false,
     },
     {
-      pubkey: rulesetId,
+      pubkey: rulesetId ?? METADATA_PROGRAM_ID,
       isSigner: false,
       isWritable: false,
     },
@@ -497,7 +495,7 @@ export const remainingAccountForProgrammableUnlockAndTransfer = (
   payer: PublicKey,
   mintId: PublicKey,
   fromTokenAccountId: PublicKey,
-  rulesetId: PublicKey
+  rulesetId?: PublicKey | null
 ): AccountMeta[] => {
   return [
     {
@@ -563,7 +561,7 @@ export const remainingAccountForProgrammableUnlockAndTransfer = (
       isWritable: false,
     },
     {
-      pubkey: rulesetId,
+      pubkey: rulesetId ?? METADATA_PROGRAM_ID,
       isSigner: false,
       isWritable: false,
     },
@@ -591,7 +589,6 @@ export const getRemainingAccountsForIssue = (
       },
     ];
   } else if (tokenManagerKind === TokenManagerKind.Programmable) {
-    if (!rulesetId) throw "Ruleset not specified";
     return remainingAccountForProgrammable(
       mintId,
       issuerTokenAccountId,
@@ -648,7 +645,6 @@ export const getRemainingAccountsForClaim = (
       }
     );
   } else if (tokenManagerData.parsed.kind === TokenManagerKind.Programmable) {
-    if (!metadata?.programmableConfig?.ruleSet) throw "Ruleset not specified";
     remainingAccounts.push(
       ...remainingAccountForProgrammable(
         tokenManagerData.parsed.mint,

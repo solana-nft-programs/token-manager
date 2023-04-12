@@ -34,13 +34,17 @@ import { findRuleSetId, findTokenRecordId } from "../src/programs/tokenManager";
 
 export const createProgrammableAsset = async (
   connection: Connection,
-  wallet: Wallet
+  wallet: Wallet,
+  rulesetName?: string | null
 ): Promise<[PublicKey, PublicKey, PublicKey]> => {
   const mintKeypair = Keypair.generate();
   const mintId = mintKeypair.publicKey;
   const [tx, ata, rulesetId] = createProgrammableAssetTx(
     mintKeypair.publicKey,
-    wallet.publicKey
+    wallet.publicKey,
+    rulesetName === null
+      ? null
+      : rulesetName ?? `rs-${Math.floor(Date.now() / 1000)}`
   );
   await executeTransaction(connection, tx, wallet, { signers: [mintKeypair] });
   return [ata, mintId, rulesetId];
@@ -48,39 +52,43 @@ export const createProgrammableAsset = async (
 
 export const createProgrammableAssetTx = (
   mintId: PublicKey,
-  authority: PublicKey
+  authority: PublicKey,
+  rulesetName: string | null
 ): [Transaction, PublicKey, PublicKey] => {
   const metadataId = findMintMetadataId(mintId);
   const masterEditionId = findMintEditionId(mintId);
   const ataId = getAssociatedTokenAddressSync(mintId, authority);
-  const rulesetName = `rs-${Math.floor(Date.now() / 1000)}`;
-  const rulesetId = findRuleSetId(authority, rulesetName);
-  const rulesetIx = createCreateOrUpdateInstruction(
-    {
-      payer: authority,
-      ruleSetPda: rulesetId,
-    },
-    {
-      createOrUpdateArgs: {
-        __kind: "V1",
-        serializedRuleSet: encode([
-          1,
-          authority.toBuffer().reduce((acc, i) => {
-            acc.push(i);
-            return acc;
-          }, [] as number[]),
-          rulesetName,
-          {
-            "Transfer:WalletToWallet": "Pass",
-            "Transfer:Owner": "Pass",
-            "Transfer:Delegate": "Pass",
-            "Transfer:TransferDelegate": "Pass",
-            "Delegate:LockedTransfer": "Pass",
-          },
-        ]),
+  const rulesetId = rulesetName ? findRuleSetId(authority, rulesetName) : null;
+  const tx = new Transaction();
+  if (rulesetId) {
+    const rulesetIx = createCreateOrUpdateInstruction(
+      {
+        payer: authority,
+        ruleSetPda: rulesetId,
       },
-    }
-  );
+      {
+        createOrUpdateArgs: {
+          __kind: "V1",
+          serializedRuleSet: encode([
+            1,
+            authority.toBuffer().reduce((acc, i) => {
+              acc.push(i);
+              return acc;
+            }, [] as number[]),
+            rulesetName,
+            {
+              "Transfer:WalletToWallet": "Pass",
+              "Transfer:Owner": "Pass",
+              "Transfer:Delegate": "Pass",
+              "Transfer:TransferDelegate": "Pass",
+              "Delegate:LockedTransfer": "Pass",
+            },
+          ]),
+        },
+      }
+    );
+    tx.add(rulesetIx);
+  }
   const createIx = createCreateInstruction(
     {
       metadata: metadataId,
@@ -126,6 +134,7 @@ export const createProgrammableAssetTx = (
       k.pubkey.toString() === mintId.toString() ? { ...k, isSigner: true } : k
     ),
   };
+  tx.add(createIxWithSigner);
   const mintIx = createMintInstruction(
     {
       token: ataId,
@@ -139,7 +148,7 @@ export const createProgrammableAssetTx = (
       sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
       splAtaProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       splTokenProgram: TOKEN_PROGRAM_ID,
-      authorizationRules: rulesetId,
+      authorizationRules: rulesetId ?? METADATA_PROGRAM_ID,
       authorizationRulesProgram: TOKEN_AUTH_RULES_ID,
     },
     {
@@ -150,11 +159,8 @@ export const createProgrammableAssetTx = (
       },
     }
   );
-  return [
-    new Transaction().add(rulesetIx, createIxWithSigner, mintIx),
-    ataId,
-    rulesetId,
-  ];
+  tx.add(mintIx);
+  return [tx, ataId, rulesetId ?? METADATA_PROGRAM_ID];
 };
 
 export const findEditionMarkerId = (

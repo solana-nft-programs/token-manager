@@ -18,8 +18,8 @@ env:
   SOLANA_VERSION: 1.10.41
   RUST_TOOLCHAIN: nightly
   SOTERIA_VERSION: 0.0.0
-  ANCHOR_GIT: https://github.com/project-serum/anchor
-  ANCHOR_VERSION: 0.26.0
+  ANCHOR_GIT: https://github.com/coral-xyz/anchor
+  ANCHOR_VERSION: 0.27.0
 
 jobs:
   rust-clippy:

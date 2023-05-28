@@ -12,7 +12,7 @@ env:
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
   SOLANA_VERSION: 1.10.41
   ANCHOR_GIT: https://github.com/project-serum/anchor
-  ANCHOR_VERSION: 0.26.0
+  ANCHOR_VERSION: 0.27.0
 
 jobs:
   release-sdk:

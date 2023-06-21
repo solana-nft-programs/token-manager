@@ -176,29 +176,6 @@ const main = async (cluster: string) => {
             tokenManagersById[
               timeInvalidatorData.parsed.tokenManager.toString()
             ];
-          // extra data needed
-          const [metadataInfo, recipientTokenAccountInfo] =
-            await getBatchedMultipleAccounts(connection, [
-              findMintMetadataId(tokenManagerData.parsed.mint),
-              tokenManagerData.parsed.recipientTokenAccount,
-            ]);
-          const metadata = metadataInfo
-            ? Metadata.deserialize(metadataInfo.data)[0]
-            : null;
-          const recipientTokenAccount = unpackAccount(
-            tokenManagerData.parsed.recipientTokenAccount,
-            recipientTokenAccountInfo
-          );
-          const remainingAccounts = await withRemainingAccountsForInvalidate(
-            transaction,
-            connection,
-            new Wallet(wallet),
-            tokenManagerData.parsed.mint,
-            tokenManagerData,
-            recipientTokenAccount?.owner,
-            metadata
-          );
-
           if (!tokenManagerData?.parsed) {
             const ix = await tmeInvalidatorProgram.methods
               .close()
@@ -208,7 +185,6 @@ const main = async (cluster: string) => {
                 collector: timeInvalidatorData.parsed.collector,
                 closer: wallet.publicKey,
               })
-              .remainingAccounts(remainingAccounts)
               .instruction();
             transaction.add(ix);
             console.log(
@@ -227,6 +203,28 @@ const main = async (cluster: string) => {
               clock + (Date.now() / 1000 - startTime)
             )
           ) {
+            // extra data needed
+            const [metadataInfo, recipientTokenAccountInfo] =
+              await getBatchedMultipleAccounts(connection, [
+                findMintMetadataId(tokenManagerData.parsed.mint),
+                tokenManagerData.parsed.recipientTokenAccount,
+              ]);
+            const metadata = metadataInfo
+              ? Metadata.deserialize(metadataInfo.data)[0]
+              : null;
+            const recipientTokenAccount = unpackAccount(
+              tokenManagerData.parsed.recipientTokenAccount,
+              recipientTokenAccountInfo
+            );
+            const remainingAccounts = await withRemainingAccountsForInvalidate(
+              transaction,
+              connection,
+              new Wallet(wallet),
+              tokenManagerData.parsed.mint,
+              tokenManagerData,
+              recipientTokenAccount?.owner,
+              metadata
+            );
             if (tokenManagerData?.parsed.receiptMint) {
               throw "[skip] receipt mint not automated";
             }

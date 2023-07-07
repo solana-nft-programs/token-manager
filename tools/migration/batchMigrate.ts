@@ -6,7 +6,10 @@ import {
   METADATA_PROGRAM_ID,
 } from "@cardinal/common";
 import { BorshAccountsCoder, utils, Wallet } from "@project-serum/anchor";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import { SystemProgram, Transaction } from "@solana/web3.js";
 import { BN } from "bn.js";
 import * as dotenv from "dotenv";
@@ -61,6 +64,12 @@ const main = async (cluster = "devnet") => {
       ],
     }
   );
+  console.log(
+    "Total found ",
+    programAccounts.length,
+    programAccounts.map((p) => p.pubkey.toString())
+  );
+
   const tokenManagerDatas: AccountData<TokenManagerData>[] = [];
   const coder = new BorshAccountsCoder(TOKEN_MANAGER_IDL);
   programAccounts.forEach((account) => {
@@ -70,10 +79,10 @@ const main = async (cluster = "devnet") => {
         account.account.data
       );
       if (
-        tokenManagerData &&
-        tokenManagerData.invalidators
-          .map((s) => s.toString())
-          .includes("brvnPPYVUpU2ZQqmTX7XxzZErdtFj4brXH8CCicbbB9")
+        tokenManagerData
+        // tokenManagerData.invalidators
+        //   .map((s) => s.toString())
+        //   .includes("brvnPPYVUpU2ZQqmTX7XxzZErdtFj4brXH8CCicbbB9")
       ) {
         tokenManagerDatas.push({
           ...account,
@@ -84,7 +93,7 @@ const main = async (cluster = "devnet") => {
       console.log(`Failed to decode token manager data`);
     }
   });
-  // console.log(JSON.stringify(tokenManagerDatas, null, 2));
+  console.log("Total found ", tokenManagerDatas.length);
 
   console.log(
     `\n1/3 Building transactions ${tokenManagerDatas.length} data...`
@@ -108,11 +117,17 @@ const main = async (cluster = "devnet") => {
         .accountsStrict({
           mintManager: findMintManagerId(mintId),
           tokenManager: findTokenManagerAddress(mintId),
+          tokenManagerTokenAccount: getAssociatedTokenAddressSync(
+            mintId,
+            findTokenManagerAddress(mintId),
+            true
+          ),
           mint: mintId,
           mintMetadata: findMintMetadataId(mintId),
           mintEdition: findMintEditionId(mintId),
           holderTokenAccount: tokenManagerData.parsed.recipientTokenAccount,
-          authority: wallet.publicKey,
+          invalidator: wallet.publicKey,
+          collector: wallet.publicKey,
           payer: wallet.publicKey,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,

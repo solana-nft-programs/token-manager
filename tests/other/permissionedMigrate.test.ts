@@ -12,7 +12,7 @@ import { beforeAll, expect } from "@jest/globals";
 import { createCreateMetadataAccountV3Instruction } from "@metaplex-foundation/mpl-token-metadata";
 import { BN, Wallet } from "@project-serum/anchor";
 import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
-import { getAccount } from "@solana/spl-token";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
@@ -198,6 +198,11 @@ describe("Permissioned migrate", () => {
       .accountsStrict({
         mintManager: mintManagerId,
         tokenManager: findTokenManagerAddress(rentalMint),
+        tokenManagerTokenAccount: getAssociatedTokenAddressSync(
+          rentalMint,
+          findTokenManagerAddress(rentalMint),
+          true
+        ),
         mint: rentalMint,
         mintMetadata: findMintMetadataId(rentalMint),
         mintEdition: findMintEditionId(rentalMint),

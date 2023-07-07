@@ -4,6 +4,7 @@ use crate::state::TokenManager;
 use crate::state::MINT_MANAGER_SEED;
 use crate::state::*;
 use anchor_lang::prelude::*;
+use anchor_spl::token::CloseAccount;
 use anchor_spl::token::Mint;
 use anchor_spl::token::ThawAccount;
 use anchor_spl::token::Token;
@@ -18,6 +19,12 @@ pub struct MigrateCtx<'info> {
     mint_manager: Box<Account<'info, MintManager>>,
     #[account(mut, close = collector)]
     token_manager: Box<Account<'info, TokenManager>>,
+    #[account(mut, constraint =
+        token_manager_token_account.owner == token_manager.key()
+        && token_manager_token_account.mint == token_manager.mint
+        @ ErrorCode::InvalidTokenManagerTokenAccount
+    )]
+    token_manager_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = token_manager.mint == mint.key() @ ErrorCode::InvalidMint )]
     mint: Box<Account<'info, Mint>>,
     /// CHECK: no checks required
@@ -37,6 +44,7 @@ pub struct MigrateCtx<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     /// CHECK: no checks required
+    #[account(mut)]
     collector: UncheckedAccount<'info>,
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
@@ -83,6 +91,20 @@ pub fn handler(ctx: Context<MigrateCtx>) -> Result<()> {
         ],
         mint_manager_signer,
     )?;
+
+    let mint = ctx.accounts.token_manager.mint;
+    let token_manager_seeds = &[TOKEN_MANAGER_SEED.as_bytes(), mint.as_ref(), &[ctx.accounts.token_manager.bump]];
+    let token_manager_signer = &[&token_manager_seeds[..]];
+
+    // close token_manager_token_account
+    let cpi_accounts = CloseAccount {
+        account: ctx.accounts.token_manager_token_account.to_account_info(),
+        destination: ctx.accounts.collector.to_account_info(),
+        authority: ctx.accounts.token_manager.to_account_info(),
+    };
+    let cpi_program = ctx.accounts.token_program.to_account_info();
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(token_manager_signer);
+    token::close_account(cpi_context)?;
 
     Ok(())
 }

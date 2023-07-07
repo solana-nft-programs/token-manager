@@ -821,6 +821,11 @@
           "isSigner": false
         },
         {
+          "name": "tokenManagerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "mint",
           "isMut": true,
           "isSigner": false
@@ -852,7 +857,7 @@
         },
         {
           "name": "collector",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: nightly
+  RUST_TOOLCHAIN: 1.69.0
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
   SOLANA_VERSION: 1.14.15
   ANCHOR_GIT: https://github.com/project-serum/anchor

@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
   RUST_TOOLCHAIN: nightly
   NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-  SOLANA_VERSION: 1.10.41
+  SOLANA_VERSION: 1.14.15
   ANCHOR_GIT: https://github.com/project-serum/anchor
   ANCHOR_VERSION: 0.26.0
 

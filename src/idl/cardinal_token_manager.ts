@@ -811,12 +811,17 @@ export type CardinalTokenManager = {
       name: "migrate";
       accounts: [
         {
-          name: "currentMintManager";
-          isMut: false;
+          name: "mintManager";
+          isMut: true;
           isSigner: false;
         },
         {
-          name: "mintManager";
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManagerTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -827,16 +832,11 @@ export type CardinalTokenManager = {
         },
         {
           name: "mintMetadata";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
-          name: "ruleset";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "tokenManager";
+          name: "mintEdition";
           isMut: true;
           isSigner: false;
         },
@@ -846,14 +846,9 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
-          name: "tokenAuthority";
+          name: "invalidator";
           isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "authority";
-          isMut: false;
-          isSigner: false;
+          isSigner: true;
         },
         {
           name: "payer";
@@ -861,8 +856,8 @@ export type CardinalTokenManager = {
           isSigner: true;
         },
         {
-          name: "rent";
-          isMut: false;
+          name: "collector";
+          isMut: true;
           isSigner: false;
         },
         {
@@ -876,7 +871,7 @@ export type CardinalTokenManager = {
           isSigner: false;
         },
         {
-          name: "cardinalCreatorStandard";
+          name: "mplTokenMetadata";
           isMut: false;
           isSigner: false;
         }
@@ -2167,12 +2162,17 @@ export const IDL: CardinalTokenManager = {
       name: "migrate",
       accounts: [
         {
-          name: "currentMintManager",
-          isMut: false,
+          name: "mintManager",
+          isMut: true,
           isSigner: false,
         },
         {
-          name: "mintManager",
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManagerTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -2183,16 +2183,11 @@ export const IDL: CardinalTokenManager = {
         },
         {
           name: "mintMetadata",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
-          name: "ruleset",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "tokenManager",
+          name: "mintEdition",
           isMut: true,
           isSigner: false,
         },
@@ -2202,14 +2197,9 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
         {
-          name: "tokenAuthority",
+          name: "invalidator",
           isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "authority",
-          isMut: false,
-          isSigner: false,
+          isSigner: true,
         },
         {
           name: "payer",
@@ -2217,8 +2207,8 @@ export const IDL: CardinalTokenManager = {
           isSigner: true,
         },
         {
-          name: "rent",
-          isMut: false,
+          name: "collector",
+          isMut: true,
           isSigner: false,
         },
         {
@@ -2232,7 +2222,7 @@ export const IDL: CardinalTokenManager = {
           isSigner: false,
         },
         {
-          name: "cardinalCreatorStandard",
+          name: "mplTokenMetadata",
           isMut: false,
           isSigner: false,
         },

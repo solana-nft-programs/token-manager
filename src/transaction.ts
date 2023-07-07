@@ -11,11 +11,6 @@ import {
   tryNull,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
-import {
-  findMintManagerId as findCCSMintManagerId,
-  findRulesetId,
-  PROGRAM_ADDRESS,
-} from "@cardinal/creator-standard";
 import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
 import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
 import {
@@ -1455,46 +1450,6 @@ export const withSend = async (
     })
     .instruction();
   transaction.add(sendIx);
-  return transaction;
-};
-
-export const withMigrate = async (
-  transaction: Transaction,
-  connection: Connection,
-  wallet: Wallet,
-  mintId: PublicKey,
-  rulesetName: string,
-  holderTokenAccountId: PublicKey,
-  authority: PublicKey
-): Promise<Transaction> => {
-  const tmManagerProgram = tokenManagerProgram(connection, wallet);
-  const currentMintManagerId = findMintManagerId(mintId);
-  const mintManagerId = findCCSMintManagerId(mintId);
-  const tokenManagerId = findTokenManagerAddress(mintId);
-  const rulesetId = findRulesetId(rulesetName);
-  const mintMetadataId = findMintMetadataId(mintId);
-
-  const migrateIx = await tmManagerProgram.methods
-    .migrate()
-    .accountsStrict({
-      currentMintManager: currentMintManagerId,
-      mintManager: mintManagerId,
-      mint: mintId,
-      mintMetadata: mintMetadataId,
-      ruleset: rulesetId,
-      tokenManager: tokenManagerId,
-      holderTokenAccount: holderTokenAccountId,
-      tokenAuthority: currentMintManagerId,
-      authority: authority,
-      payer: wallet.publicKey,
-      rent: SYSVAR_RENT_PUBKEY,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      cardinalCreatorStandard: PROGRAM_ADDRESS,
-    })
-    .instruction();
-  transaction.add(migrateIx);
-
   return transaction;
 };
 

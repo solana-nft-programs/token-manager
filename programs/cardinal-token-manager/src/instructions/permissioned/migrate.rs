@@ -14,9 +14,9 @@ use solana_program::program::invoke_signed;
 
 #[derive(Accounts)]
 pub struct MigrateCtx<'info> {
-    #[account(mut, close = payer, constraint = token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManagerState)]
+    #[account(mut, close = collector, constraint = token_manager.kind == TokenManagerKind::Permissioned as u8 && token_manager.state == TokenManagerState::Claimed as u8 @ ErrorCode::InvalidTokenManagerState)]
     mint_manager: Box<Account<'info, MintManager>>,
-    #[account(mut, close = payer)]
+    #[account(mut, close = collector)]
     token_manager: Box<Account<'info, TokenManager>>,
     #[account(mut, constraint = token_manager.mint == mint.key() @ ErrorCode::InvalidMint )]
     mint: Box<Account<'info, Mint>>,
@@ -36,6 +36,8 @@ pub struct MigrateCtx<'info> {
 
     #[account(mut)]
     payer: Signer<'info>,
+    /// CHECK: no checks required
+    collector: UncheckedAccount<'info>,
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
     /// CHECK: This is not dangerous because the ID is checked with instructions sysvar

@@ -485,7 +485,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-paid-claim-approver"
-version = "4.4.0"
+version = "4.6.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -513,7 +513,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-time-invalidator"
-version = "4.4.0"
+version = "4.6.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -527,7 +527,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-token-manager"
-version = "4.4.0"
+version = "4.6.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -541,7 +541,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-transfer-authority"
-version = "4.4.0"
+version = "4.6.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -556,7 +556,7 @@ dependencies = [
 
 [[package]]
 name = "cardinal-use-invalidator"
-version = "4.4.0"
+version = "4.6.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",

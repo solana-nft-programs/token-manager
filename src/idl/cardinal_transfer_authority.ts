@@ -1060,6 +1060,11 @@ export type CardinalTransferAuthority = {
       code: 6026;
       name: "InvalidPayerPaymentTokenAccount";
       msg: "Invalid payer payment token account";
+    },
+    {
+      code: 6027;
+      name: "ProtocolsShutdown";
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information";
     }
   ];
 };
@@ -2126,6 +2131,11 @@ export const IDL: CardinalTransferAuthority = {
       code: 6026,
       name: "InvalidPayerPaymentTokenAccount",
       msg: "Invalid payer payment token account",
+    },
+    {
+      code: 6027,
+      name: "ProtocolsShutdown",
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information",
     },
   ],
 };

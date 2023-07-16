@@ -24,4 +24,6 @@ pub enum ErrorCode {
     InvalidPaymentMint,
     #[msg("Invalid mint")]
     InvalidMint,
+    #[msg("Cardinal Protocols are shutting down. Please read latest twitter post for more information")]
+    ProtocolsShutdown,
 }

@@ -82,4 +82,6 @@ pub enum ErrorCode {
     CannotMigrateDelegatedToken,
     #[msg("Invalid return target")]
     InvalidReturnTarget,
+    #[msg("Cardinal Protocols are shutting down. Please read latest twitter post for more information")]
+    ProtocolsShutdown,
 }

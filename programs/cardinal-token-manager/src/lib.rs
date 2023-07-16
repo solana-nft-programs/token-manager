@@ -13,6 +13,7 @@ pub mod cardinal_token_manager {
     use super::*;
 
     pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         init::handler(ctx, ix)
     }
 
@@ -45,10 +46,12 @@ pub mod cardinal_token_manager {
     }
 
     pub fn claim_receipt_mint(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         claim_receipt_mint::handler(ctx, name)
     }
 
     pub fn issue<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, IssueCtx<'info>>) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         issue::handler(ctx)
     }
 
@@ -57,6 +60,7 @@ pub mod cardinal_token_manager {
     }
 
     pub fn claim<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimCtx<'info>>) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         claim::handler(ctx)
     }
 

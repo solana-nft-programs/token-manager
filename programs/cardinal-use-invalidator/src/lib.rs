@@ -12,14 +12,17 @@ pub mod cardinal_use_invalidator {
     use super::*;
 
     pub fn init(ctx: Context<InitCtx>, ix: InitIx) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         init::handler(ctx, ix)
     }
 
     pub fn increment_usages(ctx: Context<IncrementUsagesCtx>, num_usages: u64) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         increment_usages::handler(ctx, num_usages)
     }
 
     pub fn extend_usages<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ExtendUsagesCtx<'info>>, payment_amount: u64) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         extend_usages::handler(ctx, payment_amount)
     }
 

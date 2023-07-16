@@ -34,4 +34,6 @@ pub enum ErrorCode {
     InvalidMint,
     #[msg("Invalid issuer")]
     InvalidIssuer,
+    #[msg("Cardinal Protocols are shutting down. Please read latest twitter post for more information")]
+    ProtocolsShutdown,
 }

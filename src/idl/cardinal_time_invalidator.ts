@@ -447,6 +447,11 @@ export type CardinalTimeInvalidator = {
       code: 6018;
       name: "InvalidNewMaxExpiration";
       msg: "Invalid new max expiration";
+    },
+    {
+      code: 6019;
+      name: "ProtocolsShutdown";
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information";
     }
   ];
 };
@@ -900,6 +905,11 @@ export const IDL: CardinalTimeInvalidator = {
       code: 6018,
       name: "InvalidNewMaxExpiration",
       msg: "Invalid new max expiration",
+    },
+    {
+      code: 6019,
+      name: "ProtocolsShutdown",
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information",
     },
   ],
 };

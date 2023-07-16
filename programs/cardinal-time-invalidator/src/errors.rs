@@ -40,4 +40,6 @@ pub enum ErrorCode {
     InvalidMint,
     #[msg("Invalid new max expiration")]
     InvalidNewMaxExpiration,
+    #[msg("Cardinal Protocols are shutting down. Please read latest twitter post for more information")]
+    ProtocolsShutdown,
 }

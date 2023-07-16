@@ -405,6 +405,11 @@ export type CardinalUseInvalidator = {
       code: 6015;
       name: "InvalidIssuer";
       msg: "Invalid issuer";
+    },
+    {
+      code: 6016;
+      name: "ProtocolsShutdown";
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information";
     }
   ];
 };
@@ -816,6 +821,11 @@ export const IDL: CardinalUseInvalidator = {
       code: 6015,
       name: "InvalidIssuer",
       msg: "Invalid issuer",
+    },
+    {
+      code: 6016,
+      name: "ProtocolsShutdown",
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information",
     },
   ],
 };

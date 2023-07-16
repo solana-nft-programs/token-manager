@@ -248,6 +248,11 @@ export type CardinalPaidClaimApprover = {
       code: 6010;
       name: "InvalidMint";
       msg: "Invalid mint";
+    },
+    {
+      code: 6011;
+      name: "ProtocolsShutdown";
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information";
     }
   ];
 };
@@ -502,6 +507,11 @@ export const IDL: CardinalPaidClaimApprover = {
       code: 6010,
       name: "InvalidMint",
       msg: "Invalid mint",
+    },
+    {
+      code: 6011,
+      name: "ProtocolsShutdown",
+      msg: "Cardinal Protocols are shutting down. Please read latest twitter post for more information",
     },
   ],
 };

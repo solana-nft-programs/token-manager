@@ -56,4 +56,6 @@ pub enum ErrorCode {
     InvalidRemainingAccountsSize,
     #[msg("Invalid payer payment token account")]
     InvalidPayerPaymentTokenAccount,
+    #[msg("Cardinal Protocols are shutting down. Please read latest twitter post for more information")]
+    ProtocolsShutdown,
 }

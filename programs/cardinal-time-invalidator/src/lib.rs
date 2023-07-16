@@ -16,6 +16,7 @@ pub mod cardinal_time_invalidator {
     }
 
     pub fn extend_expiration<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ExtendExpirationCtx<'info>>, seconds_to_add: u64) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         extend_expiration::handler(ctx, seconds_to_add)
     }
 
@@ -24,6 +25,7 @@ pub mod cardinal_time_invalidator {
     }
 
     pub fn update_max_expiration(ctx: Context<UpdateMaxExpirationCtx>, ix: UpdateMaxExpirationIx) -> Result<()> {
+        return Err(error!(errors::ErrorCode::ProtocolsShutdown));
         update_max_expiration::handler(ctx, ix)
     }
 

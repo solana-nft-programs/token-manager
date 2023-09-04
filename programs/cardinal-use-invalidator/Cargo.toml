@@ -31,4 +31,4 @@ mpl-token-metadata = { version = "1.7.0", features = ["no-entrypoint"] }
 arrayref = "0.3.6"
 
 [dev-dependencies]
-proptest = { version = "1.0" }
+proptest = { version = "1.1" }

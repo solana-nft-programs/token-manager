@@ -8,7 +8,7 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import * as TOKEN_MANAGER_TYPES from "../../idl/cardinal_token_manager";
 
 export const TOKEN_MANAGER_ADDRESS = new PublicKey(
-  "mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM"
+  "GNkEMLkiC5Da6wyKohZTPLNhWs6X8Lbm3afwBRTBs8aN"
 );
 
 export const MINT_COUNTER_SEED = "mint-counter";

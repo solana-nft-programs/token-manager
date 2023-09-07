@@ -27,7 +27,7 @@
     "lint:ci": "eslint . --max-warnings=0",
     "prepare": "husky install",
     "test": "jest --setupFiles dotenv/config --detectOpenHandles",
-    "postinstall": "npm run build"
+    "postinstall": "npm install && npm run build"
   },
   "publishConfig": {
     "access": "public"

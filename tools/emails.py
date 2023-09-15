@@ -6,11 +6,11 @@ from email.mime.multipart import MIMEMultipart
 
 port = 465
 smtp_server = "smtp.gmail.com"
-sender_email = "noreply@cardinal.so"
+sender_email = "noreply@temp.so"
 password = ""
 
 context = ssl.create_default_context()
-data = pd.read_csv('./data/hacker-house-seattle.csv')
+data = pd.read_csv("./data/hacker-house-seattle.csv")
 
 for i in data.itertuples():
     try:
@@ -39,7 +39,7 @@ for i in data.itertuples():
         It will be frozen in your wallet until it’s invalidated when scanned at the door. 
 
         - Step III
-        Click the “View” button beneath the image to navigate to the Cardinal Dashboard
+        Click the “View” button beneath the image to navigate to the Dashboard
 
         - Step IV
         Tap the QR code icon on the top right corner of the ticket.
@@ -188,22 +188,13 @@ for i in data.itertuples():
                                                                     <td style="padding-right:15px;padding-top:35px;text-align:right;padding-left:0px;">
                                                                         <table class="social-table" width="36px" border="0" cellpadding="0" cellspacing="0" role="presentation" align="right" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
                                                                             <tr>
-                                                                                <td style="padding:0 0 0 4px;"><a href="https://twitter.com/cardinal_labs" target="_blank"><img src="https://app-rsrc.getbee.io/public/resources/social-networks-icon-sets/circle-color/twitter@2x.png" width="32" height="32" alt="Twitter" title="twitter" style="display: block; height: auto; border: 0;"></a></td>
+                                                                                <td style="padding:0 0 0 4px;"><a href="https://twitter.com" target="_blank"><img src="https://app-rsrc.getbee.io/public/resources/social-networks-icon-sets/circle-color/twitter@2x.png" width="32" height="32" alt="Twitter" title="twitter" style="display: block; height: auto; border: 0;"></a></td>
                                                                             </tr>
                                                                         </table>
                                                                     </td>
                                                                 </tr>
                                                             </table>
                                                             <div class="spacer_block" style="height:5px;line-height:5px;font-size:1px;">&#8202;</div>
-                                                        </td>
-                                                        <td class="column" width="25%" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;">
-                                                            <table class="image_block" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
-                                                                <tr>
-                                                                    <td style="padding-top:40px;width:100%;padding-right:0px;padding-left:0px;padding-bottom:5px;">
-                                                                        <div align="center" style="line-height:10px"><img src="https://d15k2d11r6t6rl.cloudfront.net/public/users/Integrators/BeeProAgency/759493_742931/editor_images/cardinal-titled.png" style="display: block; height: auto; border: 0; width: 170px; max-width: 100%;" width="170" alt="I'm an image" title="I'm an image"></div>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -279,7 +270,7 @@ for i in data.itertuples():
                                                                     <td style="padding-bottom:20px;padding-left:10px;padding-right:10px;padding-top:20px;">
                                                                         <div style="font-family: 'Trebuchet MS', Tahoma, sans-serif">
                                                                             <div style="font-size: 12px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; mso-line-height-alt: 18px; color: #777; line-height: 1.5;">
-                                                                                <p style="margin: 0; font-size: 12px; text-align: center; mso-line-height-alt: 24px;"><span style="font-size:16px;"><strong>If you have any issues, reach out to </strong><em><u>info@cardinal.so</u></em></span></p>
+                                                                                <p style="margin: 0; font-size: 12px; text-align: center; mso-line-height-alt: 24px;"><span style="font-size:16px;"><strong>If you have any issues, reach out to </strong><em><u></u></em></span></p>
                                                                             </div>
                                                                         </div>
                                                                     </td>
@@ -547,7 +538,7 @@ for i in data.itertuples():
                                                                     <td style="padding-bottom:15px;padding-left:30px;padding-right:35px;padding-top:10px;">
                                                                         <div style="font-family: 'Trebuchet MS', Tahoma, sans-serif">
                                                                             <div style="font-size: 14px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; mso-line-height-alt: 21px; color: #fff; line-height: 1.5;">
-                                                                                <p style="margin: 0;"><span style="background-color:transparent;">Click the “View” button beneath the image to navigate to the Cardinal Dashboard</span></p>
+                                                                                <p style="margin: 0;"><span style="background-color:transparent;">Click the “View” button beneath the image to navigate to the Dashboard</span></p>
                                                                             </div>
                                                                         </div>
                                                                     </td>
@@ -752,29 +743,6 @@ for i in data.itertuples():
                                                                                 <p style="margin: 0; font-size: 12px; mso-line-height-alt: 14.399999999999999px;">&nbsp;</p>
                                                                             </div>
                                                                         </div>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table class="row row-13" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #000000;">
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 680px;" width="680">
-                                                <tbody>
-                                                    <tr>
-                                                        <td class="column" width="100%" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-top: 5px; padding-bottom: 5px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;">
-                                                            <table class="image_block" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
-                                                                <tr>
-                                                                    <td style="padding-bottom:30px;padding-top:30px;width:100%;padding-right:0px;padding-left:0px;">
-                                                                        <div align="center" style="line-height:10px"><img src="https://d15k2d11r6t6rl.cloudfront.net/public/users/Integrators/BeeProAgency/759493_742931/editor_images/cardinal-titled.png" style="display: block; height: auto; border: 0; width: 170px; max-width: 100%;" width="170" alt="Company logo" title="Company logo"></div>
                                                                     </td>
                                                                 </tr>
                                                             </table>

@@ -1,4 +1,4 @@
-import { utils } from "@project-serum/anchor";
+import { utils } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 
 import { TIME_INVALIDATOR_ADDRESS, TIME_INVALIDATOR_SEED } from "./constants";

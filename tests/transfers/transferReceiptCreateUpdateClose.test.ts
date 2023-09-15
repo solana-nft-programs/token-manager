@@ -1,13 +1,5 @@
-import {
-  createMint,
-  executeTransaction,
-  findAta,
-  getTestProvider,
-  tryGetAccount,
-  withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
 import { beforeAll, expect } from "@jest/globals";
-import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
@@ -16,6 +8,14 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
+import {
+  createMint,
+  executeTransaction,
+  findAta,
+  getTestProvider,
+  tryGetAccount,
+  withFindOrInitAssociatedTokenAccount,
+} from "@solana-nft-programs/common";
 
 import { claimToken } from "../../src";
 import { tokenManager } from "../../src/programs";

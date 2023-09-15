@@ -1,12 +1,5 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMint,
-  executeTransaction,
-  findAta,
-  getTestProvider,
-} from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
 import { beforeAll, expect } from "@jest/globals";
-import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
@@ -15,6 +8,13 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
+import {
+  createMint,
+  executeTransaction,
+  findAta,
+  getTestProvider,
+} from "@solana-nft-programs/common";
 
 import {
   claimLinks,
@@ -30,7 +30,7 @@ import {
 } from "../../src/programs/tokenManager";
 
 describe("Claim links", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;

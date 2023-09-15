@@ -1,11 +1,5 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMint,
-  executeTransaction,
-  getTestProvider,
-} from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
 import { beforeAll, expect } from "@jest/globals";
-import { BN, Wallet } from "@project-serum/anchor";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
@@ -13,6 +7,12 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
+import {
+  createMint,
+  executeTransaction,
+  getTestProvider,
+} from "@solana-nft-programs/common";
 
 import { withReplaceInvalidator } from "../../src";
 import { tokenManager } from "../../src/programs";
@@ -27,7 +27,7 @@ import {
 } from "../../src/programs/tokenManager/pda";
 
 describe("Update Invalidators on Token Manager", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const invalidator = Keypair.generate();
   let mint: PublicKey;
   let issuerTokenAccountId: PublicKey;

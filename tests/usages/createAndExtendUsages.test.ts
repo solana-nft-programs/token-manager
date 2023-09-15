@@ -1,23 +1,23 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
   findAta,
   getTestProvider,
   tryGetAccount,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import { extendUsages, rentals } from "../../src";
 import { tokenManager, useInvalidator } from "../../src/programs";
 import { TokenManagerState } from "../../src/programs/tokenManager";
 
 describe("Create and Extend Rental", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const TOTAL_USAGES = 1;

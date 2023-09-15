@@ -1,15 +1,15 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
   findAta,
   getTestProvider,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import { claimLinks, claimToken, useTransaction } from "../../src";
 import { fromLink } from "../../src/claimLinks";
@@ -21,7 +21,7 @@ import {
 } from "../../src/programs/tokenManager";
 
 describe("Claim links invalidate", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;

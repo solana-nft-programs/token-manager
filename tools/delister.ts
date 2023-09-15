@@ -1,10 +1,10 @@
-import { chunkArray } from "@cardinal/common";
-import { utils, Wallet } from "@project-serum/anchor";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import {
   Keypair,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import { chunkArray } from "@solana-nft-programs/common";
 
 import { withUnissueToken } from "../src";
 import { TokenManagerState } from "../src/programs/tokenManager";

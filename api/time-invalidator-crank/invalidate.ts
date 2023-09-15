@@ -1,17 +1,17 @@
 import {
   AccountData,
   withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/common";
-import { programs } from "@cardinal/token-manager";
-import { timeInvalidator } from "@cardinal/token-manager/dist/cjs/programs";
-import { timeInvalidatorProgram } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator";
-import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
+} from "@solana-nft-programs/common";
+import { programs } from "@solana-nft-programs/token-manager";
+import { timeInvalidator } from "@solana-nft-programs/token-manager/dist/cjs/programs";
+import { timeInvalidatorProgram } from "@solana-nft-programs/token-manager/dist/cjs/programs/timeInvalidator";
+import { shouldTimeInvalidate } from "@solana-nft-programs/token-manager/dist/cjs/programs/timeInvalidator/utils";
 import {
   TokenManagerData,
   TOKEN_MANAGER_ADDRESS,
   withRemainingAccountsForReturn,
-} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
-import { utils, Wallet } from "@project-serum/anchor";
+} from "@solana-nft-programs/token-manager/dist/cjs/programs/tokenManager";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   Connection,
@@ -127,11 +127,11 @@ const main = async (cluster: string) => {
         );
         const invalidateIx = await tmeInvalidatorProgram.methods
           .invalidate()
-          .accounts({
+          .accountsStrict({
             tokenManager: timeInvalidatorData.parsed.tokenManager,
             timeInvalidator: timeInvalidatorData.pubkey,
             invalidator: wallet.publicKey,
-            cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+            solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
             tokenProgram: TOKEN_PROGRAM_ID,
             tokenManagerTokenAccount: tokenManagerTokenAccountId,
             mint: tokenManagerData.parsed.mint,

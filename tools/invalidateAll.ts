@@ -1,9 +1,4 @@
-import type { AccountData } from "@cardinal/common";
-import {
-  tryGetAccount,
-  withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/common";
-import { utils, Wallet } from "@project-serum/anchor";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { Connection } from "@solana/web3.js";
 import {
@@ -13,6 +8,11 @@ import {
   SYSVAR_RENT_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
+import type { AccountData } from "@solana-nft-programs/common";
+import {
+  tryGetAccount,
+  withFindOrInitAssociatedTokenAccount,
+} from "@solana-nft-programs/common";
 
 import { tokenManager } from "../src/programs";
 import { claimApproverProgram } from "../src/programs/claimApprover";
@@ -94,7 +94,7 @@ export const withInvalidate = async (
         tokenManager: tokenManagerData.pubkey,
         timeInvalidator: timeInvalidatorData.pubkey,
         invalidator: wallet.publicKey,
-        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
         tokenProgram: TOKEN_PROGRAM_ID,
         tokenManagerTokenAccount: tokenManagerTokenAccountId,
         mint: tokenManagerData.parsed.mint,

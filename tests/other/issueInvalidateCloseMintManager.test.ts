@@ -1,27 +1,27 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMint,
-  executeTransaction,
-  getTestProvider,
-  tryGetAccount,
-} from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
+import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { beforeAll, expect } from "@jest/globals";
-import { BN, Wallet } from "@project-serum/anchor";
-import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import {
+  createMint,
+  executeTransaction,
+  tryGetAccount,
+} from "@solana-nft-programs/common";
 
 import { invalidate, issueToken } from "../../src";
 import { timeInvalidator, tokenManager } from "../../src/programs";
+import type { SolanaProvider } from "../../src/programs/tokenManager";
 import {
+  getTestProvider,
   tokenManagerProgram,
   TokenManagerState,
 } from "../../src/programs/tokenManager";
 import { findMintManagerId } from "../../src/programs/tokenManager/pda";
 
 describe("Issue Claim Close Mint Manager", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const user = Keypair.generate();
   let issuerTokenAccountId: PublicKey;

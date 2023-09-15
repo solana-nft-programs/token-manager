@@ -1,19 +1,19 @@
-import {
-  createMintIxs,
-  findMintEditionId,
-  findMintMetadataId,
-} from "@cardinal/common";
+import { BN, utils } from "@coral-xyz/anchor";
 import {
   createCreateMasterEditionV3Instruction,
   createCreateMetadataAccountV3Instruction,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { BN, utils } from "@project-serum/anchor";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import {
+  createMintIxs,
+  findMintEditionId,
+  findMintMetadataId,
+} from "@solana-nft-programs/common";
 
 import { connectionFor } from "./connection";
 
@@ -80,7 +80,7 @@ export const airdropMasterEdition = async (
             data: {
               name: `EmpireDAO #${floor}.${counter} (${daySymbol})`,
               symbol: daySymbol,
-              uri: `https://nft.cardinal.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}&text=header:${dayName}%20day%20pass&attrs=Day:${dayName};Floor:${floor};Seat:${counter}`,
+              uri: `https://nft.host.so/metadata/${masterEditionMint.publicKey.toString()}?uri=${metadataUrl}&text=header:${dayName}%20day%20pass&attrs=Day:${dayName};Floor:${floor};Seat:${counter}`,
               sellerFeeBasisPoints: 10,
               creators: [
                 {
@@ -143,7 +143,7 @@ export const airdropMasterEdition = async (
 
 airdropMasterEdition(
   38,
-  "https://rent.cardinal.so/metadata/empiredao.json",
+  "https://rent.host.so/metadata/empiredao.json",
   "SAT",
   "mainnet",
   0,

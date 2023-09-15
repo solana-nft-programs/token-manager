@@ -1,25 +1,10 @@
-import type { AccountData } from "@cardinal/common";
-import {
-  decodeIdlAccount,
-  fetchAccountDataById,
-  findAta,
-  findMintMetadataId,
-  getBatchedMultipleAccounts,
-  METADATA_PROGRAM_ID,
-  tryDecodeIdlAccount,
-  tryGetAccount,
-  tryNull,
-  withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/common";
-import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
-import { withRemainingAccountsForPayment } from "@cardinal/payment-manager/dist/cjs/utils";
+import { BN } from "@coral-xyz/anchor";
+import type { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
+import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import {
   Metadata,
   TokenStandard,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { BN } from "@project-serum/anchor";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
-import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -36,8 +21,23 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
+import type { AccountData } from "@solana-nft-programs/common";
+import {
+  decodeIdlAccount,
+  fetchAccountDataById,
+  findAta,
+  findMintMetadataId,
+  getBatchedMultipleAccounts,
+  METADATA_PROGRAM_ID,
+  tryDecodeIdlAccount,
+  tryGetAccount,
+  tryNull,
+  withFindOrInitAssociatedTokenAccount,
+} from "@solana-nft-programs/common";
+import { PAYMENT_MANAGER_ADDRESS } from "@solana-nft-programs/payment-manager";
+import { withRemainingAccountsForPayment } from "@solana-nft-programs/payment-manager/dist/cjs/utils";
 
-import type { CardinalTokenManager } from "./idl/cardinal_token_manager";
+import type { SolanaNftProgramsTokenManager } from "./idl/solana_nft_programs_token_manager";
 import { timeInvalidator, tokenManager, useInvalidator } from "./programs";
 import type {
   CLAIM_APPROVER_PROGRAM,
@@ -611,8 +611,8 @@ export const withClaimToken = async (
         payer: wallet.publicKey,
         payerTokenAccount: payerTokenAccountId,
         claimReceipt: claimReceiptId,
-        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
-        cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
+        solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
+        solanaNftProgramsPaymentManager: PAYMENT_MANAGER_ADDRESS,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       })
@@ -691,11 +691,10 @@ export const withUnissueToken = async (
     ? Metadata.deserialize(metadataInfo.data)[0]
     : null;
   if (!tokenManagerInfo) throw "Token manager not found";
-  const tokenManager = decodeIdlAccount<"tokenManager", CardinalTokenManager>(
-    tokenManagerInfo,
+  const tokenManager = decodeIdlAccount<
     "tokenManager",
-    TOKEN_MANAGER_IDL
-  );
+    SolanaNftProgramsTokenManager
+  >(tokenManagerInfo, "tokenManager", TOKEN_MANAGER_IDL);
 
   transaction.add(
     createAssociatedTokenAccountIdempotentInstruction(
@@ -816,7 +815,7 @@ export const withInvalidate = async (
         tokenManager: tokenManagerId,
         useInvalidator: useInvalidatorId,
         invalidator: wallet.publicKey,
-        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
         tokenProgram: TOKEN_PROGRAM_ID,
         tokenManagerTokenAccount: tokenManagerTokenAccountId,
         mint: mintId,
@@ -846,7 +845,7 @@ export const withInvalidate = async (
         tokenManager: tokenManagerId,
         timeInvalidator: timeInvalidatorId,
         invalidator: wallet.publicKey,
-        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
         tokenProgram: TOKEN_PROGRAM_ID,
         tokenManagerTokenAccount: tokenManagerTokenAccountId,
         mint: mintId,
@@ -1054,7 +1053,7 @@ export const withUse = async (
         tokenManager: tokenManagerId,
         useInvalidator: useInvalidatorId,
         invalidator: wallet.publicKey,
-        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
         tokenProgram: TOKEN_PROGRAM_ID,
         tokenManagerTokenAccount: tokenManagerTokenAccountId,
         mint: mintId,
@@ -1137,7 +1136,7 @@ export const withExtendExpiration = async (
         payer: wallet.publicKey,
         payerTokenAccount: payerTokenAccountId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
+        solanaNftProgramsPaymentManager: PAYMENT_MANAGER_ADDRESS,
       })
       .remainingAccounts(remainingAccounts)
       .instruction();
@@ -1207,7 +1206,7 @@ export const withExtendUsages = async (
         payer: wallet.publicKey,
         payerTokenAccount: payerTokenAccountId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
+        solanaNftProgramsPaymentManager: PAYMENT_MANAGER_ADDRESS,
       })
       .remainingAccounts(remainingAccounts)
       .instruction();

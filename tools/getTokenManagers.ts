@@ -1,5 +1,5 @@
-import type { AccountData } from "@cardinal/common";
 import type { PublicKey } from "@solana/web3.js";
+import type { AccountData } from "@solana-nft-programs/common";
 
 import type { TokenManagerData } from "../src/programs/tokenManager";
 import { getTokenManagers } from "../src/programs/tokenManager/accounts";

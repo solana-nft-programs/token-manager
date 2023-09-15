@@ -1,12 +1,12 @@
-import { findMintMetadataId } from "@cardinal/common";
+import { utils } from "@coral-xyz/anchor";
 import { createUpdateMetadataAccountV2Instruction } from "@metaplex-foundation/mpl-token-metadata";
-import { utils } from "@project-serum/anchor";
 import {
   Keypair,
   PublicKey,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import { findMintMetadataId } from "@solana-nft-programs/common";
 
 import { connectionFor } from "./connection";
 
@@ -48,7 +48,7 @@ const updateMetadata = async (
     try {
       const mintId = mintIds[i]!;
       console.log(
-        `https://nft.cardinal.so/metadata/${mintId.toString()}?uri=${metadataUrl}&text=header:${dayName}%20${floor}F%20S${counter}&attrs=Day:${dayName};Floor:${floor};Seat:${counter}`
+        `https://nft.host.so/metadata/${mintId.toString()}?uri=${metadataUrl}&text=header:${dayName}%20${floor}F%20S${counter}&attrs=Day:${dayName};Floor:${floor};Seat:${counter}`
       );
       const metadataId = findMintMetadataId(mintId);
       const metadataIx = createUpdateMetadataAccountV2Instruction(
@@ -61,7 +61,7 @@ const updateMetadata = async (
             data: {
               name: `EmpireDAO #${floor}.${counter} (${daySymbol})`,
               symbol: daySymbol,
-              uri: `https://nft.cardinal.so/metadata/${mintId.toString()}?uri=${metadataUrl}&text=header:${dayName}%20${floor}F%20S${counter}&attrs=Day:${dayName};Floor:${floor};Seat:${counter}`,
+              uri: `https://nft.host.so/metadata/${mintId.toString()}?uri=${metadataUrl}&text=header:${dayName}%20${floor}F%20S${counter}&attrs=Day:${dayName};Floor:${floor};Seat:${counter}`,
               sellerFeeBasisPoints: 10,
               creators: [
                 {
@@ -104,7 +104,7 @@ const updateMetadata = async (
 
 updateMetadata(
   MINTS_IDS,
-  "https://rent.cardinal.so/metadata/empiredao.json",
+  "https://rent.host.so/metadata/empiredao.json",
   DAY,
   "mainnet",
   FLOOR

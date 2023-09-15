@@ -1,7 +1,7 @@
-import { executeTransaction, tryGetAccount } from "@cardinal/common";
-import { utils, Wallet } from "@project-serum/anchor";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
+import { executeTransaction, tryGetAccount } from "@solana-nft-programs/common";
 
 import { withInitMarketplace } from "../src";
 import { getMarketplaceByName } from "../src/programs/transferAuthority/accounts";
@@ -48,8 +48,8 @@ const main = async (params: MarketplaceParams, cluster = "devnet") => {
 };
 
 const params: MarketplaceParams = {
-  name: "marketplace-cardinal",
+  name: "marketplace-temp",
   transferAuthorityName: "global",
-  paymentManagerName: "cardinal-marketplace",
+  paymentManagerName: "temp-marketplace",
 };
 main(params).catch((e) => console.log(e));

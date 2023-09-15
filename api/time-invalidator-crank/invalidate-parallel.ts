@@ -2,21 +2,21 @@ import {
   AccountData,
   findMintMetadataId,
   getBatchedMultipleAccounts,
-} from "@cardinal/common";
-import { programs } from "@cardinal/token-manager";
-import { timeInvalidatorProgram } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator";
-import { shouldTimeInvalidate } from "@cardinal/token-manager/dist/cjs/programs/timeInvalidator/utils";
+} from "@solana-nft-programs/common";
+import { programs } from "@solana-nft-programs/token-manager";
+import { timeInvalidatorProgram } from "@solana-nft-programs/token-manager/dist/cjs/programs/timeInvalidator";
+import { shouldTimeInvalidate } from "@solana-nft-programs/token-manager/dist/cjs/programs/timeInvalidator/utils";
 import {
   TokenManagerData,
   TokenManagerKind,
   TOKEN_MANAGER_ADDRESS,
   withRemainingAccountsForInvalidate,
-} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+} from "@solana-nft-programs/token-manager/dist/cjs/programs/tokenManager";
 import {
   Metadata,
   TokenStandard,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { utils, Wallet } from "@project-serum/anchor";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
@@ -245,7 +245,7 @@ const main = async (cluster: string) => {
                 tokenManager: timeInvalidatorData.parsed.tokenManager,
                 timeInvalidator: timeInvalidatorData.pubkey,
                 invalidator: wallet.publicKey,
-                cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+                solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 tokenManagerTokenAccount: getAssociatedTokenAddressSync(
                   tokenManagerData.parsed.mint,

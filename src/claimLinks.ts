@@ -1,5 +1,5 @@
-import { BN, utils, web3 } from "@project-serum/anchor";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { BN, utils, web3 } from "@coral-xyz/anchor";
+import type { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
@@ -11,7 +11,7 @@ export const getLink = (
   tokenManagerId: PublicKey,
   otp: Keypair | undefined,
   cluster = "devnet",
-  baseUrl = "https://rent.cardinal.so",
+  baseUrl = "https://rent.host.so",
   collection = "claim"
 ): string => {
   const url = new URL(`${baseUrl}/${collection}/${tokenManagerId.toString()}`);

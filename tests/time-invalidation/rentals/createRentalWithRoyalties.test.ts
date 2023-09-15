@@ -1,4 +1,13 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import {
+  createCreateMasterEditionV3Instruction,
+  createCreateMetadataAccountV3Instruction,
+} from "@metaplex-foundation/mpl-token-metadata";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
@@ -7,19 +16,10 @@ import {
   findMintMetadataId,
   getTestProvider,
   tryGetAccount,
-} from "@cardinal/common";
-import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
-import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
-import { beforeAll, expect } from "@jest/globals";
-import {
-  createCreateMasterEditionV3Instruction,
-  createCreateMetadataAccountV3Instruction,
-} from "@metaplex-foundation/mpl-token-metadata";
-import { BN, Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
+import { getPaymentManager } from "@solana-nft-programs/payment-manager/dist/cjs/accounts";
+import { findPaymentManagerAddress } from "@solana-nft-programs/payment-manager/dist/cjs/pda";
+import { withInit } from "@solana-nft-programs/payment-manager/dist/cjs/transaction";
 
 import { rentals } from "../../../src";
 import { timeInvalidator, tokenManager } from "../../../src/programs";
@@ -29,7 +29,7 @@ import {
 } from "../../../src/programs/tokenManager";
 
 describe("Create Rental With Royalties", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const MAKER_FEE = new BN(500);
   const TAKER_FEE = new BN(300);
   const BASIS_POINTS_DIVISOR = new BN(10000);

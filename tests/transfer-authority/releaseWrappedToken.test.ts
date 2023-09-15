@@ -1,4 +1,13 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import {
+  createCreateMasterEditionV3Instruction,
+  createCreateMetadataAccountV3Instruction,
+} from "@metaplex-foundation/mpl-token-metadata";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
@@ -6,17 +15,8 @@ import {
   findMintEditionId,
   findMintMetadataId,
   getTestProvider,
-} from "@cardinal/common";
-import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
-import { beforeAll, expect } from "@jest/globals";
-import {
-  createCreateMasterEditionV3Instruction,
-  createCreateMetadataAccountV3Instruction,
-} from "@metaplex-foundation/mpl-token-metadata";
-import { Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
+import { withInit } from "@solana-nft-programs/payment-manager/dist/cjs/transaction";
 import { BN } from "bn.js";
 
 import {
@@ -31,7 +31,7 @@ import { findTransferAuthorityAddress } from "../../src/programs/transferAuthori
 
 describe("Release wrapped token", () => {
   const transferAuthorityName = `lst-auth-${Math.random()}`;
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
 
   const lister = Keypair.generate();
   const buyer = Keypair.generate();

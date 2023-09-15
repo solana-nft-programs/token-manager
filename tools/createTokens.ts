@@ -1,7 +1,7 @@
-import { createMintIxs, executeTransaction } from "@cardinal/common";
-import { utils, Wallet } from "@project-serum/anchor";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import type { PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
+import { createMintIxs, executeTransaction } from "@solana-nft-programs/common";
 
 import { connectionFor } from "./connection";
 

@@ -1,13 +1,5 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMint,
-  executeTransaction,
-  findAta,
-  getTestProvider,
-  tryGetAccount,
-} from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
 import { beforeAll, expect } from "@jest/globals";
-import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
@@ -15,13 +7,23 @@ import {
   LAMPORTS_PER_SOL,
   sendAndConfirmRawTransaction,
 } from "@solana/web3.js";
+import {
+  createMint,
+  executeTransaction,
+  findAta,
+  tryGetAccount,
+} from "@solana-nft-programs/common";
 
 import { rentals, useTransaction } from "../../src";
 import { tokenManager, useInvalidator } from "../../src/programs";
-import { TokenManagerState } from "../../src/programs/tokenManager";
+import type { SolanaProvider } from "../../src/programs/tokenManager";
+import {
+  getTestProvider,
+  TokenManagerState,
+} from "../../src/programs/tokenManager";
 
 describe("Invalidate rentals", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();

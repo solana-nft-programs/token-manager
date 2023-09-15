@@ -1,11 +1,4 @@
-import type { AccountData } from "@cardinal/common";
-import {
-  decodeIdlAccount,
-  findMintEditionId,
-  findMintMetadataId,
-  METADATA_PROGRAM_ID,
-  withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
 import {
   PREFIX as TOKEN_AUTH_RULESET_PREFIX,
   PROGRAM_ID as TOKEN_AUTH_RULES_ID,
@@ -14,21 +7,31 @@ import {
   Metadata,
   TokenStandard,
 } from "@metaplex-foundation/mpl-token-metadata";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAccount,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
-import type { AccountMeta, Connection } from "@solana/web3.js";
+import type { AccountMeta } from "@solana/web3.js";
 import {
+  Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   SYSVAR_INSTRUCTIONS_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
+import type { AccountData } from "@solana-nft-programs/common";
+import {
+  decodeIdlAccount,
+  findMintEditionId,
+  findMintMetadataId,
+  METADATA_PROGRAM_ID,
+  withFindOrInitAssociatedTokenAccount,
+} from "@solana-nft-programs/common";
 
-import type { CardinalTokenManager } from "../../idl/cardinal_token_manager";
+import type { SolanaNftProgramsTokenManager } from "../../idl/solana_nft_programs_token_manager";
 import type { TokenManagerData } from ".";
 import {
   CRANK_KEY,
@@ -136,7 +139,7 @@ export const getRemainingAccountsForInvalidate = async (
   if (!tokenManagerInfo) throw "Token manager not found";
   const tokenManagerData = decodeIdlAccount<
     "tokenManager",
-    CardinalTokenManager
+    SolanaNftProgramsTokenManager
   >(tokenManagerInfo, "tokenManager", TOKEN_MANAGER_IDL);
   if (!metadataInfo) throw "Metadata not found";
   const metadata = Metadata.deserialize(metadataInfo.data)[0];
@@ -694,3 +697,37 @@ export const findRuleSetId = (authority: PublicKey, name: string) => {
     TOKEN_AUTH_RULES_ID
   )[0];
 };
+
+export type SolanaProvider = {
+  connection: Connection;
+  wallet: Wallet;
+};
+
+export function getTestConnection(): Connection {
+  const url = "http://127.0.0.1:8899";
+  return new Connection(url, "confirmed");
+}
+
+export async function newAccountWithLamports(
+  connection: Connection,
+  lamports = LAMPORTS_PER_SOL * 10,
+  keypair = Keypair.generate()
+): Promise<Keypair> {
+  const account = keypair;
+  const signature = await connection.requestAirdrop(
+    account.publicKey,
+    lamports
+  );
+  await connection.confirmTransaction(signature, "confirmed");
+  return account;
+}
+
+export async function getTestProvider(): Promise<SolanaProvider> {
+  const connection = getTestConnection();
+  const keypair = await newAccountWithLamports(connection);
+  const wallet = new Wallet(keypair);
+  return {
+    connection,
+    wallet,
+  };
+}

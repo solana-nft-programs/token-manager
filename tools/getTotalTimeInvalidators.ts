@@ -1,5 +1,5 @@
-import type { AccountData } from "@cardinal/common";
-import { chunkArray } from "@cardinal/common";
+import type { AccountData } from "@solana-nft-programs/common";
+import { chunkArray } from "@solana-nft-programs/common";
 import dotenv from "dotenv";
 
 import type { TimeInvalidatorData } from "../src/programs/timeInvalidator";

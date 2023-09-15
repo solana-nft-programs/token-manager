@@ -1,16 +1,16 @@
-import type { AccountData } from "@cardinal/common";
-import {
-  chunkArray,
-  findMintEditionId,
-  findMintMetadataId,
-  METADATA_PROGRAM_ID,
-} from "@cardinal/common";
-import { BorshAccountsCoder, utils, Wallet } from "@project-serum/anchor";
+import { BorshAccountsCoder, utils, Wallet } from "@coral-xyz/anchor";
 import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { SystemProgram, Transaction } from "@solana/web3.js";
+import type { AccountData } from "@solana-nft-programs/common";
+import {
+  chunkArray,
+  findMintEditionId,
+  findMintMetadataId,
+  METADATA_PROGRAM_ID,
+} from "@solana-nft-programs/common";
 import { BN } from "bn.js";
 import * as dotenv from "dotenv";
 

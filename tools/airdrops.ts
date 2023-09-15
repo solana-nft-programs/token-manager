@@ -1,19 +1,19 @@
-import {
-  createMintIxs,
-  findMintEditionId,
-  findMintMetadataId,
-} from "@cardinal/common";
+import { BN, utils } from "@coral-xyz/anchor";
 import {
   createCreateMasterEditionV3Instruction,
   createCreateMetadataAccountV3Instruction,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { BN, utils } from "@project-serum/anchor";
 import type { PublicKey } from "@solana/web3.js";
 import {
   Keypair,
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import {
+  createMintIxs,
+  findMintEditionId,
+  findMintMetadataId,
+} from "@solana-nft-programs/common";
 
 import { connectionFor } from "./connection";
 

@@ -1,4 +1,16 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import {
+  createCreateMasterEditionV3Instruction,
+  createCreateMetadataAccountV3Instruction,
+} from "@metaplex-foundation/mpl-token-metadata";
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  Transaction,
+} from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
@@ -7,21 +19,9 @@ import {
   findMintMetadataId,
   getTestProvider,
   tryGetAccount,
-} from "@cardinal/common";
-import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
-import { beforeAll, expect } from "@jest/globals";
-import {
-  createCreateMasterEditionV3Instruction,
-  createCreateMetadataAccountV3Instruction,
-} from "@metaplex-foundation/mpl-token-metadata";
-import { Wallet } from "@project-serum/anchor";
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  Transaction,
-} from "@solana/web3.js";
+} from "@solana-nft-programs/common";
+import { findPaymentManagerAddress } from "@solana-nft-programs/payment-manager/dist/cjs/pda";
+import { withInit } from "@solana-nft-programs/payment-manager/dist/cjs/transaction";
 import { BN } from "bn.js";
 
 import {
@@ -40,7 +40,7 @@ import {
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
 
 describe("Remove Listing", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 

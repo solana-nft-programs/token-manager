@@ -1,17 +1,6 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMint,
-  emptyWallet,
-  executeTransaction,
-  findAta,
-  findMintMetadataId,
-  getTestProvider,
-} from "@cardinal/common";
-import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
+import { Wallet } from "@coral-xyz/anchor";
 import { beforeAll, expect } from "@jest/globals";
 import { createCreateMetadataAccountV3Instruction } from "@metaplex-foundation/mpl-token-metadata";
-import { Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import {
   Keypair,
@@ -19,6 +8,17 @@ import {
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
+import {
+  createMint,
+  emptyWallet,
+  executeTransaction,
+  findAta,
+  findMintMetadataId,
+  getTestProvider,
+} from "@solana-nft-programs/common";
+import { findPaymentManagerAddress } from "@solana-nft-programs/payment-manager/dist/cjs/pda";
+import { withInit } from "@solana-nft-programs/payment-manager/dist/cjs/transaction";
 import { BN } from "bn.js";
 
 import {
@@ -37,7 +37,7 @@ import {
 import { findMarketplaceAddress } from "../../src/programs/transferAuthority/pda";
 
 describe("Accept Listing Permissioned", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const transferAuthorityName = `lst-auth-${Math.random()}`;
   const marketplaceName = `mrkt-${Math.random()}`;
 

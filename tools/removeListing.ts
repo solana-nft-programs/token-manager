@@ -1,7 +1,7 @@
-import { executeTransaction } from "@cardinal/common";
-import * as anchor from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import * as web3Js from "@solana/web3.js";
+import { executeTransaction } from "@solana-nft-programs/common";
 
 import { withRemoveListing } from "../src";
 import { connectionFor } from "./connection";

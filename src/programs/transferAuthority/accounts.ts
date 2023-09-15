@@ -1,6 +1,6 @@
-import type { AccountData } from "@cardinal/common";
-import { BorshAccountsCoder, utils } from "@project-serum/anchor";
+import { BorshAccountsCoder, utils } from "@coral-xyz/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
+import type { AccountData } from "@solana-nft-programs/common";
 
 import type {
   ListingData,

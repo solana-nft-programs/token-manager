@@ -1,17 +1,17 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { createCreateMetadataAccountV3Instruction } from "@metaplex-foundation/mpl-token-metadata";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
   findAta,
   findMintMetadataId,
   getTestProvider,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { createCreateMetadataAccountV3Instruction } from "@metaplex-foundation/mpl-token-metadata";
-import { Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import {
   withClaimToken,
@@ -28,7 +28,7 @@ import {
 import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 
 describe("Add and Remove Delegate for Type Permissioned", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const user = Keypair.generate();
   let rentalMint: PublicKey;
 

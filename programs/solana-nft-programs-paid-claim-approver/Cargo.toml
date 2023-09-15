@@ -1,0 +1,29 @@
+[package]
+name = "solana-nft-programs-paid-claim-approver"
+version = "4.6.0"
+description = "Paid claim approver"
+edition = "2021"
+license = "AGPL-3.0"
+keywords = ["solana"]
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "solana_nft_programs_paid_claim_approver"
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.28.0", features = ["init-if-needed"] }
+anchor-spl = "0.28.0"
+spl-associated-token-account = "1.1.2"
+spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
+solana-program = "1.10.29"
+solana-nft-programs-token-manager = { version = "1.0.0", path = "../solana-nft-programs-token-manager", features = ["cpi"] }
+solana-nft-programs-payment-manager = { version = "1.0.0", features = ["cpi"] }
+
+[dev-dependencies]
+proptest = { version = "1.0" }

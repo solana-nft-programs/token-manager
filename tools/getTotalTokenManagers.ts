@@ -1,4 +1,4 @@
-import { BorshAccountsCoder, utils } from "@project-serum/anchor";
+import { BorshAccountsCoder, utils } from "@coral-xyz/anchor";
 import dotenv from "dotenv";
 
 import { TIME_INVALIDATOR_ADDRESS } from "../src/programs/timeInvalidator";

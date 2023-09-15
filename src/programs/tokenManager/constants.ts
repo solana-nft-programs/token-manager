@@ -1,11 +1,11 @@
-import type { ParsedIdlAccountData } from "@cardinal/common";
-import { emptyWallet } from "@cardinal/common";
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import type { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
 import type { ConfirmOptions, Connection } from "@solana/web3.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
+import type { ParsedIdlAccountData } from "@solana-nft-programs/common";
+import { emptyWallet } from "@solana-nft-programs/common";
 
-import * as TOKEN_MANAGER_TYPES from "../../idl/cardinal_token_manager";
+import * as TOKEN_MANAGER_TYPES from "../../idl/solana_nft_programs_token_manager";
 
 export const TOKEN_MANAGER_ADDRESS = new PublicKey(
   "mgr99QFMYByTqGPWmNqunV7vBLmWWXdSrHUfV8Jf3JM"
@@ -25,7 +25,8 @@ export const RECEIPT_MINT_MANAGER_SEED = "receipt-mint-manager";
 
 export const TOKEN_MANAGER_IDL = TOKEN_MANAGER_TYPES.IDL;
 
-export type TOKEN_MANAGER_PROGRAM = TOKEN_MANAGER_TYPES.CardinalTokenManager;
+export type TOKEN_MANAGER_PROGRAM =
+  TOKEN_MANAGER_TYPES.SolanaNftProgramsTokenManager;
 
 export type TokenManagerData = ParsedIdlAccountData<
   "tokenManager",

@@ -1,15 +1,15 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
   getTestProvider,
   tryGetAccount,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { BN, Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import { rentals, unissueToken } from "../../src";
 import { timeInvalidator, tokenManager } from "../../src/programs";
@@ -20,7 +20,7 @@ import { findTimeInvalidatorAddress } from "../../src/programs/timeInvalidator/p
 import { TokenManagerState } from "../../src/programs/tokenManager";
 
 describe("Issue Unissue", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 1000;
   const RENTAL_PAYMENT_AMONT = 10;
   const recipient = Keypair.generate();

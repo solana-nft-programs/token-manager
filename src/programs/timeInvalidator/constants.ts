@@ -1,11 +1,11 @@
-import type { ParsedIdlAccountData } from "@cardinal/common";
-import { emptyWallet } from "@cardinal/common";
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import type { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
 import type { ConfirmOptions, Connection } from "@solana/web3.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
+import type { ParsedIdlAccountData } from "@solana-nft-programs/common";
+import { emptyWallet } from "@solana-nft-programs/common";
 
-import * as TIME_INVALIDATOR_TYPES from "../../idl/cardinal_time_invalidator";
+import * as TIME_INVALIDATOR_TYPES from "../../idl/solana_nft_programs_time_invalidator";
 
 export const TIME_INVALIDATOR_ADDRESS = new PublicKey(
   "tmeEDp1RgoDtZFtx6qod3HkbQmv9LMe36uqKVvsLTDE"
@@ -16,7 +16,7 @@ export const TIME_INVALIDATOR_SEED = "time-invalidator";
 export const TIME_INVALIDATOR_IDL = TIME_INVALIDATOR_TYPES.IDL;
 
 export type TIME_INVALIDATOR_PROGRAM =
-  TIME_INVALIDATOR_TYPES.CardinalTimeInvalidator;
+  TIME_INVALIDATOR_TYPES.SolanaNftProgramsTimeInvalidator;
 
 export type TimeInvalidatorData = ParsedIdlAccountData<
   "timeInvalidator",

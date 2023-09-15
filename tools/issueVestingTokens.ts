@@ -1,5 +1,4 @@
-import { findAta, getBatchedMultipleAccounts } from "@cardinal/common";
-import { utils, Wallet } from "@project-serum/anchor";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import type {
   AccountInfo,
   ParsedAccountData,
@@ -10,6 +9,10 @@ import {
   PublicKey,
   sendAndConfirmRawTransaction,
 } from "@solana/web3.js";
+import {
+  findAta,
+  getBatchedMultipleAccounts,
+} from "@solana-nft-programs/common";
 import * as dotenv from "dotenv";
 
 import { issueToken } from "../src";

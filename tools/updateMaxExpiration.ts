@@ -1,7 +1,7 @@
-import type { AccountData } from "@cardinal/common";
-import { executeTransaction } from "@cardinal/common";
-import { utils, Wallet } from "@project-serum/anchor";
+import { utils, Wallet } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import type { AccountData } from "@solana-nft-programs/common";
+import { executeTransaction } from "@solana-nft-programs/common";
 import { BN } from "bn.js";
 
 import { withUpdateMaxExpiration } from "../src";

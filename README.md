@@ -1,11 +1,4 @@
-# Cardinal
-
-[![License](https://img.shields.io/badge/license-AGPL%203.0-blue)](https://github.com/cardinal-labs/cardinal-token-manager/blob/master/LICENSE)
-[![Release](https://github.com/cardinal-labs/cardinal-token-manager/actions/workflows/release.yml/badge.svg?branch=v0.0.27)](https://github.com/cardinal-labs/cardinal-token-manager/actions/workflows/release.yml)
-
-<p align="center">
-    <img src="./doc-assets/banner.png" />
-</p>
+# Token Manager
 
 <p align="center">
     An open protocol for issuing managed tokens on Solana.
@@ -14,17 +7,6 @@
 ## Background
 
 The Token Manager program is a wrapper protocol that achieves conditional ownership of Solana NFTs. It allows one to issue an NFT to another party with embedded mechanisms for programmatic management of the token while it sits in their wallet. Among others, things like time-based expiration, usage-based expiration, selective transferability, and non-transferability are possible with the Token Manager. Its modular design uses “plugin” invalidators, approval authorities, and transfer authorities modeled as separate smart contracts to allow for theoretically any custom invalidation, claiming, and transfer logic tied to on-chain data. We currently offer two out-of-the-box invalidator plugins to support basic time and usage-based expiration as well as a basic payment-based claim approver.
-
-## Packages
-
-| Package                        | Description                                         | Version                                                                                                                             | Docs                                                                                                               |
-| :----------------------------- | :-------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| `cardinal-token-manager`       | Manages conditionally owned tokens                  | [![Crates.io](https://img.shields.io/crates/v/cardinal-token-manager)](https://crates.io/crates/cardinal-token-manager)             | [![Docs.rs](https://docs.rs/cardinal-token-manager/badge.svg)](https://docs.rs/cardinal-token-manager)             |
-| `cardinal-paid-claim-approver` | Approves users to claim tokens from a token-manager | [![Crates.io](https://img.shields.io/crates/v/cardinal-paid-claim-approver)](https://crates.io/crates/cardinal-paid-claim-approver) | [![Docs.rs](https://docs.rs/cardinal-paid-claim-approver/badge.svg)](https://docs.rs/cardinal-paid-claim-approver) |
-| `cardinal-time-invalidator`    | Invalidator for time-based token-managers           | [![Crates.io](https://img.shields.io/crates/v/cardinal-time-invalidator)](https://crates.io/crates/cardinal-time-invalidator)       | [![Docs.rs](https://docs.rs/cardinal-time-invalidator/badge.svg)](https://docs.rs/cardinal-time-invalidator)       |
-| `cardinal-use-invalidator`     | Invalidator for use-based token-managers            | [![Crates.io](https://img.shields.io/crates/v/cardinal-use-invalidator)](https://crates.io/crates/cardinal-use-invalidator)         | [![Docs.rs](https://docs.rs/cardinal-use-invalidator/badge.svg)](https://docs.rs/cardinal-use-invalidator)         |
-| `cardinal-payment-manager`     | Handles payment splits and revenue sharing          | [![Crates.io](https://img.shields.io/crates/v/cardinal-payment-manager)](https://crates.io/crates/cardinal-payment-manager)         | [![Docs.rs](https://docs.rs/cardinal-payment-manager/badge.svg)](https://docs.rs/cardinal-payment-manager)         |
-| `@cardinal/token-manager`      | TypeScript SDK for token-manager                    | [![npm](https://img.shields.io/npm/v/@cardinal/token-manager.svg)](https://www.npmjs.com/package/@cardinal/token-manager)           | [![Docs](https://img.shields.io/badge/docs-typedoc-blue)](https://cardinal-labs.github.io/cardinal-token-manager/) |
 
 ## Addresses
 
@@ -37,7 +19,7 @@ Program addresses are the same on devnet, testnet, and mainnet-beta.
 
 ## Plugins
 
-Cardinal token-manager is made to be composable. It allows for plugins for
+Token-manager is made to be composable. It allows for plugins for
 
 1. Claim approvers
 2. Transfer authorities
@@ -97,7 +79,7 @@ NOTE: Once approved for transfer, the approved party can claim the token from th
 
 The concept of receipts allows the issuer of token(s) into a token-manager to mint a receipt NFT representing this token-manager. Coupled with InvalidationType::Return above, the receipt can be freely traded and represent the public key that the token(s) will be returned to when they are invalidated. This essentially represents the underlying asset during outstanding rentals.
 
-- Receipts are dynamically minted using the image-generator in https://github.com/cardinal-labs/cardinal-generator. This allows it to be completely on-chain NFT
+- Receipts are dynamically minted using the image-generator in https://github.com/solana-nft-programs/generator. This allows it to be completely on-chain NFT
 - Receipts are freely tradeable and represent the underlying asset for outstanding rentals.
 - Receipts will become expired after the rental is over, This means the user must manual follow the links in the description to burn the expired receipt.
 
@@ -106,9 +88,9 @@ The concept of receipts allows the issuer of token(s) into a token-manager to mi
 <img width="877" alt="DIAGRAM" src="https://user-images.githubusercontent.com/7113086/157140752-02983b0d-3501-42dd-add6-ea29fa37be80.png">
 View Online: https://dbdiagram.io/d/6226977961d06e6eadbc77be
 
-Documentation is a work in progress. For now, one should read [the tests](https://github.com/cardinal-labs/cardinal-token-manager/blob/main/tests/issueUnissue.spec.ts).
+Documentation is a work in progress. For now, one should read [the tests](https://github.com/solana-nft-programs/token-manager/blob/main/tests/issueUnissue.spec.ts).
 
-We soon plan on releasing a React library to make it easy to integrate Cardinal ui components with your frontend.
+We soon plan on releasing a React library to make it easy to integrate ui components with your frontend.
 
 ## Example usage
 
@@ -208,7 +190,7 @@ export type IssueParameters = {
 ### Javascript create fixed price 24h rental
 
 ```
-npm i @cardinal/token-manager
+npm i @solana-nft-programs/token-manager
 ```
 
 ```javascript
@@ -248,7 +230,7 @@ try {
 ### Javascript create single use ticket example
 
 ```
-npm i @cardinal/token-manager
+npm i @solana-nft-programs/token-manager
 ```
 
 ```javascript
@@ -284,18 +266,6 @@ try {
 
 <p>&nbsp;</p>
 
-## Image generator
-
-Cardinal also provides an image generator API. You provide your NFT metadata and image, or a URL to where its hosted, and use the url `https://api.cardinal.so/metadata/{mintId}` when minting the token and the API will dynamically update the image and metadata based on usages or expiration associated with it so that its always up to date forever and wherever it is viewed.
-
-Reach out to team@cardinal.so if you are interested in using this service.
-
 ---
 
 <p>&nbsp;</p>
-
-## License
-
-Cardinal Protocol is licensed under the GNU Affero General Public License v3.0.
-
-In short, this means that any changes to this code must be made open source and available under the AGPL-v3.0 license, even if only used privately.

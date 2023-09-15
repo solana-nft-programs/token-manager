@@ -1,13 +1,13 @@
-import type { ParsedIdlAccountData } from "@cardinal/common";
-import { emptyWallet } from "@cardinal/common";
-import { DEFAULT_PAYMENT_MANAGER_NAME } from "@cardinal/payment-manager";
-import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import type { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
 import type { ConfirmOptions, Connection } from "@solana/web3.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
+import type { ParsedIdlAccountData } from "@solana-nft-programs/common";
+import { emptyWallet } from "@solana-nft-programs/common";
+import { DEFAULT_PAYMENT_MANAGER_NAME } from "@solana-nft-programs/payment-manager";
+import { findPaymentManagerAddress } from "@solana-nft-programs/payment-manager/dist/cjs/pda";
 
-import * as CLAIM_APPROVER_TYPES from "../../idl/cardinal_paid_claim_approver";
+import * as CLAIM_APPROVER_TYPES from "../../idl/solana_nft_programs_paid_claim_approver";
 
 export const CLAIM_APPROVER_ADDRESS = new PublicKey(
   "pcaBwhJ1YHp7UDA7HASpQsRUmUNwzgYaLQto2kSj1fR"
@@ -18,7 +18,7 @@ export const CLAIM_APPROVER_SEED = "paid-claim-approver";
 export const CLAIM_APPROVER_IDL = CLAIM_APPROVER_TYPES.IDL;
 
 export type CLAIM_APPROVER_PROGRAM =
-  CLAIM_APPROVER_TYPES.CardinalPaidClaimApprover;
+  CLAIM_APPROVER_TYPES.SolanaNftProgramsPaidClaimApprover;
 
 export type PaidClaimApproverData = ParsedIdlAccountData<
   "paidClaimApprover",

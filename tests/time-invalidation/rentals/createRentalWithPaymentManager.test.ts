@@ -1,20 +1,20 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
   findAta,
   getTestProvider,
   tryGetAccount,
-} from "@cardinal/common";
-import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@cardinal/payment-manager";
-import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
-import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import { withInit } from "@cardinal/payment-manager/dist/cjs/transaction";
-import { beforeAll, expect } from "@jest/globals";
-import { BN, Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
+import { DEFAULT_BUY_SIDE_FEE_SHARE } from "@solana-nft-programs/payment-manager";
+import { getPaymentManager } from "@solana-nft-programs/payment-manager/dist/cjs/accounts";
+import { findPaymentManagerAddress } from "@solana-nft-programs/payment-manager/dist/cjs/pda";
+import { withInit } from "@solana-nft-programs/payment-manager/dist/cjs/transaction";
 
 import { rentals } from "../../../src";
 import { timeInvalidator, tokenManager } from "../../../src/programs";
@@ -22,7 +22,7 @@ import { getClaimApprover } from "../../../src/programs/claimApprover/accounts";
 import { TokenManagerState } from "../../../src/programs/tokenManager";
 
 describe("Create rental with payment manager and extend", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const RECIPIENT_START_PAYMENT_AMOUNT = 100000;
   const RENTAL_PAYMENT_AMONT = 10000;
   const MAKER_FEE = 500;

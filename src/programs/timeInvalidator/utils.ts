@@ -1,5 +1,5 @@
-import type { AccountData } from "@cardinal/common";
-import { BN } from "@project-serum/anchor";
+import { BN } from "@coral-xyz/anchor";
+import type { AccountData } from "@solana-nft-programs/common";
 
 import type { TokenManagerData } from "../tokenManager";
 import { TokenManagerState } from "../tokenManager";

@@ -1,6 +1,6 @@
-import { executeTransaction } from "@cardinal/common";
-import * as anchor from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import { executeTransaction } from "@solana-nft-programs/common";
 
 import { withUpdateTransferAuthority } from "../src";
 import { connectionFor } from "./connection";
@@ -39,6 +39,6 @@ const main = async (transferAuthorityName: string, cluster = "devnet") => {
   }
 };
 
-const transferAuthorityName = "cardinal";
+const transferAuthorityName = "temp";
 
 main(transferAuthorityName).catch((e) => console.log(e));

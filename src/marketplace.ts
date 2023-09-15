@@ -1,18 +1,5 @@
-import {
-  emptyWallet,
-  findAta,
-  findMintEditionId,
-  findMintMetadataId,
-  tryGetAccount,
-  withFindOrInitAssociatedTokenAccount,
-  withWrapSol,
-} from "@cardinal/common";
-import { PAYMENT_MANAGER_ADDRESS } from "@cardinal/payment-manager";
-import { getPaymentManager } from "@cardinal/payment-manager/dist/cjs/accounts";
-import { findPaymentManagerAddress } from "@cardinal/payment-manager/dist/cjs/pda";
-import { withRemainingAccountsForHandlePaymentWithRoyalties } from "@cardinal/payment-manager/dist/cjs/utils";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
-import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
+import type { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
+import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -24,6 +11,19 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
+import {
+  emptyWallet,
+  findAta,
+  findMintEditionId,
+  findMintMetadataId,
+  tryGetAccount,
+  withFindOrInitAssociatedTokenAccount,
+  withWrapSol,
+} from "@solana-nft-programs/common";
+import { PAYMENT_MANAGER_ADDRESS } from "@solana-nft-programs/payment-manager";
+import { getPaymentManager } from "@solana-nft-programs/payment-manager/dist/cjs/accounts";
+import { findPaymentManagerAddress } from "@solana-nft-programs/payment-manager/dist/cjs/pda";
+import { withRemainingAccountsForHandlePaymentWithRoyalties } from "@solana-nft-programs/payment-manager/dist/cjs/utils";
 import type BN from "bn.js";
 
 import {
@@ -300,7 +300,7 @@ export const withCreateListing = async (
         listerTokenAccount: listerTokenAccountId,
         lister: wallet.publicKey,
         payer: payer ?? wallet.publicKey,
-        cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+        solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
         instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -371,7 +371,7 @@ export const withRemoveListing = async (
       lister: wallet.publicKey,
       mint: mintId,
       mintManager: mintManagerId,
-      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .instruction();
@@ -531,8 +531,8 @@ export const withAcceptListing = async (
       paymentMint: paymentMint,
       feeCollectorTokenAccount: feeCollectorTokenAccountId,
       feeCollector: paymentManagerData.parsed.feeCollector,
-      cardinalPaymentManager: PAYMENT_MANAGER_ADDRESS,
-      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      solanaNftProgramsPaymentManager: PAYMENT_MANAGER_ADDRESS,
+      solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
@@ -677,7 +677,7 @@ export const withAcceptTransfer = async (
       payer: wallet.publicKey,
       holderTokenAccount: tokenManagerData.parsed.recipientTokenAccount,
       holder: holder,
-      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
@@ -737,7 +737,7 @@ export const withRelease = async (
       holderTokenAccount: holderTokenAccountId,
       holder: wallet.publicKey,
       collector: wallet.publicKey,
-      cardinalTokenManager: TOKEN_MANAGER_ADDRESS,
+      solanaNftProgramsTokenManager: TOKEN_MANAGER_ADDRESS,
       tokenProgram: TOKEN_PROGRAM_ID,
       rent: SYSVAR_RENT_PUBKEY,
     })

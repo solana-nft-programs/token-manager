@@ -1,11 +1,11 @@
-import type { ParsedIdlAccountData } from "@cardinal/common";
-import { emptyWallet } from "@cardinal/common";
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import type { Wallet } from "@project-serum/anchor/dist/cjs/provider";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import type { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
 import type { ConfirmOptions, Connection } from "@solana/web3.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
+import type { ParsedIdlAccountData } from "@solana-nft-programs/common";
+import { emptyWallet } from "@solana-nft-programs/common";
 
-import * as USE_INVALIDATOR_TYPES from "../../idl/cardinal_use_invalidator";
+import * as USE_INVALIDATOR_TYPES from "../../idl/solana_nft_programs_use_invalidator";
 
 export const USE_INVALIDATOR_ADDRESS = new PublicKey(
   "useZ65tbyvWpdYCLDJaegGK34Lnsi8S3jZdwx8122qp"
@@ -16,7 +16,7 @@ export const USE_INVALIDATOR_SEED = "use-invalidator";
 export const USE_INVALIDATOR_IDL = USE_INVALIDATOR_TYPES.IDL;
 
 export type USE_INVALIDATOR_PROGRAM =
-  USE_INVALIDATOR_TYPES.CardinalUseInvalidator;
+  USE_INVALIDATOR_TYPES.SolanaNftProgramsUseInvalidator;
 
 export type UseInvalidatorData = ParsedIdlAccountData<
   "useInvalidator",

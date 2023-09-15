@@ -1,13 +1,5 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMint,
-  executeTransaction,
-  findAta,
-  getTestProvider,
-  withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
 import { beforeAll, expect } from "@jest/globals";
-import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
@@ -16,6 +8,14 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
+import {
+  createMint,
+  executeTransaction,
+  findAta,
+  getTestProvider,
+  withFindOrInitAssociatedTokenAccount,
+} from "@solana-nft-programs/common";
 
 import { claimToken, withTransfer } from "../../src";
 import { tokenManager } from "../../src/programs";
@@ -33,7 +33,7 @@ import {
 } from "../../src/programs/tokenManager/pda";
 
 describe("Transfer receipt transfer", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const target = Keypair.generate();
   const incorrectTarget = Keypair.generate();

@@ -1,15 +1,15 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
   findAta,
   getTestProvider,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import { claimToken, issueToken } from "../../../src";
 import { tokenManager } from "../../../src/programs";
@@ -20,7 +20,7 @@ import {
 import { findTokenManagerAddress } from "../../../src/programs/tokenManager/pda";
 
 describe("Permissioned rental", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const alternativeRecipient = Keypair.generate();
   const user = Keypair.generate();

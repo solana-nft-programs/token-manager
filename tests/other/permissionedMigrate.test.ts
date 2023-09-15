@@ -1,17 +1,7 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMintTx,
-  executeTransaction,
-  findMintEditionId,
-  findMintMetadataId,
-  getTestProvider,
-  METADATA_PROGRAM_ID,
-  tryGetAccount,
-} from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
+import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { beforeAll, expect } from "@jest/globals";
 import { createCreateMetadataAccountV3Instruction } from "@metaplex-foundation/mpl-token-metadata";
-import { BN, Wallet } from "@project-serum/anchor";
-import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
@@ -20,6 +10,16 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
+import {
+  createMintTx,
+  executeTransaction,
+  findMintEditionId,
+  findMintMetadataId,
+  getTestProvider,
+  METADATA_PROGRAM_ID,
+  tryGetAccount,
+} from "@solana-nft-programs/common";
 
 import { claimToken, issueToken } from "../../src";
 import { tokenManager } from "../../src/programs";
@@ -39,7 +39,7 @@ import {
 } from "../../src/programs/tokenManager/pda";
 
 describe("Permissioned migrate", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const invalidator = Keypair.generate();
   const user = Keypair.generate();

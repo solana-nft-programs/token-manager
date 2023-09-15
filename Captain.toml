@@ -1,23 +1,23 @@
 [paths]
 artifacts = "../program-artifacts"
-program_keypairs = "~/deployments/cardinal/programs"
+program_keypairs = "~/deployments/solana-nft-programs/programs"
 
 [networks.devnet]
-deployer = "~/deployments/cardinal/deployers/devnet.json"
+deployer = "~/deployments/solana-nft-programs/deployers/devnet.json"
 upgrade_authority = "crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U"
 url = "https://api.devnet.solana.com"
 
 [networks.testnet]
-deployer = "~/deployments/cardinal/deployers/testnet.json"
+deployer = "~/deployments/solana-nft-programs/deployers/testnet.json"
 upgrade_authority = "crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U"
 url = "https://api.testnet.solana.com"
 
 [networks.mainnet]
-deployer = "~/deployments/cardinal/deployers/mainnet.json"
+deployer = "~/deployments/solana-nft-programs/deployers/mainnet.json"
 upgrade_authority = "crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U"
 url = "https://api.mainnet-beta.solana.com"
 
 [networks.localnet]
-deployer = "~/deployments/cardinal/deployers/localnet.json"
+deployer = "~/deployments/solana-nft-programs/deployers/localnet.json"
 upgrade_authority = "crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U"
 url = "http://localhost:8899"

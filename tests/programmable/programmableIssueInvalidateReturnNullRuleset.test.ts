@@ -1,15 +1,15 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import type { Keypair, PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   executeTransaction,
   getTestProvider,
   newAccountWithLamports,
   tryGetAccount,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { Wallet } from "@project-serum/anchor";
-import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import type { Keypair, PublicKey } from "@solana/web3.js";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import { claimToken, invalidate, issueToken } from "../../src";
 import { timeInvalidator, tokenManager } from "../../src/programs";
@@ -21,7 +21,7 @@ import { findTokenManagerAddress } from "../../src/programs/tokenManager/pda";
 import { createProgrammableAsset } from "../utils";
 
 describe("Programmable issue invalidate return null ruleset", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   let recipient: Keypair;
   let issuer: Keypair;
   let invalidator: Keypair;

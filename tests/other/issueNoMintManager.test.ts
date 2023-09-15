@@ -1,18 +1,18 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   createMint,
   executeTransaction,
   getTestProvider,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { Wallet } from "@project-serum/anchor";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import { issueToken } from "../../src";
 
 describe("Issue no mint manager", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;

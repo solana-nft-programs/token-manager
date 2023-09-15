@@ -7,7 +7,7 @@ In the case of most token-managers, this comes in the form of the rent in the to
 This crank runs on AWS lambda deployed using serverless. To run locally follow the steps below. NOTE npm using - serverless does not support yarn PNP last I checked
 
 ```
-1. git clone https://github.com/cardinal-labs/cardinal-token-manager.git
+1. git clone https://github.com/solana-nft-programs/token-manager.git
 
 2. cd api
 

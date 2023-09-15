@@ -1,14 +1,14 @@
-import type { CardinalProvider } from "@cardinal/common";
+import { Wallet } from "@coral-xyz/anchor";
+import { beforeAll, expect } from "@jest/globals";
+import { getAccount } from "@solana/spl-token";
+import type { PublicKey } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
 import {
   executeTransaction,
   getTestProvider,
   newAccountWithLamports,
   tryGetAccount,
-} from "@cardinal/common";
-import { beforeAll, expect } from "@jest/globals";
-import { Wallet } from "@project-serum/anchor";
-import { getAccount } from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
+} from "@solana-nft-programs/common";
 
 import { issueToken, unissueToken } from "../../src";
 import { timeInvalidator, tokenManager } from "../../src/programs";
@@ -19,7 +19,7 @@ import {
 import { createProgrammableAsset } from "../utils";
 
 describe("Programmable issue invalidate return", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   let issuer: Wallet;
   let issuerTokenAccountId: PublicKey;
   let mintId: PublicKey;

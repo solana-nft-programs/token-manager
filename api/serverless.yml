@@ -1,6 +1,6 @@
-org: jpbogle
-app: cardinal
-service: cardinal-token-manager
+org: some-org
+app: solana-nft-programs
+service: token-manager
 frameworkVersion: "2 || 3"
 
 provider:

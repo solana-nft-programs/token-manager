@@ -1,19 +1,10 @@
-import type { CardinalProvider } from "@cardinal/common";
-import {
-  createMint,
-  executeTransaction,
-  findAta,
-  findMintEditionId,
-  findMintMetadataId,
-  getTestProvider,
-} from "@cardinal/common";
+import { BN, Wallet } from "@coral-xyz/anchor";
 import { beforeAll, expect } from "@jest/globals";
 import {
   createCreateMasterEditionV3Instruction,
   createCreateMetadataAccountV3Instruction,
   createMintNewEditionFromMasterEditionViaTokenInstruction,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { BN, Wallet } from "@project-serum/anchor";
 import { getAccount } from "@solana/spl-token";
 import type { PublicKey } from "@solana/web3.js";
 import {
@@ -22,6 +13,15 @@ import {
   sendAndConfirmRawTransaction,
   Transaction,
 } from "@solana/web3.js";
+import type { SolanaProvider } from "@solana-nft-programs/common";
+import {
+  createMint,
+  executeTransaction,
+  findAta,
+  findMintEditionId,
+  findMintMetadataId,
+  getTestProvider,
+} from "@solana-nft-programs/common";
 
 import { claimLinks, claimToken, useTransaction } from "../../src";
 import { fromLink } from "../../src/claimLinks";
@@ -33,7 +33,7 @@ import {
 import { findEditionMarkerId } from "../utils";
 
 describe("Claim links master editions", () => {
-  let provider: CardinalProvider;
+  let provider: SolanaProvider;
   const recipient = Keypair.generate();
   const tokenCreator = Keypair.generate();
   let issuerTokenAccountId: PublicKey;

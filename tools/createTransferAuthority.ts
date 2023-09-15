@@ -1,6 +1,6 @@
-import { executeTransaction, tryGetAccount } from "@cardinal/common";
-import * as anchor from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
 import { Keypair, Transaction } from "@solana/web3.js";
+import { executeTransaction, tryGetAccount } from "@solana-nft-programs/common";
 
 import { withInitTransferAuthority } from "../src";
 import { getTransferAuthorityByName } from "../src/programs/transferAuthority/accounts";
@@ -42,5 +42,5 @@ const main = async (transferAuthorityName: string, cluster = "devnet") => {
   }
 };
 
-const transferAuthorityName = "cardinal";
+const transferAuthorityName = "temp";
 main(transferAuthorityName).catch((e) => console.log(e));

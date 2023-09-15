@@ -49,7 +49,7 @@ pub struct MigrateCtx<'info> {
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
     /// CHECK: This is not dangerous because the ID is checked with instructions sysvar
-    #[account(address = mpl_token_metadata::id())]
+    #[account(address = mpl_token_metadata::ID)]
     mpl_token_metadata: UncheckedAccount<'info>,
 }
 

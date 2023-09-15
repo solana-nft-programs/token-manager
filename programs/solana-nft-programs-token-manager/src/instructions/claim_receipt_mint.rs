@@ -7,8 +7,10 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::associated_token::{self};
 use anchor_spl::token::Token;
 use anchor_spl::token::{self};
-use mpl_token_metadata::instruction::create_metadata_accounts_v3;
-use mpl_token_metadata::state::Creator;
+use mpl_token_metadata::instructions::CreateMetadataAccountV3;
+use mpl_token_metadata::instructions::CreateMetadataAccountV3InstructionArgs;
+use mpl_token_metadata::types::Creator;
+use mpl_token_metadata::types::DataV2;
 use solana_program::program_pack::Pack;
 use solana_program::system_instruction::create_account;
 
@@ -44,7 +46,7 @@ pub struct ClaimReceiptMintCtx<'info> {
     associated_token: Program<'info, AssociatedToken>,
     system_program: Program<'info, System>,
     /// CHECK: This is not dangerous because we don't read or write from this account
-    #[account(address = mpl_token_metadata::id())]
+    #[account(address = mpl_token_metadata::ID)]
     token_metadata_program: UncheckedAccount<'info>,
     rent: Sysvar<'info, Rent>,
 }
@@ -85,41 +87,44 @@ pub fn handler(ctx: Context<ClaimReceiptMintCtx>, name: String) -> Result<()> {
 
     // create metadata
     invoke_signed(
-        &create_metadata_accounts_v3(
-            *ctx.accounts.token_metadata_program.key,
-            *ctx.accounts.receipt_mint_metadata.key,
-            *ctx.accounts.receipt_mint.key,
-            ctx.accounts.receipt_mint_manager.key(),
-            *ctx.accounts.payer.key,
-            ctx.accounts.receipt_mint_manager.key(),
-            name,
-            "RCP".to_string(),
-            // generative URL pointing to the original mint
-            "https://api.host.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string() + "?text=RENTED",
-            Some(vec![
-                Creator {
-                    address: ctx.accounts.receipt_mint_manager.key(),
-                    verified: true,
-                    share: 50,
-                },
-                Creator {
-                    address: ctx.accounts.issuer.key(),
-                    verified: false,
-                    share: 50,
-                },
-                Creator {
-                    address: ctx.accounts.token_manager.key(),
-                    verified: false,
-                    share: 0,
-                },
-            ]),
-            0,
-            true,
-            true,
-            None,
-            None,
-            None,
-        ),
+        &CreateMetadataAccountV3 {
+            metadata: ctx.accounts.receipt_mint_metadata.key(),
+            mint: ctx.accounts.receipt_mint.key(),
+            mint_authority: ctx.accounts.receipt_mint_manager.key(),
+            payer: ctx.accounts.payer.key(),
+            update_authority: ctx.accounts.receipt_mint_manager.key(),
+            system_program: ctx.accounts.system_program.key(),
+            rent: Some(ctx.accounts.rent.key()),
+        }
+        .instruction(CreateMetadataAccountV3InstructionArgs {
+            data: DataV2 {
+                name: name,
+                symbol: "RCP".to_string(),
+                uri: "https://api.host.so/metadata/".to_string() + &ctx.accounts.token_manager.mint.to_string() + "?text=RENTED",
+                seller_fee_basis_points: 0,
+                creators: Some(vec![
+                    Creator {
+                        address: ctx.accounts.receipt_mint_manager.key(),
+                        verified: true,
+                        share: 50,
+                    },
+                    Creator {
+                        address: ctx.accounts.issuer.key(),
+                        verified: false,
+                        share: 50,
+                    },
+                    Creator {
+                        address: ctx.accounts.token_manager.key(),
+                        verified: false,
+                        share: 0,
+                    },
+                ]),
+                collection: None,
+                uses: None,
+            },
+            is_mutable: true,
+            collection_details: None,
+        }),
         &[
             ctx.accounts.receipt_mint_metadata.to_account_info(),
             ctx.accounts.receipt_mint.to_account_info(),

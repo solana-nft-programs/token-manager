@@ -1,6 +1,5 @@
-use mpl_token_metadata::instruction::MetadataInstruction;
-use mpl_token_metadata::instruction::TransferArgs;
-use solana_program::instruction::Instruction;
+use mpl_token_metadata::instructions::TransferV1;
+use mpl_token_metadata::instructions::TransferV1InstructionArgs;
 
 use crate::errors::ErrorCode;
 use crate::state::*;
@@ -76,36 +75,31 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let associated_token_program_info = next_account_info(remaining_accs)?;
             let authorization_rules_program_info = next_account_info(remaining_accs)?;
             let authorization_rules_info = next_account_info(remaining_accs)?;
-            let accounts = vec![
-                AccountMeta::new(ctx.accounts.issuer_token_account.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.issuer_token_account.owner.key(), false),
-                AccountMeta::new(ctx.accounts.token_manager_token_account.key(), false),
-                AccountMeta::new_readonly(token_manager.key(), false),
-                AccountMeta::new_readonly(mint_info.key(), false),
-                AccountMeta::new(mint_metadata_info.key(), false),
-                AccountMeta::new_readonly(mint_edition_info.key(), false),
-                AccountMeta::new(issuer_token_record_info.key(), false),
-                AccountMeta::new(token_manager_token_record_info.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.issuer.key(), true),
-                AccountMeta::new(ctx.accounts.payer.key(), true),
-                AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
-                AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-                AccountMeta::new_readonly(associated_token_program_info.key(), false),
-                AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
-                AccountMeta::new_readonly(authorization_rules_info.key(), false),
-            ];
+
             invoke(
-                &Instruction {
-                    program_id: mpl_token_metadata::id(),
-                    accounts,
-                    data: MetadataInstruction::Transfer(TransferArgs::V1 {
-                        amount: token_manager.amount,
-                        authorization_data: None,
-                    })
-                    .try_to_vec()
-                    .unwrap(),
-                },
+                &TransferV1 {
+                    token: ctx.accounts.issuer_token_account.key(),
+                    token_owner: ctx.accounts.issuer_token_account.owner.key(),
+                    destination_token: ctx.accounts.token_manager_token_account.key(),
+                    destination_owner: token_manager.key(),
+                    mint: mint_info.key(),
+                    metadata: mint_metadata_info.key(),
+                    edition: Some(mint_edition_info.key()),
+                    token_record: Some(issuer_token_record_info.key()),
+                    destination_token_record: Some(token_manager_token_record_info.key()),
+                    authority: ctx.accounts.issuer.key(),
+                    payer: ctx.accounts.payer.key(),
+                    system_program: ctx.accounts.system_program.key(),
+                    sysvar_instructions: sysvar_instructions_info.key(),
+                    spl_token_program: ctx.accounts.token_program.key(),
+                    spl_ata_program: associated_token_program_info.key(),
+                    authorization_rules_program: Some(authorization_rules_program_info.key()),
+                    authorization_rules: Some(authorization_rules_info.key()),
+                }
+                .instruction(TransferV1InstructionArgs {
+                    amount: token_manager.amount,
+                    authorization_data: None,
+                }),
                 &[
                     ctx.accounts.issuer_token_account.to_account_info(),
                     ctx.accounts.issuer.to_account_info(),

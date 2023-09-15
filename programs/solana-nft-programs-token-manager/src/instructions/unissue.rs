@@ -7,11 +7,10 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use anchor_spl::token::{self};
-use mpl_token_metadata::instruction::MetadataInstruction;
-use mpl_token_metadata::instruction::TransferArgs;
-use mpl_token_metadata::state::Metadata;
-use mpl_token_metadata::state::TokenStandard;
-use solana_program::instruction::Instruction;
+use mpl_token_metadata::accounts::Metadata;
+use mpl_token_metadata::instructions::TransferV1;
+use mpl_token_metadata::instructions::TransferV1InstructionArgs;
+use mpl_token_metadata::types::TokenStandard;
 use solana_program::program::invoke_signed;
 
 #[derive(Accounts)]
@@ -42,7 +41,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     if token_manager.kind != TokenManagerKind::Programmable as u8 {
         // look at next account
         if let Some(next_account) = remaining_accs.peek() {
-            if next_account.owner == &mpl_token_metadata::id() {
+            if next_account.owner == &mpl_token_metadata::ID {
                 let mint_metadata_data = next_account.try_borrow_mut_data().expect("Failed to borrow data");
                 if let Ok(metadata) = Metadata::deserialize(&mut mint_metadata_data.as_ref()) {
                     // migrated pnft
@@ -70,51 +69,29 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let authorization_rules_info = next_account_info(remaining_accs)?;
 
             invoke_signed(
-                &Instruction {
-                    program_id: mpl_token_metadata::id(),
-                    accounts: vec![
-                        // #[account(0, writable, name="token", desc="Token account")]
-                        AccountMeta::new(ctx.accounts.token_manager_token_account.key(), false),
-                        // #[account(1, name="token_owner", desc="Token account owner")]
-                        AccountMeta::new_readonly(token_manager.key(), false),
-                        // #[account(2, writable, name="destination", desc="Destination token account")]
-                        AccountMeta::new(ctx.accounts.issuer_token_account.key(), false),
-                        // #[account(3, name="destination_owner", desc="Destination token account owner")]
-                        AccountMeta::new_readonly(ctx.accounts.issuer.key(), false),
-                        // #[account(4, name="mint", desc="Mint of token asset")]
-                        AccountMeta::new_readonly(mint_info.key(), false),
-                        // #[account(5, writable, name="metadata", desc="Metadata (pda of ['metadata', program id, mint id])")]
-                        AccountMeta::new(mint_metadata_info.key(), false),
-                        // #[account(6, optional, name="edition", desc="Edition of token asset")]
-                        AccountMeta::new_readonly(mint_edition_info.key(), false),
-                        // #[account(7, optional, writable, name="recipient_token_record", desc="Owner token record account")]
-                        AccountMeta::new(from_token_record.key(), false),
-                        // #[account(8, optional, writable, name="destination_token_record", desc="Destination token record account")]
-                        AccountMeta::new(to_token_record.key(), false),
-                        // #[account(9, signer, name="authority", desc="Transfer authority (token owner or delegate)")]
-                        AccountMeta::new_readonly(token_manager.key(), true),
-                        // #[account(10, signer, writable, name="payer", desc="Payer")]
-                        AccountMeta::new(ctx.accounts.issuer.key(), true),
-                        // #[account(11, name="system_program", desc="System Program")]
-                        AccountMeta::new_readonly(system_program_info.key(), false),
-                        // #[account(12, name="sysvar_instructions", desc="Instructions sysvar account")]
-                        AccountMeta::new_readonly(sysvar_instructions_info.key(), false),
-                        // #[account(13, name="spl_token_program", desc="SPL Token Program")]
-                        AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-                        // #[account(14, name="spl_ata_program", desc="SPL Associated Token Account program")]
-                        AccountMeta::new_readonly(associated_token_program_info.key(), false),
-                        // #[account(15, optional, name="authorization_rules_program", desc="Token Authorization Rules Program")]
-                        AccountMeta::new_readonly(authorization_rules_program_info.key(), false),
-                        // #[account(16, optional, name="authorization_rules", desc="Token Authorization Rules account")]
-                        AccountMeta::new_readonly(authorization_rules_info.key(), false),
-                    ],
-                    data: MetadataInstruction::Transfer(TransferArgs::V1 {
-                        amount: token_manager.amount,
-                        authorization_data: None,
-                    })
-                    .try_to_vec()
-                    .unwrap(),
-                },
+                &TransferV1 {
+                    token: ctx.accounts.token_manager_token_account.key(),
+                    token_owner: token_manager.key(),
+                    destination_token: ctx.accounts.issuer_token_account.key(),
+                    destination_owner: ctx.accounts.issuer.key(),
+                    mint: mint_info.key(),
+                    metadata: mint_metadata_info.key(),
+                    edition: Some(mint_edition_info.key()),
+                    token_record: Some(from_token_record.key()),
+                    destination_token_record: Some(to_token_record.key()),
+                    authority: token_manager.key(),
+                    payer: ctx.accounts.issuer.key(),
+                    system_program: system_program_info.key(),
+                    sysvar_instructions: sysvar_instructions_info.key(),
+                    spl_token_program: ctx.accounts.token_program.key(),
+                    spl_ata_program: associated_token_program_info.key(),
+                    authorization_rules_program: Some(authorization_rules_program_info.key()),
+                    authorization_rules: Some(authorization_rules_info.key()),
+                }
+                .instruction(TransferV1InstructionArgs {
+                    amount: token_manager.amount,
+                    authorization_data: None,
+                }),
                 &[
                     ctx.accounts.token_manager_token_account.to_account_info(),
                     token_manager.to_account_info(),

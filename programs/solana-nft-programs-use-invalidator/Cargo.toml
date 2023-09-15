@@ -24,7 +24,8 @@ spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 solana-program = "1.10.29"
 solana-nft-programs-token-manager = { version = "1.0.0", path = "../solana-nft-programs-token-manager", features = ["cpi"] }
 solana-nft-programs-payment-manager = { version = "1.0.0", features = ["cpi"] }
-mpl-token-metadata = { version = "1.7.0", features = ["no-entrypoint"] }
+mpl-token-metadata = "3.0.1"
+mpl-utils = "0.3.2"
 arrayref = "0.3.6"
 
 [dev-dependencies]

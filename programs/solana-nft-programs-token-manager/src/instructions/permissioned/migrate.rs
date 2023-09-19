@@ -10,7 +10,8 @@ use anchor_spl::token::ThawAccount;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::{self};
-use mpl_token_metadata::instruction::create_master_edition_v3;
+use mpl_token_metadata::instructions::CreateMasterEditionV3;
+use mpl_token_metadata::instructions::CreateMasterEditionV3InstructionArgs;
 use solana_program::program::invoke_signed;
 
 #[derive(Accounts)]
@@ -69,16 +70,18 @@ pub fn handler(ctx: Context<MigrateCtx>) -> Result<()> {
     token::thaw_account(cpi_context)?;
 
     invoke_signed(
-        &create_master_edition_v3(
-            ctx.accounts.mpl_token_metadata.key(),
-            ctx.accounts.mint_edition.key(),
-            ctx.accounts.mint.key(),
-            ctx.accounts.invalidator.key(),
-            ctx.accounts.mint_manager.key(),
-            ctx.accounts.mint_metadata.key(),
-            ctx.accounts.payer.key(),
-            Some(0),
-        ),
+        &CreateMasterEditionV3 {
+            edition: ctx.accounts.mint_edition.key(),
+            mint: ctx.accounts.mint.key(),
+            update_authority: ctx.accounts.mint_manager.key(),
+            mint_authority: ctx.accounts.mint_manager.key(),
+            payer: ctx.accounts.payer.key(),
+            metadata: ctx.accounts.mint_metadata.key(),
+            token_program: ctx.accounts.token_program.key(),
+            system_program: ctx.accounts.system_program.key(),
+            rent: None,
+        }
+        .instruction(CreateMasterEditionV3InstructionArgs { max_supply: None }),
         &[
             ctx.accounts.mpl_token_metadata.to_account_info(),
             ctx.accounts.mint_edition.to_account_info(),

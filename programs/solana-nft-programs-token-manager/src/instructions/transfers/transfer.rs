@@ -11,9 +11,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use anchor_spl::token::{self};
-use mpl_token_metadata::instruction::freeze_delegated_account;
-use mpl_token_metadata::instruction::thaw_delegated_account;
-use mpl_token_metadata::utils::assert_derivation;
+use mpl_utils::assert_derivation;
 
 #[derive(Accounts)]
 pub struct TransferCtx<'info> {
@@ -63,7 +61,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let mint_manager_info = next_account_info(remaining_accs)?;
             let mint = ctx.accounts.mint.key();
             let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
-            let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;
+            let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path, error!(ErrorCode::PublicKeyMismatch))?;
             let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];
             let mint_manager_signer = &[&mint_manager_seeds[..]];
 
@@ -117,13 +115,14 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             }
 
             invoke_signed(
-                &thaw_delegated_account(
-                    *metadata_program.key,
-                    token_manager.key(),
-                    ctx.accounts.current_holder_token_account.key(),
-                    *edition_info.key,
-                    ctx.accounts.mint.key(),
-                ),
+                &mpl_token_metadata::instructions::ThawDelegatedAccount {
+                    delegate: token_manager.key(),
+                    token_account: ctx.accounts.current_holder_token_account.key(),
+                    edition: edition_info.key(),
+                    mint: ctx.accounts.mint.key(),
+                    token_program: ctx.accounts.token_program.key(),
+                }
+                .instruction(),
                 &[
                     token_manager.to_account_info(),
                     ctx.accounts.current_holder_token_account.to_account_info(),
@@ -154,13 +153,14 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token::approve(cpi_context, token_manager.amount)?;
 
             invoke_signed(
-                &freeze_delegated_account(
-                    *metadata_program.key,
-                    token_manager.key(),
-                    ctx.accounts.recipient_token_account.key(),
-                    *edition_info.key,
-                    ctx.accounts.mint.key(),
-                ),
+                &mpl_token_metadata::instructions::FreezeDelegatedAccount {
+                    delegate: token_manager.key(),
+                    token_account: ctx.accounts.recipient_token_account.key(),
+                    edition: edition_info.key(),
+                    mint: ctx.accounts.mint.key(),
+                    token_program: ctx.accounts.token_program.key(),
+                }
+                .instruction(),
                 &[
                     token_manager.to_account_info(),
                     ctx.accounts.recipient_token_account.to_account_info(),
@@ -175,7 +175,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             let mint_manager_info = next_account_info(remaining_accs)?;
             let mint = ctx.accounts.mint.key();
             let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
-            let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path)?;
+            let bump_seed = assert_derivation(ctx.program_id, mint_manager_info, path, error!(ErrorCode::PublicKeyMismatch))?;
             let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];
             let mint_manager_signer = &[&mint_manager_seeds[..]];
 

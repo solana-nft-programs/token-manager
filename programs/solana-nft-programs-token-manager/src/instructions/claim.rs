@@ -280,7 +280,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             invoke(
                 &DelegateLockedTransferV1 {
                     delegate_record: Some(mpl_token_metadata::ID),
-                    delegate: ctx.accounts.token_manager.key(),
+                    delegate: token_manager.key(),
                     metadata: mint_metadata_info.key(),
                     master_edition: Some(mint_edition_info.key()),
                     token_record: Some(recipient_token_record_info.key()),
@@ -317,7 +317,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
             invoke_signed(
                 &LockV1 {
-                    authority: ctx.accounts.token_manager.key(),
+                    authority: token_manager.key(),
                     token_owner: Some(ctx.accounts.recipient.key()),
                     token: ctx.accounts.recipient_token_account.key(),
                     mint: mint_info.key(),

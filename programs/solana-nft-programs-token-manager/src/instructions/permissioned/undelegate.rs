@@ -5,7 +5,7 @@ use anchor_spl::token::ThawAccount;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::{self};
-use mpl_token_metadata::utils::assert_derivation;
+use mpl_utils::assert_derivation;
 
 use crate::errors::ErrorCode;
 use crate::state::*;
@@ -36,7 +36,7 @@ pub struct UndelegateCtx<'info> {
 pub fn handler(ctx: Context<UndelegateCtx>) -> Result<()> {
     let mint = ctx.accounts.mint.key();
     let path = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref()];
-    let bump_seed = assert_derivation(ctx.program_id, &ctx.accounts.mint_manager.to_account_info(), path)?;
+    let bump_seed = assert_derivation(ctx.program_id, &ctx.accounts.mint_manager.to_account_info(), path, error!(ErrorCode::PublicKeyMismatch))?;
     let mint_manager_seeds = &[MINT_MANAGER_SEED.as_bytes(), mint.as_ref(), &[bump_seed]];
     let mint_manager_signer = &[&mint_manager_seeds[..]];
 

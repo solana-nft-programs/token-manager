@@ -23,7 +23,7 @@ solana-program = "1.10.29"
 spl-associated-token-account = "1.1.2"
 spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 mpl-token-metadata = "3.0.1"
-mpl-utils = "0.3.2"
+mpl-utils = "0.3.1"
 solana-nft-programs-creator-standard = { version = "1.0.0", features = ["cpi"] }
 
 [dev-dependencies]

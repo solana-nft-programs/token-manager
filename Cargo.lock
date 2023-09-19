@@ -1705,9 +1705,9 @@ dependencies = [
 
 [[package]]
 name = "solana-nft-programs-payment-manager"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32a24ad4fffd1ac93df6bebb188f8838fbf99d75fdf397f36f53498b8deb2134"
+checksum = "d14dcc0a788a2dbe45b57980fdee6a84c0a82e545db297de0a2fc59cd8300b14"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
